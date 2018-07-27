@@ -1,2 +1,2 @@
 # python3_start
-starting python work on a rasoberry pi
+starting python work on a raspberry pi
