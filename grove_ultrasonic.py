@@ -33,6 +33,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 '''
 
+#import brickpi3
 import grovepi
 
 # Connect the Grove Ultrasonic Ranger to digital port D4
