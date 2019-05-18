@@ -32,9 +32,9 @@ def main():
  #   rp.config_touch_sensor()
     time.sleep(2)
     
-   # rp.motorC_reset()
-   # rp.motorB_reset()
-   # rp.configure_gyro()
+    rp.motorC_reset()
+    rp.motorB_reset()
+    rp.configure_gyro()
     rp.configNXT_ultrasonic_sensorS3()
     rp.configNXT_ultrasonic_sensorS4()
     rp.configEV3_ultrasonic_sensorS1()
@@ -60,8 +60,11 @@ def main():
                 
 
 
-            #succ=rp.goal_seek(400,400)     #to_visit[move])
+        #    succ=rp.goal_seek(400,400)     #to_visit[move])
 
+        #    succ=rp.goal_seek(400,7000)     #to_visit[move])
+
+         #   succ=rp.goal_seek(3000,1000)     #to_visit[move])
 
     
     except KeyboardInterrupt:

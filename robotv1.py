@@ -22,13 +22,13 @@ import brickpi3 # import the BrickPi3 drivers
 
 BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
 move_size=80  # global variable forwards or backwards move.  this move size translates to 25m by 50 moves on the snooker table 
-turn_size=510 # with good batteries global variable of motor degrees movement to turn the robot 90 degrees
+turn_size=497 # with good batteries global variable of motor degrees movement to turn the robot 90 degrees
 #turn_size=510 # with low batteries, 485 with good batteries
 power_percent=50
 speed_limit=350   # in degrees per second
 wait_time=2  # seconds to wait after a move
 colour = ["none", "Black", "Blue", "Green", "Yellow", "Red", "White", "Brown"]
-
+wiggle_angle=15    # angle the robot turns each way off of straight to look around
 
 # size of table x= 4200, y=8400
 # position is from centre.  robot has a radius of about 100
@@ -37,6 +37,7 @@ class robot:
     def __init__(self,x=200,y=300,r=["F","R","B","L"]):   #, m=[["L","R","-","T"],["T","-","L","R"],["R","L","T","-"],["-","T","R","L"]]):
         self.posx=x
         self.posy=y
+        self.r_angle=0
         self.orient=r
         self.direction=0
         self.robot_radius=100
@@ -132,9 +133,9 @@ class robot:
 
 
     def turn_decision(self,gx,gy):
-        print("turn decision.  current orientation=",self.orient[self.direction])
+    #    print("turn decision.  current orientation=",self.orient[self.direction])
         turn=self.turn_matrix[self.direction+1]
-        print("turn=",turn)
+    #    print("turn=",turn)
         if self.direction==0 or self.direction==2:   # forward or backwards orient
             if self.posx<=gx:
                 e=1
@@ -147,23 +148,23 @@ class robot:
                 e=4
 
         td=self.turn_matrix[self.direction+1][e]
-        print("turn decision=",td," element=",e)
+   #     print("turn decision=",td," element=",e)
 
         if td=="L":
-            self.turn_left90()
+            self.turn_angle(-90,True)            # turn left.  True means check accuracy
         elif td=="R":
-            self.turn_right90()
+            self.turn_angle(90,True)       # right
         elif td=="T":
-            self.turn_right90()
-            self.turn_right90()
+            self.turn_angle(90,True)   # right
+            self.turn_angle(90,True)     # right
  
         return
 
 
-    def speed_decision(self,distance,gyro_angle):
-        print("speed decision.  distance=",distance)
-        front_distance=(distance[0]+distance[1])/2  # average the two readings
-        rear_distance=distance[2]
+    def speed_decision(self,distance):
+     #   print("speed decision.  distance=",distance)
+     #   front_distance=(distance[0]+distance[1])/2  # average the two readings
+     #   rear_distance=distance[2]    # [0][x] is from the stright look
         #self.sensor_speed_matrix
 
 
@@ -193,7 +194,7 @@ class robot:
                 start_range=int(d[0:3])
                 finish_range=int(d[4:7])
       #          print("front distance choices col=",col," d=",d," start=",start_range," finish=",finish_range)
-                if front_distance>=start_range and front_distance<=finish_range:
+                if (distance[0]>=start_range and distance[0]<=finish_range) or (distance[1]>=start_range and distance[1]<=finish_range):
                     break
 
             col+=1
@@ -218,7 +219,7 @@ class robot:
                 start_range=int(d[0:3])
                 finish_range=int(d[4:7])
          #       print("rear distance choices col=",col," d=",d," start=",start_range," finish=",finish_range)
-                if rear_distance>=start_range and rear_distance<=finish_range:
+                if distance[2]>=start_range and distance[2]<=finish_range:
                     break
 
             col+=1
@@ -234,26 +235,26 @@ class robot:
 
 
 ######################################
-            # Gyro sensor
+            # Gyro sensor not used for speed changes
 
-        col=0
-        for d in distance_choices:
-            if col>0:
-                start_range=int(d[0:3])
-                finish_range=int(d[4:7])
+       # col=0
+       # for d in distance_choices:
+       #     if col>0:
+       #         start_range=int(d[0:3])
+       #         finish_range=int(d[4:7])
        #         print("gyro angle choices col=",col," d=",d," start=",start_range," finish=",finish_range)
-                if gyro_angle>=start_range and gyro_angle<=finish_range:
-                    break
+       #         if gyro_angle>=start_range and gyro_angle<=finish_range:
+       #             break
 
-            col+=1
+        #    col+=1
 
      #   print("column no chosen of gyro angle choices =",col)
-        if col<=self.sensor_speed_matrix_w:
-            gspeed=int(self.sensor_speed_matrix[gyro_angle_row][col])  # using only front sensor
+        #if col<=self.sensor_speed_matrix_w:
+        #    gspeed=int(self.sensor_speed_matrix[gyro_angle_row][col])  # using only front sensor
       #  speed=self.sensor_speed_matrix[rear_sensor_row][col]       # if rear sensor
-        else:
-            print("gyro angle out of range")
-            gspeed=0
+       # else:
+       #     print("gyro angle out of range")
+       #     gspeed=0
             # how do I determine if the speeds recommended are different from the different sensors at the same time?
 
 ##################################3
@@ -262,17 +263,17 @@ class robot:
 
 
 
-        if distance[0] < 10 or distance[1]<10 or distance[2]<10:  # front and rear (left and right count as 1) sensor
+        if distance[0] < 10 or distance[1]<10:  # straight on front and rear (left and right count as 1) sensor
             obstacle_flag=True
         else:
             obstacle_flag=False
 
         
-        print("speed decisions= f,r,g",fspeed,rspeed,gspeed," obstacle flag=",obstacle_flag)
+       # print("speed decisions= f,r",fspeed,rspeed," obstacle flag=",obstacle_flag)
        
 
-        speed=min(fspeed,rspeed,gspeed)   # return the lowest speed recommended by the three sensors
-        print("speed decision=",speed)
+        speed=min(fspeed,rspeed)   # return the lowest speed recommended by the three sensors
+   #     print("speed decision=",speed)
        # input("?")
 
         return(speed, obstacle_flag)
@@ -383,18 +384,65 @@ class robot:
             print(error)
 
 
-    def look_around(self):
-        distance=[0,0,0]   # Front left, front right, back
+    def look_around(self,move):
+        distance=[[0,0,0],[100,100,100],[100,100,100]]   # Front left, front right, back for three views straight, turned 2 degrees right, turned 2 degrees left
         try:
-            distance[0]=self.readEV3_ultrasonic_sensorS1()  #left
-            distance[1]=self.readNXT_ultrasonic_sensorS4()  #right
-            distance[2]=self.readNXT_ultrasonic_sensorS3()  # back
-            print("look around left, right, back",distance)
+            distance[0][0]=self.readEV3_ultrasonic_sensorS1()  #left
+            distance[0][1]=self.readNXT_ultrasonic_sensorS4()  #right
+            distance[0][2]=self.readNXT_ultrasonic_sensorS3()  # back
+       #     print("STRAIGHT look around left, right, back",distance)
 
         except IOError as error:
             print(error)
 
-        return(distance)
+
+      #  print("distance=",distance," move%5=",move%5)
+        if move%3==0:   # every 3rd move look left and right in a wiggle
+            start_angle=self.gyro_angle()[0] 
+      #  time.sleep(0.5)
+            self.turn_angle(wiggle_angle,True)  # turn right 12 degrees for a another look
+            time.sleep(0.4)
+            try:
+                distance[1][0]=self.readEV3_ultrasonic_sensorS1()  #left
+                distance[1][1]=self.readNXT_ultrasonic_sensorS4()  #right
+                distance[1][2]=self.readNXT_ultrasonic_sensorS3()  # back
+        #        print("RIGHT look around left, right, back",distance)
+
+            except IOError as error:
+                print(error)
+
+           # print("distance=",distance)
+            #time.sleep(0.5)  
+            self.turn_angle(-wiggle_angle*2,True)  # dont check accxuracy turn left 8 degrees fromt straight for a another look
+            time.sleep(0.7)
+            try:
+                distance[2][0]=self.readEV3_ultrasonic_sensorS1()  #left
+                distance[2][1]=self.readNXT_ultrasonic_sensorS4()  #right
+                distance[2][2]=self.readNXT_ultrasonic_sensorS3()  # back
+       #         print("LEFT look around left, right, back",distance)
+
+            except IOError as error:
+                print(error)
+
+       #     print("distance=",distance)
+            #time.sleep(0.5)
+    
+          
+            self.turn_angle(wiggle_angle,True)  # turn right 12 degrees to be straight again straight for a another look
+            time.sleep(0.4)
+            finish_angle=self.gyro_angle()[0] 
+            self.turn_angle(start_angle-finish_angle,True)  # correct any bias between the motors,  get the robot on the same angle as it startedturn right 12 degrees to be straight again straight for a another look
+            time.sleep(0.4)        
+            
+
+            
+        mindist=[100,100,100]
+        mindist[0]=min(distance[0][0],distance[1][0],distance[2][0])
+        mindist[1]=min(distance[0][1],distance[1][1],distance[2][1])
+        mindist[2]=min(distance[0][2],distance[1][2],distance[2][2])
+        print("min dist=",mindist)
+
+        return mindist
 
 
 
@@ -564,8 +612,8 @@ class robot:
             print(error)
    
 
-        if value>100:
-            value=50
+        #if value>100:
+        #    value=50
 
         return value
 
@@ -581,8 +629,8 @@ class robot:
         except brickpi3.SensorError as error:
             print(error)
 
-        if value>100:
-            value=50
+     #   if value>100:
+     #       value=50
 
         return value
 
@@ -600,108 +648,99 @@ class robot:
         angle=0
         try:
             angle=BP.get_sensor(BP.PORT_2)   # print the gyro sensor values
-            print("gyro angle=",angle)
+      #      print("gyro angle=",angle)
         except brickpi3.SensorError as error:
             print(error)
 
         return angle    
 
-    def turn_left90(self):
-        print("turn_left90")
-        try:
-            target=BP.get_motor_encoder(BP.PORT_B)
-       #     print("motor B encoder value before move: ",target, "calculated pos SB: ", target+(turn_size)) 
-            BP.set_motor_position(BP.PORT_B, target+(turn_size))    # set motor B's target position
-   
-        except IOError as error:
-            print(error)
-
- #   time.sleep(3)
-
-    
-     
-        try:
-            target=BP.get_motor_encoder(BP.PORT_C)
-      #      print("motor C encoder value before move: ",target, "calculated pos SB: ", target-(turn_size)) 
-            BP.set_motor_position(BP.PORT_C, target-(turn_size))    # set motor C's target position 
-        except IOError as error:
-            print(error)
+    def stop(self):
+      #  print("stop")                
+        BP.set_motor_power(BP.PORT_B + BP.PORT_C, 0)   # stop
+        
 
 
-        if self.direction>0:
-            self.direction-=1
-        else:
-            self.direction=3
-                        
-        time.sleep(wait_time)
-        self.configure_gyro()   # reset the gyro, it gets out when turning
+ 
 
-    #    print("motor B encoder value after move = ", BP.get_motor_encoder(BP.PORT_B))
-     #   print("motor C encoder value after move = ", BP.get_motor_encoder(BP.PORT_C))
-
-
-    #time.sleep(wait_time)
-
-
-    def turn_right90(self):
-        print("turn_right 90")
-        try:
-            target=BP.get_motor_encoder(BP.PORT_B)
-   #         print("motor B encoder value before move: ",target, "calculated pos SB: ", target-(turn_size)) 
-            BP.set_motor_position(BP.PORT_B, target-(turn_size))    # set motor B's target position
-   
-        except IOError as error:
-            print(error)
-
-       # time.sleep(1)
-
-    
-     
-        try:
-            target=BP.get_motor_encoder(BP.PORT_C)
-  #          print("motor C encoder value before move: ",target, "calculated pos SB: ", target+(turn_size)) 
-            BP.set_motor_position(BP.PORT_C, target+(turn_size))    # set motor C's target position 
-        except IOError as error:
-            print(error)
-
-        if self.direction<3:
-            self.direction+=1
-        else:
-            self.direction=0
-
-        time.sleep(wait_time)
-        self.configure_gyro()   # reset the gyro, it gets out when turning
-
-#        print("motor B encoder value after move = ", BP.get_motor_encoder(BP.PORT_B))
- #       print("motor C encoder value after move = ", BP.get_motor_encoder(BP.PORT_C))
-
-        #time.sleep(wait_time)
-
-
-    def turn_angle(self, angle):
-        print("turn ",angle," degrees")
+    def turn_angle(self, angle,creep):  # if creep is true accuracy is checked, false it is not
+        self.stop()   # stop completely to get a good gyro reading
+    #    print("turn ",angle," degrees")
+        time.sleep(0.2)  # wait for gyro to settle down
         angle_move=angle*(turn_size/90)
+      #  print("angle_move=",angle_move," turn size=",turn_size)
+        start_gyro=self.gyro_angle()[0]   # current gyro angle
+      #  print("initial gyro angle=",start_gyro)
+
+        time.sleep(0.3)
         try:
             target=BP.get_motor_encoder(BP.PORT_B)
       #      print("motor B encoder value before move: ",target, "calculated pos SB: ", target-(angle_move)) 
             BP.set_motor_position(BP.PORT_B, target-(angle_move))    # set motor B's target position
    
-        except IOError as error:
-            print(error)
-
-   # time.sleep(1)
-
-    
-     
-        try:
             target=BP.get_motor_encoder(BP.PORT_C)
-      #      print("motor C encoder value before move: ",target, "calculated pos SB: ", target+(angle_move)) 
+     #       print("motor C encoder value before move: ",target, "calculated pos SB: ", target+(angle_move)) 
             BP.set_motor_position(BP.PORT_C, target+(angle_move))    # set motor C's target position 
         except IOError as error:
             print(error)
 
-        time.sleep(wait_time)
-        self.configure_gyro()   # reset the gyro, it gets out when turning
+     #   print("turn finshed?")
+        time.sleep(abs(angle_move/250))
+        finish_gyro=self.gyro_angle()[0]   # current gyro angle
+        current_turn_angle=finish_gyro-start_gyro
+ #       print("finish gyro reading=",finish_gyro," gyro angle turned=",finish_gyro-start_gyro)
+ 
+ #       time.sleep(wait_time)
+    #    self.configure_gyro()   # reset the gyro, it gets out when turning
+
+    # we may need a minor correction to get the turn angle according to the gyro exact
+
+        
+        while creep is True and current_turn_angle != angle:
+        #    print("creep loop")
+            if current_turn_angle<angle:
+                creep=8
+            else:
+                creep=-8
+                
+            try:
+                target=BP.get_motor_encoder(BP.PORT_B)
+      #      print("motor B encoder value before move: ",target, "calculated pos SB: ", target-(angle_move)) 
+                BP.set_motor_position(BP.PORT_B, target-creep)    # set motor B's target position
+   
+            except IOError as error:
+                print(error)
+
+   
+            try:
+                target=BP.get_motor_encoder(BP.PORT_C)
+     #       print("motor C encoder value before move: ",target, "calculated pos SB: ", target+(angle_move)) 
+                BP.set_motor_position(BP.PORT_C, target+creep)    # set motor C's target position 
+            except IOError as error:
+                print(error)
+
+
+            time.sleep(0.2)
+            finish_gyro=self.gyro_angle()[0]   # current gyro angle
+            current_turn_angle=finish_gyro-start_gyro
+
+    #    print("finish gyro reading=",finish_gyro," current turn angle=",current_turn_angle)
+
+
+        # to keep orientation correct, only turn either -90 or +90 degrees
+        if angle==90:   # turning clockwise (right)
+            if self.direction<3:
+                self.direction+=1
+            else:
+                self.direction=0
+        elif angle==-90:
+            if self.direction>0:            # turning anti clockwise (left)
+                self.direction-=1
+            else:
+                self.direction=3
+        #else:
+         #   print("turn angle ",angle," unrecogised. orientation not updated.")
+
+
 
     #    print("motor B encoder value after move = ", BP.get_motor_encoder(BP.PORT_B))
     #    print("motor C encoder value after move = ", BP.get_motor_encoder(BP.PORT_C))
@@ -735,6 +774,8 @@ class robot:
         back_up_flag=False
         back_up_moveno=0
         obstacle_flag=False
+        reverse_count=0
+        reverse_flag=False
         goal_reached=False
     
         old_dist=[]
@@ -752,11 +793,17 @@ class robot:
             while loop:
 
 
+
                 # firstly, update the position based on the movement of the motor encoders
                 b_en=BP.get_motor_encoder(BP.PORT_B)
                 b_move=b_en-b_last_move
                 c_en=BP.get_motor_encoder(BP.PORT_C)
                 c_move=c_en-c_last_move
+            #    print("B motor encoder=",b_en," C motor=",c_en)
+
+                # motor encoder of 225 is equiventant to 17cm
+                # 13.2 encoder per cm
+                #
                 ave_move=round((b_move+c_move)/2)
              #   print("ave_move=",ave_move," b encoder=",b_en," b_move=",b_move," c encoder=",c_en,"c_move=",c_move)
                 if self.orient[self.direction]=="F":
@@ -783,7 +830,7 @@ class robot:
             #    loop= not self.read_touch_sensor()    
 
                 distance_to_goal=self.calc_dist_to_goal2(gx,gy)
-                print("goal=",gx,gy," dist to goal=",distance_to_goal)
+         #       print("goal=",gx,gy," dist to goal=",distance_to_goal)
             
                 if distance_to_goal<self.robot_radius*2:
                     print("goal reached!")
@@ -792,25 +839,24 @@ class robot:
 
 
                 if move>3 and distance_to_goal>goal_distance[3]:
-                    print("getting further away. gd[3]=",goal_distance[3])
+                    print("getting further away. distance to goal",distance_to_goal," >gd[3]=",goal_distance[3])
                     self.turn_decision(gx,gy)
 
                 
-                distance=self.look_around()
+                distance=self.look_around(move)
                 turn_dir="-"
 
                # speed=40   # default go forward
 
-                angle=self.gyro_angle()[0]
-                speed, obstacle_flag=self.speed_decision(distance,abs(angle))
+                self.r_angle=self.gyro_angle()[0]
+
+               # if not reverse_flag:  
+                speed, obstacle_flag=self.speed_decision(distance)
             
                 #if distance[0] < 10 or distance[1]<10:  # left and right sensor
                 #    obstacle_flag=True
                 #  time to turn.  Turn towards the goal
-                if obstacle_flag:
-                    self.turn_decision(gx,gy)
-                    obstacle_flag=False
-               
+              
 
 
                
@@ -818,22 +864,39 @@ class robot:
              #       print("angle >15 degrees", angle,"degrees: about to jump wall")
              #       back_up_flag=True  # reverse off
              #       back_up_moveno=move
-          #      elif move>3:
-              #     print("distance[0]=",distance[0],distance[1]," old dist=",old_dist[3][0],old_dist[3][1])
-           #         if abs(distance[0]-old_dist[3][0])>30 or abs(distance[1]-old_dist[3][1])>30:    
-           #             print("sudden change in view.  jumped the wall?")
-           #             back_up_flag=True   # reverse off
-           #             back_up_moveno=move
 
-                if abs(angle)>20:
-                    print("TILT!")
-                    speed=0
-                    loop=False
-                    goal_reached=False
+           #     if move>3:
+                  #  print("distance[0]=",distance[0],distance[1]," old dist=",old_dist[3][0],old_dist[3][1])
+            #        if abs(distance[0]-old_dist[3][0])>40 or abs(distance[1]-old_dist[3][1])>40:    
+            #            print("sudden change in view.  jumped the wall?")
+            #            speed=-20
+            #            obstacle_flag=True
+                 #       reverse_flag=True
+
+                #if obstacle_flag:
+                 #   print("Obstacle flag. speed=",speed," reverse count=",reverse_count)
+                 #   speed, obstacle_flag=self.speed_decision(distance)
+               #     reverse_flag=True
+
+              #  if reverse_flag:
+              #      print("reverse flag. count=",reverse_count)
+              #      speed=-10
+              #      reverse_count+=1
+              #      if reverse_count>18:
+              #          print("stop reversing and make a turn decision.")
+              #          self.turn_decision(gx,gy)
+              #          reverse_flag=False
+              #          reverse_count=0
+
+            #    if abs(angle)>20:
+            #        print("TILT!")
+            #        speed=0
+            #        loop=False
+            #        goal_reached=False
 
                     
                 
-            
+                time.sleep(0.5)
                 
                 
                 BP.set_motor_power(BP.PORT_B + BP.PORT_C, -speed)   # going backwards is actually going forward
@@ -844,7 +907,7 @@ class robot:
             
       
             #    print("move=",move,"position=",position_log[move]," speed=",speed," goal_distance=",goal_distance," old_dist=",old_dist)
-                print("move=",move,"position=",position_log[move]," speed=",speed)
+                print("move=",move,"position=",position_log[move]," speed=",speed," angle=",self.r_angle)
                
 
              #   writestr=("move"+str(move))
@@ -859,7 +922,7 @@ class robot:
                     del goal_distance[0]
         
            
-                time.sleep(0.05)
+                time.sleep(0.3)    #  time between looks.  still travelling during this time
                 move+=1
     
         except KeyboardInterrupt:
