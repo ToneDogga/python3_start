@@ -32,10 +32,30 @@ def main():
     rp.config_touch_sensor()
 
     rp.generate_table(10,16)    # the table represents the robots model of its world.  0 is a blank space, 1 is a wall
-   # rp.print_table()
- 
-   # time.sleep(2)
-    
+    rp.generate_pathtable(10,16)  # this table tracks the robots path    
+   # rp.print_table()\
+
+##############################################
+    #overwrite table with maze    
+    """
+    rp.table[3][0]=1     
+    rp.table[3][1]=1     
+    rp.table[3][2]=1     
+    rp.table[3][3]=1     
+    rp.table[2][3]=1     
+    rp.table[1][3]=1     
+    rp.table[0][3]=1     
+    rp.table[5][6]=1     
+    rp.table[4][6]=1     
+    rp.table[5][5]=1     
+    rp.table[5][0]=1     
+    rp.table[5][1]=1     
+    """
+
+
+
+   
+   #########################################33 
     rp.motorC_reset()
     rp.motorB_reset()
   #  rp.configure_gyro()
@@ -47,8 +67,8 @@ def main():
 
 
 #    set starting position
-    rp.tablex=2   # robot position
-    rp.tabley=3
+    rp.tablex=3   # robot position
+    rp.tabley=0
     rp.direction=0  # Forward down the table. Orientation = "F"
     
    # time.sleep(0.1)
@@ -56,13 +76,14 @@ def main():
 
     try: 
             succ=False
-            succ=rp.goal_seek((5,6))     #to_visit[move])
+            succ=rp.goal_seek((4,4))     #to_visit[move])
          
             if succ:
                 goal_count+=1
                 print("goal number=",goal_count," reached.\n\n\n")
 
-            rp.print_table()    
+          #  rp.print_table(goal)
+            rp.print_pathtable()
 
 
         #    succ=rp.goal_seek(400,400)     #to_visit[move])
