@@ -37,10 +37,12 @@ def main():
 
 ##############################################
     #overwrite table with maze    
+    
+  #  rp.table[5][0]=1     
+  #  rp.table[5][1]=1     
+  #  rp.table[5][2]=1
+
     """
-    rp.table[3][0]=1     
-    rp.table[3][1]=1     
-    rp.table[3][2]=1     
     rp.table[3][3]=1     
     rp.table[2][3]=1     
     rp.table[1][3]=1     
@@ -67,23 +69,24 @@ def main():
 
 
 #    set starting position
-    rp.tablex=3   # robot position
-    rp.tabley=0
+    rp.tablex=0   # robot position
+    rp.tabley=7
     rp.direction=0  # Forward down the table. Orientation = "F"
     
+    goal=(6,0)
    # time.sleep(0.1)
 
 
     try: 
             succ=False
-            succ=rp.goal_seek((4,4))     #to_visit[move])
+            succ=rp.goal_seek(goal)     
          
             if succ:
                 goal_count+=1
                 print("goal number=",goal_count," reached.\n\n\n")
 
-          #  rp.print_table(goal)
-            rp.print_pathtable()
+            rp.print_table(goal)
+            rp.print_pathtable(goal)
 
 
         #    succ=rp.goal_seek(400,400)     #to_visit[move])

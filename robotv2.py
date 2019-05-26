@@ -22,7 +22,7 @@ import time     # import the time library for the sleep function
 import brickpi3 # import the BrickPi3 drivers
 
 BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
-move_size=500  # global variable forwards or backwards move.  this move size translates to 25m by 50 moves on the snooker table 
+move_size=520  # global variable forwards or backwards move.  this move size translates to 25m by 50 moves on the snooker table 
 turn_size=515 # with good batteries global variable of motor degrees movement to turn the robot 90 degrees
 #turn_size=510 # with low batteries, 485 with good batteries
 power_percent=40
@@ -49,19 +49,15 @@ class robot:
         self.table = []
         self.pathtable=[]
 
-        self.tablestartx=3
-        self.tablestarty=0
+        self.tablex=0   # position of robot
+        self.tabley=0
 
-        self.tablex=self.tablestartx   # position of robot
-        self.tabley=self.tablestarty
-
-        self.tablegoalx=9   #  virtual table goal.  a 100th of the encoder position
-        self.tablegoaly=15
-        
-        
-        self.turn_matrix=[]    #m   #  2D decision matrix for turning.. the value is the diection to turn.  F, R, B or L
-        self.turn_matrix_h=5    # 4 starting orientations
-        self.turn_matrix_w=5     # 4 different positions relative to the goal +x, -x, +y, -y
+        self.startx=self.tablex  # remember the starting position
+        self.starty=self.tabley
+                
+      #  self.turn_matrix=[]    #m   #  2D decision matrix for turning.. the value is the diection to turn.  F, R, B or L
+      #  self.turn_matrix_h=5    # 4 starting orientations
+      #  self.turn_matrix_w=5     # 4 different positions relative to the goal +x, -x, +y, -y
   
 
         #  direction is the first element 0-3, the second element is +x, -x, +y, -y
@@ -75,9 +71,9 @@ class robot:
         #  L    -   T    R     L
 
         # sensor speed decision matrix
-        self.sensor_speed_matrix=[]    # 2D decision matrix for speeds  a negative speed is forwards.  the value is the speed positive or negative
-        self.sensor_speed_matrix_h=7    #   up to 6 sensor readings : Front, Right(NA), Back, Left(NA), Gyro (angle),Gyro(rate)
-        self.sensor_speed_matrix_w=5    #   4 different ranges of distance or angle in degrees
+       # self.sensor_speed_matrix=[]    # 2D decision matrix for speeds  a negative speed is forwards.  the value is the speed positive or negative
+       # self.sensor_speed_matrix_h=7    #   up to 6 sensor readings : Front, Right(NA), Back, Left(NA), Gyro (angle),Gyro(rate)
+       # self.sensor_speed_matrix_w=5    #   4 different ranges of distance or angle in degrees
 
         #      0    1-10  10-49  50>=
         #  F
@@ -145,7 +141,7 @@ class robot:
             for x in range(0,self.tablew):
                 if x==self.tablex and y==self.tabley:
                     c="X"
-                elif x==self.tablestartx and y==self.tablestarty:
+                elif x==self.startx and y==self.starty:
                     c="S"
                 elif x==goal[0] and y==goal[1]:
                     c="F"
@@ -158,7 +154,7 @@ class robot:
     #    print("  ")
 
 
-    def print_pathtable(self):
+    def print_pathtable(self,goal):
         print(" Robot path  ")
         print("------")
        # for s in self.table:
@@ -166,7 +162,14 @@ class robot:
         for y in range(0,self.tableh):
             string=""
             for x in range(0,self.tablew):
-                c=str(self.pathtable[x][y])
+                if self.table[x][y]==1:
+                    c="#"
+             #  elif x==self.tablestartx and y==self.tablestarty:
+             #       c="S"
+                elif x==goal[0] and y==goal[1]:
+                    c="F"
+                else:
+                    c=str(self.pathtable[x][y])
                 string=string+c
             print(string)    
         print("\n")    
@@ -525,7 +528,7 @@ class robot:
         return angle    
 
     def stop(self):
-        print("stop")                
+       # print("stop")                
         BP.set_motor_power(BP.PORT_B + BP.PORT_C, 0)   # stop
 
         
@@ -610,7 +613,7 @@ class robot:
         start_gyro=self.gyro_angle()[0]   # current gyro angle
       #  print("initial gyro angle=",start_gyro)
 
-        time.sleep(1)
+        time.sleep(0.5)
 
         # to even out variations in the motors  randomise the order they move
         if random.randint(1,2)==1:
@@ -644,7 +647,7 @@ class robot:
              
 
        #print("turn finshed?")
-        time.sleep(4)
+        time.sleep(2)
         finish_gyro=self.gyro_angle()[0]   # current gyro angle
         current_turn_angle=finish_gyro-start_gyro
      #   print("finish gyro reading=",finish_gyro," gyro angle turned=",finish_gyro-start_gyro)
@@ -713,6 +716,7 @@ class robot:
 
 
     def look_around(self):
+        wiggle=False  # if true robot looks 15 degrees either way at each orientation F, L, R during the look around
         distance=[[100,100],[100,100],[100,100]]   # Front left, front right ultrasonic sensors for 3 views straight, turned 2 degrees right, turned 2 degrees left
         try:
             distance[0][0]=self.readEV3_ultrasonic_sensorS1()  #left
@@ -723,10 +727,10 @@ class robot:
         except IOError as error:
             print(error)
 
-
+        start_angle=self.gyro_angle()[0] 
+ 
        # print("distance front peek=",distance)
-        if True:   # every nth move look left and right in a wiggle
-            start_angle=self.gyro_angle()[0] 
+        if wiggle:   #  look left and right in a wiggle
             time.sleep(0.1)
             self.turn_angle(wiggle_angle,True)  # turn right 12 degrees for a another look
             time.sleep(0.4)
@@ -765,11 +769,11 @@ class robot:
           
             self.turn_angle(wiggle_angle,True)  # turn right 12 degrees to be straight again straight for a another look
             time.sleep(0.4)
-            finish_angle=self.gyro_angle()[0]
-            time.sleep(0.1)
+        finish_angle=self.gyro_angle()[0]
+        time.sleep(0.1)
            # print(" start_gyro=",start_angle," finish_gyro=",finish_angle,"correction=",start_angle-finish_angle)
             
-            self.turn_angle(start_angle-finish_angle,True)  # correct any bias between the motors,  get the robot on the same angle as it startedturn right 12 degrees to be straight again straight for a another look
+        self.turn_angle(start_angle-finish_angle,True)  # correct any bias between the motors,  get the robot on the same angle as it startedturn right 12 degrees to be straight again straight for a another look
            # print(" start_gyro=",start_angle," finish_gyro=",finish_angle,"normal correction=",start_angle-finish_angle)
 
            #else:
@@ -777,7 +781,7 @@ class robot:
           #  input("?")  
 
 
-            time.sleep(0.8)        
+        time.sleep(0.1)        
             
 
             
@@ -929,59 +933,67 @@ class robot:
     """
 
 
-    def plot_wall(self,xoffset,yoffset):
-            print("plot wall")
-            if self.orient[self.direction]=="F":
-                self.table[self.tablex][self.tabley+1]=1   # add a wall
-            elif self.orient[self.direction]=="R":
-                self.table[self.tablex+1][self.tabley]=1   # add a wall
-            elif self.orient[self.direction]=="B":
-                self.table[self.tablex][self.tabley-1]=1   # add a wall
-            elif self.orient[self.direction]=="L":
-                self.table[self.tablex-1][self.tabley]=1   # add a wall
-            else:
-                print("orient code error")
-
+    def plot_wall(self,orient):
+            #if xoffset==0 and yoffset==0:
+            #    print("port wall error. trying to put a wall where we are! (",self.tablex,",",self.tabley,")")
+            #else:
+            if orient==0:  # forward
+        #       print("plot wall at (",self.tablex+xoffset,",",self.tabley+yoffset,")")
+                if self.tabley<self.tableh-1:
+                    print("plot wall forward at (",self.tablex,",",self.tabley+1,")")
+                    self.table[self.tablex][self.tabley+1]=1   # add a wall
+            elif orient==1:   #right
+        #       print("plot wall at (",self.tablex+xoffset,",",self.tabley+yoffset,")")
+                if self.tablex>0:
+                    print("plot wall right at (",self.tablex-1,",",self.tabley,")")
+                    self.table[self.tablex-1][self.tabley]=1   # add a wall
+            elif orient==2:   # back
+                if self.tabley>0:
+                    print("plot wall back at (",self.tablex,",",self.tabley-1,")")
+                    self.table[self.tablex][self.tabley-1]=1
+            elif orient==3:   # left
+                if self.tablex<self.tablew-1:
+                    print("plot wall left at (",self.tablex+1,",",self.tabley,")")
+                    self.table[self.tablex+1][self.tabley]=1
 
     def plot_environment(self):
         print("looking around. current orient=",self.orient[self.direction])
         dist=self.look_around()
-        print("look forward. dist=",dist)
+       # print("look forward. dist=",dist)
         if dist<min_object_dist:
             print("wall forward")
-            self.plot_wall(0,1)   # x and y offset to put wall
+            self.plot_wall(self.direction)   # x and y offset to put wall
         else:
             print("all clear forward")
         # turn left
 
-        time.sleep(1)
+        time.sleep(0.2)
         self.turn_angle(-90,True)    # turn left
-        time.sleep(1)              
+        time.sleep(0.2)              
         dist=self.look_around()
-        print("look left. dist=",dist)
+      # print("look left. dist=",dist)
         if dist<min_object_dist:
             print("wall left")
-            self.plot_wall(-1,0)
+            self.plot_wall(self.direction)
         else:
             print("all clear left")
         # turn right
         print("current orient=",self.orient[self.direction])
         
-        time.sleep(1)
+        time.sleep(0.3)
         self.turn_angle(90,True)   # turn right
-        time.sleep(1)
+        time.sleep(0.3)
         self.turn_angle(90,True)   # turn right
-        time.sleep(1)        
+        time.sleep(0.3)        
         dist=self.look_around()
-        print("look right. dist=",dist)
+       # print("look right. dist=",dist)
         if dist<min_object_dist:
             print("wall right")
-            self.plot_wall(1,0)
+            self.plot_wall(self.direction)
         else:
             print("all clear right")
-        # turn forward again
-
-        time.sleep(1)
+        # turn forward again2
+        time.sleep(0.4)
         self.turn_angle(-90,True)  # turn left
         time.sleep(0.3)
     #    print("orientation=",self.orient[self.direction])
@@ -1032,8 +1044,8 @@ class robot:
             previous_path_value=self.pathtable[neighbor[0]][neighbor[1]]
             if np_value == 0 and previous_path_value==0:   # dont retrace old steps
                 empty_neighbours.append(neighbor)
-       #         print("goal check empty neighbours",empty_neighbours)        
 
+      #  print("empty neighbours",empty_neighbours)        
 
         distances = []
         for empty in empty_neighbours:          
@@ -1045,7 +1057,7 @@ class robot:
             else:
                 
                 moves = self.generate_legal_moves(empty)
-     #           print("legal moves from:",empty,"=",moves," distance[1]=",distance[1])
+       #         print("legal moves from:",empty,"=",moves," distance[1]=",distance[1])
                 for m in moves:
                     if self.table[m[0]][m[1]] == 0:
                         distance[1]=self.calc_dist_to_goal(empty,target)
@@ -1070,7 +1082,7 @@ class robot:
 
     def move_robot(self,moveto_x,moveto_y):
         move_flag=False
-        print("move robot to visit=",moveto_x,moveto_y," current pos=(",self.tablex,",",self.tabley,")")              
+        print("current pos=(",self.tablex,",",self.tabley,")")              
         print("orientation=",self.orient[self.direction])   #," path=",path)
         if self.orient[self.direction]=="F":
             if moveto_x>self.tablex:
@@ -1078,7 +1090,7 @@ class robot:
                  self.turn_angle(-91,True)
                  time.sleep(1)
                  self.move_forward()
-               #  time.sleep(1)
+                 time.sleep(1)
                #  self.turn_angle(90,True)
                  move_flag=True
                  
@@ -1087,7 +1099,7 @@ class robot:
                  self.turn_angle(90,True)
                  time.sleep(1)
                  self.move_forward()
-               #  time.sleep(1)
+                 time.sleep(1)
                #  self.turn_angle(-91,True)
                  move_flag=True
                  
@@ -1130,7 +1142,7 @@ class robot:
                  self.turn_angle(-91,True)
                  time.sleep(1)
                  self.move_forward()
-                # time.sleep(1)
+                 time.sleep(1)
                 # self.turn_angle(90,True)
                  move_flag=True
                  
@@ -1140,7 +1152,7 @@ class robot:
                  self.turn_angle(90,True)
                  time.sleep(1)
                  self.move_forward()
-              #   time.sleep(1)
+                 time.sleep(1)
               #   self.turn_angle(-91,True)
                  move_flag=True
                  
@@ -1151,7 +1163,7 @@ class robot:
                  self.turn_angle(90,True)
                  time.sleep(1)
                  self.move_forward()
-               #  time.sleep(1)
+                 time.sleep(1)
                #  self.turn_angle(-91,True)
                  move_flag=True
                  
@@ -1161,14 +1173,14 @@ class robot:
                  self.turn_angle(-91,True)
                  time.sleep(1)
                  self.move_forward()
-              #   time.sleep(1)
+                 time.sleep(1)
               #   self.turn_angle(90,True)
                  move_flag=True
                  
                  
             if moveto_y>self.tabley and not move_flag:   # and not move_flag:
                  #move backward 
-                 time.sleep(1)
+                # time.sleep(1)
                  self.move_backward()
                  time.sleep(1)
                  move_flag=True
@@ -1205,7 +1217,7 @@ class robot:
                  self.turn_angle(90,True)
                  time.sleep(1)
                  self.move_forward()
-               #  time.sleep(1)
+                 time.sleep(1)
                #  self.turn_angle(90,True)
                  move_flag=True
                  
@@ -1215,7 +1227,7 @@ class robot:
                  self.turn_angle(-91,True)
                  time.sleep(1)
                  self.move_forward()
-               #  time.sleep(1)
+                 time.sleep(1)
                #  self.turn_angle(-91,True)
                  move_flag=True
         print("move robot completed")
@@ -1232,13 +1244,13 @@ class robot:
        # to_visit = node to visit
        # goal = node to finish on
 
-        self.plot_environment()    #  look around.  update the table with 1's if a wall is detected
-        print("calling move robot.  to_visit=",to_visit)
+        print("step no=",n," current pos=(",self.tablex,",",self.tabley,") Moving to: ", to_visit)
+        
         self.move_robot(to_visit[0],to_visit[1])
         
         self.tablex=to_visit[0]
         self.tabley=to_visit[1]
-        time.sleep(0.3)
+        time.sleep(0.2)
 
         self.r_angle=self.gyro_angle()[0]
         time.sleep(0.2)
@@ -1249,15 +1261,17 @@ class robot:
        
     #    print("n=",n)
     #    print("move_no=",n,"position log=",position_log," angle=",self.r_angle,"goal=",goal)
+
+ 
                
 
         self.pathtable[to_visit[0]][to_visit[1]] = n
         path.append(to_visit) #append the newest vertex to the current point
-        print("step no=",n," Moving to: ", to_visit)
+       
      #   input("next?")
 
-        self.print_table(goal)
-        self.print_pathtable()
+       # self.print_table(goal)
+       # self.print_pathtable()
 
                       
 
@@ -1276,8 +1290,8 @@ class robot:
             sys.exit(1)
 
       #  print("calling move robot.  to_visit=",to_visit)
-        self.move_robot(to_visit[0],to_visit[1])
-        time.sleep(1)
+      #  self.move_robot(to_visit[0],to_visit[1])
+      #  time.sleep(1)
 
           #  if to_visit==goal: # goal reached
         if to_visit[0]>=goal[0]-self.robot_radius  and to_visit[0]<=goal[0]+self.robot_radius and to_visit[1]>=goal[1]-self.robot_radius and to_visit[1]<=goal[1]+self.robot_radius:
@@ -1285,6 +1299,7 @@ class robot:
             print(path)
             print("goal reached",goal,"n=",n,"distances=",goal_distance)
             self.print_table(goal)
+            self.print_pathtable(goal)
             exit_loop=True
             sys.exit(1)
 
@@ -1296,12 +1311,19 @@ class robot:
             exit_loop=True
             goal_reached=True
 
-        
+
+     #   self.print_table(goal)
+        self.print_pathtable(goal)
+
        
       #  input("next?")
 
+       # print("plotting environment")
+        self.plot_environment()
+
+
         sorted_neighbours=self.sort_closest_neighbors_to_goal(to_visit,goal)
-       # print("sorted neighbours=",sorted_neighbours)
+        print("sorted neighbours=",sorted_neighbours)
         for neighbor in sorted_neighbours:
             self.move(n+1, path, neighbor,goal)
 
@@ -1355,10 +1377,12 @@ class robot:
         # returns True is goal reached
         print("goal seek to:",goal)
         #loop=True
+        self.startx=self.tablex
+        self.starty=self.tabley
 
         # recursive function starts the moving. ( move no,path,starting pos, goal pos)
         try: 
-            goal_reached=self.move(1, [], (self.tablestartx,self.tablestarty), goal)
+            goal_reached=self.move(1, [], (self.tablex,self.tabley), goal)
 
             if not goal_reached:
                 print("goal not reached")
