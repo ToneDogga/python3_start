@@ -13,9 +13,11 @@
 from __future__ import print_function # use python 3 syntax but make it compatible with python 2
 from __future__ import division       #                           ''
 
-#import sys
+
+import sys
 import time
 import pygame
+from pygame.locals import *
 import robot3_lib  # brickpi robot class, motor and sensor functions
 import brickpi3   # brickpi dexter library
 
@@ -29,6 +31,8 @@ def calibrate_gyro(rp):
     starting_angle=rp.gyro_angle()[0]
     #    time.sleep(0.1)
     return starting_angle
+
+   
 
 
 class PID_control:
@@ -78,10 +82,10 @@ class PID_control:
 
         self.lasterror=error
         self.call_count+=1
-      #  print("call count=",self.call_count," error history sum=",error_sum)
+        print("call count=",self.call_count,"p=",p," i=",i," d=",d)
         if self.call_count>=10:
             del self.error_history[0]
-            return(p+i+d)
+            return(p+d)   # return(p+i+d)
         else:
             return(p+d)
         
@@ -113,8 +117,8 @@ def main():
     rp.motorC_reset()   # port MC
     rp.motorB_reset()    # port MB
     rp.configure_gyro()    #Sensor port 2
-    rp.configEV3_ultrasonic_sensorS1()
-    rp.configNXT_ultrasonic_sensorS4()
+   # rp.configEV3_ultrasonic_sensorS1()
+   # rp.configNXT_ultrasonic_sensorS4()
 
     time.sleep(4)   # wait while sensors get ready
     robotlog=open("robotlog.txt","w")
@@ -126,10 +130,11 @@ def main():
 
 #############################################
    #  key constants
-    deadzone_angle=2  # plus or minus 2 degrees.  No speed adjustments in the deadzone
+    deadzone_angle=1  # plus or minus 2 degrees.  No speed adjustments in the deadzone
     tipped_over_angle=20  # plus or minus 20 degrees.  Kill the motor and let the robot stop
     perfect_angle=0  # the angle the robot needs to be to balance.  The error angle is calculated from this
 
+    scaling_factor=2.5   # scales the PID output to a usable motor speed
     start_angle=0   # when the inner loop starts, the gyro starts at 0 as an absolute angle.  We need to find the relative angle
 
     motorB_speed=0   # until we get to turning, the motorb and motorc engine speed should be locked at the same
@@ -151,8 +156,7 @@ def main():
 
  #############################333
 
-
-
+    print("starting NOW. start angle=",start_angle)
 
     try:
         while main_loop:
@@ -177,20 +181,35 @@ def main():
              #   print("dist=",value1)
             
               #  PID.PID_tuning(value1)
-            motor_speed=PID.PID_processor(relative_angle,perfect_angle,angle_rate)   #  current angle, command angle and gyro rate (as the differential element)
+           # get_ch()
+            #print("char=",ch)
+       
+            """
+            for event in pygame.event.get():
+                if event.type == QUIT: # if closing application
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_1:
+                        print("1 pressed")
+            """          
 
-         #   if abs(relative_angle-perfect_angle)>tipped_over_angle:
-         #       print("tipped over!")
-         #       BP.set_motor_power(BP.PORT_B + BP.PORT_C, 0)
-         #       break
+              
+            motor_speed=scaling_factor*PID.PID_processor(relative_angle,perfect_angle,angle_rate)   #  current angle, command angle and gyro rate (as the differential element)
+
+            if abs(relative_angle-perfect_angle)>tipped_over_angle:
+                print("tipped over!")
+                BP.set_motor_power(BP.PORT_B + BP.PORT_C, 0)
+                break
         
             if abs(relative_angle-perfect_angle)>deadzone_angle:
-                BP.set_motor_power(BP.PORT_B + BP.PORT_C, motor_speed)
-
+    #            print("set motor speeds here;  speed=",motor_speed)
+                BP.set_motor_power(BP.PORT_B , motor_speed)
+                BP.set_motor_power(BP.PORT_C, -motor_speed)
                     
             timelog=time.process_time()
-      #      print("n=",n," time=",timelog," angle=",relative_angle," rate:",angle_rate," Motor speed=",motor_speed)
-            robotlog.write("time="+str(timelog)+" angle="+str(relative_angle)+", rate:"+str(angle_rate)+" PID motor speed="+str(motor_speed)+"\n")
+         #  print("n=",n," time=",timelog," angle=",relative_angle," rate:",angle_rate," Motor speed=",motor_speed)
+         #   robotlog.write("time="+str(timelog)+" angle="+str(relative_angle)+", rate:"+str(angle_rate)+" PID motor speed="+str(motor_speed)+"\n")
              
 
             if rp.read_touch_sensor():
