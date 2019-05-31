@@ -73,25 +73,18 @@ class PID_control:
         self.totalerror=0
         self.lasterror=0
        
-        self.Kp=30        # proportional constant (30)     total motor speed struggles to get > 1000 total seems to be 60p
-        self.Ki=8      # integral constant (1.8)
-        self.Kd=5       # differential constant (1.8)  max rate is 160
+        self.Kp=31        # proportional constant (31)     total motor speed struggles to get > 1000 total seems to be 60p
+        self.Ki=10      # integral constant(x10) (10)
+        self.Kd=6       # differential constant (6)  max rate is 160
 
-    def PID_tuning(self,loopname):   
-        print(loopname," PID tuning: Kp=,",self.Kp," Ki=",self.Ki," Kd=",self.Kd)
-        self.Kp=input("Kp=")
-        self.Ki=input("Ki=")
-        self.Kd=input("Kd=")
-        #   setup adjustments of these constants here
-       
-        
+         
         
 
     def PID_processor(self,actual,command,diff):
         #  take the actual value and return an appropoirate correction factor to bring it to the command value
         #   the diff is passes from the gyro as the rate of angle change
-        integral_sum_cycles=10
-        sample_rate=3   # the number of cycles per sample of error
+        integral_sum_cycles=10   # 100 seems to be the wavelength of the derivtive occilation at 2 cycles per 1/1000th of a sec
+        sample_rate=10   # the number of cycles per sample of error
         full_history_count=integral_sum_cycles*sample_rate
 
         error=command-actual
@@ -218,11 +211,11 @@ def main():
 
             
             timelog=time.process_time()
-            """
-            while timelog<oldtime+0.005:
+            # standardise the rate of processing at two every 1/1000 th of a second
+            while timelog<oldtime+0.0005:
                   timelog=time.process_time()
             oldtime=timelog
-            """
+        
 
             
           # get gyro angle
@@ -250,7 +243,7 @@ def main():
                 
                 if relative_angle==perfect_angle:
                     tipped_over=False
-                # Inner_PID.PID_tuning("Inner")
+            
             else:
 
                 # calculate correction motor speed based in a correction factor calcultaed by the inner PID function
@@ -313,7 +306,7 @@ def main():
          #  print("n=",n," time=",timelog," angle=",relative_angle," rate:",angle_rate," Motor speed=",motor_speed)
             
             #if abs(actual_angle)<=tipped_over_angle and angle_rate!=0:
-            robotlog.write(" n="+str(n)+" actual a="+str(actual_angle)+" ra "+str(relative_angle)+" dz="+str(dead_zone)+" rate:"+str(angle_rate)+" p="+str(p)+" i="+str(i)+" d="+str(d)+" PID ms="+str(motor_speed)+" Kp="+str(Inner_PID.Kp)+" Ki="+str(Inner_PID.Ki)+" Kd="+str(Inner_PID.Kd)+" eh="+str(i_error)+"\n")
+            robotlog.write("t="+str(timelog)+" n="+str(n)+" actual a="+str(actual_angle)+" ra "+str(relative_angle)+" dz="+str(dead_zone)+" rate:"+str(angle_rate)+" p="+str(p)+" i="+str(i)+" d="+str(d)+" PID ms="+str(motor_speed)+" Kp="+str(Inner_PID.Kp)+" Ki="+str(Inner_PID.Ki)+" Kd="+str(Inner_PID.Kd)+" eh="+str(i_error)+"\n")
              
 
             if rp.read_touch_sensor():
