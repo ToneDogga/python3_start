@@ -159,7 +159,7 @@ def main():
   #  deadzone_minangle=0  # plus or minus 2 degrees.  No speed adjustments in the deadzone
   #  deadzone_maxangle=0
     tipped_over_angle=28  # plus or minus 20 degrees.  Kill the motor and let the robot stop
-    target_angle=0.5  # (-4) the angle the robot needs to be to balance.  The error angle is calculated from this
+    target_angle=-1.1  # (-4) the angle the robot needs to be to balance.  The error angle is calculated from this
     start_target_angle=target_angle
     target_angle_temp=0
 
@@ -171,9 +171,9 @@ def main():
 
 
     # inner loop PID constants   angle error adjust wheel speed
-    IKp=28        # (28)proportional constant (31)     total motor speed struggles to get > 1000 total seems to be 60p
-    IKi=2.8  # (2.8)integral constant (x20)
-    IKd=2.8      # (2.8)differential constant (6)  max rate is 160
+    IKp=21        # (21.5)proportional constant (31)     total motor speed struggles to get > 1000 total seems to be 60p
+    IKi=2  # (2.1)integral constant (x20) or 2.4 x18
+    IKd=3.2    # (2.2)differential constant (6)  max rate is 160
 
     # outer loop PID constants  speed error, adjust the target angle
     OKp=0      # proportional constant 
@@ -220,7 +220,7 @@ def main():
     start_angle=calibrate_gyro(rp)
     time.sleep(1)
     print("starting angle=",start_angle)
-    robotlog.write("starting angle="+str(start_angle)+"\n")
+   # robotlog.write("starting angle="+str(start_angle)+"\n")
     #input("?")
 
  #############################333
@@ -257,7 +257,7 @@ def main():
          #   time.sleep(0.02)
             absolute_angle=angle[0]
             angle_rate=angle[1]
-            actual_angle=-absolute_angle-start_angle
+            actual_angle=-absolute_angle-start_target_angle
             
             old_angle=angle  
     
@@ -277,7 +277,7 @@ def main():
 
                 # calculate correction motor speed based in a correction factor calcultaed by the inner PID function
               
-                p,i,d,i_error=Inner_PID.PID_processor(actual_angle,target_angle,angle_rate,IKp,IKi,IKd,20,5)   # 12, 5 current angle, command angle and gyro rate (as the differential element), integral number of samples, and sample rate
+                p,i,d,i_error=Inner_PID.PID_processor(actual_angle,target_angle,angle_rate,IKp,IKi,IKd,18,7)   # 12, 5 current angle, command angle and gyro rate (as the differential element), integral number of samples, and sample rate
 
                 if p>300:
                     p=300
@@ -315,12 +315,13 @@ def main():
                     BP.set_motor_dps(BP.PORT_B , motor_speed+turn)   # set_motor_speed
                     BP.set_motor_dps(BP.PORT_C, -motor_speed+turn)
                     
-            robotlog.write(" n="+str(n)+" actual a="+str(actual_angle)+" PID  actual s="+str(motor_speed)+" ta="+str(target_angle)+" tat "+str(target_angle_temp)+" rate:"+str(angle_rate)+" cs="+str(command_speed)+" p="+str(p)+" i="+str(i)+" d="+str(d)+" ehist="+str(i_error)+" shist="+str(s_error)+"t="+str(timelog)+"\n")
-             
+          #  robotlog.write(" n="+str(n)+" actual a="+str(actual_angle)+" PID  actual s="+str(motor_speed)+" ta="+str(target_angle)+" tat "+str(target_angle_temp)+" rate:"+str(angle_rate)+" cs="+str(command_speed)+" p="+str(p)+" i="+str(i)+" d="+str(d)+" ehist="+str(i_error)+" shist="+str(s_error)+"t="+str(timelog)+"\n")
+            robotlog.write(str(n)+","+str(actual_angle)+","+str(motor_speed)+","+str(p)+","+str(i)+","+str(d)+"\n")
+  
 
             if rp.read_touch_sensor():
                 print("touch sensor hit.")
-                robotlog.write("touch sensor hit.\n")
+            #    robotlog.write("touch sensor hit.\n")
                 main_loop=False
             
             n+=1    
