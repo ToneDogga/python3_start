@@ -46,6 +46,20 @@ def calibrate_gyro(rp):
     return starting_angle
 
 
+def reset_position(rp):
+    try:
+        rp.offset_motor_encoder(rp.PORT_B, rp.get_motor_encoder(rp.PORT_B)) # reset encoder
+     #   print("Motor B reset encoder done")
+    except IOError as error:
+        print(error)
+
+    try:
+        rp.offset_motor_encoder(rp.PORT_C, rp.get_motor_encoder(rp.PORT_C)) # reset encoder
+    #    print("Motor C reset encoder done")
+    except IOError as error:
+        print(error)
+
+
 #def float_motorA():
     
 #BP.offset_motor_encoder(BP.PORT_A, BP.get_motor_encoder(BP.PORT_A)) # reset encoder
@@ -175,7 +189,7 @@ def main():
     command_position=0  # position on the encoder we want to stay at
 
     # Balance loop PID constants   angle error adjust wheel speed
-    BKp=8.7      #(8.65) (9)proportional constant    
+    BKp=8.65      #(8.65) (9)proportional constant    
     BKi=0.16  # (0.16)(0.18)integral constant ( frequency=23 x 10)=230, period of occilation is approx 150. or frequency is 8x10=80, half of occilation
     BKd=0.18    # (0.18)differential constant 
 
@@ -220,31 +234,21 @@ def main():
 
 #############################################
     # reset encoders for position
-    try:
-        BP.offset_motor_encoder(BP.PORT_B, BP.get_motor_encoder(BP.PORT_B)) # reset encoder
-        print("Motor B reset encoder done")
-    except IOError as error:
-        print(error)
 
+    reset_position(BP)
+    
     try:
         BP.set_motor_power(BP.PORT_B, BP.MOTOR_FLOAT)    # float motor B
-        print("Motor B floated")
-    except IOError as error:
-        print(error)
-
-
-    try:
-        BP.offset_motor_encoder(BP.PORT_C, BP.get_motor_encoder(BP.PORT_C)) # reset encoder
-        print("Motor C reset encoder done")
+     #   print("Motor B floated")
     except IOError as error:
         print(error)
 
     try:
         BP.set_motor_power(BP.PORT_C, BP.MOTOR_FLOAT)    # float motor B
-        print("Motor C floated")
+     #   print("Motor C floated")
     except IOError as error:
         print(error)
-
+ 
    
 ##################################################
     #  calibrate gyro
@@ -341,21 +345,7 @@ def main():
                 target_angle=-((p2+i2+d2)-start_target_angle)+balance_bias_angle
 
  
-                remote=BP.get_sensor(BP.PORT_1)
-                if not isinstance(remote[0],list):   # the [0] list is the first (top) channel
-                    remote[0]=[0,0,0,0,0]                   #  buttons in order: left top,left  bottom, right top, right bottom, centre
-
-                if remote[0][2]==1:   #Go faster or forward
-                    target_angle-=0.03
-                elif remote[0][3]==1:  #go slower or reverse
-                    target_angle+=0.03
-                elif remote[0][0]==1:  # turn left
-                    turn+=10
-                elif remote[0][1]==1:  # turn right
-                    turn-=10
-                elif remote[0][4]==1:  # cancel turning
-                    turn=0
-
+               
 
 
 
@@ -376,6 +366,23 @@ def main():
                 target_angle+=position_adjustment_angle
               #  print("position=",position," position adjustment angle=",p3+i3+d3)  
 
+                remote=BP.get_sensor(BP.PORT_1)
+                if not isinstance(remote[0],list):   # the [0] list is the first (top) channel
+                    remote[0]=[0,0,0,0,0]                   #  buttons in order: left top,left  bottom, right top, right bottom, centre
+
+                turn=0
+                if remote[0][2]==1:   #Go faster or forward
+                    target_angle-=0.005
+                    reset_position(BP)
+                elif remote[0][3]==1:  #go slower or reverse
+                    target_angle+=0.005
+                    reset_position(BP)
+                elif remote[0][0]==1:  # turn left
+                    turn=5
+                elif remote[0][1]==1:  # turn right
+                    turn=-5
+             #   elif remote[0][4]==1:  # cancel turning
+             #       turn=0
 
 
 
