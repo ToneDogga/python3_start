@@ -19,19 +19,19 @@ BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be 
 
 # timelog=time.process_time()
 
-logfile=open("myfile.csv","w")
+#logfile=open("myfile.csv","w")
 
-row=1
-while row<=100:
-    timelog=time.process_time()
+#row=1
+#while row<=100:
+#    timelog=time.process_time()
     #lines=str(row)+","+str(timelog)+","+str(BP.get_motor_encoder(BP.PORT_A))+","+str(BP.get_motor_encoder(BP.PORT_B))+","+str(BP.get_motor_encoder(BP.PORT_C))+","+str(BP.get_motor_encoder(BP.PORT_D))+","+str(BP.get_sensor(BP.PORT_1))+","+str(BP.get_sensor(BP.PORT_2))+","+str(BP.get_sensor(BP.PORT_3))+","+str(BP.get_sensor(BP.PORT_4))+","+"\n"
 
-    lines=str(row)+","+str(timelog)+","+str(BP.get_motor_encoder(BP.PORT_A))+","+str(BP.get_motor_encoder(BP.PORT_B))+","+str(BP.get_motor_encoder(BP.PORT_C))+","+str(BP.get_motor_encoder(BP.PORT_D))+","+"\n"
-    print(lines)
-    logfile.write(lines)
-    row+=1             
-    time.sleep(0.05)    
-logfile.close()
+#    lines=str(row)+","+str(timelog)+","+str(BP.get_motor_encoder(BP.PORT_A))+","+str(BP.get_motor_encoder(BP.PORT_B))+","+str(BP.get_motor_encoder(BP.PORT_C))+","+str(BP.get_motor_encoder(BP.PORT_D))+","+"\n"
+#    print(lines)
+#    logfile.write(lines)
+#    row+=1             
+#    time.sleep(0.05)    
+#logfile.close()
 
 
 
@@ -74,29 +74,43 @@ print("Server listening....")
 
 
 
+conn, addr = s.accept()     # Establish connection with client.
+print("Got connection from", addr)
+data = conn.recv(1024)
+print("Server received", repr(data))
+print("Server sending encoder values...")
 try:
-
     while True:
-        conn, addr = s.accept()     # Establish connection with client.
-        print("Got connection from", addr)
-        data = conn.recv(1024)
-        print("Server received", repr(data))
+  #  r=str(row)+"\n"
+        motor_pos_str=str(BP.get_motor_encoder(BP.PORT_A)).zfill(6)
+        motor_pos=motor_pos_str[0:6]
+        b = motor_pos.encode('utf-8')
+        conn.send(b)
+        
+            
+#try:
 
-        filename="myfile.csv"
-        f = open(filename,"rb")
-        l = f.read(1024)
-        while (l):
-           conn.send(l)
-           print("Sent ",repr(l))
-           l = f.read(1024)                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
-        f.close()
+#    while True:
+#        conn, addr = s.accept()     # Establish connection with client.
+#        print("Got connection from", addr)
+#        data = conn.recv(1024)
+#        print("Server received", repr(data))
 
-        print("Done sending")
-        conn.send(b'Thank you for connecting')
-        conn.close()
-        break
+#        filename="myfile.csv"
+#        f = open(filename,"rb")
+#        l = f.read(1024)
+#        while (l):
+#           conn.send(l)
+#           print("Sent ",repr(l))
+#           l = f.read(1024)                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+#        f.close()
+
+    print("Done sending")
+       # conn.send(b'Thank you for connecting')
+    conn.close()
+#break
 
 except KeyboardInterrupt:
     BP.reset_all()
 
-BP.reset_all()
+#BP.reset_all()
