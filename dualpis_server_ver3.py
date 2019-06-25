@@ -16,7 +16,7 @@ import brickpi3 # import the BrickPi3 drivers
 
 
 BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
-
+BP.offset_motor_encoder(BP.PORT_A, BP.get_motor_encoder(BP.PORT_A))
 
 
 
@@ -41,27 +41,30 @@ print("Server listening....")
 
 
 conn, addr = s.accept()     # Establish connection with client.
-print("Got connection from", addr)
+print("Got connection with", addr)
 data = conn.recv(1024)
 print("Server received", repr(data))
 print("Server sending encoder values...")
 try:
     while True:
-  #  r=str(row)+"\n"
-        motor_pos_str=str(BP.get_motor_encoder(BP.PORT_A)).zfill(6)
-        motor_pos=motor_pos_str[0:6]
+        motor_pos_str=str(BP.get_motor_encoder(BP.PORT_A)).zfill(8)
+        motor_pos=motor_pos_str[0:8]
+        #print("motor_pos=",motor_pos)
         b = motor_pos.encode('utf-8')
         conn.send(b)
         
             
 
 
-    print("Done sending")
-       # conn.send(b'Thank you for connecting')
-    conn.close()
+
 #break
 
 except KeyboardInterrupt:
     BP.reset_all()
+    print("Done sending")
+       # conn.send(b'Thank you for connecting')
+    conn.close()
+
+
 
 BP.reset_all()
