@@ -115,16 +115,6 @@ def convert_ds_values_to_bytes(ds):
     return b
 
 
-#msg = bytearray()  # New empty byte array
-# Append data to the array
-#msg.extend(b"blah")
-#msg.extend(b"foo") 
-        #motor_pos_str=str(BP.get_motor_encoder(BP.PORT_A)).zfill(8)
-        #motor_pos=motor_pos_str[0:8]
-        #print("motor_pos=",motor_pos)
-        #b = motor_pos.encode('utf-8')
-
-
 
 BP=brickpi3.BrickPi3()
 BP.offset_motor_encoder(BP.PORT_A,BP.get_motor_encoder(BP.PORT_A))
@@ -175,21 +165,9 @@ print("Server sending encoder values...")
 try:
     while True:
         load_data_struct_values(data_struct,BP)
-        #print_data_struct(data_struct)
-       # input("?")
         b=convert_ds_values_to_bytes(data_struct)
-        
-        #motor_pos_str=str(BP.get_motor_encoder(BP.PORT_A)).zfill(8)
-        #motor_pos=motor_pos_str[0:8]
-        #print("motor_pos=",motor_pos)
-        #b = motor_pos.encode('utf-8')
         conn.send(b)
         
-            
-
-
-
-#break
 
 except KeyboardInterrupt:
     BP.reset_all()

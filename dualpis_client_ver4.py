@@ -57,15 +57,19 @@ def interpret_ds(ds):
 
 
 def send_data_struct_values_to_brickpi(ds,rp):
+    #print(".")
 
+#        sdata=data.decode('utf-8')
+ #       print(sdata)
 
-           sdata=data.decode('utf-8')
-        print(sdata)
+   # portnames=['PORT_1','PORT_2','PORT_3','PORT_4','PORT_A','PORT_B','PORT_C','PORT_D']
+     
+    for field in range(4,7):    
         try:
-            str(sdata)
+            str(ds[field][3])
             try:
-                int(sdata)
-                motor_pos=int(sdata)
+                int(ds[field][3])
+                motor_pos=int(ds[field][3])
                 error_flag=False
             except ValueError:
                 error_flag=True
@@ -73,54 +77,29 @@ def send_data_struct_values_to_brickpi(ds,rp):
         except ValueError:
             error=True
             motor_pos=0
-        if not error_flag and motor_pos!=old_motor_pos:
+        if not error_flag:   # and motor_pos!=old_motor_pos:
             #print(motor_pos)
-            BP.set_motor_position(BP.PORT_A,motor_pos)
+            if field==4:
+                BP.set_motor_position(BP.PORT_A,motor_pos)
+            elif field==5:
+                BP.set_motor_position(BP.PORT_B,motor_pos)
+            elif field==6:
+                BP.set_motor_position(BP.PORT_C,motor_pos)
+            elif field==7:
+                BP.set_motor_position(BP.PORT_D,motor_pos)
 
-        zero="0"
-        ds[0][3]=str(zero.zfill(8))
-        ds[1][3]=str(zero.zfill(8))
-        ds[2][3]=str(zero.zfill(8))
-        ds[3][3]=str(zero.zfill(8))
-        
-        try:
-            a=str(rp.get_motor_encoder(BP.PORT_A)).zfill(8)
-            a=a[0:8]
-            ds[4][3]=a
-        except IOError as error:
-            print(error)
 
-        try:
-            b=str(rp.get_motor_encoder(BP.PORT_B)).zfill(8)
-            b=b[0:8]
-            ds[5][3]=b
-        except IOError as error:
-            print(error)
 
-        try:
-            c=str(rp.get_motor_encoder(BP.PORT_C)).zfill(8)
-            c=c[0:8]
-            ds[6][3]=c
-        except IOError as error:
-            print(error)
+                
 
-        try:
-            d=str(rp.get_motor_encoder(BP.PORT_D)).zfill(8)
-            d=d[0:8]
-            ds[7][3]=d
-        except IOError as error:
-            print(error)
-       
  
 
 
 def convert_bytes_to_ds_values(b,ds):
-    e=0
-   # b=bytearray()
-   # for row in ds:
-   #     b.extend(ds[e][3].encode('utf-8'))        
-   #     e+=1
-
+    lenb=64
+    info = [b[i:i+8].decode('utf-8') for i in range(0, lenb, 8)]
+    for field in range(0,7):
+        ds[field][3]=info[field]
 
     return ds
     
@@ -130,11 +109,17 @@ def convert_bytes_to_ds_values(b,ds):
 
 BP=brickpi3.BrickPi3()
 BP.offset_motor_encoder(BP.PORT_A,BP.get_motor_encoder(BP.PORT_A))
+BP.offset_motor_encoder(BP.PORT_B,BP.get_motor_encoder(BP.PORT_B))
+BP.offset_motor_encoder(BP.PORT_C,BP.get_motor_encoder(BP.PORT_C))
+BP.offset_motor_encoder(BP.PORT_D,BP.get_motor_encoder(BP.PORT_D))
+
+
+
 
 data_struct=read_in_data_struct("/home/pi/Python_Lego_projects/data_struct.csv")
 size, elements = interpret_ds(data_struct)
 print("total size=",size," no of elements=",elements)    
-print_data_struct(data_struct)
+#print_data_struct(data_struct)
 #input("?")
 
 
@@ -152,38 +137,23 @@ s.send(b'Hello server!')
 
 motor_pos=0
 BP.set_motor_position(BP.PORT_A,motor_pos)
-old_motor_pos=0
+BP.set_motor_position(BP.PORT_B,motor_pos)
+BP.set_motor_position(BP.PORT_C,motor_pos)
+BP.set_motor_position(BP.PORT_D,motor_pos)
+
+
+
+#old_motor_pos=0
 
 
 try:
     while True:
-        #print("receiving data...")
-        #time.sleep(0.02)
-        #data = s.recv(1024)
-      #  error_flag=False
         b=s.recv(size)
         if not b:
             break
 
         convert_bytes_to_ds_values(b,data_struct)
         send_data_struct_values_to_brickpi(data_struct,BP)
-     #   sdata=data.decode('utf-8')
-     #   print(sdata)
-     #   try:
-     #       str(sdata)
-     #       try:
-     #           int(sdata)
-     #           motor_pos=int(sdata)
-     #           error_flag=False
-     #       except ValueError:
-     #           error_flag=True
-     #           motor_pos=0
-     #   except ValueError:
-     #       error=True
-     #       motor_pos=0
-     #   if not error_flag and motor_pos!=old_motor_pos:
-            #print(motor_pos)
-     #       BP.set_motor_position(BP.PORT_A,motor_pos)
 
 except KeyboardInterrupt:
     s.close()
