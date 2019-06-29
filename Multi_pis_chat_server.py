@@ -41,13 +41,14 @@ def chat_server():
                 try:
                     # receiving data from the socket.
                     data = sock.recv(RECV_BUFFER).decode('utf-8')
-                    print(str(sock.getpeername()),"data = ",data)
+                   
                     if data:
                         # there is something in the socket
                        # print("there is data")
+                        print(str(sock.getpeername()),"data = ",data)
                         broadcast(server_socket, sock, "\r" + "[" + str(sock.getpeername()) + "] " + data)  
                     else:
-                       # print("removing socket, connection broken")
+                        print("removing Client (%s, %s) socket, connection broken" %addr)
                         # remove the socket that's broken    
                         if sock in SOCKET_LIST:
                             SOCKET_LIST.remove(sock)
@@ -56,9 +57,9 @@ def chat_server():
                         broadcast(server_socket, sock, "Socket broken? Client (%s, %s) is offline\n" % addr) 
 
                 # exception 
-                except IOError:
-                    print("exception")
-                    broadcast(server_socket, sock, "Client (%s, %s) is offline\n" % addr)
+                except ConnectionError:   #ConnectionError   #BrokenPipeError
+                   # print("exception")
+                    broadcast(server_socket, sock, "Error exception: Client (%s, %s) is offline\n" % addr)
                     continue
 
     server_socket.close()
