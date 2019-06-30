@@ -1,7 +1,16 @@
 # chat_client.py
 
 import sys, socket, select
- 
+import hashlib
+
+
+
+def hexhash_msg(msg):
+    return (hashlib.md5(str(msg).encode('utf-8')).hexdigest())
+
+def hash_msg(msg):
+    return (hashlib.md5(str(msg).encode('utf-8')).digest()) #.digest()
+
 def chat_client():
     if(len(sys.argv) < 3) :
         print("Usage : python3 Multi_pis_chat_client.py hostname port")
@@ -37,14 +46,21 @@ def chat_client():
                     print("\nDisconnected from chat server")
                     sys.exit()
                 else :
-                   # print(str(sock.getpeername())," : ",data)
-                    sys.stdout.write(data)
+                    print(str(sock.getpeername())," : ",data," hash=",hash_msg(data))
+                    
+                    sys.stdout.write(str(sock.getpeername())+" : "+data)
                     sys.stdout.write("[Me] "); sys.stdout.flush()     
             
             else :
                 # user entered a message
-                msg = sys.stdin.readline().encode('utf-8')
-                s.send(msg)
+                msg = sys.stdin.readline()
+                byte_msg=bytearray(msg.encode('utf-8'))
+                print("msg byte array=",byte_msg)
+                byte_msg.extend(hash_msg(msg))
+                print("msg : ",msg," byte_msg with hash=",byte_msg)
+
+                
+                s.send(byte_msg)
                 sys.stdout.write("[Me] "); sys.stdout.flush() 
 
 if __name__ == "__main__":
