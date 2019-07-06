@@ -8,6 +8,70 @@ SOCKET_LIST = []
 RECV_BUFFER = 4096 
 PORT = 9009
 
+
+def file_receive(s):
+    clock_start=time.clock()
+    #time_start=time.time()
+    filename="receive_file.csv"
+
+    with open(filename, 'wb') as f:
+        print(filename," opened")
+        while True:
+        #print('receiving data...')
+            data = s.recv(BUFFER_SIZE)
+        #print("data=%s", (data))
+            if not data:
+                f.close()
+                print(filename," file close()")
+                break
+            # write data to a file
+            f.write(data)
+
+    print("Successfully got the file")
+    #s.close()
+    #print("connection closed")
+
+    clock_end=time.clock()
+    #time_end=time.time()
+
+    duration_clock=clock_end-clock_start
+
+    print("Clock: start=",clock_start," end=",clock_end)
+    print("Clock: duration_clock =", duration_clock)
+
+    #duration_time=time_end-time_start
+
+    #print("Time: start=",time_start," end=",time_end)
+    #print("Time: duration_time =", duration_time)
+
+
+
+def file_send(s):
+    clock_start=time.clock()
+
+    filename='mytext.csv'
+    f = open(filename,'rb')
+    while True:
+        l = f.read(BUFFER_SIZE)
+        while (l):
+            s.send(l)   #self.sock.send(l)
+            #print('Sent ',repr(l))
+            l = f.read(BUFFER_SIZE)
+            if not l:
+                f.close()
+                s.close()
+                break
+    clock_end=time.clock()
+    #time_end=time.time()
+
+    duration_clock=clock_end-clock_start
+
+    print("Clock: start=",clock_start," end=",clock_end)
+    print("Clock: duration_clock =", duration_clock)
+
+
+
+
 def chat_server():
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
