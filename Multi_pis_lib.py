@@ -3,6 +3,7 @@ from functools import partial
 import socket
 import hashlib
 import time
+import csv
 
 #import sys
 
@@ -36,10 +37,10 @@ def read_bin():
     f.close()        
     
 
-def write_frame(filename,frame):
-    with open(filename, "ab") as f:
-        f.write(frame)
-    f.close()    
+#def write_frame(filename,frame):
+#    with open(filename, "ab") as f:
+#        f.write(frame)
+#    f.close()    
 
 
 def frame_test():
@@ -51,9 +52,10 @@ def frame_test():
     to_ip="192.168.0.110"
     from_ip="192.168.0.105"
 
+    print("Read myfile.csv")
     clock_start=time.clock()
 
-    create_frame_file("myfile.csv",from_ip,to_ip)
+    create_frame_file("myfile.csv","myfile.bin",from_ip,to_ip)
     
     clock_end=time.clock()
 
@@ -62,6 +64,11 @@ def frame_test():
     print("Clock: start=",clock_start," end=",clock_end)
     print("Clock: duration_clock =", duration_clock)
     print("\n")
+
+
+    
+
+    print("read myfile.bin")
 
 
     clock_start=time.clock()
@@ -76,7 +83,7 @@ def frame_test():
     print("Clock: duration_clock =", duration_clock)
     print("\n")
 
-
+    print("output back to out.csv")
 
 
 #    from_ip_bytes=socket.inet_aton(from_ip)
@@ -96,23 +103,28 @@ def frame_test():
             byte = f.read(1)
 """
 
-def hash_msg(msg):
-    return (hashlib.md5(str(msg).encode('utf-8')).digest()) #.digest()
+#def hash_msg(msg):
+#    return (hashlib.md5(str(msg).encode('utf-8')).digest()) #.digest()
 
 def create_frame(byte_frame,from_ip_bytes,to_ip_bytes):
 #    byte_frame=bytearray(chunk)
     byte_frame.extend(from_ip_bytes)
     byte_frame.extend(to_ip_bytes)
     #print("byte frame=",byte_frame," len=",len(byte_frame))
-    hash_frame=hash_msg(byte_frame)
+    hash_frame=bytearray(hashlib.md5(byte_frame).digest())  #.digest
+
+    #hash_frame=hash_msg(byte_frame)
     #print("hash frame=",hash_frame," len=",len(hash_frame))
     byte_frame.extend(hash_frame)
-    print("\nfinal frame=",byte_frame)
-    print("frame length=",len(byte_frame))
+   # print("\nfinal frame=",byte_frame)
+   # print("frame length=",len(byte_frame))
     return(byte_frame)
+
+
+
  
 
-def create_frame_file(filename,from_ip,to_ip):    
+def create_frame_file(filenamein,filenameout,from_ip,to_ip):    
     # read 1000 bytes from a csv file
     # append a to_ip address 4 bytes
     # append a from_ip address 4 bytes
@@ -128,28 +140,24 @@ def create_frame_file(filename,from_ip,to_ip):
     from_ip_bytes=socket.inet_aton(from_ip)
 
     chunk_size=1000
-    with open(filename, "rb") as f:
+    g=open(filenameout,"wb")
+    with open(filenamein, "rb") as f:
         for chunk in iter(partial(f.read, chunk_size), b""):
             chunk=bytearray(chunk)
-            extra_zeros=chunk_size-len(chunk)
-            if extra_zeros>0:
-                chunk.extend(b'\x00' * extra_zeros)
+            extra_fill=chunk_size-len(chunk)
+            if extra_fill>0:
+                chunk.extend(b' ' * extra_fill)   #b'\x00'
                              
             byte_frame=create_frame(chunk,from_ip_bytes,to_ip_bytes)
-            write_frame("myfile.bin",byte_frame)
-    f.close()        
+            #write_frame("myfile.bin",byte_frame)
+            g.write(byte_frame)
+    f.close()
+    g.close()
 
 
 
- 
-
-
-def read_frame_file(filename):
-    input("?")
-    # open binary file
-    #
-    # read 1024 chunk which is a frame
-    # split of the last 16 bytes which is the hash
+def read_frame(frame,frame_count):
+      # split of the last 16 bytes which is the hash
     # hash the remaining 1008 bytes
     # compare with the original hash in the frame
     # if different error, try again or stop
@@ -157,6 +165,66 @@ def read_frame_file(filename):
     # convert to text
     # split the to_ip address and from _ip_address
     # convert to string
+
+   # print("frame length passed=",len(frame))
+    rest_of_frame=frame[:1008]
+    
+    msg_bytes=frame[:1000]
+
+    ip_bytes=rest_of_frame[-8:]  
+    to_ip_bytes=ip_bytes[-4:]
+    from_ip_bytes=ip_bytes[:4]
+#    print("lengths msg=",len(msg_bytes)," ip=", len(ip_bytes))
+    msg=str(msg_bytes.decode('utf-8'))
+    from_ip=socket.inet_ntoa(from_ip_bytes)
+    to_ip=socket.inet_ntoa(to_ip_bytes)
+ #   print("msg=",msg,"\n\n from=",from_ip,"\n\n to=",to_ip,"\n\n")
+
+    hash_bytes=bytes(frame[-16:])
+ #   print(hash_bytes," len=",len(hash_bytes))
+   
+    check_hash=hashlib.md5(rest_of_frame).digest()  #.digest
+ #   print(check_hash," len=",len(check_hash))
+
+    
+    if hash_bytes!=check_hash:
+        print("hash incorrect  Frame_no:",frame_count," actual hash=",hash_bytes," check=",check_hash)
+        return(["hash incorrect","192.168.0.from","192.168.0.to"])
+
+    else:
+        #print("hash correct  Frame_no:",frame_count)
+        return([msg,from_ip,to_ip])
+ 
+
+
+def read_frame_file(filename):
+    chunk_size=1000
+    frame_size=1024
+    frame_count=0
+
+    g=open("out.csv","w")
+    with open(filename, "rb") as f:
+        for chunk in iter(partial(f.read, frame_size), b""):
+            frame=bytearray(chunk)
+            frame_count+=1
+        #    print("len frame=",len(frame))
+            string_frame=read_frame(frame,frame_count)
+        #    print("string frame=",string_frame) 
+            #with open("out.csv","a") as g:
+                #cr = csv.writer(g,delimiter=",",lineterminator="\n")
+                #cr.writerow(string_frame)
+                #g.write(string_frame)
+            #for item in string_frame:
+         #       print("item=",item)
+                #g.write("%s\n" % item)
+        #    g.write("%s\n" % string_frame[0])
+            g.write(string_frame[0])
+
+    g.close()
+    f.close()        
+    # open binary file
+    #
+    # read 1024 chunk which is a frame
     # print
     
 
