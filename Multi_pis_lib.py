@@ -306,15 +306,14 @@ def calculate(filename,formula):
 
     
     try:
-        out=open("new"+filename,'w') 
+        #out=open("new"+filename,'w') 
         with open(filename, 'r') as csvfile:
 
             first_line = csvfile.readline()
-            your_data = csvfile.readlines()
+            #your_data = csvfile.readlines()
 
             ncol = first_line.count(',') + 1 
 
-           # f.seek(0)              # go back to beginning of file
             print("file:",filename," has ",ncol," columns")
             print("row count=",count_file_rows(filename))
             print("formula=",formula)
@@ -322,17 +321,24 @@ def calculate(filename,formula):
             csvfile.seek(0)
             
             f=[0.0]*(ncol+1)
-             
+            rowcount=0
+            totalvalue=0.0
+            
             for row in reader:
                 for field_count in range(0,ncol,1):
                     #print(field_count,row[field_count])
-                    f[field_count]=float(row[field_count])
+                    try:
+                        f[field_count]=float(row[field_count])
+                    except TypeError:
+                        f[field_count]=0.0
                     #print("first line : f[",field_count,"]=",f[field_count])
                    
                 #print(row[0],"=",eval(formula)) #,{},{}))   #{'__builtins__':None},{}))
-                f[ncol]=eval(formula)    
+                f[ncol]=eval(formula)
+                totalvalue+=f[ncol]
+                rowcount+=1
                 #print("row:",row[0],"f=",f)
-                out.write(str(f)+"\n")
+               # out.write(str(f)+"\n")
              
             
                
@@ -344,9 +350,12 @@ def calculate(filename,formula):
         #print(sys.exc_type)
 
     csvfile.close()
-    out.close()
-
-
+   # out.close()
+    if rowcount!=0:
+        return(totalvalue/rowcount)   # this is the avarage fitness of the data sample
+    else:
+       print("file empty")
+       return(0)
 
 
 
@@ -477,7 +486,7 @@ print(data4[data4['age'] < 30]['name'])
 """
 
 def frame_test():
-    
+    """
         #read_config()
     #read_bin()
     #print("in rows=",count_file_rows("myfile.csv"))
@@ -557,24 +566,41 @@ def frame_test():
     print("Clock: start=",clock_start," end=",clock_end)
     print("Clock: duration_clock =", duration_clock)
     print("\n")
+    """
 
-    #formula="subtract(add(f[3],multiply(f[0],f[5])),f[4])"
-    formula="f[0]+f[4]*f[3]"
+    outfile=open("formula_fitness.csv",'w') 
+    infile=open("formulas.txt", 'r')
+    linecount=0
+    
+    #formula="f[0]+f[4]*f[3]+f[2]**2"
 
-    clock_start=time.clock()
+    for formula in infile:
+        linecount=linecount+1
+        print("formula[",linecount,"]=",formula) 
 
-    calculate("tuninglog1.csv",formula)  # creates a new csv file call with "new" added to the front of the name
+
+        clock_start=time.clock()
+
+        fitness=calculate("shop sales test 2019.csv",formula)  # creates a new csv file call with "new" added to the front of the name
+# tuninglog1.csv
+
+        clock_end=time.clock()
+
+        duration_clock=clock_end-clock_start
 
 
-    clock_end=time.clock()
+        outfile.write(str(linecount)+" , "+formula.rstrip()+" ,"+str(fitness)+" , "+str(duration_clock)+"\n")
+   # print("newfile row count=",count_file_rows("newtuninglog1.csv"))
+        print("fitness=",fitness) 
 
-    duration_clock=clock_end-clock_start
+ #   print("Clock: start=",clock_start," end=",clock_end)
+        print("Clock: duration_clock =", duration_clock)
+        print("\n")
 
-    print("Clock: start=",clock_start," end=",clock_end)
-    print("Clock: duration_clock =", duration_clock)
-    print("\n")
-   
+    infile.close()
+    outfile.close()
 
+    
 
 #create_config()
 frame_test()
