@@ -1,3 +1,5 @@
+from __future__ import division
+
 import numpy as np
 from functools import partial
 import socket
@@ -7,6 +9,7 @@ import csv
 import sys
 import math
 import os
+#import itertools
 
 #import sys
 
@@ -15,6 +18,11 @@ import os
  
 #logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 #log = logging.getLogger(__name__)
+
+
+
+
+
 
 def process_data(data):
     print(data)
@@ -48,86 +56,6 @@ def read_bin():
 #    f.close()    
 
 
-def frame_test():
-    
-        #read_config()
-    #read_bin()
-    print("in rows=",count_file_rows("myfile.csv"))
-    #log.debug("debug!")
-    to_ip="192.168.0.110"
-    from_ip="192.168.0.105"
-
-    print("Read myfile.csv")
-    clock_start=time.clock()
-
-    create_frame_file("myfile.csv","myfile.bin",from_ip,to_ip)
-    
-    clock_end=time.clock()
-
-    duration_clock=clock_end-clock_start
-
-    print("Clock: start=",clock_start," end=",clock_end)
-    print("Clock: duration_clock =", duration_clock)
-    print("\n")
-
-
-    
-
-    print("read myfile.bin")
-
-
-    clock_start=time.clock()
-
-    read_frame_file("myfile.bin")
-    
-    clock_end=time.clock()
-
-    duration_clock=clock_end-clock_start
-
-    print("Clock: start=",clock_start," end=",clock_end)
-    print("Clock: duration_clock =", duration_clock)
-    print("\n")
-
-    print("output back to out.csv")
-
-    print("out rows=",count_file_rows("out.csv"))
-
-
-    print("split a big csv file in 2")
-
-
-    clock_start=time.clock()
-
-    split_a_file_in_2("tuninglog1.csv")
-    
-    clock_end=time.clock()
-
-    duration_clock=clock_end-clock_start
-
-    print("Clock: start=",clock_start," end=",clock_end)
-    print("Clock: duration_clock =", duration_clock)
-    print("\n")
-
-    print("output back to ...00n.csv")
-
-
-
-    print("join2 csv files")
-
-
-    clock_start=time.clock()
-
-    join2files("tuninglog1001.csv","tuninglog1002.csv","testout.csv")
-    
-    clock_end=time.clock()
-
-    duration_clock=clock_end-clock_start
-
-    print("Clock: start=",clock_start," end=",clock_end)
-    print("Clock: duration_clock =", duration_clock)
-    print("\n")
-
-
 
     
 
@@ -142,6 +70,8 @@ def frame_test():
 def join2files(in1,in2,out):
     os.system("cat "+in1+" "+in2+" > "+out)
 
+def join4files(in1,in2,in3,in4,out):
+    os.system("cat "+in1+" "+in2+" "+in3+" "+in4+" > "+out)
 
 
 # joining csv files
@@ -202,6 +132,7 @@ def create_frame_file(filenamein,filenameout,from_ip,to_ip):
                              
             byte_frame=create_frame(chunk,from_ip_bytes,to_ip_bytes)
             #write_frame("myfile.bin",byte_frame)
+        
             g.write(byte_frame)
     f.close()
     g.close()
@@ -249,13 +180,13 @@ def read_frame(frame,frame_count):
  
 
 
-def read_frame_file(filename):
+def read_frame_file(infile,outfile):
     chunk_size=1000
     frame_size=1024
     frame_count=0
 
-    g=open("out.csv","w")
-    with open(filename, "rb") as f:
+    g=open(outfile,"w")
+    with open(infile, "rb") as f:
         for chunk in iter(partial(f.read, frame_size), b""):
             frame=bytearray(chunk)
             frame_count+=1
@@ -312,6 +243,111 @@ def split_a_file_in_2(infile):
     f.close()
     outfile1.close()
     outfile2.close()
+
+
+def split_a_file_in_4(infile):
+
+    #infile = open("input","r")
+
+    with open(infile,'r') as f:
+        linecount= sum(1 for row in f)
+
+    splitpoint1=linecount/4
+    splitpoint2=linecount/2
+    splitpoint3=linecount*3/4
+
+    f.close()
+
+    infilename=os.path.splitext(infile)[0]
+
+    f = open(infile,"r")
+    outfile1 = open(infilename+"001.csv","w")
+    outfile2 = open(infilename+"002.csv","w")
+    outfile3 = open(infilename+"003.csv","w")
+    outfile4 = open(infilename+"004.csv","w")
+
+
+    print("linecount=",linecount , "splitpoints=",splitpoint1,splitpoint2,splitpoint3)
+
+    linecount=0
+
+    for line in f:
+        linecount=linecount+1
+        if ( linecount <= splitpoint1 ):
+            outfile1.write(line)
+        elif (linecount <=splitpoint2):
+            outfile2.write(line)
+        elif (linecount <=splitpoint3):
+            outfile3.write(line)
+        else:
+            outfile4.write(line)
+
+    f.close()
+    outfile1.close()
+    outfile2.close()
+    outfile3.close()
+    outfile4.close()
+    
+
+
+
+
+def calculate(filename,formula):
+    # takes a csv file of numbers
+    # and a formula string using the code f[0], f[1], f[2] .... for the field names
+    # an calculates for each row.  Appending the formula and the answer on the end of each row delimited by ",' 
+
+   # safe_dict = dict((k, getattr(math, k)) for k in safe_list)
+
+    #add = lambda x, y: x + y
+    #subtract= lambda x,y: x-y
+    #multiply =lambda x,y: x*y
+    #divide=lambda x,y :x/y
+
+    
+    try:
+        out=open("new"+filename,'w') 
+        with open(filename, 'r') as csvfile:
+
+            first_line = csvfile.readline()
+            your_data = csvfile.readlines()
+
+            ncol = first_line.count(',') + 1 
+
+           # f.seek(0)              # go back to beginning of file
+            print("file:",filename," has ",ncol," columns")
+            print("row count=",count_file_rows(filename))
+            print("formula=",formula)
+            reader=csv.reader(csvfile,delimiter=',')
+            csvfile.seek(0)
+            
+            f=[0.0]*(ncol+1)
+             
+            for row in reader:
+                for field_count in range(0,ncol,1):
+                    #print(field_count,row[field_count])
+                    f[field_count]=float(row[field_count])
+                    #print("first line : f[",field_count,"]=",f[field_count])
+                   
+                #print(row[0],"=",eval(formula)) #,{},{}))   #{'__builtins__':None},{}))
+                f[ncol]=eval(formula)    
+                #print("row:",row[0],"f=",f)
+                out.write(str(f)+"\n")
+             
+            
+               
+
+            
+
+    except Exception as e:
+        print("error=",e)
+        #print(sys.exc_type)
+
+    csvfile.close()
+    out.close()
+
+
+
 
 
 """
@@ -403,8 +439,6 @@ print(data3[-1]["name"])
 print(data3[data3['age'] < 30]['name'])
 """
 
-#create_config()
-frame_test()
 
 
 """
@@ -442,7 +476,108 @@ print(data4[data4['age'] < 30]['name'])
 'V'	Raw data (void)	np.dtype('V') == np.void
 """
 
+def frame_test():
+    
+        #read_config()
+    #read_bin()
+    #print("in rows=",count_file_rows("myfile.csv"))
+    #log.debug("debug!")
+    to_ip="192.168.0.110"
+    from_ip="192.168.0.105"
 
+   # print("Read myfile.csv")
+    clock_start=time.clock()
+
+    create_frame_file("tuninglog1.csv","socketdata.bin",from_ip,to_ip)
+    
+    clock_end=time.clock()
+
+    duration_clock=clock_end-clock_start
+
+    print("Clock: start=",clock_start," end=",clock_end)
+    print("Clock: duration_clock =", duration_clock)
+    print("\n")
+
+
+    
+
+    print("read socketdata.bin")
+
+
+    clock_start=time.clock()
+
+    read_frame_file("socketdata.bin","testout.csv")
+    
+    clock_end=time.clock()
+
+    duration_clock=clock_end-clock_start
+
+    print("Clock: start=",clock_start," end=",clock_end)
+    print("Clock: duration_clock =", duration_clock)
+    print("\n")
+
+    print("output back to out.csv")
+
+    print("testout rows=",count_file_rows("testout.csv"))
+
+
+    print("split a big csv file in 4")
+
+
+    clock_start=time.clock()
+
+  #  split_a_file_in_2("tuninglog1.csv")
+    split_a_file_in_4("tuninglog1.csv")
+  
+    
+    clock_end=time.clock()
+
+    duration_clock=clock_end-clock_start
+
+    print("Clock: start=",clock_start," end=",clock_end)
+    print("Clock: duration_clock =", duration_clock)
+    print("\n")
+
+    print("output back to ...00n.csv")
+
+
+
+    print("join4 csv files")
+
+
+    clock_start=time.clock()
+
+  #  join2files("tuninglog1001.csv","tuninglog1002.csv","testout.csv")
+    join4files("tuninglog1001.csv","tuninglog1002.csv","tuninglog1003.csv","tuninglog1004.csv","testout2.csv")
+    
+    clock_end=time.clock()
+
+    duration_clock=clock_end-clock_start
+
+    print("Clock: start=",clock_start," end=",clock_end)
+    print("Clock: duration_clock =", duration_clock)
+    print("\n")
+
+    #formula="subtract(add(f[3],multiply(f[0],f[5])),f[4])"
+    formula="f[0]+f[4]*f[3]"
+
+    clock_start=time.clock()
+
+    calculate("tuninglog1.csv",formula)  # creates a new csv file call with "new" added to the front of the name
+
+
+    clock_end=time.clock()
+
+    duration_clock=clock_end-clock_start
+
+    print("Clock: start=",clock_start," end=",clock_end)
+    print("Clock: duration_clock =", duration_clock)
+    print("\n")
+   
+
+
+#create_config()
+frame_test()
 
 
 
