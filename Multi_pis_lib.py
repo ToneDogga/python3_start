@@ -4,6 +4,9 @@ import socket
 import hashlib
 import time
 import csv
+import sys
+import math
+import os
 
 #import sys
 
@@ -26,7 +29,9 @@ def read_config():
         print(config)
         setpoint=float(config[0])
 
-
+def count_file_rows(filename):
+    with open(filename,'r') as f:
+        return sum(1 for row in f)
 
 def read_bin():
     chunk_size=1024
@@ -47,7 +52,7 @@ def frame_test():
     
         #read_config()
     #read_bin()
-
+    print("in rows=",count_file_rows("myfile.csv"))
     #log.debug("debug!")
     to_ip="192.168.0.110"
     from_ip="192.168.0.105"
@@ -85,6 +90,46 @@ def frame_test():
 
     print("output back to out.csv")
 
+    print("out rows=",count_file_rows("out.csv"))
+
+
+    print("split a big csv file in 2")
+
+
+    clock_start=time.clock()
+
+    split_a_file_in_2("tuninglog1.csv")
+    
+    clock_end=time.clock()
+
+    duration_clock=clock_end-clock_start
+
+    print("Clock: start=",clock_start," end=",clock_end)
+    print("Clock: duration_clock =", duration_clock)
+    print("\n")
+
+    print("output back to ...00n.csv")
+
+
+
+    print("join2 csv files")
+
+
+    clock_start=time.clock()
+
+    join2files("tuninglog1001.csv","tuninglog1002.csv","testout.csv")
+    
+    clock_end=time.clock()
+
+    duration_clock=clock_end-clock_start
+
+    print("Clock: start=",clock_start," end=",clock_end)
+    print("Clock: duration_clock =", duration_clock)
+    print("\n")
+
+
+
+    
 
 #    from_ip_bytes=socket.inet_aton(from_ip)
     
@@ -94,6 +139,13 @@ def frame_test():
 #    print("ip str=",ip_str)
 
 
+def join2files(in1,in2,out):
+    os.system("cat "+in1+" "+in2+" > "+out)
+
+
+
+# joining csv files
+#  cat file001.csv file002.csv > merged.csv
 
 """
         byte = f.read(1)
@@ -229,6 +281,69 @@ def read_frame_file(filename):
     
 
 
+def split_a_file_in_2(infile):
+
+    #infile = open("input","r")
+
+    with open(infile,'r') as f:
+        linecount= sum(1 for row in f)
+
+    splitpoint=linecount/2
+
+    f.close()
+
+    infilename=os.path.splitext(infile)[0]
+
+    f = open(infile,"r")
+    outfile1 = open(infilename+"001.csv","w")
+    outfile2 = open(infilename+"002.csv","w")
+
+    print("linecount=",linecount , "splitpoint=",splitpoint)
+
+    linecount=0
+
+    for line in f:
+        linecount=linecount+1
+        if ( linecount <= splitpoint ):
+            outfile1.write(line)
+        else:
+            outfile2.write(line)
+
+    f.close()
+    outfile1.close()
+    outfile2.close()
+
+
+"""
+def split_file(file_path, chunk=4000):
+
+    p = subprocess.Popen(['split', '-a', '2', '-l', str(chunk), file_path,
+                          os.path.dirname(file_path) + '/'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p.communicate()
+    # Remove the original file if required
+    #try:
+    #    os.remove(file_path)
+    #except OSError:
+    #    pass
+    #return True
+"""
+"""
+#splitting files
+import tempfile
+from itertools import groupby, count
+
+temp_dir = tempfile.mkdtemp()
+
+def tempfile_split(filename, temp_dir, chunk=4000000):
+    with open(filename, 'r') as datafile:
+        groups = groupby(datafile, key=lambda k, line=count(): next(line) // chunk)
+        for k, group in groups:
+            output_name = os.path.normpath(os.path.join(temp_dir + os.sep, "tempfile_%s.tmp" % k))
+            for line in group:
+                with open(output_name, 'a') as outfile:
+                outfile.write(''.join(group))
+
+"""
 """            
 name = ['Alice', 'Bob', 'Cathy', 'Doug']
 age = [25, 45, 37, 19]
