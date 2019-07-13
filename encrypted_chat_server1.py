@@ -93,7 +93,7 @@ def chat_server_encrypted(e,hasher):  # e is a AES cipher, hasher is the multipi
                 sockfd, addr = server_socket.accept()
                 SOCKET_LIST.append(sockfd)
                # print("Client (%s, %s) connected" % addr)
-                msg="Client connected. [%s:%s] entered our chatting room" % addr
+                msg="Client connected. [%s:%s] entered our chatting room\n" % addr
                 print(msg)
                 msg=hasher.append_hash(msg)   #.encode('utf-8'))
                 #print("msg=",msg)
@@ -122,7 +122,7 @@ def chat_server_encrypted(e,hasher):  # e is a AES cipher, hasher is the multipi
                         except:   #TypeError
                             print("Decrypt failed.",inenc)
                             sys.exit()
-                        dec,success=hasher.unpack_hash(dec)
+                        dec,success,hash_bytes=hasher.unpack_hash(dec)
                       #  print("decrypted=",dec)
 
                         if success:
@@ -134,30 +134,31 @@ def chat_server_encrypted(e,hasher):  # e is a AES cipher, hasher is the multipi
 
                         else:
                             me_print=False
-                            msg="\r" + "hash incorrect [" + str(sock.getpeername()) + "] " + dec
-                        print(msg.rstrip())
-                        broadcast(server_socket, sock, e.encrypt(msg))  
+                            msg="\r" + "hash incorrect hash=" + str(hash_bytes)+" : "+str(sock.getpeername()) + "] " + dec +"\n"
+                        print(msg) #.rstrip())
+                        msg2=hasher.append_hash(msg)
+                        broadcast(server_socket, sock, e.encrypt(msg2))  
                     else:
-                        print("removing Client (%s, %s) socket, connection broken" %addr)
+                        print("removing Client (%s, %s) socket, connection broken\n" %addr)
                         me_print=False
                         # remove the socket that's broken    
                         if sock in SOCKET_LIST:
                             SOCKET_LIST.remove(sock)
 
                         # at this stage, no data means probably the connection has been broken
-                        msg="Socket broken? Client (%s, %s) is offline" % addr
-                        print(msg)
-                        msg=hasher.append_hash(msg)
+                        msg="Socket broken? Client (%s, %s) is offline\n" % addr
+                        #print(msg)
+                        msg2=hasher.append_hash(msg)
                        # print("msg=",msg)
-                        broadcast(server_socket, sock, e.encrypt(msg)) 
+                        broadcast(server_socket, sock, e.encrypt(msg2)) 
 
                 # exception 
                 except ConnectionError:   #ConnectionError   #BrokenPipeError
                    # print("exception")
                     msg="Error exception: Client (%s, %s) is offline" % addr
-                    print(msg)
-                    msg=hasher.append_hash(msg)                
-                    broadcast(server_socket, sock, e.encrypt(msg))
+                    #print(msg)
+                    msg2=hasher.append_hash(msg)                
+                    broadcast(server_socket, sock, e.encrypt(msg2))
                     continue
 
     pygame.quit()

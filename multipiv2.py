@@ -200,13 +200,16 @@ class multipi:
        # print("frame length passed=",len(frame))
         length=len(byte_frame)
         #print("byte frame:",byte_frame," length=",length)
-        hash_bytes=byte_frame[-32:]
-        #msg=bytearray(byte_frame[:length-32],'utf-8')
-        msg=str(byte_frame[:length-32])   #,'utf-8')
-        msg_bytes=byte_frame[:length-32]   #,'utf-8')
+        if length>32:
+            hash_bytes=byte_frame[-32:]
+            #msg=bytearray(byte_frame[:length-32],'utf-8')
+            msg=str(byte_frame[:length-32])   #,'utf-8')
+            msg_bytes=byte_frame[:length-32]   #,'utf-8')
+        else:
+            print("byte frame error.  len=",length,"<=32.  byte_frame=",byte_frame)
         #message_bytes=bytearray(byte_frame[:length-32],'utf-8')
        #d=message_bytes
-       # print("hash bytes=",hash_bytes," msg=",msg)   #," mb encode=",d)
+     #   print("unpack. len=",length," byte_frame=",byte_frame," hash bytes=",hash_bytes," msg=",msg)   #," mb encode=",d)
         #msg_bytes=frame[:1000]
 
         #ip_bytes=rest_of_frame[-8:]  
@@ -231,12 +234,12 @@ class multipi:
 
     
         if hash_bytes!=check_hash:
-            print("hash incorrect: actual hash=",hash_bytes," check=",check_hash)
-            return(msg,False)  #"hash incorrect")
+          #  print("hash incorrect: actual hash=",hash_bytes," check=",check_hash)
+            return(msg,False,hash_bytes)  #"hash incorrect")
 
         else:
             #print("hash correct  Frame_no:",frame_count)
-            return(msg,True)
+            return(msg,True,hash_bytes)
 
 
 
