@@ -62,11 +62,11 @@ def chat_server_encrypted(e,hasher):  # e is a AES cipher, hasher is the multipi
                     elif k=="return":   #kd==pygame.K_RETURN:
                         #msg_send=True
                         mymsg+='\n'
-                        print("mymsg before hash=",mymsg)
+                        #print("mymsg before hash=",mymsg)
                         mymsg=hasher.append_hash(mymsg)
-                        print("mymsg after hash=",mymsg)
+                        #print("mymsg after hash=",mymsg)
                         enc=e.encrypt(mymsg)
-                        print('\n'+"server broadcasting msg=",mymsg," encrypted=",enc)
+                        #print('\n'+"server broadcasting msg=",mymsg," encrypted=",enc)
                         
                         broadcast(server_socket,"",e.encrypt(mymsg))
                         mymsg=""
@@ -92,9 +92,10 @@ def chat_server_encrypted(e,hasher):  # e is a AES cipher, hasher is the multipi
             if sock == server_socket: 
                 sockfd, addr = server_socket.accept()
                 SOCKET_LIST.append(sockfd)
-                print("Client (%s, %s) connected" % addr)
-                msg="[%s:%s] entered our chatting room\n" % addr
-                msg=hasher.append_hash(msg)
+               # print("Client (%s, %s) connected" % addr)
+                msg="Client connected. [%s:%s] entered our chatting room" % addr
+                print(msg)
+                msg=hasher.append_hash(msg)   #.encode('utf-8'))
                 #print("msg=",msg)
                 me_print=False
                  
@@ -114,21 +115,27 @@ def chat_server_encrypted(e,hasher):  # e is a AES cipher, hasher is the multipi
                        # print("there is data")
                         inenc=base64.encodestring(data).rstrip()
 
-                        print("received encrypted base64=",inenc) 
+                        #print("received encrypted base64=",inenc) 
 
-                        dec=e.decrypt(inenc)
+                        try:
+                            dec=e.decrypt(inenc)
+                        except:   #TypeError
+                            print("Decrypt failed.",inenc)
+                            sys.exit()
                         dec,success=hasher.unpack_hash(dec)
                       #  print("decrypted=",dec)
 
                         if success:
-                            print("hash correct")
+                           # print("hash correct")
                             #print(str(sock.getpeername()),"data = ",dec)
-                            msg="\r" + "[" + str(sock.getpeername()) + "] " + dec
-                            print("msg=",msg)
+                            msg="\r" + str(sock.getpeername()) + dec
+                            #print(msg)
                             me_print=False
 
                         else:
+                            me_print=False
                             msg="\r" + "hash incorrect [" + str(sock.getpeername()) + "] " + dec
+                        print(msg.rstrip())
                         broadcast(server_socket, sock, e.encrypt(msg))  
                     else:
                         print("removing Client (%s, %s) socket, connection broken" %addr)
@@ -138,17 +145,18 @@ def chat_server_encrypted(e,hasher):  # e is a AES cipher, hasher is the multipi
                             SOCKET_LIST.remove(sock)
 
                         # at this stage, no data means probably the connection has been broken
-                        msg="Socket broken? Client (%s, %s) is offline\n" % addr
-                        msg=hasher.append_hash(msg.encode('utf-8')).digest()
+                        msg="Socket broken? Client (%s, %s) is offline" % addr
+                        print(msg)
+                        msg=hasher.append_hash(msg)
                        # print("msg=",msg)
                         broadcast(server_socket, sock, e.encrypt(msg)) 
 
                 # exception 
                 except ConnectionError:   #ConnectionError   #BrokenPipeError
                    # print("exception")
-                    msg="Error exception: Client (%s, %s) is offline\n" % addr
-                    msg=hasher.append_hash(msg)
-                    #print("msg=",msg)
+                    msg="Error exception: Client (%s, %s) is offline" % addr
+                    print(msg)
+                    msg=hasher.append_hash(msg)                
                     broadcast(server_socket, sock, e.encrypt(msg))
                     continue
 
@@ -181,33 +189,8 @@ def broadcast (server_socket, sock, encrypted_msg):
 print("Encrypted chat server v1")
 pp=input("Passphrase?")
 key=str(hashlib.md5(pp.encode('utf-8')).digest())
-print("sumkey=",key)
+#print("sumkey=",key)
 
 e=multipiv2.AESCipher(key)
 hasher=multipiv2.multipi()
 chat_server_encrypted(e,hasher)
-#message=input("message to encrypt:")
-#enc=e.encrypt(message)
-#print("encrypted=",enc)
-
-#senddata = base64.decodestring(enc)
-
-#print("Encrypted bytes=",senddata)
-
-
-#receivedata=senddata
-
-#print("received bytes=",receivedata)
-
-#inenc=base64.encodestring(receivedata).rstrip()
-
-
-#print("received base64=",inenc) 
-
-#dec=e.decrypt(inenc)
-#print("decrypted=",dec)
-
-
-
-
-#if __name__ == "__main__":

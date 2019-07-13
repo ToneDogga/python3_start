@@ -164,12 +164,13 @@ class multipi:
         return(byte_frame)
 
     def append_hash(self,msg):  #,from_ip_bytes,to_ip_bytes):
-        byte_frame=bytearray(msg,'utf-8')   #.encode('utf-8')).digest()
+        msg_byte=bytearray(msg.rstrip(),'utf-8')   #.encode('utf-8')).digest()
+        #print("msg=",msg," msg byte=",msg_byte)
         #byte_frame.extend(from_ip_bytes)
         #byte_frame.extend(to_ip_bytes)
         #print("byte frame=",byte_frame," len=",len(byte_frame))
-        hash_frame=(hashlib.md5(byte_frame)).hexdigest()  #.digest
-      #  hash_frame=(hashlib.md5(msg)).hexdigest()  #.digest
+        hash_frame=(hashlib.md5(msg.encode('utf-8'))).hexdigest()  #.digest
+       # hash_frame=(hashlib.md5(msg)).hexdigest()  #.digest
 
 
         #mystring = input('Enter String to hash: ')
@@ -177,12 +178,12 @@ class multipi:
         #hash_object = hashlib.md5(mystring.encode())
         #print(hash_object.hexdigest())
         #hash_frame=hash_msg(byte_frame)
-        print("hash frame=",hash_frame," len=",len(hash_frame))
+       # print("hash frame=",hash_frame," len=",len(hash_frame))
         #byte_frame.extend(hash_frame)
        # msg=str(byte_frame,'utf-8')   #.decode('utf-8')
        # print("\nfinal frame=",byte_frame)
        # print("frame length=",len(byte_frame))
-        return(msg.rstrip()+hash_frame)
+        return(msg+hash_frame)
 
  
     def unpack_hash(self,byte_frame):
@@ -198,18 +199,22 @@ class multipi:
         #byte_frame=bytearray(msg.encode('utf-8')).digest()
        # print("frame length passed=",len(frame))
         length=len(byte_frame)
-        print("byte frame:",byte_frame," length=",length)
+        #print("byte frame:",byte_frame," length=",length)
         hash_bytes=byte_frame[-32:]
-        message_bytes=bytearray(byte_frame[:length-32],'utf-8')
-        print("hash bytes=",hash_bytes," msg bytes=",message_bytes)
+        #msg=bytearray(byte_frame[:length-32],'utf-8')
+        msg=str(byte_frame[:length-32])   #,'utf-8')
+        msg_bytes=byte_frame[:length-32]   #,'utf-8')
+        #message_bytes=bytearray(byte_frame[:length-32],'utf-8')
+       #d=message_bytes
+       # print("hash bytes=",hash_bytes," msg=",msg)   #," mb encode=",d)
         #msg_bytes=frame[:1000]
 
         #ip_bytes=rest_of_frame[-8:]  
         #to_ip_bytes=ip_bytes[-4:]
         #from_ip_bytes=ip_bytes[:4]
     #    print("lengths msg=",len(msg_bytes)," ip=", len(ip_bytes))
-        msg=str(message_bytes)   #,'utf-8')
-        print("message bytes=",message_bytes)
+        #msg=str(message_bytes)   #,'utf-8')
+       # print("message bytes=",message_bytes)
         #from_ip=socket.inet_ntoa(from_ip_bytes)
         #to_ip=socket.inet_ntoa(to_ip_bytes)
      #   print("msg=",msg,"\n\n from=",from_ip,"\n\n to=",to_ip,"\n\n")
@@ -217,7 +222,11 @@ class multipi:
         #hash_bytes=bytes(frame[-16:])
      #   print(hash_bytes," len=",len(hash_bytes))
    
-        check_hash=hashlib.md5(message_bytes.encode('utf-8')).hexdigest()  #.digest
+  #      check_hash9=hashlib.md5(message_bytes.encode('utf-8')).hexdigest()  #.digest
+       # check_hash=(hashlib.md5(msg_bytes)).hexdigest()  #.digest
+
+        check_hash=(hashlib.md5(msg.encode('utf-8'))).hexdigest()  #.digest
+
      #   print(check_hash," len=",len(check_hash))
 
     
