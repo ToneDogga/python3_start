@@ -10,7 +10,7 @@
 
 
 
-from __future__ import print_function # use python 3 syntax but make it compatible with python 2
+#from __future__ import print_function # use python 3 syntax but make it compatible with python 2
 from __future__ import division       #                           ''
 
 #import pandas
@@ -70,6 +70,44 @@ PORT = 9009
 EXIT_COMMAND = "exit"
 
 
+
+import base64
+import hashlib
+from Crypto import Random
+from Crypto.Cipher import AES
+
+class AESCipher(object):
+
+    def __init__(self, key): 
+        self.bs = 32
+        self.key = hashlib.sha256(key.encode()).digest()
+
+    def encrypt(self, raw):
+        raw = self._pad(raw)
+        # iv is initialisation vector
+        iv = Random.new().read(AES.block_size)
+        cipher = AES.new(self.key, AES.MODE_CBC, iv)
+        return base64.b64encode(iv + cipher.encrypt(raw))
+
+    def decrypt(self, enc):
+        enc = base64.b64decode(enc)
+        iv = enc[:AES.block_size]
+        cipher = AES.new(self.key, AES.MODE_CBC, iv)
+        return self._unpad(cipher.decrypt(enc[AES.block_size:])).decode('utf-8')
+
+    def _pad(self, s):
+        return s + (self.bs - len(s) % self.bs) * chr(self.bs - len(s) % self.bs)
+
+    @staticmethod
+    def _unpad(s):
+        return s[:-ord(s[len(s)-1:])]
+
+
+
+
+
+
+
 class multipi:
     def __init__(self):
         self.frame2=bytearray(b'')
@@ -108,7 +146,7 @@ class multipi:
                 chunk.extend(b' ' * extra_fill)   #b'\x00'
                              
             byte_frame=self.pack_frame(chunk,from_ip_bytes,to_ip_bytes)
-            self.send_frame(byte_frame,to_ip)
+            self.broadcast_frame(byte_frame,from_ip,to_ip)
         
 
     def pack_frame(self,byte_frame,from_ip_bytes,to_ip_bytes):
@@ -125,16 +163,76 @@ class multipi:
        # print("frame length=",len(byte_frame))
         return(byte_frame)
 
+    def append_hash(self,msg):  #,from_ip_bytes,to_ip_bytes):
+        byte_frame=bytearray(msg,'utf-8')   #.encode('utf-8')).digest()
+        #byte_frame.extend(from_ip_bytes)
+        #byte_frame.extend(to_ip_bytes)
+        #print("byte frame=",byte_frame," len=",len(byte_frame))
+        hash_frame=(hashlib.md5(byte_frame)).hexdigest()  #.digest
+      #  hash_frame=(hashlib.md5(msg)).hexdigest()  #.digest
 
-    def send_frame(self,frame,to_ip):
-        # send 1024 bytes to the "to_ip" address
-        return True
+
+        #mystring = input('Enter String to hash: ')
+        # Assumes the default UTF-8
+        #hash_object = hashlib.md5(mystring.encode())
+        #print(hash_object.hexdigest())
+        #hash_frame=hash_msg(byte_frame)
+        print("hash frame=",hash_frame," len=",len(hash_frame))
+        #byte_frame.extend(hash_frame)
+       # msg=str(byte_frame,'utf-8')   #.decode('utf-8')
+       # print("\nfinal frame=",byte_frame)
+       # print("frame length=",len(byte_frame))
+        return(msg.rstrip()+hash_frame)
+
+ 
+    def unpack_hash(self,byte_frame):
+          # split of the last 16 bytes which is the hash
+        # hash the remaining bytes
+        # compare with the original hash in the frame
+        # if different error, try again or stop
+        # split the remained bytes as the data
+        # convert to text
+        # split the to_ip address and from _ip_address
+        # convert to string
+
+        #byte_frame=bytearray(msg.encode('utf-8')).digest()
+       # print("frame length passed=",len(frame))
+        length=len(byte_frame)
+        print("byte frame:",byte_frame," length=",length)
+        hash_bytes=byte_frame[-32:]
+        message_bytes=bytearray(byte_frame[:length-32],'utf-8')
+        print("hash bytes=",hash_bytes," msg bytes=",message_bytes)
+        #msg_bytes=frame[:1000]
+
+        #ip_bytes=rest_of_frame[-8:]  
+        #to_ip_bytes=ip_bytes[-4:]
+        #from_ip_bytes=ip_bytes[:4]
+    #    print("lengths msg=",len(msg_bytes)," ip=", len(ip_bytes))
+        msg=str(message_bytes)   #,'utf-8')
+        print("message bytes=",message_bytes)
+        #from_ip=socket.inet_ntoa(from_ip_bytes)
+        #to_ip=socket.inet_ntoa(to_ip_bytes)
+     #   print("msg=",msg,"\n\n from=",from_ip,"\n\n to=",to_ip,"\n\n")
+
+        #hash_bytes=bytes(frame[-16:])
+     #   print(hash_bytes," len=",len(hash_bytes))
+   
+        check_hash=hashlib.md5(message_bytes.encode('utf-8')).hexdigest()  #.digest
+     #   print(check_hash," len=",len(check_hash))
+
+    
+        if hash_bytes!=check_hash:
+            print("hash incorrect: actual hash=",hash_bytes," check=",check_hash)
+            return(msg,False)  #"hash incorrect")
+
+        else:
+            #print("hash correct  Frame_no:",frame_count)
+            return(msg,True)
 
 
 
 
-
-    def chat_server2(self,server_host):
+    def chat_server(self,host,port):
         pygame.init()
         BLACK = (0,0,0)
         WIDTH = 100
@@ -149,15 +247,17 @@ class multipi:
         me_print=False
         msg_send=False
 
+        #server_host_ip=socket.inet_aton(server_host)
+
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        server_socket.bind((server_host, PORT))
+        server_socket.bind((host, port))
         server_socket.listen(10)
  
         # add server socket object to the list of readable connections
         SOCKET_LIST.append(server_socket)
  
-        print("Chat server started on port " + str(PORT))
+        print("Chat server started on port " + str(port))
  
         while main_loop:
 
@@ -255,75 +355,95 @@ class multipi:
         server_socket.close()
     
 
+    def frame_server(self,host,port):
+    #    pygame.init()
+    #    BLACK = (0,0,0)
+    #    WIDTH = 100
+    #    HEIGHT = 100
+    #    windowSurface = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
 
-
-
-
-
-
-
-
-
-
-    def chat_server(self,server_host):
-
+     #   windowSurface.fill(BLACK)
+   # x = 0
+        
+        msg="" 
+        main_loop=True
+        me_print=False
+        msg_send=False
 
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        server_socket.bind((server_host, PORT))
-
-#        server_socket.bind((HOST, PORT))
+        server_socket.bind((host, port))
         server_socket.listen(10)
  
         # add server socket object to the list of readable connections
         SOCKET_LIST.append(server_socket)
  
-        print("Chat server started on port " + str(PORT))
+        print("Frame server started on port " + str(port))
+        print("listening for frames from frame clients")
  
-        while 1:
+        while main_loop:
+
+        #    if me_print==False: 
+        #        print('\n'+"[Me] "+msg,end="")
+        #        me_print=True
+
 
             # get the list sockets which are ready to be read through select
             # 4th arg, time_out  = 0 : poll and never block
             ready_to_read,ready_to_write,in_error = select.select(SOCKET_LIST,[],[],0)
+                        
       
             for sock in ready_to_read:
                 # a new connection request recieved
                 if sock == server_socket: 
                     sockfd, addr = server_socket.accept()
                     SOCKET_LIST.append(sockfd)
-                    print("Client (%s, %s) connected" % addr)
+                    print('\n'+"Client (%s, %s) connected" % addr)
+                    me_print=False
                  
-                    broadcast(server_socket, sockfd, "[%s:%s] entered our chatting room\n" % addr)
+                    self.broadcast_frame(server_socket, sockfd, "[%s:%s] entered our chatting room\n" % addr)
              
                 # a message from a client, not a new connection
                 else:
+                
+                    
+
+                    
                     # process data recieved from client, 
                     try:
                         # receiving data from the socket.
-                        data = sock.recv(RECV_BUFFER).decode('utf-8')
-                   
-                        if data:
-                            # there is something in the socket
-                           # print("there is data")
-                            print(str(sock.getpeername()),"data = ",data)
-                            broadcast(server_socket, sock, "\r" + "[" + str(sock.getpeername()) + "] " + data)  
+                        raw_data = bytearray(sock.recv(RECV_BUFFER))
+                        data=raw_data[:1000].decode('utf-8')
+                       
+                        if data:   #data?
+                               # there is something in the socket
+                            data=self.unpack_frame(raw_data)   
+                            print("there is data")
+                            print('\n'+str(sock.getpeername()),":",data)
+                            me_print=False
+                            self.send_frame(server_socket, sock, "\r" + "[" + str(sock.getpeername()) + "] " + data)  
                         else:
-                            print("removing Client (%s, %s) socket, connection broken" %addr)
+                            print('\n'+"removing Client (%s, %s) socket, connection broken" %addr)
+                            me_print=False
                             # remove the socket that's broken    
                             if sock in SOCKET_LIST:
                                 SOCKET_LIST.remove(sock)
 
-                             # at this stage, no data means probably the connection has been broken
-                            broadcast(server_socket, sock, "Socket broken? Client (%s, %s) is offline\n" % addr) 
+                            # at this stage, no data means probably the connection has been broken
+                            self.broadcast_frame(server_socket, sock, "Socket broken? Client (%s, %s) is offline\n" % addr) 
 
                     # exception 
                     except ConnectionError:   #ConnectionError   #BrokenPipeError
                        # print("exception")
-                        broadcast(server_socket, sock, "Error exception: Client (%s, %s) is offline\n" % addr)
+                        self.broadcast_frame(server_socket, sock, "Error exception: Client (%s, %s) is offline\n" % addr)
                         continue
 
-        server_socket.close()
+    
 
+
+      #  pygame.quit()
+        server_socket.close()
+    
 
 
 
@@ -342,9 +462,49 @@ class multipi:
                     # broken socket, remove it
                     if socket in SOCKET_LIST:
                         SOCKET_LIST.remove(socket)
- 
 
-    def chat_client(self,host):
+
+    
+    # broadcast frames messages to all connected clients
+    def broadcast_frame(self,server_socket, sock, message):
+        print("broadcasting frame;", message)
+        for socket in SOCKET_LIST:
+            # send the message only to peer
+            if socket != server_socket and socket != sock :
+                try :
+                
+                    
+                    socket.send(self.pack_frame(message,HOST,sock),server_socket,socket)
+                    
+                except :
+                    # broken socket connection
+                    socket.close()
+                    # broken socket, remove it
+                    if socket in SOCKET_LIST:
+                        SOCKET_LIST.remove(socket)
+
+
+
+    # broadcast frames messages to all connected clients
+    def send_frame(self,server_socket, sock, message):
+        print("send frame: message=",message," server_socket=",HOST," sock=",sock)
+        # send the message only to peer
+        if socket != server_socket and socket != sock :
+            try :
+                
+                socket.send(self.pack_frame(message,HOST,sock),HOST,sock)
+               
+                #socket.send(message.encode('utf-8'))
+                    
+            except :
+                # broken socket connection
+                socket.close()
+                # broken socket, remove it
+                if socket in SOCKET_LIST:
+                    SOCKET_LIST.remove(socket)
+  
+
+    def chat_client(self,host,port):
        # if(len(sys.argv) < 3) :
        #     print("Usage : python3 Multi_pis_chat_client.py hostname port")
        #     sys.exit()
@@ -354,16 +514,18 @@ class multipi:
      
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(2)
-     
+
+
+       # host_ip=socket.inet_aton(host)
         # connect to remote host
         try :
-            s.connect((host, PORT))
+            s.connect((host, port))
         except :
             print("Unable to connect")
             sys.exit()
      
         print("Connected to remote host. You can start sending messages")
-        sys.stdout.write("[Me] "); sys.stdout.flush()
+        #sys.stdout.write("[Me] "); sys.stdout.flush()
      
         while True:
             socket_list = [sys.stdin, s]
@@ -397,6 +559,130 @@ class multipi:
                     sys.stdout.write("[Me] "); sys.stdout.flush() 
 
 
+ 
+
+    def chat_client2(self,host,port):
+       # if(len(sys.argv) < 3) :
+       #     print("Usage : python3 Multi_pis_chat_client.py hostname port")
+       #     sys.exit()
+
+    #host = sys.argv[1]
+    #port = int(sys.argv[2])
+       # host_ip=socket.inet_aton(host)
+     
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(2)
+     
+        # connect to remote host
+        try :
+            s.connect((host, port))
+        except :
+            print("Unable to connect")
+            sys.exit()
+     
+        print("Connected to remote host. You can start sending messages")
+        sys.stdout.write("[Me] "); sys.stdout.flush()
+        #print("[Me] ",'\t')
+        
+     
+        while True:
+            socket_list = [sys.stdin, s]
+            #socket_list = [str(input()), s]
+            #print("socket list;",socket_list)
+             
+            # Get the list sockets which are readable
+            read_sockets, write_sockets, error_sockets = select.select(socket_list , [], [])
+         
+            for sock in read_sockets:            
+                if sock == s:
+                    # incoming message from remote server, s
+                    data = sock.recv(1024).decode('utf-8')
+                    if not data :
+                        print("\nDisconnected from chat server")
+                        sys.exit()
+                    else :
+                        #print(str(sock.getpeername())," : ",data)
+                    
+                        #sys.stdout.write(str(sock.getpeername())+" : "+data)
+                        sys.stdout.write("[Me] "); sys.stdout.flush()
+                        print(str(sock.getpeername()),":",data)
+            
+                else :
+                    # user entered a message
+                    msg = sys.stdin.readline()
+                    byte_msg=bytearray(msg.encode('utf-8'))
+                  #  print("msg byte array=",byte_msg)
+                  #  byte_msg.extend(hash_msg(msg))
+                  #  print("msg : ",msg," byte_msg with hash=",byte_msg)
+
+                
+                    s.send(byte_msg)
+                    #sys.stdout.write("[Me] "); sys.stdout.flush() 
+                    print("[Me] ",'\t')
+
+
+
+
+    def frame_client(self,host):
+       # if(len(sys.argv) < 3) :
+       #     print("Usage : python3 Multi_pis_chat_client.py hostname port")
+       #     sys.exit()
+
+    #host = sys.argv[1]
+    #port = int(sys.argv[2])
+
+        msg_list=[]
+     
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(2)
+     
+        # connect to remote host
+        try :
+            s.connect((host, PORT))
+        except :
+            print("Unable to connect")
+            sys.exit()
+     
+        print("Connected to remote host. You can start sending messages")
+        sys.stdout.write("[Me] "); sys.stdout.flush()
+     
+        while True:
+            socket_list = [sys.stdin, s]
+         
+            # Get the list sockets which are readable
+            read_sockets, write_sockets, error_sockets = select.select(socket_list , [], [])
+         
+            for sock in read_sockets:            
+                if sock == s:
+                    # incoming message from remote server, s
+                    #data = sock.recv(1024).decode('utf-8')
+
+                    raw_data = sock.recv(1024)
+                    data=bytearray(raw_data[:1000])
+                    
+                    if not data :
+                        print("\nDisconnected from frame server")
+                        sys.exit()
+                    else :
+                        print(str(sock.getpeername())," : ",data)
+
+                        msg_list=self.unpack_frame(data) 
+                    
+                        sys.stdout.write(str(sock.getpeername())+" : "+data)
+                        sys.stdout.write("[Me] "); sys.stdout.flush()     
+            
+                else :
+                    # user entered a message
+                    msg = sys.stdin.readline()
+                    byte_msg=bytearray(msg.encode('utf-8'))
+                  #  print("msg byte array=",byte_msg)
+                  #  byte_msg.extend(hash_msg(msg))
+                  #  print("msg : ",msg," byte_msg with hash=",byte_msg)
+
+                
+                    s.send(byte_msg)
+                    sys.stdout.write("[Me] "); sys.stdout.flush() 
+
 
 
 
@@ -412,9 +698,9 @@ class multipi:
         
         #with open(outfile, "ab") as f:
            
-        frame_count+=1
+       # frame_count+=1
         #    print("len frame=",len(frame))
-        msg_list=self.unpack_frame(frame,frame_count)
+        msg_list=self.unpack_frame(frame)
         #    print("string frame=",string_frame) 
         #    g.write("%s\n" % string_frame[0])
                 
@@ -422,7 +708,7 @@ class multipi:
 
 
 
-    def unpack_frame(self,frame,frame_count):
+    def unpack_frame(self,frame):
           # split of the last 16 bytes which is the hash
         # hash the remaining 1008 bytes
         # compare with the original hash in the frame
@@ -463,11 +749,7 @@ class multipi:
  
 
     
-    def receive_frame(self,frame,from_ip):
-        # receive 1024 bytes from 
-        return True
-
-
+    
 
 
 
