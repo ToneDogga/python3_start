@@ -178,8 +178,12 @@ def chat_server_encrypted(e,hasher):  # e is a AES cipher, hasher is the multipi
 def broadcast (server_socket, sock, encrypted_msg):
     #print("broadcasting;", message)
     #print("encrypted=",encrypted_msg)
+    print("\n")
+    socket_count=0
     senddata = base64.decodestring(encrypted_msg)
     for socket in SOCKET_LIST:
+        print("socket #",socket_count," : ",socket)
+        socket_count+=1
         # send the message only to peer
         if socket != server_socket and socket != sock :
             try :
