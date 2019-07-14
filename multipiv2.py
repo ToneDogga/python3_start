@@ -180,21 +180,21 @@ class multipi:
         
             msg=str(byte_frame[:length-64])   #,'utf-8')
             msg_bytes=byte_frame[:length-64]   #,'utf-8')
+
+  #         check_hash=(hashlib.md5(msg.encode('utf-8'))).hexdigest()  #.digest
+
+            check_hash=(hashlib.sha256(msg.encode('utf-8'))).hexdigest()  #.digest
+    
+            if hash_bytes!=check_hash:
+                print("hash incorrect: actual hash=",hash_bytes," check=",check_hash)
+                return(msg,False,hash_bytes)  #"hash incorrect")
+
+            else:
+                #print("hash correct  Frame_no:",frame_count)
+                return(msg,True,hash_bytes)
         else:
             print("byte frame error.  len=",length,"<=64.  byte_frame=",byte_frame)
-
-  #      check_hash=(hashlib.md5(msg.encode('utf-8'))).hexdigest()  #.digest
-
-        check_hash=(hashlib.sha256(msg.encode('utf-8'))).hexdigest()  #.digest
-    
-        if hash_bytes!=check_hash:
-            print("hash incorrect: actual hash=",hash_bytes," check=",check_hash)
-            return(msg,False,hash_bytes)  #"hash incorrect")
-
-        else:
-            #print("hash correct  Frame_no:",frame_count)
-            return(msg,True,hash_bytes)
-
+            return("",False,b'')
 
 
     # Python program to find SHA256 hash string of a file
