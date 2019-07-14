@@ -42,6 +42,13 @@ def chat_server_encrypted(e,hasher):  # e is a AES cipher, hasher is the multipi
  
     while main_loop:
 
+# do work here
+################################
+
+
+
+
+###############################
         if me_print==False: 
             print('\n'+"[Me] "+mymsg,end="")
             me_print=True
@@ -96,6 +103,7 @@ def chat_server_encrypted(e,hasher):  # e is a AES cipher, hasher is the multipi
                 msg="Client connected. [%s:%s] entered our chatting room\n" % addr
                 print(msg)
                 msg=hasher.append_hash(msg)   #.encode('utf-8'))
+                #msg2=e.encrypt(msg)
                 #print("msg=",msg)
                 me_print=False
                  
@@ -128,7 +136,7 @@ def chat_server_encrypted(e,hasher):  # e is a AES cipher, hasher is the multipi
                         if success:
                            # print("hash correct")
                             #print(str(sock.getpeername()),"data = ",dec)
-                            msg="\r" + str(sock.getpeername()) + dec
+                            msg="\r" + str(sock.getpeername()) + " : " +dec
                             #print(msg)
                             me_print=False
 
@@ -189,9 +197,9 @@ def broadcast (server_socket, sock, encrypted_msg):
 
 print("Encrypted chat server v1")
 pp=input("Passphrase?")
-key=str(hashlib.md5(pp.encode('utf-8')).digest())
+#key=str(hashlib.md5(pp.encode('utf-8')).digest())
 #print("sumkey=",key)
 
-e=multipiv2.AESCipher(key)
+e=multipiv2.AESCipher(str(hashlib.md5(pp.encode('utf-8')).digest()))
 hasher=multipiv2.multipi()
 chat_server_encrypted(e,hasher)

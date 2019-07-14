@@ -31,7 +31,13 @@ def chat_client_encrypted(e,hasher):   # e is the AES cipher
     sys.stdout.write("[Me] "); sys.stdout.flush()
      
     while True:
-        
+#  do work here
+###################################
+
+
+
+
+##########################################        
         socket_list = [sys.stdin, s]
          
         # Get the list sockets which are readable
@@ -81,7 +87,8 @@ def chat_client_encrypted(e,hasher):   # e is the AES cipher
                    # print("exception")
                     msg="Error exception: Client (%s, %s) is offline" % addr
                     print(msg)
-                    broadcast(server_socket, sock, e.encrypt(msg))
+                    msg2=hasher.append_hash(msg)
+                    broadcast(server_socket, sock, e.encrypt(msg2))
                     continue
 
 
@@ -119,11 +126,15 @@ def chat_client_encrypted(e,hasher):   # e is the AES cipher
 
 print("Encrypted chat client v1")
 #pp=input("Passphase?")
-pp = sys.argv[3]   # passphrase
-key=str(hashlib.md5(pp.encode('utf-8')).digest())
+#pp = sys.argv[3]   # passphrase
+#key=str(hashlib.md5(pp.encode('utf-8')).digest())
+#key=str(hashlib.md5(sys.argv[3].encode('utf-8')).digest())
+
 #print("sumkey=",key)
 
-e=multipiv2.AESCipher(key)
+#e=multipiv2.AESCipher(key)
+e=multipiv2.AESCipher(str(hashlib.md5(sys.argv[3].encode('utf-8')).digest()))
+
 hasher=multipiv2.multipi()
 chat_client_encrypted(e,hasher)
 
