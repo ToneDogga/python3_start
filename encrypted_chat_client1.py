@@ -74,11 +74,11 @@ def chat_client_encrypted(e,hasher):   # e is the AES cipher
                         dec2,success,hash_bytes2=hasher.unpack_hash(indec)
                        # print("decrypt=",dec2," hash bytes",hash_bytes2)
 
-                       # if success:
+                        if not success:
+                            sys.stdout.write("Hash incorrect: hash="+str(hash_bytes2)+" : "+str(sock.getpeername())+" : "+dec2+"\n")
+
                               #  sys.stdout.write(str(sock.getpeername())+" : "+data)
                         sys.stdout.write(str(sock.getpeername())+" : "+dec2)
-                      #  else:
-                      #      sys.stdout.write("Hash incorrect: hash="+str(hash_bytes2)+" : "+str(sock.getpeername())+" : "+dec2+"\n")
                         sys.stdout.write("[Me] "); sys.stdout.flush()     
 
                 

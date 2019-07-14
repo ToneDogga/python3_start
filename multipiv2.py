@@ -163,78 +163,32 @@ class multipi:
        # print("frame length=",len(byte_frame))
         return(byte_frame)
 
+
+
     def append_hash(self,msg):  #,from_ip_bytes,to_ip_bytes):
         msg_byte=bytearray(msg.rstrip(),'utf-8')   #.encode('utf-8')).digest()
-        #print("msg=",msg," msg byte=",msg_byte)
-        #byte_frame.extend(from_ip_bytes)
-        #byte_frame.extend(to_ip_bytes)
-        #print("byte frame=",byte_frame," len=",len(byte_frame))
-        hash_frame=(hashlib.md5(msg.encode('utf-8'))).hexdigest()  #.digest
-       # hash_frame=(hashlib.md5(msg)).hexdigest()  #.digest
-
-
-        #mystring = input('Enter String to hash: ')
-        # Assumes the default UTF-8
-        #hash_object = hashlib.md5(mystring.encode())
-        #print(hash_object.hexdigest())
-        #hash_frame=hash_msg(byte_frame)
-       # print("hash frame=",hash_frame," len=",len(hash_frame))
-        #byte_frame.extend(hash_frame)
-       # msg=str(byte_frame,'utf-8')   #.decode('utf-8')
-       # print("\nfinal frame=",byte_frame)
-       # print("frame length=",len(byte_frame))
+  #     hash_frame=(hashlib.md5(msg.encode('utf-8'))).hexdigest()  #.digest
+        hash_frame=(hashlib.sha256(msg.encode('utf-8'))).hexdigest()  #.digest
         return(msg+hash_frame)
 
  
     def unpack_hash(self,byte_frame):
-          # split of the last 16 bytes which is the hash
-        # hash the remaining bytes
-        # compare with the original hash in the frame
-        # if different error, try again or stop
-        # split the remained bytes as the data
-        # convert to text
-        # split the to_ip address and from _ip_address
-        # convert to string
-
-        #byte_frame=bytearray(msg.encode('utf-8')).digest()
-       # print("frame length passed=",len(frame))
         length=len(byte_frame)
-        #print("byte frame:",byte_frame," length=",length)
-        if length>32:
-            hash_bytes=byte_frame[-32:]
-            #msg=bytearray(byte_frame[:length-32],'utf-8')
-            msg=str(byte_frame[:length-32])   #,'utf-8')
-            msg_bytes=byte_frame[:length-32]   #,'utf-8')
+    
+        if length>64:
+            hash_bytes=byte_frame[-64:]
+        
+            msg=str(byte_frame[:length-64])   #,'utf-8')
+            msg_bytes=byte_frame[:length-64]   #,'utf-8')
         else:
-            print("byte frame error.  len=",length,"<=32.  byte_frame=",byte_frame)
-        #message_bytes=bytearray(byte_frame[:length-32],'utf-8')
-       #d=message_bytes
-     #   print("unpack. len=",length," byte_frame=",byte_frame," hash bytes=",hash_bytes," msg=",msg)   #," mb encode=",d)
-        #msg_bytes=frame[:1000]
+            print("byte frame error.  len=",length,"<=64.  byte_frame=",byte_frame)
 
-        #ip_bytes=rest_of_frame[-8:]  
-        #to_ip_bytes=ip_bytes[-4:]
-        #from_ip_bytes=ip_bytes[:4]
-    #    print("lengths msg=",len(msg_bytes)," ip=", len(ip_bytes))
-        #msg=str(message_bytes)   #,'utf-8')
-       # print("message bytes=",message_bytes)
-        #from_ip=socket.inet_ntoa(from_ip_bytes)
-        #to_ip=socket.inet_ntoa(to_ip_bytes)
-     #   print("msg=",msg,"\n\n from=",from_ip,"\n\n to=",to_ip,"\n\n")
+  #      check_hash=(hashlib.md5(msg.encode('utf-8'))).hexdigest()  #.digest
 
-        #hash_bytes=bytes(frame[-16:])
-     #   print(hash_bytes," len=",len(hash_bytes))
-   
-  #      check_hash9=hashlib.md5(message_bytes.encode('utf-8')).hexdigest()  #.digest
-       # check_hash=(hashlib.md5(msg_bytes)).hexdigest()  #.digest
-
-        check_hash=(hashlib.md5(msg.encode('utf-8'))).hexdigest()  #.digest
-
-     #   print(check_hash," len=",len(check_hash))
-
+        check_hash=(hashlib.sha256(msg.encode('utf-8'))).hexdigest()  #.digest
     
         if hash_bytes!=check_hash:
-          #  print("hash incorrect: actual hash=",hash_bytes," check=",check_hash)
+            print("hash incorrect: actual hash=",hash_bytes," check=",check_hash)
             return(msg,False,hash_bytes)  #"hash incorrect")
 
         else:
@@ -242,6 +196,17 @@ class multipi:
             return(msg,True,hash_bytes)
 
 
+
+    # Python program to find SHA256 hash string of a file
+    def hash_a_file(self):
+ 
+        filename = input("Enter the input file name: ")
+        sha256_hash = hashlib.sha256()
+        with open(filename,"rb") as f:
+            # Read and update hash string value in blocks of 4K
+            for byte_block in iter(lambda: f.read(4096),b""):
+                sha256_hash.update(byte_block)
+        print(sha256_hash.hexdigest())
 
 
     def chat_server(self,host,port):

@@ -15,6 +15,8 @@ RECV_BUFFER = 4096
 PORT = 9009
 
 
+
+
 def chat_server_encrypted(e,hasher):  # e is a AES cipher, hasher is the multipi hash functions
     pygame.init()
     BLACK = (0,0,0)
