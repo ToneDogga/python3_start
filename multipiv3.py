@@ -67,7 +67,7 @@ RECV_BUFFER = 4096
 
 #HOST = '' 
 #HOST="192.168.0.110"
-SOCKET_LIST = [] 
+
 PORT = 9009
 EXIT_COMMAND = "exit"
 HOST="192.168.0.110"
@@ -120,7 +120,9 @@ class multipi:
 
 
 
-    def chat_server_encrypted(self,e):  # e is a AES cipher, hasher is the multipi hash functions
+    def chat_server_encrypted(self,e,alias_name):  # e is a AES cipher, hasher is the multipi hash functions
+        socket_list = [] 
+
         pygame.init()
         BLACK = (0,0,0)
         WIDTH = 100
@@ -141,7 +143,7 @@ class multipi:
         server_socket.listen(10)
      
         # add server socket object to the list of readable connections
-        SOCKET_LIST.append(server_socket)
+        socket_list.append(server_socket)
  
         print("Chat server started on port " + str(PORT))
  
@@ -155,12 +157,12 @@ class multipi:
 
             ###############################
             if me_print==False: 
-                print('\n'+"[Me] "+mymsg,end="")
+                print('\n'+"["+alias_name+"] "+mymsg,end="")
                 me_print=True
 
             # get the list sockets which are ready to be read through select
             # 4th arg, time_out  = 0 : poll and never block
-            ready_to_read,ready_to_write,in_error = select.select(SOCKET_LIST,[],[],0)
+            ready_to_read,ready_to_write,in_error = select.select(socket_list,[],[],0)
 
 
             for event in pygame.event.get():
@@ -173,14 +175,15 @@ class multipi:
                     
                         elif k=="return":   #kd==pygame.K_RETURN:
                             #msg_send=True
-                            mymsg+='\n'
+                            mymsg=alias_name+" > "+mymsg+'\n'
                             #print("mymsg before hash=",mymsg)
+                            msg=self.append_alias(msg,alias_name)  # 10 chars
                             mymsg=self.append_hash(mymsg)
                             #print("mymsg after hash=",mymsg)
                             enc=e.encrypt(mymsg)
                             #print('\n'+"server broadcasting msg=",mymsg," encrypted=",enc)
                         
-                            self.broadcast(server_socket,"",e.encrypt(mymsg))
+                            self.broadcast(socket_list,server_socket,"",e.encrypt(mymsg))
                             mymsg=""
                             me_print=False
                             break
@@ -203,16 +206,17 @@ class multipi:
                 # a new connection request recieved
                 if sock == server_socket: 
                     sockfd, addr = server_socket.accept()
-                    SOCKET_LIST.append(sockfd)
+                    socket_list.append(sockfd)
                    # print("Client (%s, %s) connected" % addr)
                     msg="Client connected. [%s:%s] entered our chatting room\n" % addr
                     print(msg)
+                    msg=self.append_alias(msg,alias_name)  # 10 chars
                     msg=self.append_hash(msg)   #.encode('utf-8'))
                     #msg2=e.encrypt(msg)
                     #print("msg=",msg)
                     me_print=False
                  
-                    self.broadcast(server_socket, sockfd, e.encrypt(msg))
+                    self.broadcast(socket_list,server_socket, sockfd, e.encrypt(msg))
              
                 # a message from a client, not a new connection
                 else:
@@ -235,56 +239,59 @@ class multipi:
                             except:   #TypeError
                                 print("Decrypt failed.",inenc)
                                 sys.exit()
-                            dec,success,hash_bytes=self.unpack_hash(dec)
+                            dec,success,client_alias,hash_bytes=self.unpack_hash(dec)
                       #      print("decrypted=",dec)
 
                             if success:
                            #     print("hash correct")
                                 #print(str(sock.getpeername()),"data = ",dec)
-                                msg="\r" + str(sock.getpeername()) + " : " +dec
+                                msg="\r"+ str(sock.getpeername()) + client_alias+ " : " +dec
                                 #print(msg)
                                 me_print=False
 
                             else:
                                 me_print=False
-                                msg="\r" + "hash incorrect hash=" + str(hash_bytes)+" : "+str(sock.getpeername()) + "] " + dec +"\n"
+                                msg="\r" +client_alias+ " > "+ "hash incorrect hash=" + str(hash_bytes)+" : "+str(sock.getpeername()) + "] " + dec +"\n"
                             print(msg) #.rstrip())
+                            msg=self.append_alias(msg,alias_name)  # 10 chars
                             msg2=self.append_hash(msg)
-                            self.broadcast(server_socket, sock, e.encrypt(msg2))  
+                            self.broadcast(socket_list,server_socket, sock, e.encrypt(msg2))  
                         else:
                             print("removing Client (%s, %s) socket, connection broken\n" %addr)
                             me_print=False
                             # remove the socket that's broken    
-                            if sock in SOCKET_LIST:
-                                SOCKET_LIST.remove(sock)
+                            if sock in socket_list:
+                                socket_list.remove(sock)
 
                             # at this stage, no data means probably the connection has been broken
-                            msg="Socket broken? Client (%s, %s) is offline\n" % addr
+                            msg=" > Socket broken? Client (%s, %s) is offline\n" % addr
                             #print(msg)
+                            msg=self.append_alias(msg,alias_name)  # 10 chars
                             msg2=self.append_hash(msg)
                            # print("msg=",msg)
-                            self.broadcast(server_socket, sock, e.encrypt(msg2)) 
+                            self.broadcast(socket_list,server_socket, sock, e.encrypt(msg2)) 
 
                     # exception 
                     except ConnectionError:   #ConnectionError   #BrokenPipeError
                    #     print("exception")
-                        msg="Error exception: Client (%s, %s) is offline" % addr
+                        msg="> Error exception: Client (%s, %s) is offline" % addr
                         #print(msg)
+                        msg=self.append_alias(msg,alias_name)  # 10 chars 
                         msg2=self.append_hash(msg)                
-                        self.broadcast(server_socket, sock, e.encrypt(msg2))
+                        self.broadcast(socket_list,server_socket, sock, e.encrypt(msg2))
                         continue
 
         pygame.quit()
         server_socket.close()
     
     # broadcast chat messages to all connected clients
-    def broadcast (self,server_socket, sock, encrypted_msg):
+    def broadcast (self,socket_list,server_socket, sock, encrypted_msg):
         #print("broadcasting;", message)
         #print("encrypted=",encrypted_msg)
         print("\n")
         socket_count=0
         senddata = base64.decodestring(encrypted_msg)
-        for socket in SOCKET_LIST:
+        for socket in socket_list:
             print("socket #",socket_count," : ",socket)
             socket_count+=1
             # send the message only to peer
@@ -297,12 +304,14 @@ class multipi:
                     # broken socket connection
                     socket.close()
                     # broken socket, remove it
-                    if socket in SOCKET_LIST:
-                        SOCKET_LIST.remove(socket)
+                    if socket in socket_list:
+                        socket_list.remove(socket)
  
 
 
-    def chat_client_encrypted(self,e):    #,hasher):   # e is the AES cipher
+    def chat_client_encrypted(self,e,alias_name):    #,hasher):   # e is the AES cipher
+        socket_list = [] 
+
         if(len(sys.argv) < 4) :
             print("Usage : python3 encrypted_chat_client1.py hostname port passphrase")
             sys.exit()
@@ -321,8 +330,8 @@ class multipi:
             print("Unable to connect")
             sys.exit()
      
-        print("Connected to remote host. You can start sending messages")
-        sys.stdout.write("[Me] "); sys.stdout.flush()
+        print(alias_name+"> Connected to remote host. You can start sending messages")
+        sys.stdout.write("["+alias_name+"] "); sys.stdout.flush()
      
         while True:
             #  do work here
@@ -365,7 +374,7 @@ class multipi:
                            # print("decrypted=",indec)
                         
                     
-                            dec2,success,hash_bytes2=self.unpack_hash(indec)
+                            dec2,success,client_alias,hash_bytes2=self.unpack_hash(indec)
                            # print("decrypt=",dec2," hash bytes",hash_bytes2)
 
                             if not success:
@@ -373,14 +382,15 @@ class multipi:
 
                                   #  sys.stdout.write(str(sock.getpeername())+" : "+data)
                             sys.stdout.write(str(sock.getpeername())+" : "+dec2)
-                            sys.stdout.write("[Me] "); sys.stdout.flush()     
+                            sys.stdout.write("["+client_alias+"] "); sys.stdout.flush()     
 
                 
                           # exception 
                     except ConnectionError:   #ConnectionError   #BrokenPipeError
                        # print("exception")
-                        msg="Error exception: Client (%s, %s) is offline" % addr
+                        msg=alias_name+" > Error exception: Client (%s, %s) is offline" % addr
                         print(msg)
+                        msg=self.append_alias(msg,alias_name)  # 10 chars
                         msg2=self.append_hash(msg)
                         self.broadcast(server_socket, sock, e.encrypt(msg2))
                         continue
@@ -391,7 +401,8 @@ class multipi:
                     msg = sys.stdin.readline()
                    # byte_msg=bytearray(msg.encode('utf-8'))
                    # print("msg byte array=",byte_msg)
-                
+                    msg=alias_name+" > "+msg
+                    msg=self.append_alias(msg,alias_name)  # 10 chars
                     msg2=self.append_hash(msg)    #.encode('utf-8'))
  #                   byte_msg.extend(hash_msg(msg))
   #                 print("msg : ",msg," byte_msg with hash=",byte_msg)
@@ -411,11 +422,11 @@ class multipi:
                         print("Broken socket connection.")
                         socket.close()
                         # broken socket, remove it
-                        if socket in SOCKET_LIST:
-                            SOCKET_LIST.remove(socket)
+                        if socket in socket_list:
+                            socket_list.remove(socket)
 
                 
-                    sys.stdout.write("[Me] "); sys.stdout.flush() 
+                    sys.stdout.write("["+alias_name+"] "); sys.stdout.flush() 
 
 
 
@@ -438,9 +449,10 @@ class multipi:
     def unpack_hash(self,byte_frame):
         length=len(byte_frame)
     
-        if length>64:
+        if length>74:
             hash_bytes=byte_frame[-64:]
-        
+            a=str(byte_frame[:length-74])
+            alias_name=a[10:]
             msg=str(byte_frame[:length-64])   #,'utf-8')
             msg_bytes=byte_frame[:length-64]   #,'utf-8')
 
@@ -454,11 +466,18 @@ class multipi:
 
             else:
                 #print("hash correct  Frame_no:",frame_count)
-                return(msg,True,hash_bytes)
+                return(msg,True,alias_name,hash_bytes)
         else:
-            print("byte frame error.  len=",length,"<=64.  byte_frame=",byte_frame)
-            return("",False,b'')
+            print("byte frame error.  len=",length,"<=74.  byte_frame=",byte_frame)
+            return("",False,"",b'')
 
+
+        
+    def append_alias(self,msg,alias_name):  # 10 chars
+     #   msg_byte=bytearray(msg.rstrip(),'utf-8')   #.encode('utf-8')).digest()
+  #     hash_frame=(hashlib.md5(msg.encode('utf-8'))).hexdigest()  #.digest
+  #      hash_frame=(hashlib.sha256(msg.encode('utf-8'))).hexdigest()  #.digest
+        return(msg+alias_name)
 
 
 
@@ -474,9 +493,19 @@ class multipi:
         print(sha256_hash.hexdigest())
 
 
+    def display_a_hash(self,hash_object):
+        if len(hash_object)==64:
+            print("hash=",hash_object)
+            print("\n\n##########")
+            for row in range(0,63,8):
+                print("#"+hash_object[row:row+8]+"#")
+            print("##########\n\n")
+        else:
+            print("Hash not 64 bytes.  error")
+               
 
-
-
+####################################################################3333
+"""
 
     def send_msg(self,msg,from_ip,to_ip):    
         # 
@@ -1324,7 +1353,6 @@ class multipi:
             return False
 
 
-"""
 def split_file(file_path, chunk=4000):
 
     p = subprocess.Popen(['split', '-a', '2', '-l', str(chunk), file_path,
@@ -1336,8 +1364,9 @@ def split_file(file_path, chunk=4000):
     #except OSError:
     #    pass
     #return True
-"""
-"""
+
+
+
 #splitting files
 import tempfile
 from itertools import groupby, count
@@ -1353,8 +1382,8 @@ def tempfile_split(filename, temp_dir, chunk=4000000):
                 with open(output_name, 'a') as outfile:
                 outfile.write(''.join(group))
 
-"""
-"""            
+
+            
 name = ['Alice', 'Bob', 'Cathy', 'Doug']
 age = [25, 45, 37, 19]
 weight = [55.0, 85.5, 68.0, 61.5]
@@ -1411,11 +1440,9 @@ print(data3[-1]["name"])
 
 # Get names where age is under 30
 print(data3[data3['age'] < 30]['name'])
-"""
 
 
 
-"""
 print("data4\n")
 data4=np.dtype('S10,i4,f8')
 
@@ -1437,9 +1464,8 @@ print(data4[-1]["name"])
 # Get names where age is under 30
 print(data4[data4['age'] < 30]['name'])
 
-"""
 
-"""Character	Description	Example
+Character	Description	Example
 'b'	Byte	np.dtype('b')
 'i'	Signed integer	np.dtype('i4') == np.int32
 'u'	Unsigned integer	np.dtype('u1') == np.uint8
@@ -1449,8 +1475,6 @@ print(data4[data4['age'] < 30]['name'])
 'U'	Unicode string	np.dtype('U') == np.str_
 'V'	Raw data (void)	np.dtype('V') == np.void
 """
-
-
 
 
 
