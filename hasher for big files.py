@@ -15,6 +15,23 @@ def sha256(file_handle):
     return hasher.hexdigest()
 
 
+
+def display_a_hash(hash_object):
+    if len(hash_object)==64:
+        print("SHA256 hash")  #,hash_object)
+        print("############")
+        print("#          #")  
+        for row in range(0,63,8):
+            print("# "+hash_object[row:row+8]+" #")
+        print("#          #")
+        print("############\n")
+    else:
+        print("Hash not 64 bytes.  error")
+    
+               
+
+
+
 def split_a_file_in_2(infile):
 
         #infile = open("input","r")
@@ -71,6 +88,8 @@ except IOError as e:
     print("error test")
 
 
+display_a_hash(hash_string)
+
 print(count_file_rows("salestrans060719.csv"))
 
 split_a_file_in_2("salestrans060719.csv")
@@ -86,4 +105,4 @@ try:
 except IOError as e:
     print("error test")
 
-
+display_a_hash(hash_string)
