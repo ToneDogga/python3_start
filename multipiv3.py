@@ -507,11 +507,14 @@ class multipi:
 
     def display_a_hash(self,hash_object):
         if len(hash_object)==64:
-            sys.stdout.write("hash=",hash_object)
-            sys.stdout.write("\n\n##########")
+            sys.stdout.write("SHA256 hash=",hash_object)
+            sys.stdout.write("\n\n###########")
+            sys.stdout.write("#        #")
+            
             for row in range(0,63,8):
-                sys.stdout.write("#"+hash_object[row:row+8]+"#")
-            sys.stdout.write("##########\n\n")
+                sys.stdout.write("# "+hash_object[row:row+8]+" #")
+             sys.stdout.write("#        #")
+            sys.stdout.write("############\n\n")
         else:
             sys.stdout.write("Hash not 64 bytes.  error")
         sys.stdout.flush()     
