@@ -33,82 +33,104 @@
 #
 # go back to start with the new generation
 
+#
+#!/usr/bin/env python
+#
+
+from __future__ import division
+
 import sys
 import hashlib, os
 import random
 import math
 import time
 
+class geneaxis(object):
 
+    def __init__(self): 
+    #    self.length=6   # 16 length of dna bit strings
+    #    self.max_payoff=0
+    #    self.min_payoff=0
+    #    self.starting_population=6   #256 (16 bits), 64 (13 bits), 32 (10 bits)   #16 for 8 bits #4 for 5 bits
+    #    best=""
+    #    returnedpayoff=0
+         self.gen=0
+    #    epoch_length=60
+    #    extinction_events=4
+    #    extinctions=0
+    #    mutation_count=0
+    #    mutations=0
+   
 
-def generate_dna(number, length):
-    dna=[]
-    for count in range(0,number):
-        go_back=True
-        while go_back:
-            d=""
-            for size in range(0,length):
-               bit=str(random.randint(0,1))
-               d=d+bit
+    def generate_dna(self, number, length):
+        dna=[]
+        for count in range(0,number):
+            go_back=True
+            while go_back:
+                d=""
+                for size in range(0,length):
+                   bit=str(random.randint(0,1))
+                   d=d+bit
 # check if we have already that string in the population. if so discard and generate another
-            #print(d)
-            go_back=False
-            for elem in dna:
-                if d==elem:
-                    go_back=True
-                    break
+                #print(d)
+                go_back=False
+                for elem in dna:
+                    if d==elem:
+                        go_back=True
+                        break
                                         
-        dna.append(d)   
-      #  print(" dna[",count,"]=",dna[count]," dna value=",int(dna[count],2))
-    #print(dna)
-    #input("?")
-    return(dna)    
+            dna.append(d)   
+          #  print(" dna[",count,"]=",dna[count]," dna value=",int(dna[count],2))
+        #print(dna)
+        #input("?")
+        return(dna)    
 
-def generate_payoff_environment_1d(xstart_val,xsize_of_env):
+
+    def generate_payoff_environment_1d(self, xstart_val,xsize_of_env):
     
-    payoff = [-10*math.sin(x/44)*12*math.cos(x/33)*1000/(x+1) for x in range(xstart_val,xstart_val+xsize_of_env)]
-    #for x in range(xstart_val,xstart_val+xsize_of_env):
-    #    payoff[x]=x**2  # example function
-    return(payoff)    
+        payoff = [-10*math.sin(x/44)*12*math.cos(x/33)*1000/(x+1) for x in range(xstart_val,xstart_val+xsize_of_env)]
+        #for x in range(xstart_val,xstart_val+xsize_of_env):
+        #    payoff[x]=x**2  # example function
+        return(payoff)    
 
-def generate_payoff_environment_2d(xstart_val,xsize_of_env,ystart_val,ysize_of_env):
-    payoff = [[x**2+y*3 for x in range(xstart_val,xstart_val+xsize_of_env)] for y in range(ystart_val,ystart_val+ysize_of_env)]
-    #for x in range(xstart_val,xstart_val+xsize_of_env):
-    #    for y in range(ystart_val,ystart_val+ysize_of_env):
-    #        payoff[x][y]=x**2+3*y   # example function
-    print(payoff)
-    input("?")
-    return(payoff)
+    def generate_payoff_environment_2d(self, xstart_val,xsize_of_env,ystart_val,ysize_of_env):
+        payoff = [[x**2+y*3 for x in range(xstart_val,xstart_val+xsize_of_env)] for y in range(ystart_val,ystart_val+ysize_of_env)]
+        #for x in range(xstart_val,xstart_val+xsize_of_env):
+        #    for y in range(ystart_val,ystart_val+ysize_of_env):
+        #        payoff[x][y]=x**2+3*y   # example function
+        print(payoff)
+        input("?")
+        return(payoff)
 
-def calc_fitness(dna,payoff,direction):
-    max_payoff=0.0
-    min_payoff=0.0
-    count=0
-    best=""
-    fitness=[]
-    for elem in dna:
-        val=int(dna[count],2)
-        p=payoff[val]
-        fitness.append(p)
-        if direction=="x":  # maximising payoff
-            if p>max_payoff:
-                best=dna[count]
-                max_payoff=p
-        elif direction=="n":    # minimising cost
-            if p<min_payoff:
-                best=dna[count]
-                min_payoff=p
+    def calc_fitness(self, dna,payoff,direction):
+        max_payoff=0.0
+        min_payoff=0.0
+        count=0
+        best=""
+        fitness=[]
+        for elem in dna:
+            val=int(dna[count],2)
+            p=payoff[val]
+            fitness.append(p)
+            if direction=="x":  # maximising payoff
+                if p>max_payoff:
+                    best=dna[count]
+                    max_payoff=p
+            elif direction=="n":    # minimising cost
+                if p<min_payoff:
+                    best=dna[count]
+                    min_payoff=p
+            else:
+                print("calc fitness direction error.")
+
+        #    print("#",count+1,":",elem," val=",val,"payoff=",payoff[val]," fitness=",fitness[count])
+            count+=1
+        if direction=="x":
+            return(best,max_payoff)
+        elif direction=="n":
+            return(best,min_payoff)
         else:
-            print("calc fitness direction error.")
-
-    #    print("#",count+1,":",elem," val=",val,"payoff=",payoff[val]," fitness=",fitness[count])
-        count+=1
-    if direction=="x":
-        return(best,max_payoff)
-    elif direction=="n":
-        return(best,min_payoff)
-    else:
-        return(0,0)
+            return(0,0)
 
 
 # reproduction
@@ -119,57 +141,57 @@ def calc_fitness(dna,payoff,direction):
 
    
 
-def calc_mating_probabilities(dna,payoff,direction):
-    count=0
-    total_payoff=0.00001
-    for elem in dna:
-        val=int(dna[count],2)
-        total_payoff+=payoff[val]
-    #print(val,payoff[val])
-        count+=1
+    def calc_mating_probabilities(self, dna,payoff,direction):
+        count=0
+        total_payoff=0.00001
+        for elem in dna:
+            val=int(dna[count],2)
+            total_payoff+=payoff[val]
+        #print(val,payoff[val])
+            count+=1
 
 #    print("payoff=",payoff)
 #    input("?")
 
-    count=0
-    wheel=[]
-   # nor_payoff=total_payoff*1000
-   # print("np=",nor_payoff)
-    for elem in dna:
-        val=int(dna[count],2)
-        if direction=="x":   # maximise
-            wheel.append(int(round(payoff[val]/total_payoff*1000)))
-         #   print("#",count+1,":",elem," val=",val,"payoff=",payoff[val]," prob=",wheel[count])
+        count=0
+        wheel=[]
+       # nor_payoff=total_payoff*1000
+       # print("np=",nor_payoff)
+        for elem in dna:
+            val=int(dna[count],2)
+            if direction=="x":   # maximise
+                wheel.append(int(round(payoff[val]/total_payoff*1000)))
+         #       print("#",count+1,":",elem," val=",val,"payoff=",payoff[val]," prob=",wheel[count])
  
-        elif direction=="n":   # minimise
-            wheel.append(int(round(-payoff[val]/total_payoff*1000)))
-      #     print("#",count+1,":",elem," val=",val,"cost=",payoff[val]," prob=",wheel[count])
+            elif direction=="n":   # minimise
+                wheel.append(int(round(-payoff[val]/total_payoff*1000)))
+      #         print("#",count+1,":",elem," val=",val,"cost=",payoff[val]," prob=",wheel[count])
  
-        else:
-            print("direction error3")
+            else:
+                print("direction error3")
 
-#        print("#",count+1,":",elem," val=",val,"payoff=",payoff[val]," prob=",wheel[count])
-        count+=1
+#           print("#",count+1,":",elem," val=",val,"payoff=",payoff[val]," prob=",wheel[count])
+            count+=1
 
     
-#    wheel_sort = sorted(wheel, key = lambda s: s[1])  # find the move that reduces the distance to the goal the most
-#    sorted_wheel= [s[0] for s in wheel_sort]
-#    print("wheel=",wheel)
-    return(wheel)
+#       wheel_sort = sorted(wheel, key = lambda s: s[1])  # find the move that reduces the distance to the goal the most
+#       sorted_wheel= [s[0] for s in wheel_sort]
+#       print("wheel=",wheel)
+        return(wheel)
 
     
-def spin_the_mating_wheel(wheel,dna,iterations):
-    sel=[]
-    mates=[]
-    n=0
+    def spin_the_mating_wheel(self,wheel,dna,iterations):
+        sel=[]
+        mates=[]
+        n=0
 
    # clock_start=time.clock()
 
-    wheel_len=len(wheel)
+        wheel_len=len(wheel)
 
-    while n<=wheel_len-1: 
-        sel=sel+([n+1] * wheel[n])
-        n=n+1
+        while n<=wheel_len-1: 
+            sel=sel+([n+1] * wheel[n])
+            n=n+1
 
 
 #    wheel_len=len(wheel)
@@ -189,90 +211,79 @@ def spin_the_mating_wheel(wheel,dna,iterations):
    # clock_start=time.clock()
 
     #print("len(sel)=",len(sel))
-    len_sel=len(sel)
-    for i in range(0,iterations):
-        go_back=True
-        while go_back:
-            # pick a random string for mating
-            first_string_no=random.randint(1,wheel_len)
-            # choose its mate from the wheel
-            second_string_no=first_string_no
-            while second_string_no==first_string_no:
-                second_string_no=sel[random.randint(0,len_sel-1)]
-       # print("mate ",first_string_no,dna[first_string_no-1]," with ",second_string_no,dna[second_string_no-1])
+        len_sel=len(sel)
+        for i in range(0,iterations):
+            go_back=True
+            while go_back:
+                # pick a random string for mating
+                first_string_no=random.randint(1,wheel_len)
+                # choose its mate from the wheel
+                second_string_no=first_string_no
+                while second_string_no==first_string_no:
+                    second_string_no=sel[random.randint(0,len_sel-1)]
+                   # print("mate ",first_string_no,dna[first_string_no-1]," with ",second_string_no,dna[second_string_no-1])
 
-            # if the string to mate with is the same, try again
-            go_back=False
-            if dna[first_string_no-1]==dna[second_string_no-1]:
-                go_back=True
+                    # if the string to mate with is the same, try again
+                go_back=False
+                if dna[first_string_no-1]==dna[second_string_no-1]:
+                    go_back=True
 
-        mates=mates+[(dna[first_string_no-1],dna[second_string_no-1])]                     
-
-
-  #  clock_end=time.clock()
-  #  duration_clock=clock_end-clock_start
-  #  print("spin the mating wheel find the string nos - Clock: duration_clock =", duration_clock)
-
-    #print(mates,len(mates))
-    return(mates)
+            mates=mates+[(dna[first_string_no-1],dna[second_string_no-1])]                     
 
 
-def crossover(mates,length):
-    crossed=[]
-    for i in mates:
-    #    print(i[0],i[1])
-        # pick a random cut point in the gene strings of the mates
-        splitpoint=random.randint(1,length-1)
-    #    print("splitpoint=",splitpoint)
-       # temp1=i[0]
-       # temp2=i[1]
-        child1=""
-        child2=""
-     #   remain1=temp1[:splitpoint]
-     #   swap1=temp1[splitpoint-length:]
-     #   remain2=temp2[:splitpoint]
-     #   swap2=temp2[splitpoint-length:]
-        remain1=i[0][:splitpoint]
-        swap1=i[0][splitpoint-length:]
-        remain2=i[1][:splitpoint]
-        swap2=i[1][splitpoint-length:]
+      #  clock_end=time.clock()
+      #  duration_clock=clock_end-clock_start
+      #  print("spin the mating wheel find the string nos - Clock: duration_clock =", duration_clock)
 
-        child1=remain1+swap2
-        child2=remain2+swap1
-
-     #   print("temp1=",temp1," remain1=",remain1," swap1",swap1)
-     #   print("temp2=",temp2," remain2=",remain2," swap2",swap2)
-     #   print("new1=",new1," new2=",new2)
-        crossed.append(child1)   #+[child1,child2)]
-        crossed.append(child2)
-    #print("crossed len",len(crossed))    
-    return(crossed)
+        #print(mates,len(mates))
+        return(mates)
 
 
-def mutate(crossed,length,mutation_rate):
-     mutation=False
-     mutation_count=0
-     temp=""
-     gene_pool_size=len(dna)*length
- #    print("total number of bits=",totalbits)
-     if gene_pool_size==0:
-         print("totalbits=0! error")
-     #like=int(round(mutation_rate/totalbits))
-     number_of_mutations_needed=int(round(gene_pool_size/mutation_rate))
-   #  print("number of mutations needed=",number_of_mutations_needed)
-     for m in range(0,number_of_mutations_needed):
-        # flip=str(random.randint(0,1)) # a bit to change
+    def crossover(self,mates,length):
+        crossed=[]
+        for i in mates:
+            splitpoint=random.randint(1,length-1)
 
-         mut_elem=random.randint(0,len(crossed)-1)
-         mut_bit=random.randint(0,length-1)
-        # print("before mut",crossed[mut_elem])
-        # print("mut bit no",mut_bit,"mut bit",crossed[mut_elem][mut_bit:mut_bit+1])   #=flip
-         
-         gene=str(crossed[mut_elem])   #v[mut_bit:mut_bit+1]="0"
-          #   print(gene," to mutate at position",mut_bit)
+            child1=""
+            child2=""
+            remain1=i[0][:splitpoint]
+            swap1=i[0][splitpoint-length:]
+            remain2=i[1][:splitpoint]
+            swap2=i[1][splitpoint-length:]
+
+            child1=remain1+swap2
+            child2=remain2+swap1
+
+            crossed.append(child1)   #+[child1,child2)]
+            crossed.append(child2)
+        #print("crossed len",len(crossed))    
+        return(crossed)
+
+
+    def mutate(self,crossed,length,mutation_rate):
+         mutation=False
+         mutation_count=0
          temp=""
-         bit=0
-         for letter in gene:
+         gene_pool_size=len(dna)*length
+ #       print("total number of bits=",totalbits)
+         if gene_pool_size==0:
+             print("totalbits=0! error")
+         #like=int(round(mutation_rate/totalbits))
+         number_of_mutations_needed=int(round(gene_pool_size/mutation_rate))
+   #    print("number of mutations needed=",number_of_mutations_needed)
+         for m in range(0,number_of_mutations_needed):
+            # flip=str(random.randint(0,1)) # a bit to change
+
+             mut_elem=random.randint(0,len(crossed)-1)
+             mut_bit=random.randint(0,length-1)
+            # print("before mut",crossed[mut_elem])
+            # print("mut bit no",mut_bit,"mut bit",crossed[mut_elem][mut_bit:mut_bit+1])   #=flip
+         
+             gene=str(crossed[mut_elem])   #v[mut_bit:mut_bit+1]="0"
+              #   print(gene," to mutate at position",mut_bit)
+             temp=""
+             bit=0
+             for letter in gene:
                  if bit==mut_bit:
                      if gene[bit:bit+1]=="1":
                          temp2="0"
@@ -285,30 +296,30 @@ def mutate(crossed,length,mutation_rate):
                      temp=temp+gene[bit:bit+1]
                  bit=bit+1    
                 
-        # print("mutated=",temp)
-         crossed[mut_elem]=temp
+            # print("mutated=",temp)
+             crossed[mut_elem]=temp
             
-         mutation_count+=1
-           #  print("dna before mutation:",dna)
+             mutation_count+=1
+               #  print("dna before mutation:",dna)
            
         
-     new_dna=crossed
+         new_dna=crossed
          
-     #print("new dna len=",len(new_dna))
-     #input("?")
+         #print("new dna len=",len(new_dna))
+         #input("?")
 
          
-     return(new_dna,mutation_count,gene_pool_size)       
+         return(new_dna,mutation_count,gene_pool_size)       
 
 
 
 
 
 
-length=6   # 16 length of dna bit strings
+length=16   # 16 length of dna bit strings
 max_payoff=0
 min_payoff=0
-starting_population=6   #256 (16 bits), 64 (13 bits), 32 (10 bits)   #16 for 8 bits #4 for 5 bits
+starting_population=256   #256 (16 bits), 64 (13 bits), 32 (10 bits)   #16 for 8 bits #4 for 5 bits
 best=""
 returnedpayoff=0
 gen=0
@@ -317,6 +328,14 @@ extinction_events=4
 extinctions=0
 mutation_count=0
 mutations=0
+mutation_rate=1000   # mutate 1 bit in every 1000
+
+
+xgene=geneaxis()  # instantiate the gene string object for the x axis
+
+
+
+
 
 #payoff=generate_payoff_environment_1d(0,32)  # 5 bits
 #payoff=generate_payoff_environment_1d(0,64)  # 6 bits
@@ -325,9 +344,9 @@ mutations=0
 #payoff=generate_payoff_environment_1d(0,1024)  #10 bits
 #payoff=generate_payoff_environment_1d(0,4096)  #12 bits
 #payoff=generate_payoff_environment_1d(0,8192)  #13 bits
-#payoff=generate_payoff_environment_1d(0,65536)  #16 bits
+payoff=xgene.generate_payoff_environment_1d(0,2**16)  #16 bits
 
-payoff=generate_payoff_environment_2d(0,7,0,7)  # 6 bits
+#payoff=xgene.generate_payoff_environment_2d(0,7,0,7)  # 6 bits
 
 
 
@@ -341,7 +360,7 @@ while direction!="x" and direction!="n":
 while extinctions<=extinction_events:
     
     generation_number=1
-    dna=generate_dna(starting_population,length)
+    dna=xgene.generate_dna(starting_population,length)
     #print(dna)
     total_genes=0
     gene_pool_size=0
@@ -353,7 +372,7 @@ while extinctions<=extinction_events:
 
      #   clock_start=time.clock()
 
-        fittest,returned_payoff=calc_fitness(dna,payoff,direction)
+        fittest,returned_payoff=xgene.calc_fitness(dna,payoff,direction)
 
      #   clock_end=time.clock()
      #   duration_clock=clock_end-clock_start
@@ -377,7 +396,7 @@ while extinctions<=extinction_events:
 
       #  clock_start=time.clock()
    
-        wheel=calc_mating_probabilities(dna,payoff,direction)
+        wheel=xgene.calc_mating_probabilities(dna,payoff,direction)
         #print(wheel)
 
       #  clock_end=time.clock()
@@ -386,7 +405,7 @@ while extinctions<=extinction_events:
 
       #  clock_start=time.clock()
 
-        mates=spin_the_mating_wheel(wheel,dna,starting_population*3)
+        mates=xgene.spin_the_mating_wheel(wheel,dna,starting_population*3)
 
       #  clock_end=time.clock()
       #  duration_clock=clock_end-clock_start
@@ -394,7 +413,7 @@ while extinctions<=extinction_events:
 
       #  clock_start=time.clock()
         
-        crossed=crossover(mates,length)
+        crossed=xgene.crossover(mates,length)
 
       #  clock_end=time.clock()
       #  duration_clock=clock_end-clock_start
@@ -404,7 +423,7 @@ while extinctions<=extinction_events:
        
         #print(crossed)
 
-        dna,mutation_count,gene_pool_size=mutate(crossed,length,1000)   # 1000 means mutation 1 in a 1000 bits processed
+        dna,mutation_count,gene_pool_size=xgene.mutate(crossed,length,mutation_rate)   # 1000 means mutation 1 in a 1000 bits processed
 
       #  clock_end=time.clock()
       #  duration_clock=clock_end-clock_start
