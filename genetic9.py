@@ -45,10 +45,13 @@ import random
 import math
 import time
 import linecache
+import platform
 
-global payoff_filename,number_of_cols
-payoff_filename="/home/pi/Python_Lego_projects/payoff_2d.csv"
-number_of_cols=4
+global payoff_filename,number_of_cols, total_rows
+payoff_filename="/home/pi/Python_Lego_projects/payoff_3d.csv"
+number_of_cols=5
+# csv
+#      row number, x, y, z, payoff(or cost)
 
 
 def generate_payoff_environment_1d(xstart_val,xsize_of_env):   
@@ -68,7 +71,7 @@ def generate_payoff_environment_1d_file(xstart_val,xsize_of_env,filename):
         #for x in range(xstart_val,xstart_val+xsize_of_env):
         #    payoff[x]=x**2  # example function
     f.close()   
-
+    return(rowno)
 
 
 def generate_payoff_environment_2d(xstart_val,xsize_of_env,ystart_val,ysize_of_env):
@@ -82,6 +85,7 @@ def generate_payoff_environment_2d(xstart_val,xsize_of_env,ystart_val,ysize_of_e
 
 def generate_payoff_environment_2d_file(xstart_val,xsize_of_env,ystart_val,ysize_of_env,filename):   
     rowno=0
+    
     with open(filename,"w") as f:
         for x in range(xstart_val,xstart_val+xsize_of_env):
             for y in range(ystart_val,ystart_val+ysize_of_env):
@@ -90,8 +94,30 @@ def generate_payoff_environment_2d_file(xstart_val,xsize_of_env,ystart_val,ysize
                 rowno+=1
         #for x in range(xstart_val,xstart_val+xsize_of_env):
         #    payoff[x]=x**2  # example function
-    f.close()   
+        
+    f.close()
+    return(rowno)
 
+
+def generate_payoff_environment_3d_file(xstart_val,xsize_of_env,ystart_val,ysize_of_env,zstart_val,zsize_of_env,filename):   
+    rowno=0
+    total_rows=xsize_of_env*ysize_of_env*zsize_of_env    
+    with open(filename,"w") as f:
+        for x in range(xstart_val,xstart_val+xsize_of_env):
+            print("\rProgress: [%d%%] " % (rowno/total_rows*100),end='\r', flush=True)
+            for y in range(ystart_val,ystart_val+ysize_of_env):
+                for z in range(zstart_val,zstart_val+zsize_of_env):
+                    payoff=-100*math.sin(x/44)*120*math.cos(y/33)-193*math.tan(z/55)
+                    f.write(str(rowno)+","+str(x)+","+str(y)+","+str(z)+","+str(payoff)+"\n")
+                    rowno+=1        
+    f.close()
+    print("")
+    return(rowno)
+
+
+def count_file_rows(filename):
+    with open(filename,'r') as f:
+        return sum(1 for row in f)
 
 ######################################################
 
@@ -105,7 +131,9 @@ class gene_string(object):
        # self.starting_population=256   #256 (16 bits), 64 (13 bits), 32 (10 bits)   #16 for 8 bits #4 for 5 bits
     #    best=""
       #  self.payoff_filename="/home/pi/Python_Lego_projects/payoff_1d.csv"
-         self.gen=0
+         self.pconstraint=False
+         self.minp=0
+         self.maxp=0
     #    epoch_length=60
     #    extinction_events=4
     #    extinctions=0
@@ -132,8 +160,8 @@ class gene_string(object):
                                         
             dna.append(d)   
           #  print(" dna[",count,"]=",dna[count]," dna value=",int(dna[count],2))
-       # print(dna)
-       # input("?")
+      #  print(dna)
+      #  input("?")
         return(dna)    
 
     def return_a_row(self,row,filename):   # assumes the payoff is the last field in a CSV delimited by ","
@@ -141,8 +169,15 @@ class gene_string(object):
         try:
             return(linecache.getline(filename,row+1).rstrip())
         except IndexError:
+            print("\nindex error")
             return("Index error")
-        
+        except ValueError:
+            print("\nvalue error") 
+            return("value error")
+        except IOError:
+            print("\nIO error")
+            return("IO error")
+       
 
 
     def find_a_payoff(self,row,filename):   # assumes the payoff is the last field in a CSV delimited by ","
@@ -150,15 +185,28 @@ class gene_string(object):
         try:
             return(float(linecache.getline(filename,row+1).split(",")[-1]))
         except IndexError:
+            print("\nindex error")
             return(0.0)
-        
+        except ValueError:
+            print("\nvalue error")
+            return("Value error")
+        except IOError:
+            print("\nIO error")
+            return("IO error")
 
     def find_a_row_and_column(self,row,col,filename):   # assumes the payoff is the last field in a CSV delimited by ","
        # print("line no:",row,":",linecache.getline(filename,row+1))   #.split(",")[-1])
         try:
             return(float(linecache.getline(filename,row+1).split(",")[col]))
         except IndexError:
+            print("\nindex error")
             return(0.0)
+        except ValueError:
+            print("\nvalue error")
+            return("Value error")
+        except IOError:
+            print("\nIO error")
+            return("IO error")
 
 
 
@@ -168,34 +216,39 @@ class gene_string(object):
         p=0.0
         count=0
         best=""
-        fitness=[]
+      #  fitness=[]
         for elem in dna:
             val=int(dna[count],2)
-          #  p=payoff[val]
-          #  p=self.find_a_payoff_1d(val,self.payoff_filename)
-            p=self.find_a_payoff(val,payoff_filename)
-      #      print("p=",p," val=",val)
-            fitness.append(p)
-            if direction=="x":  # maximising payoff
-                if p>max_payoff:
-                    best=dna[count]
-                    max_payoff=p
-            elif direction=="n":    # minimising cost
-                if p<min_payoff:
-                    best=dna[count]
-                    min_payoff=p
+            if val <= total_rows:
+              #  p=payoff[val]
+              #  p=self.find_a_payoff_1d(val,self.payoff_filename)
+                p=self.find_a_payoff(val,payoff_filename)
+      #          print("p=",p," val=",val)
+       #         fitness.append(p)
+                if direction=="x":  # maximising payoff
+                    if p>max_payoff:
+                        best=dna[count]
+                        bestrow=self.find_a_row_and_column(val,0,payoff_filename)
+                        max_payoff=p
+                elif direction=="n":    # minimising cost
+                    if p<min_payoff:
+                        best=dna[count]
+                        bestrow=self.find_a_row_and_column(val,0,payoff_filename)
+                        min_payoff=p
+                else:
+                    print("\ncalc fitness direction error.")
             else:
-                print("calc fitness direction error.")
-
+                print("\nval ",val," is greater than total environment (",total_rows,")")
           #  print("#",count+1,":",elem," val=",val,"payoff=",p," fitness=",fitness[count])
           #  print("best=",best," max",max_payoff)
             count+=1
         if direction=="x":
-            return(best,max_payoff)
+            return(bestrow,best,max_payoff)
         elif direction=="n":
-            return(best,min_payoff)
+            return(bestrow,best,min_payoff)
         else:
-            return(0,0)
+            print("direction error..")
+            return(0,0,0)
 
 
 # reproduction
@@ -206,7 +259,7 @@ class gene_string(object):
 
    
 
-    def calc_mating_probabilities(self, dna,direction):
+    def calc_mating_probabilities(self, dna,direction,scaling):
         count=0
         total_payoff=0.00001
         for elem in dna:
@@ -221,25 +274,29 @@ class gene_string(object):
 
         count=0
         wheel=[]
+        if len(dna)<=1:
+            print("\nlen(dna)<=1!")
+     #   else:
+     #       print("\nlen dna=",len(dna))
        # nor_payoff=total_payoff*1000
-       # print("np=",nor_payoff)
+     #   print("\ntotal payoff=",total_payoff)
         for elem in dna:
             val=int(dna[count],2)
             p=self.find_a_payoff(val,payoff_filename)
             if direction=="x":   # maximise
-                wheel.append(int(round(p/total_payoff*1000)))
+                wheel.append(int(round(p/total_payoff*scaling)))
          #       print("#",count+1,":",elem," val=",val,"payoff=",payoff[val]," prob=",wheel[count])
  
             elif direction=="n":   # minimise
-                wheel.append(int(round(-p/total_payoff*1000)))
+                wheel.append(int(round(-p/total_payoff*scaling)))
       #         print("#",count+1,":",elem," val=",val,"cost=",payoff[val]," prob=",wheel[count])
  
             else:
-                print("direction error3")
+                print("\ndirection error3")
 
-#           print("#",count+1,":",elem," val=",val,"payoff=",payoff[val]," prob=",wheel[count])
+     #       print("#",count+1,":",elem," val=",val,"payoff=",p," prob=",wheel[count])
             count+=1
-       # print(wheel)
+       # print("\nlen wheel",len(wheel))
        # input("?")
         return(wheel)
 
@@ -252,16 +309,19 @@ class gene_string(object):
    # clock_start=time.clock()
 
         wheel_len=len(wheel)
-
+        if wheel_len<=1:
+            print("\nwheel length<=1",wheel_len)
+            
         while n<=wheel_len-1: 
             sel=sel+([n+1] * abs(wheel[n]))
             n=n+1
 
-
-
         len_sel=len(sel)
-      #  if len_sel==0:
-      #      print("len =0"," wheel len=",wheel_len)
+   #     print("\nlen(sel)=",len_sel,"sel=",sel,"\n\nwheel=",wheel)
+   #     input("?")
+       
+        if len_sel<=20:
+            print("\n Warning! increase your total_payoff scaling. len sel <=20",len_sel," wheel len=",wheel_len)
         for i in range(0,iterations):
             go_back=True
             while go_back:
@@ -278,15 +338,16 @@ class gene_string(object):
                 if dna[first_string_no-1]==dna[second_string_no-1]:
                     go_back=True
 
-            mates=mates+[(dna[first_string_no-1],dna[second_string_no-1])]                     
+            mates=mates+[(dna[first_string_no-1],dna[second_string_no-1])]      # mates is a list of tuples to be mated               
 
 
       #  clock_end=time.clock()
       #  duration_clock=clock_end-clock_start
       #  print("spin the mating wheel find the string nos - Clock: duration_clock =", duration_clock)
 
-        #print(mates,len(mates))
-        return(mates)
+     #   print("len mates[]",len(mates))
+     #   input("?")
+        return(mates,len_sel)   # if len_sel gets small, there is a lack of genetic diversity
 
 
     def crossover(self,mates,length):
@@ -317,7 +378,7 @@ class gene_string(object):
          gene_pool_size=len(dna)*length
  #       print("total number of bits=",totalbits)
          if gene_pool_size==0:
-             print("totalbits=0! error")
+             print("\ntotalbits=0! error")
          #like=int(round(mutation_rate/totalbits))
          number_of_mutations_needed=int(round(gene_pool_size/mutation_rate))
    #    print("number of mutations needed=",number_of_mutations_needed)
@@ -333,23 +394,28 @@ class gene_string(object):
               #   print(gene," to mutate at position",mut_bit)
              temp=""
              bit=0
+             mut_flag=False
              for letter in gene:
-                 if bit==mut_bit:
-                     if gene[bit:bit+1]=="1":
-                         temp2="0"
-                     elif gene[bit:bit+1]=="0":
-                         temp2="1"
-                     else:
-                         print("mutation error1")
-                     temp=temp+temp2    
+                 if bit==mut_bit:              
+                     new_bit=str(random.randint(0,1))  # random mutation in a random place
+                     if new_bit!=gene[bit:bit+1]:
+                         mut_flag=True   
+                         mutation_count+=1
+                     #    temp2="0"
+                     #elif gene[bit:bit+1]=="0":
+                     #    temp2="1"
+                     #else:
+                     #    print("mutation error1")
+                     temp=temp+new_bit    
                  else:        
                      temp=temp+gene[bit:bit+1]
                  bit=bit+1    
                 
-            # print("mutated=",temp)
+          #   if mut_flag:
+          #       print(gene,"mutated to",temp)
              crossed[mut_elem]=temp
             
-             mutation_count+=1
+             #mutation_count+=1
                #  print("dna before mutation:",dna)
            
         
@@ -366,27 +432,32 @@ class gene_string(object):
 
 
 
-length=16   #16   # 16 length of dna bit strings
-max_payoff=0
-min_cost=0
-starting_population=256   #256   #256 (16 bits), 64 (13 bits), 32 (10 bits)   #16 for 8 bits #4 for 5 bits
+length=15   #16   # 16 length of dna bit strings
+max_payoff=-10000
+min_cost=10000
+starting_population=4000   #256   #256 (16 bits), 64 (13 bits), 32 (10 bits)   #16 for 8 bits #4 for 5 bits
 best=""
 returnedpayoff=0
 gen=0
 epoch_length=60
-extinction_events=1
+extinction_events=0
+scaling_factor=10000  # scaling figure is the last.  this multiplies the payoff up so that diversity is not lost on the wheel when probs are rounded
 extinctions=0
 mutation_count=0
 mutations=0
-mutation_rate=1000   # mutate 1 bit in every 1000
+mutation_rate=500   # mutate 1 bit in every 1000.  but the mutation is random 0 or 1 so we need to double the try to mutate rate
 
 # xaxis string length 16, starting population 256
 xgene=gene_string(length,starting_population)  # instantiate the gene string object for the x axis
-ygene=gene_string(length,starting_population)
+#ygene=gene_string(length,starting_population)
 
 
+print("\n\nGenetic algorithm. By Anthony Paech")
+print("===================================")
+print("Platform:",platform.machine(),"\n:",platform.platform(),"\n:",platform.system())
+print("\n:",platform.processor(),"\n:",platform.version(),"\n:",platform.uname())
+print("\n\nTheoretical max no of rows for the environment file:",payoff_filename,"is:",sys.maxsize)
 
-print("Creating payoff environment....")
 #payoff=generate_payoff_environment_1d(0,32)  # 5 bits
 #payoff=generate_payoff_environment_1d(0,64)  # 6 bits
 #payoff=generate_payoff_environment_1d(0,256)  #8 bits
@@ -397,7 +468,24 @@ print("Creating payoff environment....")
 #payoff=generate_payoff_environment_1d(0,2**length)  #16 bits
 #generate_payoff_environment_1d_file(0,2**length+1,payoff_filename)  #"/home/pi/Python_Lego_projects/payoff_1d.csv")  #16 bits
 
-generate_payoff_environment_2d_file(0,2**8,0,2**8,payoff_filename)  #"/home/pi/Python_Lego_projects/payoff_2d.csv")  # 8x8 bits
+#total_rows=generate_payoff_environment_2d_file(0,2**8,0,2**8,payoff_filename)  #"/home/pi/Python_Lego_projects/payoff_2d.csv")  # 8x8 bits
+print("counting rows in ",payoff_filename)
+total_rows=count_file_rows(payoff_filename)
+print("Payoff/cost environment file is:",payoff_filename,"and has",total_rows,"rows.")
+answer=""
+while answer!="y" and answer!="n":
+    answer=input("Create payoff env? (y/n)")
+if answer=="y":
+    print("Creating payoff/cost environment....file:",payoff_filename)
+    clock_start=time.process_time()
+
+    total_rows=generate_payoff_environment_3d_file(0,2**5,0,2**5,0,2**5,payoff_filename)  
+    clock_end=time.process_time()
+    duration_clock=clock_end-clock_start
+    print("generate payoff/cost environment - Clock: duration_clock =", duration_clock,"seconds.")
+    print("Payoff/cost environment file is:",payoff_filename,"and has",total_rows,"rows.")
+
+    
 #size=2**length
 #for r in range(1,20):
 #print(xgene.find_a_payoff(3245,payoff_filename))   #"/home/pi/Python_Lego_projects/payoff_1d.csv")
@@ -410,69 +498,109 @@ generate_payoff_environment_2d_file(0,2**8,0,2**8,payoff_filename)  #"/home/pi/P
 
 
 
-
+#print("total rows=",total_rows)
 #input("?")
 
-print("Payoff/Cost Environment")
+print("\n\nPayoff/Cost Environment")
 #print(payoff)
 direction=""
 while direction!="x" and direction!="n":
     direction=input("Ma(x)imise or Mi(n)imise?")
+
+
+print("\nSet constraints")
+con=""
+xgene.maxp=0
+xgene.pconstraint=False
+correct="n"
+while correct=="n":
+    while con!="y" and con!="n":
+        con=input("Constrain payoff/cost? (y/n)")
+    if con=="y":
+        xgene.maxp=int(input("Maximum payoff/cost?"))
+        xgene.minp=xgene.maxp+1
+        while xgene.minp>xgene.maxp:
+            xgene.minp=int(input("Minimum payoff/cost?"))
+        correct=""
+        while correct!="y" and correct!="n":
+            print(xgene.minp,"< payoff/cost <",xgene.maxp)
+            correct=input("Correct? (y/n)")
+        if correct=="y":
+            xgene.pconstraint=True    
+    else:
+        correct="y"    
+
+
+
+
 #payoff=generate_payoff_environment_2d(1,5,6,13)
 #print(payoff)
 while extinctions<=extinction_events:
 
-  
+     
     generation_number=1
+    print("Generating",starting_population,"unique elements of random DNA of length:",length,". Please wait....")
     dna=xgene.generate_dna(length,starting_population)
+    len_sel=len(dna)
     #print(dna)
     total_genes=0
     gene_pool_size=0
     mutations=0
     mutation_count=0
-    print("Number of extinctions:",extinctions," Running for ",epoch_length," generations.")
+    print("Number of extinctions:",extinctions,"Running for",epoch_length,"generations.")
     while generation_number<=epoch_length:
-        print("\rExtinctions:",extinctions," Generation progress: [%d%%] " % (generation_number/epoch_length*100) ," Tot gene bits:%d  " % total_genes," Tot Mutations:%d"  % (mutations), end='\r', flush=True)
+        print("Extinctions:",extinctions,"Generation progress: [%d%%]" % (generation_number/epoch_length*100) ,"diversity (len_sel)=",len_sel,"Tot gene bits:%d" % total_genes,"Tot Mutations:%d"  % (mutations), end='\r', flush=True)
 
-     #   clock_start=time.clock()
+     #   clock_start=time.process_time()
 
-        fittest,returned_payoff=xgene.calc_fitness(dna,direction)
+        bestrow,fittest,returned_payoff=xgene.calc_fitness(dna,direction)
      #   print("fittest=",fittest," returned=",returned_payoff)
-     #   clock_end=time.clock()
+     #   clock_end=time.process_time()
      #   duration_clock=clock_end-clock_start
      #   print("calc fitness - Clock: duration_clock =", duration_clock)
-    
-        axis=["0"] * number_of_cols
 
-        if direction=="x":
-            if returned_payoff>max_payoff:
-                best=fittest
-                col=0
-                while col<=number_of_cols-1:
-                    axis[col]=xgene.return_a_row(int(best,2),payoff_filename).split(",")[col]
-                    col+=1
+        jump=xgene.pconstraint and (returned_payoff<xgene.minp or returned_payoff>xgene.maxp)   # if the payoff is constrainted
+        if not jump:   
+            if int(fittest,2)<=total_rows: 
+                axis=["0"] * number_of_cols
 
-                gen=generation_number
-                max_payoff=returned_payoff
-                print("best fittest=",best," value=",int(best,2)," row number=",axis[0]," x=",axis[1]," y=",axis[2]," generation no:",gen," max_payoff=",max_payoff)
-        elif direction=="n":
-            if returned_payoff<min_cost:
-                best=fittest
-                col=0
-                while col<=number_of_cols-1:
-                    axis[col]=xgene.return_a_row(int(best,2),payoff_filename).split(",")[col]
-                    col+=1
+                #print("returned payoff:",returned_payoff)
+                if direction=="x":
+                    if returned_payoff>max_payoff:
+                        best=fittest
+                        col=0
+                        while col<=number_of_cols-1:
+                            axis[col]=xgene.return_a_row(int(best,2),payoff_filename).split(",")[col]
+                            col+=1
 
-                gen=generation_number
-                min_cost=returned_payoff
-                col=0
-                print("best fittest=",best," value=",int(best,2)," row number=",axis[0]," x=",axis[1]," y=",axis[2]," generation no:",gen," min_cost=",min_cost)
-        else:
-            print("direction error1 direction=",direction)
+                        gen=generation_number
+                        max_payoff=returned_payoff
+                        print("best fittest=",best," value=",int(best,2)," row number=",int(bestrow)," x=",axis[1]," y=",axis[2]," z=",axis[3],"generation no:",gen,"max_payoff=",max_payoff,flush=True)
+                elif direction=="n":
+                    if returned_payoff<min_cost:
+                        best=fittest
+                        col=0
+                        while col<=number_of_cols-1:
+                            axis[col]=xgene.return_a_row(int(best,2),payoff_filename).split(",")[col]
+                            col+=1
 
-      #  clock_start=time.clock()
+                        gen=generation_number
+                        min_cost=returned_payoff
+                        
+                        print("best fittest=",best," value=",int(best,2)," row number=",int(bestrow)," x=",axis[1]," y=",axis[2]," z=",axis[3],"generation no:",gen,"min_cost=",min_cost,flush=True)
+                else:
+                    print("direction error1 direction=",direction)
+            else:
+                print("fittest",fittest," is beyond the environment max (",total_rows,").")
+      #  else:
+      #      print("\npayoff/cost ",returned_payoff," is outside of constraints > max",xgene.maxp," or < min",xgene.minp)
+
+      #  clock_start=time.process_time()
    
-        wheel=xgene.calc_mating_probabilities(dna,direction)
+        wheel=xgene.calc_mating_probabilities(dna,direction,scaling_factor)  # scaling figure is the last.  this multiplies the payoff up so that divsity is not lost on the wheel when probs are rounded
+        if len(wheel)==0:
+            print("wheel empty")
+            sys.exit
         #print(wheel)
 
       #  clock_end=time.clock()
@@ -481,7 +609,7 @@ while extinctions<=extinction_events:
 
       #  clock_start=time.clock()
 
-        mates=xgene.spin_the_mating_wheel(wheel,dna,starting_population*3)
+        mates,len_sel=xgene.spin_the_mating_wheel(wheel,dna,starting_population)  # sel_len is the size of the uniqeu gene pool to select from in the wheel
 
       #  clock_end=time.clock()
       #  duration_clock=clock_end-clock_start
@@ -520,110 +648,3 @@ while extinctions<=extinction_events:
 
 
 ###############################################
-def read_chunks(file_handle, chunk_size=8192):
-    while True:
-        data = file_handle.read(chunk_size)
-        if not data:
-            break
-        yield data
-
-def sha256(file_handle):
-    hasher = hashlib.sha256()
-    for chunk in read_chunks(file_handle):
-        hasher.update(chunk)
-    return hasher.hexdigest()
-
-
-
-def display_a_hash(hash_object):
-    if len(hash_object)==64:
-        print("SHA256 hash")  #,hash_object)
-        print("############")
-        print("#          #")  
-        for row in range(0,63,8):
-            print("# "+hash_object[row:row+8]+" #")
-        print("#          #")
-        print("############\n")
-    else:
-        print("Hash not 64 bytes.  error")
-    
-               
-
-
-
-def split_a_file_in_2(infile):
-
-        #infile = open("input","r")
-
-        with open(infile,'r') as f:
-            linecount= sum(1 for row in f)
-
-        splitpoint=linecount/2
-
-        f.close()
-
-        infilename=os.path.splitext(infile)[0]
-
-        f = open(infile,"r")
-        outfile1 = open(infilename+"001.csv","w")
-        outfile2 = open(infilename+"002.csv","w")
-
-        print("linecount=",linecount , "splitpoint=",splitpoint)
-
-        linecount=0
-
-        for line in f:
-            linecount=linecount+1
-            if ( linecount <= splitpoint ):
-                outfile1.write(line)
-            else:
-                outfile2.write(line)
-
-        f.close()
-        outfile1.close()
-        outfile2.close()
-
-
-    
-def count_file_rows(filename):
-        with open(filename,'r') as f:
-            return sum(1 for row in f)
-
-   
-
-def join2files_dos(in1,in2,out):
-        os.system("copy /b "+in1+"+"+in2+" "+out)
-
-def join2files_deb(in1,in2,out):
-        os.system("cat "+in1+" "+in2+" "+out)
-
-"""
-
-try:
-    with open("salestrans060719.csv", 'rb') as f:
-        hash_string = sha256(f)
-    print("hash=",hash_string)
-except IOError as e:
-    print("error test")
-
-
-
-display_a_hash(hash_string)
-
-print(count_file_rows("salestrans060719.csv"))
-
-split_a_file_in_2("salestrans060719.csv")
-
-
-join2files_deb("salestrans060719001.csv","salestrans060719002.csv","newsalestrans060719.csv")
-print(count_file_rows("newsalestrans060719.csv"))
-
-try:
-    with open("newsalestrans060719.csv", 'rb') as f:
-        hash_string = sha256(f)
-    print("hash=",hash_string)
-except IOError as e:
-    print("error test")
-
-display_a_hash(hash_string)
-"""

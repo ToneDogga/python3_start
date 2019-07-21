@@ -166,7 +166,7 @@ def spin_the_mating_wheel(wheel,dna,iterations):
     wheel_len=len(wheel)
 
     while n<=wheel_len-1: 
-        sel=sel+([n+1] * wheel[n])
+        sel=sel+([n+1] * abs(wheel[n]))
         n=n+1
 
 

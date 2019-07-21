@@ -44,17 +44,66 @@ import hashlib, os
 import random
 import math
 import time
+import linecache
 
-class geneaxis(object):
 
-    def __init__(self): 
-    #    self.length=6   # 16 length of dna bit strings
-    #    self.max_payoff=0
-    #    self.min_payoff=0
-    #    self.starting_population=6   #256 (16 bits), 64 (13 bits), 32 (10 bits)   #16 for 8 bits #4 for 5 bits
+def generate_payoff_environment_1d(xstart_val,xsize_of_env):   
+    payoff = [-10*math.sin(x/44)*12*math.cos(x/33)*1000/(x+1) for x in range(xstart_val,xstart_val+xsize_of_env)]
+        #for x in range(xstart_val,xstart_val+xsize_of_env):
+        #    payoff[x]=x**2  # example function
+    return(payoff)    
+
+
+def generate_payoff_environment_1d_file(xstart_val,xsize_of_env,filename):   
+    with open(filename,"w") as f:
+        for x in range(xstart_val,xstart_val+xsize_of_env):
+            payoff=-10*math.sin(x/44)*12*math.cos(x/33)*1000/(x+1) 
+            f.write(str(x)+","+str(payoff)+"\n")
+
+        #for x in range(xstart_val,xstart_val+xsize_of_env):
+        #    payoff[x]=x**2  # example function
+    f.close()   
+
+
+
+def generate_payoff_environment_2d(xstart_val,xsize_of_env,ystart_val,ysize_of_env):
+    payoff = [[x**2+y*3 for x in range(xstart_val,xstart_val+xsize_of_env)] for y in range(ystart_val,ystart_val+ysize_of_env)]
+        #for x in range(xstart_val,xstart_val+xsize_of_env):
+        #    for y in range(ystart_val,ystart_val+ysize_of_env):
+        #        payoff[x][y]=x**2+3*y   # example function
+    print(payoff)
+    input("?")
+    return(payoff)
+
+def generate_payoff_environment_2d_file(xstart_val,xsize_of_env,ystart_val,ysize_of_env,filename):   
+    with open(filename,"w") as f:
+        for x in range(xstart_val,xstart_val+xsize_of_env):
+            for y in range(ystart_val,ystart_val+ysize_of_env):
+                payoff=-10*math.sin(x/44)*12*math.cos(y/33)
+                f.write(str(x)+","+str(y)+","+str(payoff)+"\n")
+
+        #for x in range(xstart_val,xstart_val+xsize_of_env):
+        #    payoff[x]=x**2  # example function
+    f.close()   
+
+
+def find_a_payoff_1d(x,filename):
+    print("line no:",x,":",linecache.getline(filename,x+1))
+
+
+
+
+
+class gene_string(object):
+
+    def __init__(self,length,starting_population): 
+       # self.length=16   # 16 length of dna bit strings
+        self.max_payoff=0
+        self.min_payoff=0
+       # self.starting_population=256   #256 (16 bits), 64 (13 bits), 32 (10 bits)   #16 for 8 bits #4 for 5 bits
     #    best=""
     #    returnedpayoff=0
-         self.gen=0
+        self.gen=0
     #    epoch_length=60
     #    extinction_events=4
     #    extinctions=0
@@ -62,7 +111,7 @@ class geneaxis(object):
     #    mutations=0
    
 
-    def generate_dna(self, number, length):
+    def generate_dna(self, length, number):
         dna=[]
         for count in range(0,number):
             go_back=True
@@ -86,21 +135,6 @@ class geneaxis(object):
         return(dna)    
 
 
-    def generate_payoff_environment_1d(self, xstart_val,xsize_of_env):
-    
-        payoff = [-10*math.sin(x/44)*12*math.cos(x/33)*1000/(x+1) for x in range(xstart_val,xstart_val+xsize_of_env)]
-        #for x in range(xstart_val,xstart_val+xsize_of_env):
-        #    payoff[x]=x**2  # example function
-        return(payoff)    
-
-    def generate_payoff_environment_2d(self, xstart_val,xsize_of_env,ystart_val,ysize_of_env):
-        payoff = [[x**2+y*3 for x in range(xstart_val,xstart_val+xsize_of_env)] for y in range(ystart_val,ystart_val+ysize_of_env)]
-        #for x in range(xstart_val,xstart_val+xsize_of_env):
-        #    for y in range(ystart_val,ystart_val+ysize_of_env):
-        #        payoff[x][y]=x**2+3*y   # example function
-        print(payoff)
-        input("?")
-        return(payoff)
 
     def calc_fitness(self, dna,payoff,direction):
         max_payoff=0.0
@@ -190,7 +224,7 @@ class geneaxis(object):
         wheel_len=len(wheel)
 
         while n<=wheel_len-1: 
-            sel=sel+([n+1] * wheel[n])
+            sel=sel+([n+1] * abs(wheel[n]))
             n=n+1
 
 
@@ -330,13 +364,13 @@ mutation_count=0
 mutations=0
 mutation_rate=1000   # mutate 1 bit in every 1000
 
-
-xgene=geneaxis()  # instantiate the gene string object for the x axis
-
-
-
+# xaxis string length 16, starting population 256
+xgene=gene_string(length,starting_population)  # instantiate the gene string object for the x axis
+ygene=gene_string(14,100)
 
 
+
+print("Creating payoff environment....")
 #payoff=generate_payoff_environment_1d(0,32)  # 5 bits
 #payoff=generate_payoff_environment_1d(0,64)  # 6 bits
 #payoff=generate_payoff_environment_1d(0,256)  #8 bits
@@ -344,10 +378,13 @@ xgene=geneaxis()  # instantiate the gene string object for the x axis
 #payoff=generate_payoff_environment_1d(0,1024)  #10 bits
 #payoff=generate_payoff_environment_1d(0,4096)  #12 bits
 #payoff=generate_payoff_environment_1d(0,8192)  #13 bits
-payoff=xgene.generate_payoff_environment_1d(0,2**16)  #16 bits
+#payoff=generate_payoff_environment_1d(0,2**length)  #16 bits
+generate_payoff_environment_1d_file(0,2**length,"/home/pi/Python_Lego_projects/payoff_1d.csv")  #16 bits
 
-#payoff=xgene.generate_payoff_environment_2d(0,7,0,7)  # 6 bits
-
+#generate_payoff_environment_2d_file(0,2**8,0,2**8,"/home/pi/Python_Lego_projects/payoff_2d.csv")  # 16 bits
+size=2**length
+for r in range(1,20):
+    find_a_payoff_1d(random.randint(1,size),"/home/pi/Python_Lego_projects/payoff_1d.csv")
 
 
 print("Payoff/Cost Environment")
@@ -360,7 +397,7 @@ while direction!="x" and direction!="n":
 while extinctions<=extinction_events:
     
     generation_number=1
-    dna=xgene.generate_dna(starting_population,length)
+    dna=xgene.generate_dna(length,starting_population)
     #print(dna)
     total_genes=0
     gene_pool_size=0

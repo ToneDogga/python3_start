@@ -310,7 +310,7 @@ class gene_string(object):
             print("\nwheel length<=1",wheel_len)
             
         while n<=wheel_len-1: 
-            sel=sel+([n+1] * wheel[n])
+            sel=sel+([n+1] * abs(wheel[n]))
             n=n+1
 
         len_sel=len(sel)

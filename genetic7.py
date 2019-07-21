@@ -46,9 +46,10 @@ import math
 import time
 import linecache
 
-global payoff_filename,number_of_cols
+global payoff_filename,number_of_cols, total_rows
 payoff_filename="/home/pi/Python_Lego_projects/payoff_2d.csv"
 number_of_cols=4
+
 
 
 def generate_payoff_environment_1d(xstart_val,xsize_of_env):   
@@ -68,7 +69,7 @@ def generate_payoff_environment_1d_file(xstart_val,xsize_of_env,filename):
         #for x in range(xstart_val,xstart_val+xsize_of_env):
         #    payoff[x]=x**2  # example function
     f.close()   
-
+    return(rowno)
 
 
 def generate_payoff_environment_2d(xstart_val,xsize_of_env,ystart_val,ysize_of_env):
@@ -82,6 +83,7 @@ def generate_payoff_environment_2d(xstart_val,xsize_of_env,ystart_val,ysize_of_e
 
 def generate_payoff_environment_2d_file(xstart_val,xsize_of_env,ystart_val,ysize_of_env,filename):   
     rowno=0
+    
     with open(filename,"w") as f:
         for x in range(xstart_val,xstart_val+xsize_of_env):
             for y in range(ystart_val,ystart_val+ysize_of_env):
@@ -90,7 +92,9 @@ def generate_payoff_environment_2d_file(xstart_val,xsize_of_env,ystart_val,ysize
                 rowno+=1
         #for x in range(xstart_val,xstart_val+xsize_of_env):
         #    payoff[x]=x**2  # example function
-    f.close()   
+        
+    f.close()
+    return(rowno)
 
 
 ######################################################
@@ -132,8 +136,8 @@ class gene_string(object):
                                         
             dna.append(d)   
           #  print(" dna[",count,"]=",dna[count]," dna value=",int(dna[count],2))
-       # print(dna)
-       # input("?")
+      #  print(dna)
+      #  input("?")
         return(dna)    
 
     def return_a_row(self,row,filename):   # assumes the payoff is the last field in a CSV delimited by ","
@@ -141,8 +145,12 @@ class gene_string(object):
         try:
             return(linecache.getline(filename,row+1).rstrip())
         except IndexError:
+            print("index error")
             return("Index error")
-        
+        except ValueError:
+            print("value error") 
+            return("value error")
+       
 
 
     def find_a_payoff(self,row,filename):   # assumes the payoff is the last field in a CSV delimited by ","
@@ -150,15 +158,22 @@ class gene_string(object):
         try:
             return(float(linecache.getline(filename,row+1).split(",")[-1]))
         except IndexError:
+            print("index error")
             return(0.0)
-        
+        except ValueError:
+            print("value error")
+            return("Value error")
 
     def find_a_row_and_column(self,row,col,filename):   # assumes the payoff is the last field in a CSV delimited by ","
        # print("line no:",row,":",linecache.getline(filename,row+1))   #.split(",")[-1])
         try:
             return(float(linecache.getline(filename,row+1).split(",")[col]))
         except IndexError:
+            print("index error")
             return(0.0)
+        except ValueError:
+            print("value error")
+            return("Value error")
 
 
 
@@ -171,22 +186,24 @@ class gene_string(object):
         fitness=[]
         for elem in dna:
             val=int(dna[count],2)
-          #  p=payoff[val]
-          #  p=self.find_a_payoff_1d(val,self.payoff_filename)
-            p=self.find_a_payoff(val,payoff_filename)
-      #      print("p=",p," val=",val)
-            fitness.append(p)
-            if direction=="x":  # maximising payoff
-                if p>max_payoff:
-                    best=dna[count]
-                    max_payoff=p
-            elif direction=="n":    # minimising cost
-                if p<min_payoff:
-                    best=dna[count]
-                    min_payoff=p
+            if val <= total_rows:
+              #  p=payoff[val]
+              #  p=self.find_a_payoff_1d(val,self.payoff_filename)
+                p=self.find_a_payoff(val,payoff_filename)
+      #          print("p=",p," val=",val)
+                fitness.append(p)
+                if direction=="x":  # maximising payoff
+                    if p>max_payoff:
+                        best=dna[count]
+                        max_payoff=p
+                elif direction=="n":    # minimising cost
+                    if p<min_payoff:
+                        best=dna[count]
+                        min_payoff=p
+                else:
+                    print("calc fitness direction error.")
             else:
-                print("calc fitness direction error.")
-
+                print("val ",val," is greater than total environment (",total_rows,")")
           #  print("#",count+1,":",elem," val=",val,"payoff=",p," fitness=",fitness[count])
           #  print("best=",best," max",max_payoff)
             count+=1
@@ -397,7 +414,7 @@ print("Creating payoff environment....")
 #payoff=generate_payoff_environment_1d(0,2**length)  #16 bits
 #generate_payoff_environment_1d_file(0,2**length+1,payoff_filename)  #"/home/pi/Python_Lego_projects/payoff_1d.csv")  #16 bits
 
-generate_payoff_environment_2d_file(0,2**8,0,2**8,payoff_filename)  #"/home/pi/Python_Lego_projects/payoff_2d.csv")  # 8x8 bits
+total_rows=generate_payoff_environment_2d_file(0,2**8,0,2**8,payoff_filename)  #"/home/pi/Python_Lego_projects/payoff_2d.csv")  # 8x8 bits
 #size=2**length
 #for r in range(1,20):
 #print(xgene.find_a_payoff(3245,payoff_filename))   #"/home/pi/Python_Lego_projects/payoff_1d.csv")
@@ -410,7 +427,7 @@ generate_payoff_environment_2d_file(0,2**8,0,2**8,payoff_filename)  #"/home/pi/P
 
 
 
-
+print("total rows=",total_rows)
 #input("?")
 
 print("Payoff/Cost Environment")
@@ -441,35 +458,38 @@ while extinctions<=extinction_events:
      #   clock_end=time.clock()
      #   duration_clock=clock_end-clock_start
      #   print("calc fitness - Clock: duration_clock =", duration_clock)
-    
-        axis=["0"] * number_of_cols
 
-        if direction=="x":
-            if returned_payoff>max_payoff:
-                best=fittest
-                col=0
-                while col<=number_of_cols-1:
-                    axis[col]=xgene.return_a_row(int(best,2),payoff_filename).split(",")[col]
-                    col+=1
 
-                gen=generation_number
-                max_payoff=returned_payoff
-                print("best fittest=",best," value=",int(best,2)," row number=",axis[0]," x=",axis[1]," y=",axis[2]," generation no:",gen," max_payoff=",max_payoff)
-        elif direction=="n":
-            if returned_payoff<min_cost:
-                best=fittest
-                col=0
-                while col<=number_of_cols-1:
-                    axis[col]=xgene.return_a_row(int(best,2),payoff_filename).split(",")[col]
-                    col+=1
+        if int(fittest,2)<=total_rows: 
+            axis=["0"] * number_of_cols
 
-                gen=generation_number
-                min_cost=returned_payoff
-                col=0
-                print("best fittest=",best," value=",int(best,2)," row number=",axis[0]," x=",axis[1]," y=",axis[2]," generation no:",gen," min_cost=",min_cost)
+            if direction=="x":
+                if returned_payoff>max_payoff:
+                    best=fittest
+                    col=0
+                    while col<=number_of_cols-1:
+                        axis[col]=xgene.return_a_row(int(best,2),payoff_filename).split(",")[col]
+                        col+=1
+
+                    gen=generation_number
+                    max_payoff=returned_payoff
+                    print("best fittest=",best," value=",int(best,2)," row number=",axis[0]," x=",axis[1]," y=",axis[2]," generation no:",gen," max_payoff=",max_payoff)
+            elif direction=="n":
+                if returned_payoff<min_cost:
+                    best=fittest
+                    col=0
+                    while col<=number_of_cols-1:
+                        axis[col]=xgene.return_a_row(int(best,2),payoff_filename).split(",")[col]
+                        col+=1
+
+                    gen=generation_number
+                    min_cost=returned_payoff
+                    col=0
+                    print("best fittest=",best," value=",int(best,2)," row number=",axis[0]," x=",axis[1]," y=",axis[2]," generation no:",gen," min_cost=",min_cost)
+            else:
+                print("direction error1 direction=",direction)
         else:
-            print("direction error1 direction=",direction)
-
+            print("fittest",fittest," is beyond the environment max (",total_rows,").")
       #  clock_start=time.clock()
    
         wheel=xgene.calc_mating_probabilities(dna,direction)
@@ -520,110 +540,3 @@ while extinctions<=extinction_events:
 
 
 ###############################################
-def read_chunks(file_handle, chunk_size=8192):
-    while True:
-        data = file_handle.read(chunk_size)
-        if not data:
-            break
-        yield data
-
-def sha256(file_handle):
-    hasher = hashlib.sha256()
-    for chunk in read_chunks(file_handle):
-        hasher.update(chunk)
-    return hasher.hexdigest()
-
-
-
-def display_a_hash(hash_object):
-    if len(hash_object)==64:
-        print("SHA256 hash")  #,hash_object)
-        print("############")
-        print("#          #")  
-        for row in range(0,63,8):
-            print("# "+hash_object[row:row+8]+" #")
-        print("#          #")
-        print("############\n")
-    else:
-        print("Hash not 64 bytes.  error")
-    
-               
-
-
-
-def split_a_file_in_2(infile):
-
-        #infile = open("input","r")
-
-        with open(infile,'r') as f:
-            linecount= sum(1 for row in f)
-
-        splitpoint=linecount/2
-
-        f.close()
-
-        infilename=os.path.splitext(infile)[0]
-
-        f = open(infile,"r")
-        outfile1 = open(infilename+"001.csv","w")
-        outfile2 = open(infilename+"002.csv","w")
-
-        print("linecount=",linecount , "splitpoint=",splitpoint)
-
-        linecount=0
-
-        for line in f:
-            linecount=linecount+1
-            if ( linecount <= splitpoint ):
-                outfile1.write(line)
-            else:
-                outfile2.write(line)
-
-        f.close()
-        outfile1.close()
-        outfile2.close()
-
-
-    
-def count_file_rows(filename):
-        with open(filename,'r') as f:
-            return sum(1 for row in f)
-
-   
-
-def join2files_dos(in1,in2,out):
-        os.system("copy /b "+in1+"+"+in2+" "+out)
-
-def join2files_deb(in1,in2,out):
-        os.system("cat "+in1+" "+in2+" "+out)
-
-"""
-
-try:
-    with open("salestrans060719.csv", 'rb') as f:
-        hash_string = sha256(f)
-    print("hash=",hash_string)
-except IOError as e:
-    print("error test")
-
-
-
-display_a_hash(hash_string)
-
-print(count_file_rows("salestrans060719.csv"))
-
-split_a_file_in_2("salestrans060719.csv")
-
-
-join2files_deb("salestrans060719001.csv","salestrans060719002.csv","newsalestrans060719.csv")
-print(count_file_rows("newsalestrans060719.csv"))
-
-try:
-    with open("newsalestrans060719.csv", 'rb') as f:
-        hash_string = sha256(f)
-    print("hash=",hash_string)
-except IOError as e:
-    print("error test")
-
-display_a_hash(hash_string)
-"""
