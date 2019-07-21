@@ -107,7 +107,7 @@ def generate_payoff_environment_3d_file(xstart_val,xsize_of_env,ystart_val,ysize
             print("\rProgress: [%d%%] " % (rowno/total_rows*100),end='\r', flush=True)
             for y in range(ystart_val,ystart_val+ysize_of_env):
                 for z in range(zstart_val,zstart_val+zsize_of_env):
-                    payoff=-100*math.sin(x/44)*120*math.cos(y/33)-193*math.tan(z/55)
+                    payoff=100*math.sin(x/44)*120*math.cos(y/33)-193*math.tan(z/55)
                     f.write(str(rowno)+","+str(x)+","+str(y)+","+str(z)+","+str(payoff)+"\n")
                     rowno+=1        
     f.close()
@@ -134,7 +134,7 @@ class gene_string(object):
          self.pconstraint=False
          self.minp=0
          self.maxp=0
-    #    epoch_length=60
+         self.targetpayoff=0
     #    extinction_events=4
     #    extinctions=0
     #    mutation_count=0
@@ -211,11 +211,13 @@ class gene_string(object):
 
 
     def calc_fitness(self,dna,direction):
-        max_payoff=-100000.0
-        min_payoff=100000.0
+        max_payoff=-10000000.0
+        min_payoff=10000000.0
         p=0.0
         count=0
         best=""
+        bestrow=0
+     #   print("self vars",self.pconstraint,self.maxp,self.minp)
       #  fitness=[]
         for elem in dna:
             val=int(dna[count],2)
@@ -223,25 +225,36 @@ class gene_string(object):
               #  p=payoff[val]
               #  p=self.find_a_payoff_1d(val,self.payoff_filename)
                 p=self.find_a_payoff(val,payoff_filename)
-      #          print("p=",p," val=",val)
-       #         fitness.append(p)
+                        # fitness is the highest payoff
+               # print("\np=",p," val=",val)
                 if direction=="x":  # maximising payoff
                     if p>max_payoff:
-                        best=dna[count]
-                        bestrow=self.find_a_row_and_column(val,0,payoff_filename)
-                        max_payoff=p
+                        if self.pconstraint and p>self.maxp:
+                            # ignore the result
+                            pass
+                        else:
+                            best=dna[count]
+                            bestrow=self.find_a_row_and_column(val,0,payoff_filename)
+                            max_payoff=p
                 elif direction=="n":    # minimising cost
                     if p<min_payoff:
-                        best=dna[count]
-                        bestrow=self.find_a_row_and_column(val,0,payoff_filename)
-                        min_payoff=p
+                        if self.pconstraint and p<self.minp:
+                            # ignore the result
+                            pass
+                        else:
+                            best=dna[count]
+                            bestrow=self.find_a_row_and_column(val,0,payoff_filename)
+                            min_payoff=p
                 else:
                     print("\ncalc fitness direction error.")
             else:
                 print("\nval ",val," is greater than total environment (",total_rows,")")
           #  print("#",count+1,":",elem," val=",val,"payoff=",p," fitness=",fitness[count])
-          #  print("best=",best," max",max_payoff)
+         #   print("bestrow=",bestrow,"best=",best," max",max_payoff)
             count+=1
+
+       # print("\nbestrow=",bestrow,"best=",best," max",max_payoff," min",min_payoff)
+       # input("?")
         if direction=="x":
             return(bestrow,best,max_payoff)
         elif direction=="n":
@@ -435,12 +448,12 @@ class gene_string(object):
 length=15   #16   # 16 length of dna bit strings
 max_payoff=-10000
 min_cost=10000
-starting_population=4000   #256   #256 (16 bits), 64 (13 bits), 32 (10 bits)   #16 for 8 bits #4 for 5 bits
+starting_population=750   #256   #256 (16 bits), 64 (13 bits), 32 (10 bits)   #16 for 8 bits #4 for 5 bits
 best=""
 returnedpayoff=0
 gen=0
 epoch_length=60
-extinction_events=0
+extinction_events=1
 scaling_factor=10000  # scaling figure is the last.  this multiplies the payoff up so that diversity is not lost on the wheel when probs are rounded
 extinctions=0
 mutation_count=0
@@ -523,10 +536,14 @@ while correct=="n":
             xgene.minp=int(input("Minimum payoff/cost?"))
         correct=""
         while correct!="y" and correct!="n":
-            print(xgene.minp,"< payoff/cost <",xgene.maxp)
+            print(xgene.minp,"<= payoff/cost <=",xgene.maxp)
             correct=input("Correct? (y/n)")
         if correct=="y":
-            xgene.pconstraint=True    
+            xgene.pconstraint=True
+            if direction=="x":
+                xgene.targetpayoff=xgene.maxp
+            else:
+                xgene.targetpayoff=xgene.minp
     else:
         correct="y"    
 
@@ -559,8 +576,8 @@ while extinctions<=extinction_events:
      #   duration_clock=clock_end-clock_start
      #   print("calc fitness - Clock: duration_clock =", duration_clock)
 
-        jump=xgene.pconstraint and (returned_payoff<xgene.minp or returned_payoff>xgene.maxp)   # if the payoff is constrainted
-        if not jump:   
+        #jump=xgene.pconstraint and (returned_payoff<xgene.minp or returned_payoff>xgene.maxp)   # if the payoff is constrainted
+        if fittest!="":   # something found   
             if int(fittest,2)<=total_rows: 
                 axis=["0"] * number_of_cols
 
