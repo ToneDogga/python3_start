@@ -47,10 +47,13 @@ import time
 import linecache
 import platform
 
-global payoff_filename,number_of_cols, total_rows, linewidth
+global payoff_filename,number_of_cols, total_rows, linewidth,extra_EOL_char,row_find_method
 payoff_filename="/home/pi/Python_Lego_projects/payoff_5d.csv"
 number_of_cols=7
 linewidth=56   # 56 bytes
+extra_EOL_char=0
+row_find_method="l"
+
 # csv
 #      row number, x, y, z, payoff(or cost)
 
@@ -208,7 +211,7 @@ class gene_string(object):
         # we know that the each line in the file is exactly global "linewidth" bytes long including the '\n'
         try:
             with open("payoff_5d.csv","r") as f:
-                f.seek(linewidth*row)
+                f.seek((linewidth+extra_EOL_char)*row)   # if a windows machine add an extra char for the '\r' EOL char
                 return(f.readline().rstrip())
         except IndexError:
             print("\nindex error")
@@ -241,7 +244,7 @@ class gene_string(object):
         # we know that the each line in the file is exactly global "linewidth" bytes long including the '\n'
         try:
             with open("payoff_5d.csv","r") as f:
-                f.seek(linewidth*row)
+                f.seek((linewidth+extra_EOL_char)*row)
                 return(float(f.readline().split(',')[-1]))
         except IndexError:
             print("\nindex error")
@@ -274,7 +277,7 @@ class gene_string(object):
         # we know that the each line in the file is exactly global "linewidth" bytes long including the '\n'
         try:
             with open("payoff_5d.csv","r") as f:
-                f.seek(linewidth*row)
+                f.seek((linewidth+extra_EOL_char)*row)
                 return(float(f.readline().split(',')[col]))
         except IndexError:
             print("\nindex error")
@@ -305,7 +308,14 @@ class gene_string(object):
               #  p=payoff[val]
               #  p=self.find_a_payoff_1d(val,self.payoff_filename)
                 try:
-                    p=self.find_a_payoff2(val,payoff_filename)
+                    if row_find_method=="l":  # linecache
+                        p=self.find_a_payoff(val,payoff_filename)
+                    elif row_find_method=="s":    
+                        p=self.find_a_payoff2(val,payoff_filename)
+                    else:
+                        print("row find method error.")
+                        sys.exit()
+                        
                 except ValueError:
                     print("value error finding p in calc fitness")
                     sys.exit()
@@ -322,7 +332,14 @@ class gene_string(object):
                             pass
                         else:
                             best=dna[count]
-                            bestrow=self.find_a_row_and_column2(val,0,payoff_filename)
+                            if row_find_method=="l":
+                                 bestrow=self.find_a_row_and_column(val,0,payoff_filename)
+                            elif row_find_method=="s":   
+                                 bestrow=self.find_a_row_and_column2(val,0,payoff_filename)
+                            else:
+                                 print("row find method error.")
+                                 sys.exit()
+
                             max_payoff=p
                 elif direction=="n":    # minimising cost
                     if p<min_payoff:
@@ -331,7 +348,14 @@ class gene_string(object):
                             pass
                         else:
                             best=dna[count]
-                            bestrow=self.find_a_row_and_column2(val,0,payoff_filename)
+                            if row_find_method=="l":
+                                 bestrow=self.find_a_row_and_column(val,0,payoff_filename)
+                            elif row_find_method=="s":   
+                                 bestrow=self.find_a_row_and_column2(val,0,payoff_filename)
+                            else:
+                                 print("row find method error.")
+                                 sys.exit()
+
                             min_payoff=p
                 else:
                     print("\ncalc fitness direction error.")
@@ -366,7 +390,13 @@ class gene_string(object):
         for elem in dna:
             val=int(dna[count],2)
           #  total_payoff+=payoff[val]
-            total_payoff+=self.find_a_payoff2(val,payoff_filename)
+            if row_find_method=="l":
+                total_payoff+=self.find_a_payoff(val,payoff_filename)
+            elif row_find_method=="s": 
+                total_payoff+=self.find_a_payoff2(val,payoff_filename)
+            else:
+                print("row find method error.")
+                sys.exit()
         #print(val,payoff[val])
             count+=1
 
@@ -383,7 +413,14 @@ class gene_string(object):
      #   print("\ntotal payoff=",total_payoff)
         for elem in dna:
             val=int(dna[count],2)
-            p=self.find_a_payoff2(val,payoff_filename)
+            if row_find_method=="l":
+                p=self.find_a_payoff(val,payoff_filename)
+            elif row_find_method=="s":   
+                p=self.find_a_payoff2(val,payoff_filename)
+            else:
+                print("row find method error.")
+                sys.exit()
+                
             if direction=="x":   # maximise
                 wheel.append(int(round(p/total_payoff*scaling)))
          #       print("#",count+1,":",elem," val=",val,"payoff=",payoff[val]," prob=",wheel[count])
@@ -541,7 +578,7 @@ best=""
 returnedpayoff=0
 gen=0
 epoch_length=60
-extinction_events=1
+extinction_events=0
 scaling_factor=10000  # scaling figure is the last.  this multiplies the payoff up so that diversity is not lost on the wheel when probs are rounded
 extinctions=0
 mutation_count=0
@@ -556,8 +593,16 @@ xgene=gene_string(length,starting_population)  # instantiate the gene string obj
 print("\n\nGenetic algorithm. By Anthony Paech")
 print("===================================")
 print("Platform:",platform.machine(),"\n:",platform.platform(),"\n:",platform.system())
-print("\n:",platform.processor(),"\n:",platform.version(),"\n:",platform.uname())
-print("\n\nTheoretical max no of rows for the environment file:",payoff_filename,"is:",sys.maxsize)
+#print("\n:",platform.processor(),"\n:",platform.version(),"\n:",platform.uname())
+print("Bit Length=",length,"Max rows available is:",2**length-1)
+print("\nTheoretical max no of rows for the environment file:",payoff_filename,"is:",sys.maxsize)
+
+#print(platform.system().lower()[:7])   #=="windows":
+
+if platform.system().lower()[:7]=="windows":
+    extra_EOL_char=1
+else:
+    extra_EOL_char=0
 
 #payoff=generate_payoff_environment_1d(0,32)  # 5 bits
 #payoff=generate_payoff_environment_1d(0,64)  # 6 bits
@@ -572,7 +617,13 @@ print("\n\nTheoretical max no of rows for the environment file:",payoff_filename
 #total_rows=generate_payoff_environment_2d_file(0,2**8,0,2**8,payoff_filename)  #"/home/pi/Python_Lego_projects/payoff_2d.csv")  # 8x8 bits
 print("counting rows in ",payoff_filename)
 total_rows=count_file_rows(payoff_filename)
-print("Payoff/cost environment file is:",payoff_filename,"and has",total_rows,"rows.")
+print("\nPayoff/cost environment file is:",payoff_filename,"and has",total_rows,"rows.")
+
+row_find_method=""
+while row_find_method!="l" and row_find_method!="s":
+    row_find_method=input("\nUse (l)ine cache {fast but memory intensive.  Good for bits<=23} or \n(s)eek {slow but memory frugal. Good for bits >=24}?")
+    
+
 answer=""
 while answer!="y" and answer!="n":
     answer=input("Create payoff env? (y/n)")
@@ -636,6 +687,7 @@ while correct=="n":
         correct="y"    
 
 
+clock_start=time.process_time()
 
 
 #payoff=generate_payoff_environment_2d(1,5,6,13)
@@ -652,6 +704,7 @@ while extinctions<=extinction_events:
     gene_pool_size=0
     mutations=0
     mutation_count=0
+    
     print("Number of extinctions:",extinctions,"Running for",epoch_length,"generations.")
     while generation_number<=epoch_length:
         print("Extinctions:",extinctions,"Generation progress: [%d%%]" % (generation_number/epoch_length*100) ,"diversity (len_sel)=",len_sel,"Tot gene bits:%d" % total_genes,"Tot Mutations:%d"  % (mutations), end='\r', flush=True)
@@ -675,7 +728,14 @@ while extinctions<=extinction_events:
                         best=fittest
                         col=0
                         while col<=number_of_cols-1:
-                            axis[col]=xgene.return_a_row2(int(best,2),payoff_filename).split(",")[col]
+                            if row_find_method=="l":
+                               axis[col]=xgene.return_a_row(int(best,2),payoff_filename).split(",")[col]
+                            elif row_find_method=="s":   
+                               axis[col]=xgene.return_a_row2(int(best,2),payoff_filename).split(",")[col]
+                            else:
+                               print("row find method error.")
+                               sys.exit()
+
                             col+=1
 
                         gen=generation_number
@@ -686,7 +746,14 @@ while extinctions<=extinction_events:
                         best=fittest
                         col=0
                         while col<=number_of_cols-1:
-                            axis[col]=xgene.return_a_row2(int(best,2),payoff_filename).split(",")[col]
+                            if row_find_method=="l":
+                                axis[col]=xgene.return_a_row2(int(best,2),payoff_filename).split(",")[col]
+                            elif row_find_method=="s":
+                                axis[col]=xgene.return_a_row2(int(best,2),payoff_filename).split(",")[col]
+                            else:
+                                print("row find method error.")
+                                sys.exit()
+
                             col+=1
 
                         gen=generation_number
@@ -744,6 +811,10 @@ while extinctions<=extinction_events:
         generation_number+=1
 
     extinctions+=1
+    clock_end=time.process_time()
+    duration_clock=clock_end-clock_start
+    print("Finished - Clock: duration_clock =", duration_clock)
+
     print("")
 
 
