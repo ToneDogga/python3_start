@@ -885,7 +885,7 @@ class gene_string(object):
             duration_clock=clock_end-clock_start
             print("\n\nFinished - Clock: duration_clock =", duration_clock)
             outfile.write("\nFinished - Clock: duration_clock ="+str(duration_clock)+"\n")
-            outfile.close()
+          
             print("")
 
 
@@ -1287,5 +1287,5 @@ else:
         #minimise results written to outfile.txt
         xgene.genetic_algorithm()
 
-
+outfile.close()
 
