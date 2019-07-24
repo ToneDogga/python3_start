@@ -716,7 +716,7 @@ class gene_string(object):
 
 
 
-        outfile=open("outfile.txt","a")
+
         outfile.write("\n\nGenetic algorithm. By Anthony Paech\n")
         outfile.write("===================================\n")
         outfile.write(str(datetime.datetime.now())+"\n")
@@ -968,7 +968,7 @@ if answer=="y":
     print("Payoff/cost environment file is:",payoff_filename,"and has",total_rows,"rows.")
 
     
-
+outfile=open("outfile.txt","a")
 
 
 batch=""
