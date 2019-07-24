@@ -848,7 +848,7 @@ class gene_string(object):
   
 
                                 print("best fittest=",best," value=",int(best,2)," row number=",int(bestrow)," a=",axis[1]," b=",axis[2]," c=",axis[3]," d=",axis[4]," e=",axis[5],"generation no:",gen,"min_cost=",min_cost,flush=True)
-                                outfile.write("best fittest="+best+" value="+str(int(best,2))+" row number="+str(int(bestrow))+" a="+str(axis[1])+" b="+str(axis[2])+" c="+str(axis[3])+" d="+str(axis[4])+" e="+str(axis[5])+" generation no: "+str(gen)+" min_cost= "+str(max_payoff)+"\n")
+                                outfile.write("best fittest="+best+" value="+str(int(best,2))+" row number="+str(int(bestrow))+" a="+str(axis[1])+" b="+str(axis[2])+" c="+str(axis[3])+" d="+str(axis[4])+" e="+str(axis[5])+" generation no: "+str(gen)+" min_cost= "+str(min_cost)+"\n")
 
                         else:
                             print("direction error1 direction=",direction)
@@ -1202,7 +1202,7 @@ else:
         xgene.genetic_algorithm()
 
 
-   for c in range(0,2**4):
+    for c in range(0,2**4):
         direction="x"
         xgene.pconstrain=False
         xgene.minp=0
@@ -1232,7 +1232,7 @@ else:
 
 
 
-   for d in range(0,2**4):
+    for d in range(0,2**4):
         direction="x"
         xgene.pconstrain=False
         xgene.minp=0
@@ -1260,7 +1260,7 @@ else:
         xgene.genetic_algorithm()
 
 
-   for e in range(0,2**4):
+    for e in range(0,2**4):
         direction="x"
         xgene.pconstrain=False
         xgene.minp=0
