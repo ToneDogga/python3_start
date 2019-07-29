@@ -99,22 +99,22 @@ def main():
   
     #clock_start=time.process_time()
 
-    #mp_class = Testing_mp()
 
     chunk=int(row_numbers/cpus)
     remainder=row_numbers%cpus
     print("rownumbers=",row_numbers," chunk size=",chunk," remainder=",remainder)
     with Pool(processes=cpus) as pool:  # processes=cpus
-#        multiple_results = [pool.apply_async(generate_payoff_environment_1d_mp,(i*chunk,chunk,)) for i in range(0,cpus)]
-#        multiple_results.append(pool.apply_async(generate_payoff_environment_1d_mp,(chunk*cpus,remainder,)))
-        multiple_results = [pool.apply_async(generate_payoff_environment_1d_mp,(0,remainder,))]
+        if remainder!=0:
+            multiple_results = [pool.apply_async(generate_payoff_environment_1d_mp,(0,remainder,))]
+        else:
+            multiple_results=[]
         for i in range(0,cpus):
             multiple_results.append(pool.apply_async(generate_payoff_environment_1d_mp,(i*chunk+remainder,chunk,)))
 
        # print("mr=",len(multiple_results))
         for res in multiple_results:
             result=res.get(timeout=None)       
-            res.wait()
+          #  res.wait()
 
     # Waits a bit for the child processes to do some work
     # because when the parent exits, childs are terminated.
@@ -136,6 +136,23 @@ def main():
     print("count file rows=",count_file_rows(FILENAME))
     print(FILENAME," #=",hash_a_file(FILENAME))      
 
+    if my_file.is_file():
+  #      print(FILENAME," #=",hash_a_file(FILENAME))
+        os.remove(FILENAME)
+    f=open(FILENAME,"w")
+    f.close()
+
+
+    clock_start=time.process_time()
+
+    generate_payoff_environment_1d_mp(0,row_numbers)
+
+    clock_end=time.process_time()
+    duration_clock=clock_end-clock_start
+    print("gen payoff 1 processor rows=",row_numbers," Time:", duration_clock," secs.")
+
+    print("count file rows=",count_file_rows(FILENAME))
+    print(FILENAME," #=",hash_a_file(FILENAME))      
 
 
 main()
