@@ -114,7 +114,7 @@ def main():
        # print("mr=",len(multiple_results))
         for res in multiple_results:
             result=res.get(timeout=None)       
-          #  res.wait()
+            res.wait()
 
     # Waits a bit for the child processes to do some work
     # because when the parent exits, childs are terminated.
@@ -136,6 +136,7 @@ def main():
     print("count file rows=",count_file_rows(FILENAME))
     print(FILENAME," #=",hash_a_file(FILENAME))      
 
+"""
     if my_file.is_file():
   #      print(FILENAME," #=",hash_a_file(FILENAME))
         os.remove(FILENAME)
@@ -153,6 +154,6 @@ def main():
 
     print("count file rows=",count_file_rows(FILENAME))
     print(FILENAME," #=",hash_a_file(FILENAME))      
-
+"""
 
 main()
