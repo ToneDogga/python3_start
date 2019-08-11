@@ -77,6 +77,7 @@ import time
 import math
 import linecache
 import sys
+import platform
 
 
 
@@ -306,13 +307,73 @@ def return_a_row_as_a_list2(row,filename):
 
 
 
+def report(fittest,returned_payoff,max_fittest,max_payoff,min_cost,number_of_cols,row_find_method,gen,direction,payoff_filename):
+    
+                        axis=["0"] * number_of_cols
+
+       #print("returned payoff:",returned_payoff)
+                        if direction=="x":
+                            if returned_payoff>max_payoff:
+                              #  best=fittest
+                                col=0
+                                while col<=number_of_cols-1:
+                                    if row_find_method=="l":
+                                       axis[col]=return_a_row(int(fittest,2),payoff_filename).split(",")[col]
+                                    elif row_find_method=="s":   
+                                       axis[col]=return_a_row2(int(fittest,2),payoff_filename).split(",")[col]
+                                    else:
+                                       print("row find method error.")
+                                       sys.exit()
+
+                                    col+=1
+
+                                gen=generation_number
+                                max_payoff=returned_payoff
+                                print("best fittest=",fittest," value=",int(fittest,2)," a=",axis[1]," b=",axis[2]," c=",axis[3]," d=",axis[4]," e=",axis[5]," f=",axis[6]," g=",axis[7]," generation no:",gen,"max_payoff=",max_payoff,flush=True)
+                                if elements>0:
+                                    print("number of elements found satisfying constraint=",elements," average=",averagep)
+                                outfile.write("best fittest= "+fittest+" value= "+str(int(fittest,2))+" row number= "+" a="+str(axis[1])+" b="+str(axis[2])+" c="+str(axis[3])+" d="+str(axis[4])+" e="+str(axis[5])+" f="+str(axis[6])+" g="+str(axis[7])+" generation no: "+str(gen)+" max_payoff= "+str(max_payoff)+"\n")
+                                if elements>0:
+                                    outfile.write("number of elements found satisfying constraint="+str(elements)+" average="+str(averagep)+"\n")
+                                
+                        elif direction=="n":
+                            if returned_payoff<min_cost:
+                              #  best=fittest
+                                col=0
+                                while col<=number_of_cols-1:
+                                    if row_find_method=="l":
+                                        axis[col]=return_a_row(int(fittest,2),payoff_filename).split(",")[col]
+                                    elif row_find_method=="s":
+                                        axis[col]=return_a_row2(int(fittest,2),payoff_filename).split(",")[col]
+                                    else:
+                                        print("row find method error.")
+                                        sys.exit()
+
+                                    col+=1
+
+                                gen=generation_number
+                                min_cost=returned_payoff
+  
+
+                                print("best fittest=",fittest," value=",int(fittest,2)," a=",axis[1]," b=",axis[2]," c=",axis[3]," d=",axis[4]," e=",axis[5]," f=",axis[6]," g=",axis[7],"generation no:",gen,"min_cost=",min_cost,flush=True)
+                                if elements>0:
+                                    print("number of elements found satisfying constraint=",elements," average=",averagep)
+                                outfile.write("best fittest="+fittest+" value="+str(int(fittest,2))+" a="+str(axis[1])+" b="+str(axis[2])+" c="+str(axis[3])+" d="+str(axis[4])+" e="+str(axis[5])+" f="+str(axis[6])+" g="+str(axis[7])+" generation no: "+str(gen)+" min_cost= "+str(min_cost)+"\n")
+                                if elements>0:
+                                    outfile.write("number of elements found satisfying constraint="+str(elements)+" average="+str(averagep)+" \n")
 
 
 
-def calc_fitness(newpopulation,direction,payoff_filename):   # the whole population 
+                        else:
+                            print("direction error1 direction=",direction)
+   
+
+
+
+
+
+def calc_fitness(newpopulation,direction,max_fittest,max_payoff,min_fittest,min_payoff,payoff_filename):   # the whole population 
     #  loop through the whole population dna and update the fitness based on the payoff file
-    max_payoff=-10000000.0
-    min_payoff=10000000.0
     p=0.0
     plist=[]
        # element_list=[]
@@ -330,7 +391,7 @@ def calc_fitness(newpopulation,direction,payoff_filename):   # the whole populat
     #newpopulation = population.copy(deep=True)
 
     size=len(newpopulation)
-    print("len genepool=",size)
+   # print("len genepool=",size)
     for gene in range(0,size-1):  #newpopulation.iterrows():
         plist=[]
         val=int(newpopulation.loc[gene,"expressed"],2)   # binary base turned into integer
@@ -371,7 +432,10 @@ def calc_fitness(newpopulation,direction,payoff_filename):   # the whole populat
                     p=float(plist[8].rstrip())
                     totalp+=p
 
-                    returned_payoff=p                                
+                    if p>returned_payoff:
+                        returned_payoff=p
+                        fittest=newpopulation.loc[val,"expressed"]   # if not constrained at all
+
                     elements_count+=1
 
                     #newpopulation.loc[row_number,["fitness"]]=p
@@ -383,6 +447,7 @@ def calc_fitness(newpopulation,direction,payoff_filename):   # the whole populat
                                     
                                     fittest=newpopulation.loc[val,"expressed"]   # if not constrained at all
                                     max_payoff=p
+                                    max_fittest=fittest
                                     found=True
                         else:
                              pass
@@ -391,6 +456,7 @@ def calc_fitness(newpopulation,direction,payoff_filename):   # the whole populat
                                     
                                     fittest=newpopulation.loc[val,"expressed"]   # if not constrained at all
                                     min_payoff=p
+                                    min_fittest=fittest
                                     found=True
                         else:
                              pass
@@ -418,12 +484,12 @@ def calc_fitness(newpopulation,direction,payoff_filename):   # the whole populat
        # input("?")
    # print("calc fitness count=",count)   
     if direction=="x":
-        return(newpopulation,found,fittest,returned_payoff,max_payoff)
+        return(newpopulation,found,fittest,returned_payoff,max_fittest,max_payoff)
     elif direction=="n":
-        return(newpopulation,found,fittest,returned_payoff,min_payoff)
+        return(newpopulation,found,fittest,returned_payoff,min_fittest,min_payoff)
     else:
         print("direction error..")
-        return(newpopulation,False,"",0,0)
+        return(newpopulation,False,"",0,"",0)
 
 
 
@@ -540,10 +606,10 @@ def spin_the_mating_wheel(wheel,newpopulation,iterations):
 
                     # if the string to mate with is the same, try again
                 go_back=False
-                if newpopulation.loc[first_string_no-1,"expressed"]==newpopulation.loc[second_string_no-1,"expressed"]:
+                if newpopulation.loc[first_string_no-1,"chromo1"]==newpopulation.loc[second_string_no-1,"chromo2"]:
                     go_back=True
 
-            mates=mates+[(newpopulation.loc[first_string_no-1,"expressed"],newpopulation.loc[second_string_no-1,"expressed"])]      # mates is a list of tuples to be mated               
+            mates=mates+[[0.0,first_string_no-1,0,second_string_no-1,0,newpopulation.loc[first_string_no-1,"chromo1"],newpopulation.loc[second_string_no-1,"chromo2"],"","",""]]      # mates is a list of tuples to be mated               
 
 
       #  clock_end=time.clock()
@@ -555,28 +621,91 @@ def spin_the_mating_wheel(wheel,newpopulation,iterations):
         return(mates,len_sel)   # if len_sel gets small, there is a lack of genetic diversity
 
 
-def crossover(self,mates,length):
-        crossed=[]
-        for i in mates:
-            splitpoint=random.randint(1,length-1)
+
+
+
+def crossover(mates,no_of_alleles,individual):
+    mate1col=5
+    mate2col=6
+
+    xpoint1col=2
+    xpoint2col=4
+
+    newchromo1col=7
+    newchromo2col=8
+
+    row=0
+   # print(mates)
+
+    for mate in mates:
+          #  print(mate[i])
+           # input("?")
+            splitpoint=random.randint(1,no_of_alleles-1)
 
             child1=""
             child2=""
-            remain1=i[0][:splitpoint]
-            swap1=i[0][splitpoint-length:]
-            remain2=i[1][:splitpoint]
-            swap2=i[1][splitpoint-length:]
+            remain1=mate[mate1col][:splitpoint]
+            swap1=mate[mate1col][splitpoint-no_of_alleles:]
+            remain2=mate[mate2col][:splitpoint]
+            swap2=mate[mate2col][splitpoint-no_of_alleles:]
 
             child1=remain1+swap2
             child2=remain2+swap1
 
-            crossed.append(child1)   #+[child1,child2)]
-            crossed.append(child2)
-        #print("crossed len",len(crossed))    
-        return(crossed)
+            mates[row][newchromo1col]=child1   #+[child1,child2)]
+            mates[row][newchromo2col]=child2
+            mates[row][xpoint1col]=splitpoint
+            mates[row][xpoint2col]=splitpoint
+            row+=1    
 
 
-def mutate(self,dna,crossed,length,mutation_rate):
+
+ #   print("mates dataframe")     
+
+  #  mates_df = pd.DataFrame(mates, columns=list('ABCD'))
+  #  mates_df = pd.DataFrame(mates, dtype=individual)   #columns=list('ABCD'))
+    mates_df = pd.DataFrame(mates, columns=["fitness","parentid1","xpoint1","parentid2","xpoint2","chromo1","chromo2","newchromo1","newchromo2","expressed"])
+
+
+    
+   # print("mates df")
+   # print(mates_df)
+
+
+    
+   # pd.concat([pd.DataFrame(mates[i][0], columns=['chromo1']) for i in range(0,5)], ignore_index=True)
+   # pd.concat([newpopulation([i], columns=['chromo1']) for i in range(0,5)], ignore_index=True)
+  #  crossed_population.append(mates_df, ignore_index=True,sort=False)
+
+
+    #mates_df.loc["xpoint1"]=2
+    
+
+ #   input("?")
+
+    #delete columns "newchromo1" and "newchromo2"
+
+    mates_df=mates_df.drop(columns=["chromo1","chromo2"])   # delete old chromosomes columns in population
+    mates_df.columns=["fitness","parentid1","xpoint1","parentid2","xpoint2","chromo1","chromo2","expressed"]  # rename newchromos to chromos
+
+    mates_df.index
+  #  print("mates df drop columns and rename")
+   # print(mates_df)
+   # input("?")
+
+    
+    return(mates_df)
+
+
+
+
+
+
+
+
+
+
+def mutate(newpopulation,length,mutation_rate):
          mutation=False
          mutation_count=0
          temp=""
@@ -624,23 +753,28 @@ def mutate(self,dna,crossed,length,mutation_rate):
                #  print("dna before mutation:",dna)
            
         
-         new_dna=crossed
+         newpopulation=crossed
          
          #print("new dna len=",len(new_dna))
          #input("?")
 
          
-         return(new_dna,mutation_count,gene_pool_size)       
+         return(newpopulation)       
 
 
 
+
+
+
+
+##########################################
 
 def main():
     ploidy=2  # number of chromosomes per individual
     no_of_alleles=7  # length of each chromosome
     pop_size=128   # population size
     epoch_count=0
-    max_epochs=2
+    no_of_epochs=1
     generation_count=0
 
     payoff_filename="payoff_7d.csv"
@@ -649,18 +783,38 @@ def main():
     linewidth=76   # 66 bytes
     extra_EOL_char=0
     row_find_method="l"
-    direction="x"
 
+    max_payoff=-10000000.0
+    min_payoff=10000000.0
+    max_fittest=""
+    min_fittest=""
+
+    
+    found=False
     epoch_length=100
     direction="x"
     scaling_factor=10000  # scaling figure is the last.  this multiplies the payoff up so that diversity is not lost on the wheel when probs are rounded
-    extinctions=0
     mutation_count=0
     mutations=0
     mutation_rate=500   # mutate 1 bit in every 1000.  but the mutation is random 0 or 1 so we need to double the try to mutate rate
 
     
     allele_len="S"+str(no_of_alleles)
+
+#########################################
+
+    print("\n\nGenetic algorithm. By Anthony Paech")
+    print("===================================")
+    print("Platform:",platform.machine(),"\n:",platform.platform())
+    #print("\n:",platform.processor(),"\n:",platform.version(),"\n:",platform.uname())
+    print("Bit Length=",no_of_alleles,"-> Max CSV datafile rows available is:",2**no_of_alleles)
+    print("\nTheoretical max no of rows for the CSV datafile file:",payoff_filename,"is:",sys.maxsize)
+
+
+
+
+
+    
 
     individual = np.dtype([('fitness','f16'),('parentid1','i8'),("xpoint1","i2"),("parentid2","i8"),("xpoint2","i2"),("chromo1",allele_len),("chromo2",allele_len),("expressed",allele_len)])   #,('xpoint','i2',(ploidy)), ('chromopack', 'i1', (ploidy, no_of_alleles)),('expressed','i1',(no_of_alleles))])
     poparray = np.zeros(pop_size, dtype=individual) 
@@ -672,101 +826,75 @@ def main():
    # print(population)
 
 
-    # 7 input variables 2 bits each = 14 bits, 1 floating point payoff.
-    generate_payoff_environment_7d_file(linewidth,0,2**1,0,2**1,0,2**1,0,2**1,0,2**1,0,2**1,0,2**1,payoff_filename)
+ 
+    answer=""
+    while answer!="y" and answer!="n":
+        answer=input("Create payoff env? (y/n)")
+    if answer=="y":
+        print("Creating payoff/cost environment....file:",payoff_filename)
+        clock_start=time.process_time()
+
+          #      total_rows=generate_payoff_environment_7d_file(linewidth,0,2**1,0,2**1,0,2**1,0,2**1,0,2**1,0,2**6,0,2**4,payoff_filename)  
+       # 7 input variables 2 bits each = 14 bits, 1 floating point payoff.
+        total_rows=generate_payoff_environment_7d_file(linewidth,0,2**1,0,2**1,0,2**1,0,2**1,0,2**1,0,2**1,0,2**1,payoff_filename)
+
+        clock_end=time.process_time()
+        duration_clock=clock_end-clock_start
+        print("generate payoff/cost environment - Clock: duration_clock =", duration_clock,"seconds.")
+        print("Payoff/cost environment file is:",payoff_filename,"and has",total_rows,"rows.")
+
+    
+    outfile=open("outfile.txt","a")
 
 
 
-    for epoch in range(1,max_epochs+1):
+
+    if platform.system().lower()[:7]=="windows":
+        extra_EOL_char=1
+    else:
+        extra_EOL_char=0
+
+    print("counting rows in ",payoff_filename)
+    total_rows=count_file_rows(payoff_filename)
+    print("\nPayoff/cost environment file is:",payoff_filename,"and has",total_rows,"rows.")
+
+
+
+    for epoch in range(1,no_of_epochs+1):
  
         population=build_population(pop_size,no_of_alleles,population)
 
-        print("\n\n epoch=",epoch)
+        print("\n\nEpoch=",epoch," - generations in epoch=",epoch_length)
+        print("\nStarting population\n")
         print(population)
 
 
 
         for generation in range(1,epoch_length+1):
-            print("generation=",generation)
-            print("Epochs:",epoch+1,"Generation progress: [%d%%]" % (generation/epoch_length*100))   # ,"diversity (len_sel)=",len_sel,"Tot gene bits:%d" % total_genes,"Tot Mutations:%d    "  % (mutations), end='\r', flush=True)
+         #   print("generation=",generation)
+         #   print("Epochs:",epoch+1,"Generation progress: [%d%%]" % (generation/epoch_length*100),"diversity (len_sel)=",len_sel,"Tot gene bits:%d" % total_genes,"Tot Mutations:%d      "  % (mutations), end='\r', flush=True)
+
 
             # update all the fitness values in the population based on the payoff file
-            population,found,fittest,returned_payoff,max_payoff=calc_fitness(population,direction,payoff_filename)  # use linecache method for fin row no in payoff file.csv
+            population,found,fittest,returned_payoff,max_fittest,max_payoff=calc_fitness(population,direction,max_fittest,max_payoff,min_fittest,min_payoff,payoff_filename)  # use linecache method for fin row no in payoff file.csv
 
-            print("\n\n calc fitness finished. fittest=",fittest)
-            print(population)
-            input("?")
-
-            
+     #       print("\n\n calc fitness finished.found=",found," fittest=",fittest," total rows=",total_rows)
+     #       print(population)
+      #      input("?")
 
 
-            if found:   # something found   
-                if int(fittest,2)<=total_rows: 
-                        axis=["0"] * number_of_cols
-
-       #print("returned payoff:",returned_payoff)
-                        if direction=="x":
-                            if returned_payoff>max_payoff:
-                                best=fittest
-                                col=0
-                                while col<=number_of_cols-1:
-                                    if row_find_method=="l":
-                                       axis[col]=return_a_row(int(fittest,2),payoff_filename).split(",")[col]
-                                    elif row_find_method=="s":   
-                                       axis[col]=return_a_row2(int(fittest,2),payoff_filename).split(",")[col]
-                                    else:
-                                       print("row find method error.")
-                                       sys.exit()
-
-                                    col+=1
-
-                                gen=generation_number
-                                max_payoff=returned_payoff
-                                print("best fittest=",best," value=",int(best,2)," row number=",int(bestrow)," a=",axis[1]," b=",axis[2]," c=",axis[3]," d=",axis[4]," e=",axis[5]," f=",axis[6]," g=",axis[7]," generation no:",gen,"max_payoff=",max_payoff,flush=True)
-                                if elements>0:
-                                    print("number of elements found satisfying constraint=",elements," average=",averagep)
-                                outfile.write("best fittest= "+best+" value= "+str(int(best,2))+" row number= "+str(int(bestrow))+" a="+str(axis[1])+" b="+str(axis[2])+" c="+str(axis[3])+" d="+str(axis[4])+" e="+str(axis[5])+" f="+str(axis[6])+" g="+str(axis[7])+" generation no: "+str(gen)+" max_payoff= "+str(max_payoff)+"\n")
-                                if elements>0:
-                                    outfile.write("number of elements found satisfying constraint="+str(elements)+" average="+str(averagep)+"\n")
-                                
-                        elif direction=="n":
-                            if returned_payoff<min_cost:
-                                best=fittest
-                                col=0
-                                while col<=number_of_cols-1:
-                                    if row_find_method=="l":
-                                        axis[col]=return_a_row(int(best,2),payoff_filename).split(",")[col]
-                                    elif row_find_method=="s":
-                                        axis[col]=return_a_row2(int(best,2),payoff_filename).split(",")[col]
-                                    else:
-                                        print("row find method error.")
-                                        sys.exit()
-
-                                    col+=1
-
-                                gen=generation_number
-                                min_cost=returned_payoff
-  
-
-                                print("best fittest=",best," value=",int(best,2)," row number=",int(bestrow)," a=",axis[1]," b=",axis[2]," c=",axis[3]," d=",axis[4]," e=",axis[5]," f=",axis[6]," g=",axis[7],"generation no:",gen,"min_cost=",min_cost,flush=True)
-                                if elements>0:
-                                    print("number of elements found satisfying constraint=",elements," average=",averagep)
-                                outfile.write("best fittest="+best+" value="+str(int(best,2))+" row number="+str(int(bestrow))+" a="+str(axis[1])+" b="+str(axis[2])+" c="+str(axis[3])+" d="+str(axis[4])+" e="+str(axis[5])+" f="+str(axis[6])+" g="+str(axis[7])+" generation no: "+str(gen)+" min_cost= "+str(min_cost)+"\n")
-                                if elements>0:
-                                    outfile.write("number of elements found satisfying constraint="+str(elements)+" average="+str(averagep)+" \n")
+            print("\rEpoch no:",epoch,"/",no_of_epochs,"  Generation progress: [%d%%]" % (generation/epoch_length*100)," fittest=",fittest," returned payoff=",returned_payoff," best=",max_fittest," max_payoff=",max_payoff,"    ",end='\r',flush=True)
 
 
-
-                        else:
-                            print("direction error1 direction=",direction)
+        
+            if found:   # something found
+    #            print("\rfound=",found," fittest=",fittest," returned payoff=",returned_payoff," max_payoff=",max_payoff,"    ",end='\r',flush=True)
+                if int(fittest,2)<=total_rows:
+               #     print("report on fittest")
+                    report(fittest,returned_payoff,max_fittest,max_payoff,max_payoff,number_of_cols,row_find_method,generation,direction,payoff_filename)
                 else:
                     print("fittest",fittest," is beyond the environment max (",total_rows,").")
-                 #  else:
-                  #      print("\npayoff/cost ",returned_payoff," is outside of constraints > max",xgene.maxp," or < min",xgene.minp)
-
-                  #  clock_start=time.process_time()
-   
-
+ 
 
                 wheel=calc_mating_probabilities(population,direction,scaling_factor,row_find_method,payoff_filename)  # scaling figure is the last.  this multiplies the payoff up so that divsity is not lost on the wheel when probs are rounded
                 if len(wheel)==0:
@@ -776,20 +904,33 @@ def main():
 
 
                 mates,len_sel=spin_the_mating_wheel(wheel,population,pop_size)  # sel_len is the size of the unique gene pool to select from in the wheel
-                # mates is a lkist of tuples
+                # mates is a list of tuples
 
-                print("len mates=",len(mates))
-                print("mates=",mates)
-                print(population)
-                print("\ncall crossover")
-               # population,crossed=crossover(population,mates,length)
-                print("crossover finished.")
-                print(population)
-                input("?")
+               # print("len mates=",len(mates))
+               # print("mates=",mates)
+               # print(population)
+               # print("\ncall crossover")
 
-                #population,mutation_count,gene_pool_size=mutate(population,crossed,length,mutation_rate)   # 1000 means mutation 1 in a 1000 bits processed
 
- 
+              #  newpoparray = np.zeros(0, dtype=individual) 
+               # crossed_population = pd.DataFrame({"fitness":newpoparray['fitness'],"parentid1":newpoparray['parentid1'],"xpoint1":newpoparray["xpoint1"],"parentid2":newpoparray['parentid2'],"xpoint2":newpoparray["xpoint2"],"chromo1":newpoparray["chromo1"],"chromo2":newpoparray["chromo2"],"expressed":newpoparray["expressed"]})  #,"xpoint":population['xpoint'],"chromopack":population['chromopack'],"expressed":population['expressed']})   #,'area': areaprint("\n\n")
+
+
+
+                
+                population=crossover(mates,no_of_alleles,individual)
+            #    print("crossover finished.")
+             #   print(population)
+              #  input("?")
+
+                #population=mutate(population,no_of_alleles,mutation_rate)   # 1000 means mutation 1 in a 1000 bits processed
+
+                for p in range(0,pop_size):    #fill out the express column for the population:
+                    population.loc[p,"expressed"]=express(population.loc[p,"chromo1"],population.loc[p,"chromo2"])
+
+            #    print("express")
+             #   print(population)
+             #   input("?")
         
               #  total_genes=total_genes+gene_pool_size
                 mutations=mutations+mutation_count
@@ -799,15 +940,13 @@ def main():
                 pass   # nothing found
             
 
-            
-          #  starting_population=int(round(starting_population/2))    #  increase the starting population between the different epochs to test the results
-         #   clock_end=time.process_time()
-          #  duration_clock=clock_end-clock_start
-          #  print("\n\nFinished - Clock: duration_clock =", duration_clock)
-          #  outfile.write("\nFinished - Clock: duration_clock ="+str(duration_clock)+"\n")
-          
-            print("")
-
+         
+        print("")
+    outfile.close()
+    print("\n\nFinal population=")
+    population,found,fittest,returned_payoff,max_fittest,max_payoff=calc_fitness(population,direction,max_fittest,max_payoff,min_fittest,min_payoff,payoff_filename)  # use linecache method for fin row no in payoff file.csv
+    print(population.to_string())
+    print("\n")
 
 
  
@@ -818,31 +957,6 @@ if __name__ == '__main__':
     main()
 
 
-
-
-
-#print("col=",pop.columns)
-
-#   #row=int(input("row?"))
-    #col=input("col?")
-
-
-    #print("=",population[col][row])    
-    #print("?",population.loc[row,col])
-#print("\n\n")
-#print(pop.index)
-
-
-#list(pop.items())
-#population["xpoint1"]=45
-
-#print(pop.keys())
-
-#pop.keys()
-#print(population["xpoint1"])
-
-#print(population["xpoint1"][2])
-  
 
 
 
