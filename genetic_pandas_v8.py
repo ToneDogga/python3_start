@@ -78,8 +78,16 @@ import math
 import linecache
 import sys
 import platform
+import datetime
+import subprocess as sp
+#import os
 
+#clear = lambda: os.system('cls')      # or os.system('clear') for Unix   'cls' for windows and mac
 
+#for i in range(10,0,-1):
+ #   clear()
+ #   print i
+  #  time.sleep(1)
 
 def generate_payoff_environment_7d_file(linewidth,astart_val,asize_of_env,bstart_val,bsize_of_env,cstart_val,csize_of_env,dstart_val,dsize_of_env,estart_val,esize_of_env,fstart_val,fsize_of_env,gstart_val,gsize_of_env,filename):   
     rowno=0    
@@ -305,135 +313,6 @@ def return_a_row_as_a_list2(row,filename):
             return([])
 
 
-
-"""
-def calc_fitness(newpopulation,gen,direction,max_fittest,max_payoff,min_fittest,min_payoff,best_rowno,payoff_filename):   # the whole population 
-    #  loop through the whole population dna and update the fitness based on the payoff file
-    p=0.0
-    plist=[]
-       # element_list=[]
-    elements_count=0
-    averagep=0
-    totalp=0
-    count=0
-    returned_payoff=0
-    best=""
-    #best_rowno=0
-    fittest=""
-    row_find_method="l"
-    found=False   # found flag is a True if dna is found and a bestrow returned
-    
-
-    #newpopulation = population.copy(deep=True)
-
-    size=len(newpopulation)
-   # print("len genepool=",size)
-    for gene in range(0,size-1):  #newpopulation.iterrows():
-        plist=[]
-        val=int(newpopulation.loc[gene,"expressed"],2)   # binary base turned into integer
-      #  print("val=",val)
-        if val <= size:
-                try:
-                    if row_find_method=="l":  # linecache
-                        plist=return_a_row_as_a_list(val,payoff_filename)
-                        #found=True
-                        
-                   # elif row_find_method=="s":    
- #                       p=self.find_a_payoff2(val,payoff_filename)
-                     #   plist=return_a_row_as_a_list2(val,payoff_filename)
-                     #   found=True
-
-                    else:
-                        print("row find method error.")
-                        sys.exit()
-                        
-                except ValueError:
-                    print("value error finding p in calc fitness")
-                    sys.exit()
-                except IOError:
-                    print("File IO error on ",payoff_filename)
-                    sys.exit()
-
-
-              #  print("plist=",plist)
-              #  input("?")
-                if len(plist)>7:
-                    found=True
-             #       print("found plist=",plist)
-                    row_number=int(plist[0])
-                    a=int(plist[1])
-                    b=int(plist[2])
-                    c=int(plist[3])
-                    d=int(plist[4])
-                    e=int(plist[5])
-                    f=int(plist[6])
-                    g=int(plist[7])
-                    p=float(plist[8].rstrip())
-                    totalp+=p
-
-                    #if p>returned_payoff:
-                    returned_payoff=p
-                    fittest=newpopulation.loc[val,"expressed"]   # if not constrained at all
-                    rowno=val
-                   # best_rowno=val
-
-                    elements_count+=1
-
-                    #newpopulation.loc[row_number,["fitness"]]=p
-                   # newpopulation.loc[int(newpopulation.loc[gene,"expressed"],2), "fitness"] = p
-                    newpopulation.loc[val, "fitness"] = p
-
-                    if direction=="x":  # maximising payoff
-                        if p>max_payoff:
-                                    
-                                  #  fittest=newpopulation.loc[val,"expressed"]   # if not constrained at all
-                                    max_payoff=p
-                                    max_fittest=fittest
-                                    best_rowno=rowno
-                                    best_gen=gen
-                        else:
-                             pass
-                    elif direction=="n":
-                        if p<min_payoff:
-                                    
-                                   # fittest=newpopulation.loc[val,"expressed"]   # if not constrained at all
-                                    min_payoff=p
-                                    min_fittest=fittest
-                                    best_rowno=rowno
-                                    best_gen=gen
-                        else:
-                             pass
-                    else:
-                        print("direction error")
-                        sys.exit()
-                else:
-                    print("error, row found but no payoff value")
-                    pass     
-        else:
-            pass
-                
-              #  print("\nval ",val," is greater than total environment (",total_rows,")")
-          #  print("#",count+1,":",elem," val=",val,"payoff=",p," fitness=",fitness[count])
-         #   print("bestrow=",bestrow,"best=",best," max",max_payoff)
-        count+=1
-
-    if elements_count>0:
-        averagep=totalp/elements_count
-          #  print("\n val=",val," totalp=",totalp," elements_count=",elements_count," average payoff=",averagep)
-        
-
-
-       # print("\nbestrow=",bestrow,"best=",best," max",max_payoff," min",min_payoff)
-       # input("?")
-   # print("calc fitness count=",count)   
-    if direction=="x":
-        return(newpopulation,found,rowno,fittest,returned_payoff,best_gen,best_rowno,max_fittest,max_payoff)
-    elif direction=="n":
-        return(newpopulation,found,rowno,fittest,returned_payoff,best_gen,best_rowno,min_fittest,min_payoff)
-    else:
-        print("direction error..")
-        return(newpopulation,False,0,"",0,0,0,"",0)
-"""
 
 
 
@@ -763,6 +642,7 @@ def main():
     bestg=0
  
     epoch_length=40
+    total_generations=0
     
     direction="x"
     scaling_factor=10000  # scaling figure is the last.  this multiplies the payoff up so that diversity is not lost on the wheel when probs are rounded
@@ -775,9 +655,16 @@ def main():
 
 #########################################
 
-    print("\n\nGenetic algorithm. By Anthony Paech")
+    
+   
+ #   tmp=sp.call('cls',shell=True)  # clear screen 'use 'clear for unix
+    tmp=sp.call('clear',shell=True)  # clear screen 'use 'clear for unix
+
+
+    
+    print("Genetic algorithm. By Anthony Paech")
     print("===================================")
-    print("Platform:",platform.machine(),"\n:",platform.platform())
+    print("Platform:",platform.machine(),"\n",platform.platform())
     #print("\n:",platform.processor(),"\n:",platform.version(),"\n:",platform.uname())
     print("Bit Length=",no_of_alleles,"-> Max CSV datafile rows available is:",2**no_of_alleles)
   #  print("\nTheoretical max no of rows for the CSV datafile file:",payoff_filename,"is:",sys.maxsize)
@@ -797,7 +684,7 @@ def main():
    # print(population)
 
 
- 
+    print("\n\n") 
     answer=""
     while answer!="y" and answer!="n":
         answer=input("Create payoff env? (y/n)")
@@ -812,25 +699,34 @@ def main():
         clock_end=time.process_time()
         duration_clock=clock_end-clock_start
         print("generate payoff/cost environment - Clock: duration_clock =", duration_clock,"seconds.")
-        print("Payoff/cost environment file is:",payoff_filename,"and has",total_rows,"rows.")
+        print("Payoff/cost environment file is:",payoff_filename,"and has",total_rows,"rows.\n\n")
 
-    
-    outfile=open("outfile.txt","a")
+    print("\n")
+    ap=""
+    while ap!="y" and ap!="n":
+        ap=input("Append to existing outfile.txt? (y/n)")
 
-
-
+    print("\n")
+    if ap=="y":
+        print("appending to existing outfile.txt")
+        outfile=open("outfile.txt","a")
+    else:
+        print("clearing outfile.txt")
+        outfile=open("outfile.txt","w")
 
     if platform.system().lower()[:7]=="windows":
         extra_EOL_char=1
     else:
         extra_EOL_char=0
 
-    print("counting rows in ",payoff_filename)
-    total_rows=count_file_rows(payoff_filename)
-    print("\nPayoff/cost environment file is:",payoff_filename,"and has",total_rows,"rows.")
+   # print("counting rows in ",payoff_filename)
+    #total_rows=count_file_rows(payoff_filename)
+   # print("\nPayoff/cost environment file is:",payoff_filename,"and has",total_rows,"rows.")
 
    # best_rowno=0
    # fittest=""
+
+   
     max_payoff=-10000000.0
     min_payoff=10000000.0
     max_fittest=""
@@ -838,17 +734,10 @@ def main():
     best_epoch=1
     best_rowno=0
     bestpopulation=population.copy()
-     
-
-    batch=""
-    while batch!="y" and batch!="n":
-        batch=input("Batch run? (y/n)")
-
-    if batch=="n":
-    
-        print("\n\nPayoff/Cost Environment")
 
 
+    print("\n") 
+    if True:
         direction=""
         while direction!="x" and direction!="n":
             direction=input("Ma(x)imise or Mi(n)imise?")
@@ -1080,7 +969,11 @@ def main():
             print(str(ming)+" <= g <= "+str(maxg)+"\n\n\n")
 
 #################################################
-            
+
+        starttime=str(datetime.datetime.now())
+
+        outfile.write("Genetic algorithm. Started at: "+starttime+"\n\n\n")
+           
         if direction=="x":
             outfile.write("MAXIMISING....\n\n")
             print("MAXIMISING.....")
@@ -1096,8 +989,6 @@ def main():
         outfile.flush()
 
 #####################################################
-
-
 
     for epoch in range(1,no_of_epochs+1):
  
@@ -1288,12 +1179,55 @@ def main():
                 if elements_count>0:
                     averagep=totalp/elements_count
 
+
+
+
+            tmp=sp.call('clear',shell=True)  # clear screen 'use 'clear for unix
+
+            print("\n\n\nGenetic algorithm. By Anthony Paech.")
+            print("Started at:",starttime)
             if direction=="x":
-                print("\rEpoch",epoch,"/",no_of_epochs,"Gen:[%d%%]" % (generation/epoch_length*100),"fittest",fittest,"row",rowno,"=",returned_payoff,"best",max_fittest,"be",best_epoch,"bgen",best_gen,"brno",best_rowno,"maxpoff",max_payoff,"        ",end='\r',flush=True)
+                print("\nMAXIMISING.....")
+            elif direction=="n":
+                print("\nMINIMISING.....")
+            print("======================================\n")
+
+            if direction=="x":    # maximise
+                print("\nEpoch",epoch,"of",no_of_epochs)
+                print("\nEpoch progress:[%d%%]" % (generation/epoch_length*100)," Generation no:",generation,"fittest of this generation:",fittest)
+                print("\nDiversity (len_sel)=[",len_sel,"]    row number",rowno,"=",returned_payoff)
+                print("\nFittest inputs: a=",a," b=",b," c=",c," d=",d," e=",e," f=",f," g=",g,"of this generation.")
+                print("\n\nFittest so far:",max_fittest,"best epoch:[",best_epoch,"] best generation in best epoch [",best_gen,"] best rowno [",best_rowno,"] max payoff",max_payoff)
+                print("\nBest overall so far: a=",besta," b=",bestb," c=",bestc," d=",bestd," e=",beste," f=",bestf," g=",bestg)
+                print("\n\n\n\nTotal Progress:[%d%%]" % (round(((total_generations+1)/(epoch_length*no_of_epochs))*100)),"\n",flush=True)
+
+                outfile.write("Epoch"+str(epoch)+"/"+str(no_of_epochs)+" Gen:[%d%%]" % (generation/epoch_length*100)+" fittest of this generation"+fittest+" row"+str(rowno)+"="+str(returned_payoff)+" best="+str(max_fittest)+"\n")
+                outfile.write("Best epoch "+str(best_epoch)+" best gen"+str(best_gen)+" best row no"+str(best_rowno)+" max pay off"+str(max_payoff)+"\n")
+                outfile.write("Diversity (len_sel)=["+str(len_sel)+"]\n")
+                outfile.write("Current a="+str(a)+" b="+str(b)+" c="+str(c)+" d="+str(d)+" e="+str(e)+" f="+str(f)+" g="+str(g)+"\n")
+                outfile.write("Fittest so far "+str(max_fittest)+" best epoch "+str(best_epoch)+" best generation in best epoch "+str(best_gen)+" best row no "+str(best_rowno)+" max pay off "+str(max_payoff)+"\n")
+                outfile.write("Best a="+str(besta)+" b="+str(bestb)+" c="+str(bestc)+" d="+str(bestd)+" e="+str(beste)+" f="+str(bestf)+" g="+str(bestg)+"\n\n")
+
+            elif direction=="n":  # minimise
+                print("\nEpoch",epoch,"of",no_of_epochs)
+                print("\nEpoch progress:[%d%%]" % (generation/epoch_length*100),"Generation no:",generation,"fittest of this generation:",fittest)
+                print("\nDiversity (len_sel)=[",len_sel,"]    row number",rowno,"=",returned_payoff)
+                print("\nFittest inputs: a=",a," b=",b," c=",c," d=",d," e=",e," f=",f," g=",g,"of this generation.")
+                print("\n\nFittest so far:",min_fittest,"best epoch:[",best_epoch,"] best generation in best epoch [",best_gen,"] best rowno [",best_rowno,"] min cost",min_payoff)
+                print("\nBest overall so far: a=",besta," b=",bestb," c=",bestc," d=",bestd," e=",beste," f=",bestf," g=",bestg)
+                print("\n\n\n\nTotal Progress:[%d%%]" % (round(((total_generations+1)/(epoch_length*no_of_epochs))*100)),"\n",flush=True)
+
+                outfile.write("Epoch"+str(epoch)+"/"+str(no_of_epochs)+" Gen:[%d%%]" % (generation/epoch_length*100)+" fittest of this generation"+fittest+" row"+str(rowno)+"="+str(returned_payoff)+" best="+str(min_fittest)+"\n")
+                outfile.write("Best epoch "+str(best_epoch)+" best gen"+str(best_gen)+" best row no"+str(best_rowno)+" min cost"+str(min_payoff)+"\n")
+                outfile.write("Diversity (len_sel)=["+str(len_sel)+"]\n")
+                outfile.write("Current a="+str(a)+" b="+str(b)+" c="+str(c)+" d="+str(d)+" e="+str(e)+" f="+str(f)+" g="+str(g)+"\n")
+                outfile.write("Fittest so far "+str(min_fittest)+" best epoch "+str(best_epoch)+" best generation in best epoch "+str(best_gen)+" best row no"+str(best_rowno)+" min cost"+str(min_payoff)+"\n")
+                outfile.write("Best a="+str(besta)+" b="+str(bestb)+" c="+str(bestc)+" d="+str(bestd)+" e="+str(beste)+" f="+str(bestf)+" g="+str(bestg)+"\n\n")
             else:
-                print("\rEpoch",epoch,"/",no_of_epochs,"Gen:[%d%%]" % (generation/epoch_length*100),"fittest",fittest,"row",rowno,"=",returned_payoff,"best",min_fittest,"be",best_epoch,"bgen",best_gen,"brno",best_rowno,"mincost",min_payoff,"        ",end='\r',flush=True)
+                print("direction error")
+                sys.exit()
  
- 
+            outfile.flush()
 
             wheel=calc_mating_probabilities(population,pop_size,direction,scaling_factor,row_find_method,payoff_filename)
             # scaling figure is the last.  this multiplies the payoff up so that divsity is not lost on the wheel when probs are rounded
@@ -1322,25 +1256,30 @@ def main():
             mutations=mutations+mutation_count
              #   generation_number+=1
 
-        else:
-            pass   # nothing found
+     #   else:
+       #     pass   # nothing found
             
 
-         
+            total_generations+=1
+
+            
         print("")
 
 
 
         
-    outfile.close()
+    
   #  print("\n\nMutations=",mutations," Best population=")
     #population,found,fittest,rowno,returned_payoff,best_gen,best_rowno,max_fittest,max_payoff=calc_fitness(population,generation,direction,max_fittest,max_payoff,min_fittest,min_payoff,best_rowno,payoff_filename)  # use linecache method for fin row no in payoff file.csv
     #print("Epoch no:",epoch,"/",no_of_epochs,"  Generation progress: [%d%%]" % (generation/epoch_length*100)," fittest=",fittest," rowno=",rowno," returned payoff=",returned_payoff," best=",max_fittest,"bestgen=",best_gen," bestrowno=",best_rowno," max_payoff=",max_payoff,"    ",flush=True)
   #  print("\nBest epoch",best_epoch," Best gen no:",best_gen,"\n")
-    print("best a=",besta," b=",bestb," c=",bestc," d=",bestd," e=",beste," f=",bestf," g=",bestg)
- 
-   # print(bestpopulation.to_string())
-   # print("\n")
+ #   print("best a=",besta," b=",bestb," c=",bestc," d=",bestd," e=",beste," f=",bestf," g=",bestg)
+    outfile.write("\n\nBest Population:")
+    outfile.write("\n\n\n"+bestpopulation.to_string())
+    outfile.write("\n\n")
+    outfile.write("Finished...\n\n")
+    outfile.close()
+    print("\n\nFinished...\n\n")
 #    print("Final population\n")
  #   print(population.to_string())
     
