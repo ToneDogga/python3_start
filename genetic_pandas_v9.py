@@ -80,6 +80,12 @@ import sys
 import platform
 import datetime
 import subprocess as sp
+from collections import Counter
+
+
+
+
+
 #import os
 
 #clear = lambda: os.system('cls')      # or os.system('clear') for Unix   'cls' for windows and mac
@@ -304,9 +310,13 @@ def calc_mating_probabilities(newpopulation,pop_size,direction,scaling,row_find_
 
           #  total_payoff+=payoff[val]
             if row_find_method=="l":
-                total_payoff+=find_a_payoff(val,payoff_filename)
+            #    total_payoff+=find_a_payoff(val,payoff_filename)
+                total_payoff+=abs(find_a_payoff(val,payoff_filename))
+               
             elif row_find_method=="s": 
-                total_payoff+=find_a_payoff2(val,payoff_filename)
+              #  total_payoff+=find_a_payoff2(val,payoff_filename)
+                total_payoff+=abs(find_a_payoff2(val,payoff_filename))
+                
             else:
                 print("row find method error.")
                 sys.exit()
@@ -330,19 +340,24 @@ def calc_mating_probabilities(newpopulation,pop_size,direction,scaling,row_find_
             val=int(fittest,2)   # binary base turned into integer
 
             if row_find_method=="l":
-                p=find_a_payoff(val,payoff_filename)
+                p=find_a_payoff(val,payoff_filename)      
+        #        p=abs(find_a_payoff(val,payoff_filename))
             elif row_find_method=="s":   
                 p=find_a_payoff2(val,payoff_filename)
+       #         p=abs(find_a_payoff2(val,payoff_filename))
+
             else:
                 print("row find method error.")
                 sys.exit()
                 
             if direction=="x":   # maximise
-                wheel.append(int(round(p/total_payoff*scaling)))
+                wheel.append(int(round((p/total_payoff)*scaling))) # usually >10000
          #       print("#",count+1,":",elem," val=",val,"payoff=",payoff[val]," prob=",wheel[count])
  
             elif direction=="n":   # minimise
-                wheel.append(int(round(-p/total_payoff*scaling)))
+      #          wheel.append(int(round(-p/total_payoff*scaling)))
+                wheel.append(int(round(((total_payoff/p)*100)/scaling)))   # usually <0.0001
+
       #         print("#",count+1,":",elem," val=",val,"cost=",payoff[val]," prob=",wheel[count])
  
             else:
@@ -351,6 +366,7 @@ def calc_mating_probabilities(newpopulation,pop_size,direction,scaling,row_find_
      #       print("#",count+1,":",elem," val=",val,"payoff=",p," prob=",wheel[count])
             count+=1
        # print("\nlen wheel",len(wheel))
+       # print(wheel)
        # input("?")
         return(wheel)
 
@@ -683,6 +699,13 @@ def main():
     else:
         print("clearing outfile.txt")
         outfile=open("outfile.txt","w")
+
+    print("\n")
+    advanced_diag=""
+    while advanced_diag!="y" and advanced_diag!="n":
+        advanced_diag=input("Do you want to display advanced diagnostics? (y/n)")
+
+    print("\n")
 
     if platform.system().lower()[:7]=="windows":
         extra_EOL_char=1
@@ -1162,14 +1185,28 @@ def main():
                 best_copy=False
                 bestpopulation=population.copy()
  
-    
-            # count zero fitness in population
-            #zerocount=(population['fitness']!=0).count()
-            #allcount=(population['fitness']).count()
-            #dupcount=len(population['expressed'])-len(df['expressed'].drop_duplicates())
-            allcount=(population['expressed']).count()
-            dupcount=allcount-(((population['expressed']).drop_duplicates()).count())
-            avefitness=((population['fitness']).sum())/allcount
+
+
+
+            if advanced_diag=="y":
+                # count zero fitness in population
+                #zerocount=(population['fitness']!=0).count()
+                #allcount=(population['fitness']).count()
+                #dupcount=len(population['expressed'])-len(df['expressed'].drop_duplicates())
+                allcount=(population['expressed']).count()
+                dupcount=allcount-(((population['expressed']).drop_duplicates()).count())
+                avefitness=((population['fitness']).sum())/allcount
+
+            # count unique parents from parentid1 and parentid2
+                nondup_par1=(population['parentid1'].drop_duplicates()).count()   #+((population['parentid1']).drop_duplicates()).count()
+                nondup_par2=(population['parentid2'].drop_duplicates()).count()   #+((population['parentid1']).drop_duplicates()).count()
+
+
+     #       Counter(wheel).keys() # equals to list(set(words))
+      #      Counter(wheel).values() # counts the elements' frequency
+
+
+
 
 
             tmp=sp.call('clear',shell=True)  # clear screen 'use 'clear for unix
@@ -1185,7 +1222,10 @@ def main():
             if direction=="x":    # maximise
                 print("\nEpoch",epoch,"of",no_of_epochs)
                 print("\nEpoch progress:[%d%%]" % (generation/epoch_length*100)," Generation no:",generation,"fittest of this generation:",fittest)
-                print("\nGenepool. Ave Fitness=",avefitness,"#Duplicates expressed=",dupcount,"of",allcount,". Diversity of wheel weighting=[",len_sel,"]. Wheel[] size=",len_wheel)
+                if advanced_diag=="y":
+                    print("\nGenepool. Ave Fitness=",avefitness,"#Duplicates expressed=",dupcount,"of",allcount,". Diversity of wheel weighting=[",len_sel,"]. Wheel[] size=",len_wheel)
+                    print("\n",nondup_par1,"unique first parents, and",nondup_par2," unique second parents of",allcount,"chomosomes.")
+
                 print("\nRow number",rowno,"=",returned_payoff," payoff.")
                 print("\nFittest inputs: a=",a," b=",b," c=",c," d=",d," e=",e," f=",f," g=",g,"of this generation.")
                 print("\n======================================\n")        
@@ -1195,8 +1235,12 @@ def main():
 
                 outfile.write("Epoch "+str(epoch)+"/"+str(no_of_epochs)+" Gen:[%d%%] " % (generation/epoch_length*100)+" generation # "+str(generation)+" fittest of this generation "+fittest+" row "+str(rowno)+"="+str(returned_payoff)+" best="+str(max_fittest)+"\n")
                 outfile.write("Best epoch "+str(best_epoch)+" best gen "+str(best_gen)+" best row no "+str(best_rowno)+" max pay off "+str(max_payoff)+"\n")
-                outfile.write("Diversity of wheel weighting=["+str(len_sel)+"]   len wheel[]="+str(len_wheel)+"\n")
-                outfile.write("Genepool. Ave fitness= "+str(avefitness)+" #duplicates expressed="+str(dupcount)+" of "+str(allcount)+"\n")
+                if advanced_diag=="y":
+                    outfile.write("Diversity of wheel weighting=["+str(len_sel)+"]   len wheel[]="+str(len_wheel)+"\n")
+          #          outfile.write(" keys in wheel "+Counter(wheel).keys()+"\n") # equals to list(set(words))
+           #        outfile.write(" frequency of values in wheel "+Counter(wheel).values()+"\n") # counts the elements' frequency
+                    outfile.write("Genepool. Ave fitness= "+str(avefitness)+" #duplicates expressed="+str(dupcount)+" of "+str(allcount)+"\n")
+                    outfile.write(str(nondup_par1)+" unique first parents, and "+str(nondup_par2)+" unique second parents of "+str(allcount)+" chomosomes.\n")
                 outfile.write("Current a="+str(a)+" b="+str(b)+" c="+str(c)+" d="+str(d)+" e="+str(e)+" f="+str(f)+" g="+str(g)+"\n")
                 outfile.write("Fittest so far "+str(max_fittest)+" best epoch "+str(best_epoch)+" best generation in best epoch "+str(best_gen)+" best row no "+str(best_rowno)+" max pay off "+str(max_payoff)+"\n")
                 outfile.write("Best a="+str(besta)+" b="+str(bestb)+" c="+str(bestc)+" d="+str(bestd)+" e="+str(beste)+" f="+str(bestf)+" g="+str(bestg)+"\n\n")
@@ -1204,7 +1248,9 @@ def main():
             elif direction=="n":  # minimise
                 print("\nEpoch",epoch,"of",no_of_epochs)
                 print("\nEpoch progress:[%d%%]" % (generation/epoch_length*100),"Generation no:",generation,"fittest of this generation:",fittest)
-                print("\nGenepool. Ave fitness=",avefitness," #Duplicates expressed=",dupcount,"of",allcount,". Diversity of wheel weighting=[",len_sel,"].  Wheel[] size=",len_wheel)
+                if advanced_diag=="y":
+                    print("\nGenepool. Ave fitness=",avefitness," #Duplicates expressed=",dupcount,"of",allcount,". Diversity of wheel weighting=[",len_sel,"].  Wheel[] size=",len_wheel)
+                    print("\n",nondup_par1,"unique first parents, and",nondup_par2," unique second parents of",allcount,"chomosomes.")
                 print("\nRow number",rowno,"=",returned_payoff," cost.")
                 print("\nFittest inputs: a=",a," b=",b," c=",c," d=",d," e=",e," f=",f," g=",g,"of this generation.")
                 print("\n======================================\n")        
@@ -1214,8 +1260,12 @@ def main():
 
                 outfile.write("Epoch "+str(epoch)+"/"+str(no_of_epochs)+" Gen:[%d%%] " % (generation/epoch_length*100)+" generation # "+str(generation)+" fittest of this generation "+fittest+" row "+str(rowno)+"="+str(returned_payoff)+" best="+str(min_fittest)+"\n")
                 outfile.write("Best epoch "+str(best_epoch)+" best gen "+str(best_gen)+" best row no "+str(best_rowno)+" min cost "+str(min_payoff)+"\n")
-                outfile.write("Diversity of wheel weighting=["+str(len_sel)+"]   len wheel[]="+str(len_wheel)+"\n")
-                outfile.write("Genepool. Ave fitness="+str(avefitness)+" #duplicates expressed="+str(dupcount)+" of "+str(allcount)+"\n")
+                if advanced_diag=="y":
+                    outfile.write("Diversity of wheel weighting=["+str(len_sel)+"]   len wheel[]="+str(len_wheel)+"\n")
+        #           outfile.write(" keys in wheel "+Counter(wheel).keys()+"\n") # equals to list(set(words))
+        #            outfile.write(" frequency of values in wheel "+Counter(wheel).values()+"\n") # counts the elements' frequency
+                    outfile.write("Genepool. Ave fitness="+str(avefitness)+" #duplicates expressed="+str(dupcount)+" of "+str(allcount)+"\n")
+                    outfile.write(str(nondup_par1)+" unique first parents, and "+str(nondup_par2)+" unique second parents of "+str(allcount)+" chomosomes.\n")
                 outfile.write("Current a="+str(a)+" b="+str(b)+" c="+str(c)+" d="+str(d)+" e="+str(e)+" f="+str(f)+" g="+str(g)+"\n")
                 outfile.write("Fittest so far "+str(min_fittest)+" best epoch "+str(best_epoch)+" best generation in best epoch "+str(best_gen)+" best row no "+str(best_rowno)+" min cost "+str(min_payoff)+"\n")
                 outfile.write("Best a="+str(besta)+" b="+str(bestb)+" c="+str(bestc)+" d="+str(bestd)+" e="+str(beste)+" f="+str(bestf)+" g="+str(bestg)+"\n\n")
@@ -1233,6 +1283,14 @@ def main():
                     print("wheel empty")
                     sys.exit
             #print(wheel)
+
+
+            if advanced_diag=="y":
+                print("\n keys in wheel",Counter(wheel).keys()) # equals to list(set(words))
+                print("\n frequency of values in wheel",Counter(wheel).values()) # counts the elements' frequency
+                outfile.write("\n keys in wheel "+str(Counter(wheel).keys())+"\n") # equals to list(set(words))
+                outfile.write(" frequency of values in wheel "+str(Counter(wheel).values())+"\n\n\n") # counts the elements' frequency
+ 
 
 
             mates,len_sel=spin_the_mating_wheel(wheel,population,pop_size)  # sel_len is the size of the unique gene pool to select from in the wheel
