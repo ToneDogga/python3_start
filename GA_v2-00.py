@@ -49,7 +49,7 @@
 #
 # reproduction
 # total the fitness of each string and create a % breakdown score of the total for each of the strings in the population
-# create a biased roulette wheel where the % breakdown score is the probability of the wheel landing on that string
+# create a biased roulette probability_table where the % breakdown score is the probability of the probability_table landing on that string
 # spin the wheel m times each time yielding a reproduction candidate of the population
 # in this way more highly fit strings have more offspring in the next generation.
 #
@@ -81,7 +81,7 @@ import platform
 import datetime
 import subprocess as sp
 from collections import Counter
-
+from statistics import mean
 
 
 
@@ -292,13 +292,13 @@ def return_a_row_as_a_list2(row,filename):
 
 # reproduction
 # total the fitness of each string and create a % breakdown score of the total for each of the strings in the population
-# create a biased roulette wheel where the % breakdown score is the probability of the wheel landing on that string
-# spin the wheel m times each time yielding a reproduction candidate of the population
+# create a biased roulette probability_table where the % breakdown score is the probability of the probability_table landing on that string
+# spin the probability_table m times each time yielding a reproduction candidate of the population
 # in this way more highly fit strings have more offspring in the next generation.
 
    
 
-def calc_mating_probabilities(newpopulation,pop_size,direction,scaling,min_scaling,row_find_method,payoff_filename):
+def calc_mating_probabilities(newpopulation,pop_size,direction,scaling,row_find_method,payoff_filename):
         count=0
         total_payoff=0.00001
         #size=len(newpopulation)
@@ -327,7 +327,7 @@ def calc_mating_probabilities(newpopulation,pop_size,direction,scaling,min_scali
 #    input("?")
 
         count=0
-        wheel=[]
+        probability_table=[]
         if len(newpopulation)<=1:
             print("\nlen(dna)<=1!")
      #   else:
@@ -340,67 +340,92 @@ def calc_mating_probabilities(newpopulation,pop_size,direction,scaling,min_scali
             val=int(fittest,2)   # binary base turned into integer
 
             if row_find_method=="l":
-                p=find_a_payoff(val,payoff_filename)      
-        #        p=abs(find_a_payoff(val,payoff_filename))
+          #      p=find_a_payoff(val,payoff_filename)      
+                  p=abs(find_a_payoff(val,payoff_filename))
             elif row_find_method=="s":   
-                p=find_a_payoff2(val,payoff_filename)
-       #         p=abs(find_a_payoff2(val,payoff_filename))
+          #      p=find_a_payoff2(val,payoff_filename)
+                  p=abs(find_a_payoff2(val,payoff_filename))
 
             else:
                 print("row find method error.")
                 sys.exit()
                 
-            if direction=="x":   # maximise
-                wheel.append(int(round((p/total_payoff)*scaling))) # scaling usually > pop_size*20
-         #       print("#",count+1,":",elem," val=",val,"payoff=",payoff[val]," prob=",wheel[count])
+        #    if direction=="x":   # maximise
+            probability_table.append(int(round((p/total_payoff)*scaling))) # scaling usually > pop_size*20
+         #       print("#",count+1,":",elem," val=",val,"payoff=",payoff[val]," prob=",probability_table[count])
  
-            elif direction=="n":   # minimise
-      #          wheel.append(int(round(-p/total_payoff*scaling)))
-                wheel.append(int(round(((total_payoff/p)*min_scaling)/scaling)))   # scaling usually pop_size*20.   need an extra min_scaling 60? times here to offset rounding
+          #  elif direction=="n":   # minimise
+      
+            #    probability_table.append(int(round((p/total_payoff)*scaling))) # scaling usually > pop_size*20
+      #          probability_table.append(int(round(((total_payoff/p)*min_scaling)/scaling)))   # scaling usually pop_size*20.   need an extra min_scaling 100? times here to offset rounding
+           #     probability_table.append(int(round(((total_payoff/p)/min_scaling))))   # scaling usually pop_size*20.   need an extra min_scaling 100? times here to offset rounding
 
-      #         print("#",count+1,":",elem," val=",val,"cost=",payoff[val]," prob=",wheel[count])
+
+      #         print("#",count+1,":",elem," val=",val,"cost=",payoff[val]," prob=",probability_table[count])
  
-            else:
-                print("\ndirection error3")
+          #  else:
+            #    print("\ndirection error3")
 
-     #       print("#",count+1,":",elem," val=",val,"payoff=",p," prob=",wheel[count])
+     #       print("#",count+1,":",elem," val=",val,"payoff=",p," prob=",probability_table[count])
             count+=1
-       # print("\nlen wheel",len(wheel))
-       # print(wheel)
+       # print("\nlen probability_table",len(probability_table))
+       # print(probability_table)
        # input("?")
-        return(wheel)
+        return(probability_table)
 
     
-def spin_the_mating_wheel(wheel,newpopulation,iterations):
-        sel=[]
+def spin_the_mating_wheel(probability_table,newpopulation,iterations,direction):
+        wheel=[]
         mates=[]
         n=0
 
    # clock_start=time.clock()
 
-        wheel_len=len(wheel)
-        if wheel_len<=1:
-            print("\nwheel length<=1",wheel_len)
-            
-        while n<=wheel_len-1: 
-            sel=sel+([n+1] * abs(wheel[n]))
+        probability_table_len=len(probability_table)
+        if probability_table_len<=1:
+            print("\nprobability_table length<=1",probability_table_len)
+
+ #       print("\n\n Probability table \n")
+  #      print(probability_table)
+   #     sum_ptable=sum(probability_table)    
+    #    print("sum=",sum_ptable)
+        mpt=round(mean(probability_table))
+   #     print("mean ptable=",mpt)
+        #input("?") 
+        while n<=probability_table_len-1:
+            piesize=probability_table[n]
+            if piesize<0:
+                piesize=0
+                
+            if direction=="x":  # maximise
+        #    sel=sel+([n+1] * abs(probability_table[n]))
+                wheel=wheel+([n+1] * piesize)
+            elif direction=="n":   # minimise
+                # invert probabilities
+                wheel=wheel+([n+1] * ((2*mpt)-piesize))   # invert across mean
+            else:
+                print("direction error in spin the probability_table")
+                sys.exit()
             n=n+1
 
-        len_sel=len(sel)
-   #     print("\nlen(sel)=",len_sel,"sel=",sel,"\n\nwheel=",wheel)
+  #      print("\nWHEEL\n")
+   #     print(wheel)
+   #     input("?")
+        len_wheel=len(wheel)
+   #     print("\nlen(wheel)=",len_wheel,"wheel=",wheel,"\n\nprobability_table=",probability_table)
    #     input("?")
        
-        if len_sel<=20:
-            print("\n Warning! increase your total_payoff scaling. len sel <=20",len_sel," wheel len=",wheel_len)
+        if len_wheel<=20:
+            print("\n Warning! increase your total_payoff scaling. len wheel <=20",len_wheel," probability_table len=",probability_table_len)
         for i in range(0,iterations):
             go_back=True
             while go_back:
                 # pick a random string for mating
-                first_string_no=random.randint(1,wheel_len)
-                # choose its mate from the wheel
+                first_string_no=random.randint(1,probability_table_len)
+                # choose its mate from the probability_table
                 second_string_no=first_string_no
                 while second_string_no==first_string_no:
-                    second_string_no=sel[random.randint(0,len_sel-1)]
+                    second_string_no=wheel[random.randint(0,len_wheel-1)]
                    # print("mate ",first_string_no,dna[first_string_no-1]," with ",second_string_no,dna[second_string_no-1])
 
                     # if the string to mate with is the same, try again
@@ -413,11 +438,11 @@ def spin_the_mating_wheel(wheel,newpopulation,iterations):
 
       #  clock_end=time.clock()
       #  duration_clock=clock_end-clock_start
-      #  print("spin the mating wheel find the string nos - Clock: duration_clock =", duration_clock)
+      #  print("spin the mating probability_table find the string nos - Clock: duration_clock =", duration_clock)
 
      #   print("len mates[]",len(mates))
      #   input("?")
-        return(mates,len_sel)   # if len_sel gets small, there is a lack of genetic diversity
+        return(mates,len_wheel)   # if len_wheel gets small, there is a lack of genetic diversity
 
 
 
@@ -513,6 +538,11 @@ def mutate(newpopulation,no_of_alleles,ploidy,pop_size,mutation_rate):
     
     mutation_count=0
 
+    c1_choice_list=[]
+    c2_choice_list=[]
+    old_chromo_list=[]
+    new_chromo_list=[]
+    
     gene_pool_size=no_of_alleles*ploidy*pop_size
     number_of_mutations_needed=int(round(gene_pool_size/mutation_rate))
     for m in range(0,number_of_mutations_needed):
@@ -520,7 +550,9 @@ def mutate(newpopulation,no_of_alleles,ploidy,pop_size,mutation_rate):
         chromo=""
    
         c1_choice=random.randint(1,2)   # choose a chromo column
+        c1_choice_list.append(c1_choice)
         c2_choice=random.randint(0,pop_size-1)   # choose a member of the popultation
+        c2_choice_list.append(c2_choice)
         c3_choice=random.randint(0,no_of_alleles-1)   # choose a position in the chromosome            # chromo1
         c4_choice=random.randint(-1,1)   # choose a new bit  -1=%,0=0,1=1
 
@@ -536,26 +568,29 @@ def mutate(newpopulation,no_of_alleles,ploidy,pop_size,mutation_rate):
 
         if c1_choice==1:
             # chromo1
+        #    old_chromo_list.append(newpopulation.loc[c2_choice,"chromo1"])
             chromo=newpopulation.loc[c2_choice,"chromo1"]
-            
+           
         else:
             # chromo2
+       #     old_chromo_list.append(newpopulation.loc[c2_choice,"chromo2"])
             chromo=newpopulation.loc[c2_choice,"chromo2"]
 
 
     #    print("chromo before mutate=",chromo," at",c1_choice,c2_choice)
 
-        newchromo=chromo[:c3_choice]+mutated_bit+chromo[c3_choice+1:]
+        newc=chromo[:c3_choice]+mutated_bit+chromo[c3_choice+1:]
+   #     new_chromo_list.append(newc)
    #     print("new chromo after mutate=",newchromo," at",c3_choice,c4_choice)
 
 
         if c1_choice==1:
             # chromo1
-            newpopulation.loc[c2_choice,"chromo1"]=newchromo
+            newpopulation.loc[c2_choice,"chromo1"]=newc
             
         else:
             # chromo2
-            newpopulation.loc[c2_choice,"chromo2"]=newchromo
+            newpopulation.loc[c2_choice,"chromo2"]=newc
 
 
        # print(newpopulation.to_string())
@@ -563,7 +598,7 @@ def mutate(newpopulation,no_of_alleles,ploidy,pop_size,mutation_rate):
 
         mutation_count+=1  
         
-    return(newpopulation,mutation_count)
+    return(newpopulation,mutation_count, c1_choice_list, c2_choice_list)
 
 
 
@@ -573,14 +608,14 @@ def mutate(newpopulation,no_of_alleles,ploidy,pop_size,mutation_rate):
 ##########################################
 
 def main():
-    ploidy=2  # number of chromosomes per individual
+    ploidy=2  # number of chromosomes per individual.  To increase this you will need to change the dataframes also!
     no_of_alleles=21  # length of each chromosome
     pop_size=512   # population size
     epoch_count=0
-    no_of_epochs=3
+    no_of_epochs=2
     generation_count=0
 
-    len_wheel=0
+    len_probability_table=0
 
     payoff_filename="payoff_7d.csv"
     total_rows=count_file_rows(payoff_filename)
@@ -627,17 +662,17 @@ def main():
     bestf=0
     bestg=0
  
-    epoch_length=40
+    epoch_length=30
     total_generations=0
     
     direction="x"
-    scaling_factor=20  # scaling figure is the last. this is related to the size of the genepool. this multiplies the payoff up so that diversity is not lost on the wheel when probs are rounded
+    scaling_factor=25  # scaling figure is the last. this is related to the size of the genepool. this multiplies the payoff up so that diversity is not lost on the probability_table when probs are rounded
     actual_scaling=scaling_factor*pop_size
-    min_scaling=60  # when minimising, an extra factor is needed to prevent rounding cutting the diverity of the wheel
+  #  min_scaling=100  # when minimising, an extra factor is needed to prevent rounding cutting the diverity of the probability_table
     
     mutation_count=0
     mutations=0
-    mutation_rate=500   # mutate 1 bit in every 1000.  but the mutation is random 0 or 1 so we need to double the try to mutate rate
+    mutation_rate=1000   # mutate 1 bit in every 1000.  but the mutation is random 0 or 1 so we need to double the try to mutate rate. but there are also 2 chromos
 
     
     allele_len="S"+str(no_of_alleles)
@@ -729,6 +764,8 @@ def main():
     min_fittest=""
     best_epoch=1
     best_rowno=0
+    best_gen=1
+    best_fittest=""
     bestpopulation=population.copy()
 
 
@@ -1002,9 +1039,9 @@ def main():
         totalp=0.0
         averagep=0.0
         elements_count=0
-        best_gen=1
+       # best_gen=1
         best_copy=False
-        len_sel=0
+        len_wheel=0
         
         p=0.0
         plist=[]
@@ -1129,6 +1166,7 @@ def main():
                                     best_rowno=gene   #rowno
                                     best_gen=generation
                                     best_epoch=epoch
+                                    best_fittest=fittest
                                    # bestflag=True
                                     #bestpopulation=population.copy()
                                     best_copy=True
@@ -1151,6 +1189,7 @@ def main():
                                     best_rowno=gene  #rowno
                                     best_gen=generation
                                     best_epoch=epoch
+                                    best_fittest=fittest
                                  #   best_flag=True
                                   #  bestpopulation=population.copy()
                                     best_copy=True
@@ -1205,8 +1244,8 @@ def main():
                 nondup_par2=(population['parentid2'].drop_duplicates()).count()   #+((population['parentid1']).drop_duplicates()).count()
 
 
-     #       Counter(wheel).keys() # equals to list(set(words))
-      #      Counter(wheel).values() # counts the elements' frequency
+     #       Counter(probability_table).keys() # equals to list(set(words))
+      #      Counter(probability_table).values() # counts the elements' frequency
 
 
 
@@ -1226,56 +1265,64 @@ def main():
                 print("\nEpoch",epoch,"of",no_of_epochs)
                 print("\nEpoch progress:[%d%%]" % (generation/epoch_length*100)," Generation no:",generation,"fittest of this generation:",fittest)
                 if advanced_diag=="y":
-                    print("\nGenepool. Ave Fitness=",avefitness,"#Duplicates expressed=",dupcount,"of",allcount,". Diversity of wheel weighting=[",len_sel,"]. Wheel[] size=",len_wheel)
+                    print("\nGenepool. Ave Fitness=",avefitness,"#Duplicates expressed=",dupcount,"of",allcount,". Diversity of probability_table weighting=[",len_wheel,"]. probability_table[] size=",len_probability_table)
                     print("\n",nondup_par1,"unique first parents, and",nondup_par2," unique second parents of",allcount,"chomosomes.")
                     print("\nScaling factor=",scaling_factor," * genepool size",pop_size," = actual scaling:",actual_scaling)
                 print("\nRow number",rowno,"=",returned_payoff," payoff.")
                 print("\nFittest inputs: a=",a," b=",b," c=",c," d=",d," e=",e," f=",f," g=",g,"of this generation.")
                 print("\n======================================\n")        
-                print("\n\nFittest so far:",max_fittest,"best epoch:[",best_epoch,"] best generation in best epoch [",best_gen,"] best rowno [",best_rowno,"] max payoff",max_payoff)
+                print("\n\nFittest so far:",best_fittest," best rowno [",best_rowno,"] in best generation [",best_gen,"] in best epoch [",best_epoch,"] max payoff",max_payoff)
                 print("\nBest overall so far: a=",besta," b=",bestb," c=",bestc," d=",bestd," e=",beste," f=",bestf," g=",bestg)
                 print("\n\n\n\nTotal Progress:[%d%%]" % (round(((total_generations+1)/(epoch_length*no_of_epochs))*100)),"\n",flush=True)
 
                 outfile.write("Epoch "+str(epoch)+"/"+str(no_of_epochs)+" Gen:[%d%%] " % (generation/epoch_length*100)+" generation # "+str(generation)+" fittest of this generation "+fittest+" row "+str(rowno)+"="+str(returned_payoff)+" best="+str(max_fittest)+"\n")
                 outfile.write("Best epoch "+str(best_epoch)+" best gen "+str(best_gen)+" best row no "+str(best_rowno)+" max pay off "+str(max_payoff)+"\n")
                 if advanced_diag=="y":
-                    outfile.write("Diversity of wheel weighting=["+str(len_sel)+"]   len wheel[]="+str(len_wheel)+"\n")
-          #          outfile.write(" keys in wheel "+Counter(wheel).keys()+"\n") # equals to list(set(words))
-           #        outfile.write(" frequency of values in wheel "+Counter(wheel).values()+"\n") # counts the elements' frequency
+                    outfile.write("Diversity of probability_table weighting=["+str(len_wheel)+"]   len probability_table[]="+str(len_probability_table)+"\n")
+          #          outfile.write(" keys in probability_table "+Counter(probability_table).keys()+"\n") # equals to list(set(words))
+           #        outfile.write(" frequency of values in probability_table "+Counter(probability_table).values()+"\n") # counts the elements' frequency
                     outfile.write("Genepool. Ave fitness= "+str(avefitness)+" #duplicates expressed="+str(dupcount)+" of "+str(allcount)+"\n")
                     outfile.write(str(nondup_par1)+" unique first parents, and "+str(nondup_par2)+" unique second parents of "+str(allcount)+" chomosomes.\n")
                     outfile.write("Scaling factor="+str(scaling_factor)+" * genepool size "+str(pop_size)+" = actual scaling: "+str(actual_scaling)+"\n")
 
                 outfile.write("Current a="+str(a)+" b="+str(b)+" c="+str(c)+" d="+str(d)+" e="+str(e)+" f="+str(f)+" g="+str(g)+"\n")
-                outfile.write("Fittest so far "+str(max_fittest)+" best epoch "+str(best_epoch)+" best generation in best epoch "+str(best_gen)+" best row no "+str(best_rowno)+" max pay off "+str(max_payoff)+"\n")
+      #          outfile.write("Fittest so far "+str(best_fittest)+" best epoch "+str(best_epoch)+" best generation in best epoch "+str(best_gen)+" best row no "+str(best_rowno)+" max pay off "+str(max_payoff)+"\n")
+                outfile.write("Fittest so far:"+str(best_fittest)+" best rowno ["+str(best_rowno)+"] in best generation ["+str(best_gen)+"] in best epoch ["+str(best_epoch)+"] max payoff "+str(max_payoff)+"\n")
+
                 outfile.write("Best a="+str(besta)+" b="+str(bestb)+" c="+str(bestc)+" d="+str(bestd)+" e="+str(beste)+" f="+str(bestf)+" g="+str(bestg)+"\n\n")
 
             elif direction=="n":  # minimise
                 print("\nEpoch",epoch,"of",no_of_epochs)
                 print("\nEpoch progress:[%d%%]" % (generation/epoch_length*100),"Generation no:",generation,"fittest of this generation:",fittest)
                 if advanced_diag=="y":
-                    print("\nGenepool. Ave fitness=",avefitness," #Duplicates expressed=",dupcount,"of",allcount,". Diversity of wheel weighting=[",len_sel,"].  Wheel[] size=",len_wheel)
+                    print("\nGenepool. Ave fitness=",avefitness," #Duplicates expressed=",dupcount,"of",allcount,". Diversity of probability_table weighting=[",len_wheel,"].  probability_table[] size=",len_probability_table)
                     print("\n",nondup_par1,"unique first parents, and",nondup_par2," unique second parents of",allcount,"chomosomes.")
-                    print("\n Genepool size",pop_size," * min_scaling factor",min_scaling," / Scaling factor=",scaling_factor," = actual scaling:",(pop_size*min_scaling)/scaling_factor)
+             #       print("\n Genepool size",pop_size," * min_scaling factor",min_scaling," / Scaling factor=",scaling_factor," = actual scaling:",(pop_size*min_scaling)/scaling_factor)
+                    print("\nScaling factor=",scaling_factor," * genepool size",pop_size," = actual scaling:",actual_scaling)
+
                 print("\nRow number",rowno,"=",returned_payoff," cost.")
                 print("\nFittest inputs: a=",a," b=",b," c=",c," d=",d," e=",e," f=",f," g=",g,"of this generation.")
                 print("\n======================================\n")        
-                print("\n\nFittest so far:",min_fittest,"best epoch:[",best_epoch,"] best generation in best epoch [",best_gen,"] best rowno [",best_rowno,"] min cost",min_payoff)
+#                print("\n\nFittest so far:",min_fittest,"best epoch:[",best_epoch,"] best generation in best epoch [",best_gen,"] best rowno [",best_rowno,"] min cost",min_payoff)
+                print("\n\nFittest so far:",best_fittest," best rowno [",best_rowno,"] in best generation [",best_gen,"] in best epoch [",best_epoch,"] min cost",min_payoff)
                 print("\nBest overall so far: a=",besta," b=",bestb," c=",bestc," d=",bestd," e=",beste," f=",bestf," g=",bestg)
                 print("\n\n\n\nTotal Progress:[%d%%]" % (round(((total_generations+1)/(epoch_length*no_of_epochs))*100)),"\n",flush=True)
 
                 outfile.write("Epoch "+str(epoch)+"/"+str(no_of_epochs)+" Gen:[%d%%] " % (generation/epoch_length*100)+" generation # "+str(generation)+" fittest of this generation "+fittest+" row "+str(rowno)+"="+str(returned_payoff)+" best="+str(min_fittest)+"\n")
                 outfile.write("Best epoch "+str(best_epoch)+" best gen "+str(best_gen)+" best row no "+str(best_rowno)+" min cost "+str(min_payoff)+"\n")
                 if advanced_diag=="y":
-                    outfile.write("Diversity of wheel weighting=["+str(len_sel)+"]   len wheel[]="+str(len_wheel)+"\n")
-        #           outfile.write(" keys in wheel "+Counter(wheel).keys()+"\n") # equals to list(set(words))
-        #            outfile.write(" frequency of values in wheel "+Counter(wheel).values()+"\n") # counts the elements' frequency
+                    outfile.write("Diversity of probability_table weighting=["+str(len_wheel)+"]   len probability_table[]="+str(len_probability_table)+"\n")
+        #           outfile.write(" keys in probability_table "+Counter(probability_table).keys()+"\n") # equals to list(set(words))
+        #            outfile.write(" frequency of values in probability_table "+Counter(probability_table).values()+"\n") # counts the elements' frequency
                     outfile.write("Genepool. Ave fitness="+str(avefitness)+" #duplicates expressed="+str(dupcount)+" of "+str(allcount)+"\n")
                     outfile.write(str(nondup_par1)+" unique first parents, and "+str(nondup_par2)+" unique second parents of "+str(allcount)+" chomosomes.\n")
-                    outfile.write("Genepool size "+str(pop_size)+" * min_scaling factor "+str(min_scaling)+" / scaling factor="+str(scaling_factor)+" = actual scaling: "+str((pop_size*min_scaling)/scaling_factor)+"\n")
+       #             outfile.write("Genepool size "+str(pop_size)+" * min_scaling factor "+str(min_scaling)+" / scaling factor "+str(scaling_factor)+" = actual scaling: "+str((pop_size*min_scaling)/scaling_factor)+"\n")
+                    outfile.write("Scaling factor="+str(scaling_factor)+" * genepool size "+str(pop_size)+" = actual scaling: "+str(actual_scaling)+"\n")
 
                 outfile.write("Current a="+str(a)+" b="+str(b)+" c="+str(c)+" d="+str(d)+" e="+str(e)+" f="+str(f)+" g="+str(g)+"\n")
-                outfile.write("Fittest so far "+str(min_fittest)+" best epoch "+str(best_epoch)+" best generation in best epoch "+str(best_gen)+" best row no "+str(best_rowno)+" min cost "+str(min_payoff)+"\n")
+         #       outfile.write("Fittest so far "+str(best_fittest)+" best epoch "+str(best_epoch)+" best generation in best epoch "+str(best_gen)+" best row no "+str(best_rowno)+" min cost "+str(min_payoff)+"\n")
+                outfile.write("Fittest so far:"+str(best_fittest)+" best rowno ["+str(best_rowno)+"] in best generation ["+str(best_gen)+"] in best epoch ["+str(best_epoch)+"] min cost "+str(min_payoff)+"\n")
+
                 outfile.write("Best a="+str(besta)+" b="+str(bestb)+" c="+str(bestc)+" d="+str(bestd)+" e="+str(beste)+" f="+str(bestf)+" g="+str(bestg)+"\n\n")
             else:
                 print("direction error")
@@ -1283,25 +1330,25 @@ def main():
  
             outfile.flush()
 
-            wheel=calc_mating_probabilities(population,pop_size,direction,actual_scaling,min_scaling,row_find_method,payoff_filename)
-            # scaling figure is the last.  this multiplies the payoff up so that divsity is not lost on the wheel when probs are rounded
+            probability_table=calc_mating_probabilities(population,pop_size,direction,actual_scaling,row_find_method,payoff_filename)
+            # scaling figure is the last.  this multiplies the payoff up so that divsity is not lost on the probability_table when probs are rounded
 
-            len_wheel=len(wheel)
-            if len_wheel==0:
-                    print("wheel empty")
+            len_probability_table=len(probability_table)
+            if len_probability_table==0:
+                    print("probability_table empty")
                     sys.exit
-            #print(wheel)
+            #print(probability_table)
 
 
             if advanced_diag=="y":
-                print("\n keys in wheel",Counter(wheel).keys()) # equals to list(set(words))
-                print("\n frequency of values in wheel",Counter(wheel).values()) # counts the elements' frequency
-                outfile.write("\n keys in wheel "+str(Counter(wheel).keys())+"\n") # equals to list(set(words))
-                outfile.write(" frequency of values in wheel "+str(Counter(wheel).values())+"\n\n\n") # counts the elements' frequency
+                print("\n keys in probability_table",Counter(probability_table).keys()) # equals to list(set(words))
+                print("\n frequency of values in probability_table",Counter(probability_table).values()) # counts the elements' frequency
+                outfile.write(" keys in probability_table "+str(Counter(probability_table).keys())+"\n") # equals to list(set(words))
+                outfile.write(" frequency of values in probability_table "+str(Counter(probability_table).values())+"\n\n") # counts the elements' frequency
  
 
 
-            mates,len_sel=spin_the_mating_wheel(wheel,population,pop_size)  # sel_len is the size of the unique gene pool to select from in the wheel
+            mates,len_wheel=spin_the_mating_wheel(probability_table,population,pop_size,direction)  # wheel_len is the size of the unique gene pool to select from in the probability_table
 
                 
             population=crossover(mates,no_of_alleles,individual)
@@ -1309,7 +1356,14 @@ def main():
              #   print(population)
               #  input("?")
 
-            population, mutation_count=mutate(population,no_of_alleles,ploidy,pop_size,mutation_rate)   # 1000 means mutation 1 in a 1000 bits processed
+            population, mutation_count, whichchromo,whichmember=mutate(population,no_of_alleles,ploidy,pop_size,mutation_rate)   # 1000 means mutation 1 in a 1000 bits processed
+
+
+            if advanced_diag=="y":
+                print("\nMutation at member index",whichmember)
+             #   print(" member id=",whichmember)
+                outfile.write("Mutation at member index:"+str(whichmember)+"\n\n\n")
+                
 
         #    print("after mutation pop size=",len(population))
             for p in range(0,pop_size):    #fill out the express column for the population:
