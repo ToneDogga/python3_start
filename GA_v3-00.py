@@ -535,6 +535,157 @@ def crossover(mates,no_of_alleles,individual):
 
 
 
+def pmx(mates,no_of_alleles,pop_size,individual):    # partially matched crossover
+    # select two random cutting points that are not the same on the length of the chromosome
+    #  a =   984|567|1320
+    #  b =   871|230|9546   (locus positions)
+#   map string a to string b
+  #  moves to:
+  #   a' =   984|230|1320
+  #   b' =   871|567|9546
+  #
+#  then mapping string b onto a,
+#   a" =     984|230|1657
+#   b" =     801|567|9243
+#
+#  the other 5,6 and 7 in b swap with the a's 2,3 and 0
+  # so each string contains ordering information partially determined by each of the parents
+   #
+
+    print("pmx crossover")
+
+    pmx_count=0
+
+    c1_choice_list=[]
+    c2_choice_list=[]
+    old_chromo_list=[]
+    new_chromo_list=[]
+    
+ #   gene_pool_size=no_of_alleles*ploidy*pop_size
+  #  number_of_pmx_needed=int(round(gene_pool_size/pmx_rate))
+   # for m in range(0,number_of_pmx_needed):
+    if True:
+        pmx_bit=""
+        chromo=""
+   
+        c1_choice=random.randint(1,2)   # choose a chromo column
+        c1_choice_list.append(c1_choice)
+        c2_choice=random.randint(0,pop_size-1)   # choose a member of the popultation
+        c2_choice_list.append(c2_choice)
+        cut1_choice=random.randint(1,no_of_alleles-1)   # choose the first cut position in the chromosome
+#  not right at the start and not right at the finish
+        cut2_choice=cut1_choice
+        while cut2_choice==cut1_choice:
+            cut2_choice=random.randint(1,no_of_alleles-1)   # choose the first cut position in the chromosome
+
+
+# get them in order so cut1 is first, then cut2
+        if cut2_choice < cut1_choice:
+            temp=cut1_choice    # swap
+            cut1_choice=cut2_choice
+            cut2_choice=temp
+
+        print("col choice=",c1_choice," mem choice=",c2_choice," cut1=",cut1_choice," cut2=",cut2_choice)
+        input("?")
+
+
+
+        # chromo1
+       # c4_choice=random.randint(-1,1)   # choose a new bit  -1=%,0=0,1=1
+
+       # if c4_choice==-1:
+        #    pmx_bit="%"
+       # elif c4_choice==0:
+        #    pmx_bit="0"
+       # elif c4_choice==1:
+        #    pmx_bit="1"
+       # else:
+        #    print("bit mutation error.  c4_choice=",c4_choice)
+            
+    mate1col=5
+    mate2col=6
+
+    xpoint1col=2
+    xpoint2col=4
+
+    newchromo1col=7
+    newchromo2col=8
+
+    row=0
+   # print(mates)
+
+    for mate in mates:
+          #  print(mate[i])
+           # input("?")
+         #   splitpoint=random.randint(1,no_of_alleles-1)
+
+            child1=""
+            child2=""
+            remain11=mate[mate1col][:cut1_point]
+            remain12=mate[mate1col][cut2_point:]
+            swap1=mate[mate1col][:cut2_point]
+            swap11=swap1[cut1_point:]
+
+            remain21=mate[mate2col][:cut1_point]
+            remain22=mate[mate2col][cut2_point:]
+            swap2=mate[mate2col][:cut2_point]
+            swap21=swap2[cut1_point:]
+
+            print("remain11",remain11,"+swap11+",swap11,"+ remain12",remain12)
+            print("remain21",remain21,"+swap21+",swap21,"+ remain22",remain22)
+            input("?")
+
+
+            swap2=mate[mate2col][splitpoint-no_of_alleles:]
+
+            child1=remain11+swap2+remain12
+            child2=remain21+swap1+remain22
+
+            mates[row][newchromo1col]=child1   #+[child1,child2)]
+            mates[row][newchromo2col]=child2
+            mates[row][xpoint1col]=splitpoint
+            mates[row][xpoint2col]=splitpoint
+            row+=1    
+
+
+
+ #   print("mates dataframe")     
+
+  #  mates_df = pd.DataFrame(mates, columns=list('ABCD'))
+  #  mates_df = pd.DataFrame(mates, dtype=individual)   #columns=list('ABCD'))
+    mates_df = pd.DataFrame(mates, columns=["fitness","parentid1","xpoint1","parentid2","xpoint2","chromo1","chromo2","newchromo1","newchromo2","expressed"])
+
+
+    
+   # print("mates df")
+   # print(mates_df)
+
+
+    
+   # pd.concat([pd.DataFrame(mates[i][0], columns=['chromo1']) for i in range(0,5)], ignore_index=True)
+   # pd.concat([newpopulation([i], columns=['chromo1']) for i in range(0,5)], ignore_index=True)
+  #  crossed_population.append(mates_df, ignore_index=True,sort=False)
+
+
+    #mates_df.loc["xpoint1"]=2
+    
+
+ #   input("?")
+
+    #delete columns "newchromo1" and "newchromo2"
+
+    mates_df=mates_df.drop(columns=["chromo1","chromo2"])   # delete old chromosomes columns in population
+    mates_df.columns=["fitness","parentid1","xpoint1","parentid2","xpoint2","chromo1","chromo2","expressed"]  # rename newchromos to chromos
+
+    mates_df.index
+  #  print("mates df drop columns and rename")
+   # print(mates_df)
+   # input("?")
+
+    
+    return(mates_df)
+
+
 
 
 
@@ -610,7 +761,7 @@ def mutate(newpopulation,no_of_alleles,ploidy,pop_size,mutation_rate):
     return(newpopulation,mutation_count, c1_choice_list, c2_choice_list)
 
 
-
+  
 
 
 
@@ -619,9 +770,9 @@ def mutate(newpopulation,no_of_alleles,ploidy,pop_size,mutation_rate):
 def main():
     ploidy=2  # number of chromosomes per individual.  To increase this you will need to change the dataframes also!
     no_of_alleles=14  # length of each chromosome
-    pop_size=512  # population size
+    pop_size=16  # population size
     epoch_count=0
-    no_of_epochs=2
+    no_of_epochs=1
     generation_count=0
 
     len_probability_table=0
@@ -671,7 +822,7 @@ def main():
     bestf=0
     bestg=0
  
-    epoch_length=40
+    epoch_length=100
     total_generations=0
     
     direction="x"
@@ -746,6 +897,11 @@ def main():
     else:
         print("clearing outfile.txt")
         outfile=open("outfile.txt","w")
+        
+    print("\n")
+    crossover=""
+    while crossover!="s" and crossover!="p":
+        crossover=input("(s)imple crossover or (p)mx?")
 
     print("\n")
     advanced_diag=""
@@ -1447,19 +1603,38 @@ def main():
 
             mates,len_wheel=spin_the_mating_wheel(probability_table,population,pop_size,direction)  # wheel_len is the size of the unique gene pool to select from in the probability_table
 
-                
-            population=crossover(mates,no_of_alleles,individual)
+            if crossover=="s":    
+                population=crossover(mates,no_of_alleles,individual)   # simple crossover
+            elif crossover=="p":
+                population=pmx(mates,no_of_alleles,individual,pop_size)   # partial matching crossover
+                #if advanced_diag=="y" :
+                 #   print("\nPartially mixed crossover (PMX) at member index:",whichmember)
+             #     print(" member id=",whichmember)
+                  #  outfile.write("Partially mixed crossover (PMX) at member index:"+str(whichmember)+"\n\n\n")
+           
+            else:
+                print("Crossover choice error.")
+                sys.exit()
             #    print("crossover finished.")
              #   print(population)
               #  input("?")
+
+
+              
 
             population, mutation_count, whichchromo,whichmember=mutate(population,no_of_alleles,ploidy,pop_size,mutation_rate)   # 1000 means mutation 1 in a 1000 bits processed
 
 
             if advanced_diag=="y":
-                print("\nMutation at member index",whichmember)
+                print("\nMutation at member index:",whichmember)
              #   print(" member id=",whichmember)
                 outfile.write("Mutation at member index:"+str(whichmember)+"\n\n\n")
+
+
+
+            population, pmx_count, whichchromo,whichmember=pmx(population,no_of_alleles,ploidy,pop_size,mutation_rate)   # 1000 means mutation 1 in a 1000 bits processed
+
+
                 
 
         #    print("after mutation pop size=",len(population))
