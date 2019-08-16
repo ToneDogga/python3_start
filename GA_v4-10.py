@@ -1540,7 +1540,7 @@ def main():
 
           #      total_rows=generate_payoff_environment_7d_file(linewidth,0,2**1,0,2**1,0,2**1,0,2**1,0,2**1,0,2**6,0,2**4,payoff_filename)  
        # 7 input variables 2 bits each = 14 bits, 1 floating point payoff.
-        ga.total_rows=generate_payoff_environment_7d_file(0,arange,0,brange,0,crange,0,drange,0,erange,0,frange,0,grange,ga.payoff_filename)
+        ga.total_rows=generate_payoff_environment_7d_file(0,ga.arange,0,ga.brange,0,ga.crange,0,ga.drange,0,ga.erange,0,ga.frange,0,ga.grange,ga.payoff_filename)
 
         clock_end=time.process_time()
         duration_clock=clock_end-clock_start
