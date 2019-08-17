@@ -1321,7 +1321,7 @@ def main():
     ga.pop_size=16  # population size
     ga.payoff_filename="payoff_7d.csv"
     ga.total_rows=count_file_rows(ga.payoff_filename)
-    ga.number_of_cols=9   # 7 input vars and 1 out + rowno = 9
+    ga.number_of_cols=8   # 7 input vars and 1 out  = 8
     ga.row_find_method="c"
  
     ga.pconstrain=False
