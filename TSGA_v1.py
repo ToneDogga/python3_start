@@ -40,442 +40,7 @@ import time
 import math
 #import linecache
 import sys
-
-
-
-
-  
-
-
-
-def count_file_rows(filename):
-    with open(filename,'r') as f:
-        return sum(1 for row in f)
-
-
-def build_population(size,no_of_alleles,genepool):
-    for p in range(0,size):
-        genepool.loc[p,"chromo1"]=build_chromosome(no_of_alleles)
-        genepool.loc[p,"chromo2"]=build_chromosome(no_of_alleles)
-        genepool.loc[p,"expressed"]=express(genepool.loc[p,"chromo1"],genepool.loc[p,"chromo2"])
-
-    return(genepool)
-
-def build_chromosome(no_of_alleles):
-        dna=[]
-        dna_string=""
-        for locus in range(0,no_of_alleles):
-            if random.randint(0,1)==0:
-                dna.append("0")
-                dna_string+="0"
-            else:
-                if random.randint(0,1)==1:
-                        # dominant 1
-                    dna.append("1")
-                    dna_string+="1"
-                else:
-                        # recessive 1
-                    dna.append("-1")
-                    dna_string+="%"
-        return(dna_string)
-  
-        
-
-
-
-def return_a_row_from_envir_using_rowno(val,env):
-        # use the preloaded pandas dataframe of the payoff file
-        try:
-            
-            return(env.iloc[val].values.tolist())
-         #   if ret:
-         #       return(ret)
-         #   else:
-         #       print("val not found in environment")
-         #       return([])
-            
-        except IndexError:
-            print("\nindex error")
-            return([])
-        except ValueError:
-            print("\nvalue error val=",val)
-            return([])
-        except IOError:
-            print("\nIO error")
-            return([])
-
-
-
-
-
-def return_a_row_from_envir_using_concatno(val,env):
-        # use the preloaded pandas dataframe of the payoff file
-        try:
-            
-            return(env.loc[env["concatno"]==val].values.tolist()[0])
-         #   if ret:
-         #       return(ret)
-         #   else:
-         #       print("val not found in environment")
-         #       return([])
-            
-        except IndexError:
-            print("\nindex error")
-            return([])
-        except ValueError:
-            print("\nvalue error val=",val)
-            return([])
-        except IOError:
-            print("\nIO error")
-            return([])
-
-
-
-def return_a_row_from_file(val,filename):
-        # we know that the each line in the file is exactly global "linewidth" bytes long including the '\n'
-        try:
-            with open(filename,"r") as f:
-                f.seek((r.linewidth+r.extra_eol_char)*val)   # if a windows machine add an extra char for the '\r' EOL char       
-                p=["0",f.readline().split(',')]  # add an extra element to the row because the concatno field is not in the payoff file
-                return(list(itertools.chain(*p)))
-                
-        except IndexError:
-            print("\nindex error")
-            return([])
-        except ValueError:
-            print("\nvalue error row+1=",val+1)
-            return([])
-        except IOError:
-            print("\nIO error")
-            return([])
-
-
-def return_a_row_from_linecache(val,filename):   # assumes the payoff is the last field in a CSV delimited by ","
-      #  print("line no:",row,":",linecache.getline(filename,row+1))   #.split(",")[-1])
-        try:
-            l=linecache.getline(filename,val+1).rstrip()
-            p=["0",l.split(',')]  # add an extra element to the row because the concatno field is not in the payoff file
-         #   print("p=",p)
-            return(list(itertools.chain(*p)))
- 
-            
-        except IndexError:
-            print("\nindex error")
-            return("Index error")
-        except ValueError:
-       #     print("\nvalue error row+1=",row+1) 
-            return("value error")
-        except IOError:
-            print("\nIO error")
-            return("IO error")
-
-
-
-
-# reproduction
-# total the fitness of each string and create a % breakdown score of the total for each of the strings in the population
-# create a biased roulette probability_table where the % breakdown score is the probability of the probability_table landing on that string
-# spin the probability_table m times each time yielding a reproduction candidate of the population
-# in this way more highly fit strings have more offspring in the next generation.
-
-  
-
-def calc_mating_probabilities(newpopulation,r,env):
-      count=0
-      total_payoff=0.00001
-
-      for gene in range(0,r.pop_size):
-        fittest=newpopulation.loc[gene,"expressed"]
-      #  val=int(fittest,2)   # binary base turned into integer
-        total_payoff+=abs(return_a_row_from_envir_using_rowno(int(fittest,2),env)[8])
-
-        count=0
-        probability_table=[]
-        if len(newpopulation)<=1:
-            print("\nlen(dna)<=1!")
-
-            
-        for gene in range(0,r.pop_size):
-            #val=int(dna[count],2)(newpopulation.loc[gene,"expressed"]
-            fittest=newpopulation.loc[gene,"expressed"]
-#            val=int(fittest,2)   # binary base turned into integer
-            p=abs(return_a_row_from_envir_using_rowno(int(fittest,2),env)[8])
-
-            probability_table.append(int(round((p/total_payoff)*r.actual_scaling))) # scaling usually > pop_size*20
-            count+=1
-            
-        return(probability_table)
-
-
-
-    
-def spin_the_mating_wheel(probability_table,newpopulation,iterations,direction):
-        wheel=[]
-        mates=[]
-        n=0
-
-   # clock_start=time.clock()
-
-        probability_table_len=len(probability_table)
-        if probability_table_len<=1:
-            print("\nprobability_table length<=1",probability_table_len)
-
-        mpt=round(mean(probability_table))
-   #     print("mean ptable=",mpt)
-        #input("?") 
-        while n<=probability_table_len-1:
-            piesize=probability_table[n]
-            if piesize<0:
-                piesize=0
-                
-            if direction=="x":  # maximise
-        #    sel=sel+([n+1] * abs(probability_table[n]))
-                wheel=wheel+([n+1] * piesize)
-            elif direction=="n":   # minimise
-                # invert probabilities
-                wheel=wheel+([n+1] * abs((2*mpt)-piesize))   # invert across mean
-            else:
-                print("direction error in spin the probability_table")
-                sys.exit()
-            n=n+1
-        len_wheel=len(wheel)
-   #     print("\nlen(wheel)=",len_wheel,"wheel=",wheel,"\n\nprobability_table=",probability_table)
-   #     input("?")
-       
-        if len_wheel<=20:
-            print("\n Warning! increase your total_payoff scaling. len wheel <=20",len_wheel," probability_table len=",probability_table_len)
-        for i in range(0,iterations):
-            go_back=True
-            while go_back:
-                # pick a random string for mating
-                first_string_no=random.randint(1,probability_table_len)
-                # choose its mate from the probability_table
-                second_string_no=first_string_no
-                while second_string_no==first_string_no:
-                    second_string_no=wheel[random.randint(0,len_wheel-1)]
-                   # print("mate ",first_string_no,dna[first_string_no-1]," with ",second_string_no,dna[second_string_no-1])
-
-                    # if the string to mate with is the same, try again
-                go_back=False
-                if newpopulation.loc[first_string_no-1,"chromo1"]==newpopulation.loc[second_string_no-1,"chromo2"]:
-                    go_back=True
-
-            mates=mates+[[0.0,first_string_no-1,0,second_string_no-1,0,newpopulation.loc[first_string_no-1,"chromo1"],newpopulation.loc[second_string_no-1,"chromo2"],"","",""]]      # mates is a list of tuples to be mated               
-
-
-        return(mates,len_wheel)   # if len_wheel gets small, there is a lack of genetic diversity
-
-
-
-
-
-def crossover(mates,no_of_alleles,individual):
-    mate1col=5
-    mate2col=6
-
-    xpoint1col=2
-    xpoint2col=4
-
-    newchromo1col=7
-    newchromo2col=8
-
-    row=0
-   # print(mates)
-
-    for mate in mates:
-        splitpoint=random.randint(1,no_of_alleles-1)
-
-        child1=""
-        child2=""
-        remain1=mate[mate1col][:splitpoint]
-        swap1=mate[mate1col][splitpoint-no_of_alleles:]
-        remain2=mate[mate2col][:splitpoint]
-        swap2=mate[mate2col][splitpoint-no_of_alleles:]
-
-        child1=remain1+swap2
-        child2=remain2+swap1
-
-        mates[row][newchromo1col]=child1   #+[child1,child2)]
-        mates[row][newchromo2col]=child2
-        mates[row][xpoint1col]=splitpoint
-        mates[row][xpoint2col]=splitpoint
-        row+=1    
-
-
-    mates_df = pd.DataFrame(mates, columns=["fitness","parentid1","xpoint1","parentid2","xpoint2","chromo1","chromo2","newchromo1","newchromo2","expressed"])
-
-
-  
-    mates_df=mates_df.drop(columns=["chromo1","chromo2"])   # delete old chromosomes columns in population
-    mates_df.columns=["fitness","parentid1","xpoint1","parentid2","xpoint2","chromo1","chromo2","expressed"]  # rename newchromos to chromos
-
-    mates_df.index
-    
-    return(mates_df)
-
-
-
-
-
-def pmx(mates,no_of_alleles,individual,pop_size):    # partially matched crossover
-
-
-    # this is used when the order of the bits matters sych as in a travelling salesman problem
-    # select two random cutting points that are not the same on the length of the chromosome
-    #  a =   012|3456|789
-    #  a =   01%|001%|101
-    #  b =   012|3456|789   (locus positions)
-    #  b =   110|%%00|111
-#   map string a to string b
-  #  moves to:
-  #   a' =   01%|%%00|101
-  #   b' =   110|001%|111
-  #
-
-  # now we haveto swap back the "duplicates"
-  # number 3,4,5,6 have been mapped string b to string a
-  # now on b, 
-#  then mapping string a onto b,
-#   a" =     
-#   b" =     
-#
-#  the other 5,6 and 7 in b swap with the a's 2,3 and 0
-  # so each string contains ordering information partially determined by each of the parents
-   #
-
- #   print("pmx crossover. alleles=",no_of_alleles)
-
-    pmx_count=0
-
-    c1_choice_list=[]
-    c2_choice_list=[]
-    old_chromo_list=[]
-    new_chromo_list=[]
-    
- #   gene_pool_size=no_of_alleles*ploidy*pop_size
-  #  number_of_pmx_needed=int(round(gene_pool_size/pmx_rate))
-   # for m in range(0,number_of_pmx_needed):
-    
-    pmx_bit=""
-    chromo=""
-
-
-    mate1col=5
-    mate2col=6
-
-    xpoint1col=2
-    xpoint2col=4
-
-    newchromo1col=7
-    newchromo2col=8
-
-    for mate in mates:
-        c1_choice=random.randint(1,2)   # choose a chromo column
-        c1_choice_list.append(c1_choice)
-        c2_choice=random.randint(0,pop_size-1)   # choose a member of the popultation
-        c2_choice_list.append(c2_choice)
-        cut1_choice=random.randint(1,no_of_alleles-1)   # choose the first cut position in the chromosome
-    #  not right at the start and not right at the finish
-        cut2_choice=cut1_choice
-        while cut2_choice==cut1_choice:
-            cut2_choice=random.randint(1,no_of_alleles-1)   # choose the first cut position in the chromosome
-
-
-    # get them in order so cut1 is first, then cut2
-        if cut2_choice < cut1_choice:
-            temp=cut1_choice    # swap
-            cut1_choice=cut2_choice
-            cut2_choice=temp
-
-        print("col choice=",c1_choice," mem choice=",c2_choice," cut1=",cut1_choice," cut2=",cut2_choice)
-        input("?")
-
-
-
-        child1=""
-        child2=""
-        remain11=mate[mate1col][:cut1_choice]
-        remain12=mate[mate1col][cut2_choice:]
-        swap1=mate[mate1col][:cut2_choice]
-        swap11=swap1[cut1_choice:]
-
-        remain21=mate[mate2col][:cut1_choice]
-        remain22=mate[mate2col][cut2_choice:]
-        swap2=mate[mate2col][:cut2_choice]
-        swap21=swap2[cut1_choice:]
-
-        print("remain11",remain11,"+swap11+",swap11,"+ remain12",remain12)
-        print("remain21",remain21,"+swap21+",swap21,"+ remain22",remain22)
-        input("?")
-
-       
-        child1=remain11+swap21+remain12
-        child2=remain21+swap11+remain22
-
-        print("swap")
-        print("before:",mate[mate1col],mate[mate2col])
-        print("after:",child1,child2)
-
-
-        swaps=list(range(cut1_choice,cut2_choice))
-        print("swaps=",swaps)
-
-     #   for a,i in swap11:
-     #       result = []
-     #       for i, c in enumerate(swap11):
-##                if c<a or c>b:
-##                    result.append(i)
-##    
-##        print(result)    
-## 
-##
-##
-##
-##        mates[row][newchromo1col]=child1   #+[child1,child2)]
-##        mates[row][newchromo2col]=child2
-##        mates[row][xpoint1col]=splitpoint
-##        mates[row][xpoint2col]=splitpoint
-##        row+=1    
-
-
-
- #   print("mates dataframe")     
-
-  #  mates_df = pd.DataFrame(mates, columns=list('ABCD'))
-  #  mates_df = pd.DataFrame(mates, dtype=individual)   #columns=list('ABCD'))
-        mates_df = pd.DataFrame(mates, columns=["fitness","parentid1","xpoint1","parentid2","xpoint2","chromo1","chromo2","newchromo1","newchromo2","expressed"])
-
-
-    
-   # print("mates df")
-   # print(mates_df)
-
-
-    
-   # pd.concat([pd.DataFrame(mates[i][0], columns=['chromo1']) for i in range(0,5)], ignore_index=True)
-   # pd.concat([newpopulation([i], columns=['chromo1']) for i in range(0,5)], ignore_index=True)
-  #  crossed_population.append(mates_df, ignore_index=True,sort=False)
-
-
-    #mates_df.loc["xpoint1"]=2
-    
-
- #   input("?")
-
-    #delete columns "newchromo1" and "newchromo2"
-
-        mates_df=mates_df.drop(columns=["chromo1","chromo2"])   # delete old chromosomes columns in population
-        mates_df.columns=["fitness","parentid1","xpoint1","parentid2","xpoint2","chromo1","chromo2","expressed"]  # rename newchromos to chromos
-
-        mates_df.index
-  #  print("mates df drop columns and rename")
-   # print(mates_df)
-   # input("?")
-
-    
-    return(mates_df)
-
-
+from statistics import mean
 
 
 
@@ -542,149 +107,429 @@ def mutate(newpopulation,no_of_alleles,ploidy,pop_size,mutation_rate):
         
     return(newpopulation,mutation_count, c1_choice_list, c2_choice_list)
 
-def create_journey(j):
-    j.journey=[0]   # starting point
-    for s in range(1,j.stops-1):
-        found=True
-        while found:
+
+
+def create_stops(j):
+    j.stops=[]   # starting point
+    for s in range(1,j.no_of_stops):
+        unique=False
+        while not unique:
             point=(random.randint(0,j.xsize-1),random.randint(0,j.ysize-1))
             # check if point already exists
-            for h in j.journey:
-               if (point==h):
-                   found=True
-                   break
-               else:
-                   found=False
+            if not j.stops:
+                unique=True
+            else:    
+                for h in j.stops:
+               #     print("h=",h,"poimnt=",point)
+               #     input("?")
+                    if (point==h):
+                   #     print("point found",point,h)
+                        unique=False
+                        break
+                    else:
+                        unique=True       
+             #   print("h loop finished")       
 
-        j.journey.append(point)
-    j.journey.append(0)   # return to starting point  (0)
-    print("journey=",j.journey)
+        j.stops.append(point)
+   # print("stops=",j.stops)
     return(j)  
+
+
+
+def calc_distance(start,finish):
+  #  print("calc dist from",start,"to",finish)
+    startx=start[0]
+    starty=start[1]
+    finishx=finish[0]
+    finishy=finish[1]
+    return(math.sqrt((finishx-startx)**2+(finishy-starty)**2))
+
+
+
+def create_starting_genepool(j):
+    stops=j.no_of_stops   # less one as we need to start and finish in the same place
+    gene=[]
+    for g in range(j.poolsize-1):
+        gene.append([])
+        gene[g]=[]
+        for alleles in range(0,stops-1):
+            unique=False
+            c=gene[g]
+            while not unique:
+                destination=random.randint(0,stops-2)
+                # check if point already exists
+                if len(gene[g])==0:
+                    unique=True
+                else:    
+                    for d in c:
+               #     print("h=",h,"poimnt=",point)
+               #     input("?")
+                        if (destination==d):
+                   #     print("point found",point,h)
+                            unique=False
+                            break
+                        else:
+                            unique=True       
+              #  print("gene=",gene)
+              #  input("?")
+             
+            gene[g].append(destination)
+        gene[g].append(gene[g][0])   # return to end
+    return(gene)       
+
+
+
+def calc_distances(ts):
+    best=1000000
+    bestno=0
+    total_dist=[]  # first entry goes nowhere.  it is -1 to 0 effectively
+    for i in range(0,ts.poolsize-1):
+        dist=0
+        for k in range(0,ts.no_of_stops-1):
+        #    print("i=",i,"k=",k,"g=",ts.genepool[i][k])
+            dist+=calc_distance(ts.stops[round(ts.genepool[i][k])],ts.stops[round(ts.genepool[i][k+1])])
+       # print("total dist=",dist,"from",ts.stops[ts.genepool[i][0]],"to",ts.stops[ts.genepool[i][k]])    
+        total_dist.append(round(dist,2))
+        if dist<best:
+            best=dist
+            bestno=i
+    return(total_dist,bestno)
+
+
+
+def spin_the_mating_wheel(j):
+    mates=[]
+    for i in range(1,j.poolsize):
+        go_back=True
+        while go_back:
+            # pick a random string for mating
+            first_mate_no=random.randint(0,j.probtable_len-1)
+            # choose its mate from the probability_table
+            second_mate_no=first_mate_no
+            while second_mate_no==first_mate_no:
+                second_mate_no=j.wheel[random.randint(0,j.wheel_len-1)]
+            go_back=False
+            if j.genepool[first_mate_no]==j.genepool[second_mate_no]:
+                go_back=True
+
+        mates.append((j.genepool[first_mate_no],j.genepool[second_mate_no]))      # mates is a list of tuples to be mated               
+
+    return(mates)  
+
+def pmx_swap(jlist1,pos1,jlist2,pos2):
+    # swap the list element in jlist1[pos1] with jlist2[pos2]
+
+   # print("1=",jlist1,"2=",jlist2,"pos1=",pos1,"pos2=",pos2)
+
+  #  print("before swap A=",jlist1,"at",pos1)
+  #  print("before swap B=",jlist2,"at",pos2)
+
+    temp11=jlist1[:pos1]
+    temp12=jlist1[pos1+1:]
+    swap1=jlist1[pos1:pos1+1]
+
+    temp21=jlist2[:pos2]
+    temp22=jlist2[pos2+1:]
+    swap2=jlist2[pos2:pos2+1]
+     
+    newjlist1=temp11+swap2+temp12
+    newjlist2=temp21+swap1+temp22
+
+  #  print("after swap A=",temp11,"|",swap2,"|",temp12)
+  #  print("after swap B=",temp21,"|",swap1,"|",temp22)
+
+    return(newjlist1,newjlist2)
+
+
+
+
+# mating and reproduction
+def pmx(jlist1,jlist2):    # partially matched crossover
+    
+    # this is used when the order of the bits matters sych as in a travelling salesman problem
+    # select two random cutting points that are not the same on the length of the chromosome
+    #  a =   984|567|1320
+    #  b =   871|230|9546   
+#   map string b to string a
+  #  moves to:
+  #   a' =   984|230|1320
+  #   b' =   871|567|9546
+  #
+
+  # now we haveto swap back the "duplicates"
+  # number 2,3,0 have been mapped string b to string a
+  # now on b, 
+#  then mapping string a onto b,
+#   a" =  984|230|1657
+#   b" =  801|567|9243   
+#
+#  the other 5,6 and 7 in b swap with the a's 2,3 and 0
+  # so each string contains ordering information partially determined by each of the parents
+   #
+
+ #   print("pmx crossover. alleles=",no_of_alleles)
+
+
+
+
+    cut1_choice=random.randint(1,len(jlist1)-1)   # choose the first cut position in the chromosome
+#  not right at the start
+    cut2_choice=cut1_choice
+    while cut2_choice==cut1_choice:
+        cut2_choice=random.randint(1,len(jlist2)-1)   # choose the first cut position in the chromosome
+
+
+# get them in order so cut1 is first, then cut2
+    if cut2_choice < cut1_choice:
+        temp=cut1_choice    # swap
+        cut1_choice=cut2_choice
+        cut2_choice=temp
+
+   # print("pmx cut1=",cut1_choice," cut2=",cut2_choice)
+
+    child1=""
+    child2=""
+    remain11=jlist1[:cut1_choice]
+    remain12=jlist1[cut2_choice:]
+    swap1=jlist1[:cut2_choice]
+    swap11=swap1[cut1_choice:]
+
+    remain21=jlist2[:cut1_choice]
+    remain22=jlist2[cut2_choice:]
+    swap2=jlist2[:cut2_choice]
+    swap21=swap2[cut1_choice:]
+
+   # print("before")
+   # print("A",jlist1)
+   # print("B",jlist2)
+ #   print("remain11",remain11,"+swap11+",swap11,"+ remain12",remain12)
+ #   print("remain21",remain21,"+swap21+",swap21,"+ remain22",remain22)
+   # input("?")
+
+   
+
+    new1=jlist1   #remain11+swap11+remain12
+    new2=jlist2    #remain21+swap21+remain22
+
+   # temp1=remain11+swap21+remain12
+   # temp2=remain21+swap11+remain22
+
+  #  print("swap")
+  #  print("after new1:",new1,"\n   new2:",new2)
+  #  print("?")
+
+    swaps1=list(swap11)
+    swaps2=list(swap21)
+  #  print("swaps1",swaps1)
+  #  print("swaps2",swaps2)
+   # swaps=swaps1
+  #  print("swaps11 list=",swaps1)
+  #  print("swaps21 list=",swaps2)
+    #print("A swaps needed in cut=",swaps1)
+    for i in range(cut1_choice,cut2_choice):
+        new1,new2=pmx_swap(new1,i,new2,i)
+
+   # print("B swaps needed to rebalance=",swaps2)
+    k=0
+    for s in swaps2:
+        i=1
+        j=1
+   #     k=0
+        found1=False
+        found2=False
+       # print("checking new1 for char",s)
+        for i in range(1,len(new1)-2):
+           # if i>=cut1_choice and i<cut2_choice:
+           #     pass
+           # else:
+            if new1[i]==s:
+             #   print("found s",s," at i=",i,"in new1")
+                found1=True
+                break
+         #   else:
+            #    print(s,"not found in new1")
+
+#        print("finding the char",s," in new1 at position j",j)
+        if found1:
+            for j in range(1,len(new2)-2):
+         #       print("looking in new2 in swaps1",swaps1,"k=",k,"=",swaps1[k])
+              #  if j>=cut1_choice and j<cut2_choice:
+              #      pass
+              #  else:
+              #  print("not jumping over j=",j,"c1=",cut1_choice,"c2=",cut2_choice)
+                
+                if new2[j]==swaps1[k]:
+          #          print("found swaps1",swaps1[k],"at j=",j,"in new2 k=",k)
+            
+                    found2=True
+                    break
+          #      else:
+           #         print(swaps1[k],"not found in new2")
+
+
+                
+
+
+        if found1 and found2:
+            found1=False
+            found2=False
+            k+=1
+       #     print("swapping new2 at i",new1,i,"and new1 at j",new2,j) 
+            new1,new2=pmx_swap(new1,i,new2,j)
+     #   else:
+        #    print("pmx error")
+
+    #print("Anew1=",new1)
+    #print("Bnew2=",new2)
+    #input("?")
+
+    
+    return(new1,new2)
+
+
+
+def pmx_loop(mates):
+    newpool=[]
+    for i in range(0,len(mates)):
+        newg1,newg2=pmx(mates[i][0],mates[i][1])
+        newpool.append(newg1)
+        newpool.append(newg2)
+    return(newpool)
 
 
 #######################################################
 
 def main():
 
+    scaling=100
+
+
     class ts(object):
         pass
 
     ts.xsize=0
     ts.ysize=0
-    ts.stops=0
+    ts.no_of_stops=0
+    ts.stops=[]
     ts.journey=[]
+    ts.distance=0
     ts.distances=[]
+    ts.totalgenepool_dist=0
+    ts.probablilty_table=[]
+    ts.probtable_len=0
+    ts.wheel=[]
+    ts.wheel_len=0
+    ts.mates=[]
 
-    ts.poolsize=16
+    ts.poolsize=30
+    ts.chromo_length=0
     ts.genepool=[]
 
-    epoch_length=100
+    epoch_length=20
     
 
-    ts.xsize=input("x size?")
-    ts.ysize=input("y size?")
-    ts.stops=int(input("number of stops?"))
+    ts.xsize=int(input("x size?"))
+    ts.ysize=int(input("y size?"))
+    ts.no_of_stops=int(input("number of stops?"))
 
-    ts.stops+=1   #  has to return back to the start
+    ts.no_of_stops+=1   #  has to return back to the start
 
-    print("create journey")
-    create_journey(ts)
-##    print("create distance table")
-##    create_distance_table(ts)
-##    print("create starting genepool")
-##    create_starting_genepool(ts)
-##
-##    
-##        
-##
-##    
-##    print("starting....")
-##    for gencount in range(1,epoch_length+1):
-##        mutation_count=0
-##
-##        size=len(population)
-##        
-##        for gene in range(0,size):  #newpopulation.iterrows():
-##
-##            plist=[]
-##            fittest=population.loc[gene,"expressed"]   # binary base turned into integer
-##            population.loc[gene, "fitness"] = p
-##          
-##            try:            
-##                 plist=return_a_row_from_linecache(int(fittest,2),r.payoff_filename)                  
-##                       
-##            
-##            except ValueError:
-##                print("value error finding p in calc fitness")
-##                sys.exit()
-##            except IOError:
-##                print("File IO error on ",r.payoff_filename)
-##                sys.exit()
-##
-##            if len(plist)>7:
-##                found=True
-##                a=int(plist[1])
-##                returned_payoff=p
-## 
-##                elements_count+=1
-##
-##                population.loc[gene, "fitness"] = p
-##
-##                if p>max_payoff:
-##                    max_payoff=p
-##                    max_fittest=fittest
-##                    best_rowno=gene   #rowno
-##                    best_gen=generation
-##                    best_epoch=epoch
-##                    best_fittest=fittest
-##                   # bestflag=True
-##                    #bestpopulation=population.copy()
-##                    best_copy=True
-##                    besta=a
-##                                                         
-##            else:
-##                r.outfile.write("Row "+fittest+" not found in environment")
-##                
-##         
-##
-##
-##            count+=1
-##
-##           # if elements_count>0:
-##           #     averagep=totalp/elements_count
-##
-##        if best_copy:
-##            best_copy=False
-##            update_fittest=True
-##            bestpopulation=population.copy()
-##
-##
-##
-##
-##        print("Epoch",epoch,"of",r.no_of_epochs)
-##        print("Epoch progress:[%d%%]" % (generation/r.epoch_length*100)," Generation no:",generation,"fittest of this generation:",fittest)
-##
-##
-##        print("\nGenepool. Ave Fitness=",avefitness,"#Duplicates expressed=",dupcount,"of",allcount,". Diversity of probability_table weighting=[",len_wheel,"]. probability_table[] size=",len_probability_table)
-##        print("\n",nondup_par1,"unique first parents, and",nondup_par2," unique second parents of",allcount,"chomosomes.")
-##        print("\nScaling factor=",r.scaling_factor," * genepool size",r.pop_size," = actual scaling:",r.actual_scaling)
-##
-##        print("\nFittest so far:",best_fittest," best rowno [",best_rowno,"] in best generation [",best_gen,"] in best epoch [",best_epoch,"] max payoff",max_payoff)
-##        print("\nBest overall so far: a=",besta," b=",bestb," c=",bestc," d=",bestd," e=",beste," f=",bestf," g=",bestg)
-##        print("\nTotal Progress:[%d%%]" % (round(((total_generations+1)/(r.epoch_length*r.no_of_epochs))*100)),"\n",flush=True)
-##
-##        r.outfile.flush()
-##        r.results.flush()
-##        
-##        probability_table=calc_mating_probabilities(population,r,env)
-##        # scaling figure is the last.  this multiplies the payoff up so that divsity is not lost on the probability_table when probs are rounded
-##
-##        len_probability_table=len(probability_table)
-##        if len_probability_table==0:
-##            print("probability_table empty")
-##            sys.exit
-## 
-##
+    print("create stops")
+    create_stops(ts)
+    print("stops=",ts.stops)
+    print("create distance table")
+  #  for x in range(0,ts.no_of_stops-2):
+  #      ts.distance=calc_distance(ts.stops[x],ts.stops[x+1])
+  #      print("distance=",x,"->",x+1,"=",ts.distance)
+
+        
+    print("create starting genepool")
+    ts.genepool=create_starting_genepool(ts)
+    print("genes=",ts.genepool)
+
+    bestjourneydist=1000000
+    bestjourneyofepoch=[]
+    bestjourneyno=0
+   
+    print("starting....")
+    for gencount in range(1,epoch_length+1):
+
+
+#  genepool is a list of lists
+# each list genepool[x] is a journey
+# there are ts.poolsize journeys
+
+      #  print("calc total distance for each journey in genepool")
+        ts.distances,bestjourneyno=calc_distances(ts)
+        ts.totalgenepool_dist=sum(ts.distances)
+     #   print("bestjourneyno=",bestjourneyno)
+        bestdist=ts.distances
+        bestdist.sort()
+     #   print("best=",bestdist[0])
+        
+
+       # print("genepool dist=",ts.totalgenepool_dist)
+        if bestdist[0]<bestjourneydist:
+            bestjourneydist=bestdist[0]
+            
+      #  print("distances=",ts.distances,"total=",ts.totalgenepool_dist)
+        print("best journey=",ts.genepool[bestjourneyno],"dist=",bestjourneydist)
+
+
+
+        # reproduction
+        # total the fitness of each string and create a % breakdown score of the total for each of the strings in the population
+        # create a biased roulette probability_table where the % breakdown score is the probability of the probability_table landing on that string
+        # spin the probability_table m times each time yielding a reproduction candidate of the population
+        # in this way more highly fit strings have more offspring in the next generation.
+
+
+
+        # calc payoff probabilities
+        ts.probability_table=[]
+        for x in range(0,len(ts.distances)):
+            ts.probability_table.append((ts.distances[x]/ts.totalgenepool_dist)*scaling)
+    #    print("prob table=",ts.probability_table,"sum=",sum(ts.probability_table))
+
+        # setup a roulette wheel with the smallest distances having the largest slice of the wheel
+
+        ts.probtable_len=len(ts.probability_table)
+
+        mpt=round(mean(ts.probability_table))
+        ts.wheel=[]
+        n=0 
+        while n<=ts.probtable_len-1:
+            piesize=round(ts.probability_table[n])
+            if piesize<0:
+                piesize=0
+                
+                # invert probabilities
+            ts.wheel=ts.wheel+([n] * abs((2*mpt)-piesize))   # invert across mean
+            n=n+1
+          
+    #    print("wheel=",ts.wheel)
+        
+        ts.wheel_len=len(ts.wheel)
+        
+        # spin the mating wheel and create a new population
+    #    print("spin the mating wheel and create a new population")
+
+        ts.mates=spin_the_mating_wheel(ts)
+
+    #   print("mates=",ts.mates)
+
+    #    print("PMX crossover")
+        # turn the list of tuples of lists into a list of lists for the next round
+        ts.genepool=pmx_loop(ts.mates)
+
+
+    #    print("new generation=")
+
+    print("finished:",len(ts.genepool))
+        
+        
+               
+
 ##        mates,len_wheel=spin_the_mating_wheel(probability_table,population,r.pop_size,r.direction)  # wheel_len is the size of the unique gene pool to select from in the probability_table
 ##
 ##           
