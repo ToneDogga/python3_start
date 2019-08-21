@@ -133,6 +133,38 @@ def generate_payoff_environment_7d_file(astart_val,asize_of_env,bstart_val,bsize
 
 
 
+def format_csv(r):   
+    rowno=0
+    g=open("new"+r.payoff_filename,"w")  # clear file out
+    g.close()
+    g=open("new"+r.payoff_filename,"a")  # create a new file to write the padded lines out to
+    f=open(r.payoff_filename,"r")
+    while True:
+        w=f.readline().strip()
+        if not w: break
+        # w=w[:-(r.extra_eol_char)]   # take \r off if windows
+        padding=r.linewidth+r.extra_eol_char-2-len(w)   #-2
+        if rowno==0 and r.extra_eol_char==1:
+            w=w+"   "
+        w=w+" "*padding
+      #  while len(w)<r.linewidth:
+      #      w=w+" "
+      #  if len(w)!=r.linewidth:    
+      #      print("lenw=",len(w))
+      #      input("?")
+        g.write(w+"\n")
+        rowno+=1                           
+
+   # print("\rProgress: [%d%%] " % (rowno/total_rows*100),end='\r', flush=True)
+    g.close()
+    f.close()
+  #  print("")
+    return
+
+
+
+
+
 def count_file_rows(filename):
     with open(filename,'r') as f:
         return sum(1 for row in f)
@@ -207,20 +239,21 @@ def return_a_row_from_envir_using_rowno(val,env):
         try:   
             ret=env.iloc[val].values.tolist()
             if ret:
+         #       print(ret)
                 return(ret,True)
             else:
          #       print("val not found in environment")
-                return([0,0,0,0,0,0,0,0,0],False)
+                return(["",0,0,0,0,0,0,0,0],False)
             
         except IndexError:
          #   print("\nindex error val=",val)
-            return([0,0,0,0,0,0,0,0,0],False)
+            return(["",0,0,0,0,0,0,0,0],False)
         except ValueError:
             print("\nvalue error val=",val)
-            return([0,0,0,0,0,0,0,0,0],False)
+            return(["",0,0,0,0,0,0,0,0],False)
         except IOError:
             print("\nIO error")
-            return([0,0,0,0,0,0,0,0,0],False)
+            return(["",0,0,0,0,0,0,0,0],False)
 
 
 
@@ -234,31 +267,26 @@ def return_a_row_from_envir_using_concatno(val,env):
                 return(ret,True)
             else:
          #       print("val not found in environment")
-                return([0,0,0,0,0,0,0,0,0],False)
+                return(["",0,0,0,0,0,0,0,0],False)
             
         except IndexError:
         #   print("\nindex error val=",val)
-            return([0,0,0,0,0,0,0,0,0],False)
+            return(["",0,0,0,0,0,0,0,0],False)
         except ValueError:
             print("\nvalue error val=",val)
-            return([0,0,0,0,0,0,0,0,0],False)
+            return(["",0,0,0,0,0,0,0,0],False)
         except IOError:
             print("\nIO error")
-            return([0,0,0,0,0,0,0,0,0],False)
+            return(["",0,0,0,0,0,0,0,0],False)
 
 
 
-def return_a_row_from_file(val,filename,r):
+def return_a_row_from_file(val,r):
         # we know that the each line in the file is exactly global "linewidth" bytes long including the '\n'
         try:
-            with open(filename,"r") as f:
-                f.seek((r.linewidth+r.extra_eol_char)*val)   # if a windows machine add an extra char for the '\r' EOL char       
-                p=["0",f.readline().split(',')]  # add an extra element to the row because the concatno field is not in the payoff file
-            if len(p)>1:
-                return(list(itertools.chain(*p)),True)
-            else:
-                return([0,0,0,0,0,0,0,0,0],False)
-
+            with open(r.payoff_filename,"r") as f:
+                f.seek((r.linewidth+r.extra_eol_char)*val,0)   # if a windows machine add an extra char for the '\r' EOL char
+                d=f.readline().rstrip()
 
           #     return(list(itertools.chain(*p)))
                 
@@ -272,6 +300,25 @@ def return_a_row_from_file(val,filename,r):
             print("\nIO error")
             return([0,0,0,0,0,0,0,0,0],False)
 
+               
+        line=d.split(',')  
+
+           # i=[]    
+         #   d.insert(0,0)  # add an extra element to the row because the concatno field is not in the payoff file
+        print("line=",line,"len line=",len(line),"d=",d,"val=",val)
+          #  input("?")
+        if len(line)>2:
+               # i=list(itertools.chain(*d))
+            line.insert(0,0)   # add an extra element to the row because the concatno field is not in the payoff file
+            print("line=",line)
+            input("?")
+            return(line,True)
+
+        else:
+            return([0,0,0,0,0,0,0,0,0],False)
+
+
+
 
 def return_a_row_from_linecache(val,filename):   # assumes the payoff is the last field in a CSV delimited by ","
       #  print("line no:",row,":",linecache.getline(filename,row+1))   #.split(",")[-1])
@@ -279,25 +326,25 @@ def return_a_row_from_linecache(val,filename):   # assumes the payoff is the las
             l=linecache.getline(filename,val+1).rstrip()
             if l:
                 p=["0",l.split(',')]  # add an extra element to the row because the concatno field is not in the payoff file
-                print("linecache p=",p)
+             #   print("linecache p=",p)
                 if p:
                     return(list(itertools.chain(*p)),True)
                 else:
-                    return([0,0,0,0,0,0,0,0,0],False)
+                    return(["",0,0,0,0,0,0,0,0],False)
             else:
-                return([0,0,0,0,0,0,0,0,0],False)
+                return(["",0,0,0,0,0,0,0,0],False)
                
  
             
         except IndexError:
          #   print("\nindex error at val+1",val+1)
-            return([0,0,0,0,0,0,0,0,0],False)
+            return(["",0,0,0,0,0,0,0,0],False)
         except ValueError:
        #     print("\nvalue error row+1=",val+1) 
-            return([0,0,0,0,0,0,0,0,0],False)
+            return(["",0,0,0,0,0,0,0,0],False)
         except IOError:
             print("\nIO error")
-            return([0,0,0,0,0,0,0,0,0],False)
+            return(["",0,0,0,0,0,0,0,0],False)
 
 
 
@@ -321,7 +368,7 @@ def calc_mating_probabilities(newpopulation,r,env):
         
         #size=len(newpopulation)
        # print("new population size=",size)
-        for gene in range(0,r.pop_size-1):
+        for gene in range(0,r.pop_size):
            # print("gene=",gene,"/",pop_size-1)
             fittest=newpopulation.loc[gene,"expressed"]
           #  val=int(fittest,2)   # binary base turned into integer
@@ -336,7 +383,7 @@ def calc_mating_probabilities(newpopulation,r,env):
                     total_payoff+=abs(payoff[8])
                     
             elif r.row_find_method=="s":
-                payoff,found=return_a_row_from_file(int(fittest,2),r.payoff_filename,r)
+                payoff,found=return_a_row_from_file(int(fittest,2),r)
                 if found:
                     total_payoff+=abs(float(payoff[8].rstrip()))
                 
@@ -375,7 +422,7 @@ def calc_mating_probabilities(newpopulation,r,env):
                     p=0
                     
             elif r.row_find_method=="s":
-                payoff,found=return_a_row_from_file(int(fittest,2),r.payoff_filename,r)
+                payoff,found=return_a_row_from_file(int(fittest,2),r)
                 if found:
                     p=abs(float(payoff[8].rstrip()))
                 else:
@@ -846,7 +893,7 @@ def genetic_algorithm(r,env):   # class r contains all the settings for the algo
  
 
             
-            for gene in range(0,size-1):  #newpopulation.iterrows():
+            for gene in range(0,size):  #newpopulation.iterrows():
 
                 plist=[]
                 pfound=False
@@ -872,7 +919,7 @@ def genetic_algorithm(r,env):   # class r contains all the settings for the algo
                     elif r.row_find_method=="r":
                         plist,pfound=return_a_row_from_envir_using_rowno(int(fittest,2),env)
                     elif r.row_find_method=="s":
-                        plist,pfound=return_a_row_from_file(int(fittest,2),r.payoff_filename,r)
+                        plist,pfound=return_a_row_from_file(int(fittest,2),r)
                     elif r.row_find_method=="l":
                         plist,pfound=return_a_row_from_linecache(int(fittest,2),r.payoff_filename)                  
                     else:
@@ -1287,8 +1334,8 @@ def main():
         pass
 
     ga.ploidy=2  # number of chromosomes per individual.  To increase this you will need to change the dataframes also!
-    ga.pop_size=60  # population size
-    ga.payoff_filename="shopsales31.csv"
+    ga.pop_size=256  # population size
+    ga.payoff_filename="shopsales4.csv"
     ga.total_rows=count_file_rows(ga.payoff_filename)
     ga.number_of_cols=8   # 7 input vars and 1 out  = 8
     ga.row_find_method="c"
@@ -1384,7 +1431,7 @@ def main():
 
 #################################################3
     
-    if platform.system().lower()[:7]=="windows":
+    if platform.system().strip().lower()[:7]=="windows":
         ga.extra_eol_char=1
         ga.cls="cls"
     else:
@@ -1443,19 +1490,17 @@ def main():
     print("\n")
     ga.row_find_method=""
     while ga.row_find_method!="c" and ga.row_find_method!="r" and ga.row_find_method!="s" and ga.row_find_method!="l":
-        ga.row_find_method=input("Use (c)oncatno or (r)owno or file(s)eek or (l)inecache?")
+        ga.row_find_method=input("Use (c)oncatno or (r)owno or (l)inecache?")
 
 
     if ga.row_find_method=="s" or ga.row_find_method=="l":
         csv_envir = pd.DataFrame() #creates a new dataframe that's empty, we are not using it with the fileseek method
-       # csv_envir = csv_envir.append(oldenv, ignore_index = True)
 
-     #   plist=return_a_row_from_file(int("0101100",2),ga.payoff_filename)
-    ##
-    ##    ro=return_a_row_from_envir_using_concatno("1011000",csv_envir)
-     #   print("plist=",plist)
-     #   input("?")
- 
+
+        if ga.row_find_method=="s":
+            format_csv(ga)   # format the file to ga.linewidth length to allow the fast file seek method
+            ga.payoff_filename="new"+ga.payoff_filename  #the input filename now has new in front of it
+  
 
        
     else:    
