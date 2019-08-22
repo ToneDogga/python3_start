@@ -423,6 +423,7 @@ def pmx(jlist1,jlist2):    # partially matched crossover
 #                else:
                       #  print("not jumping over j=",j,"c1=",cut1_choice,"c2=",cut2_choice)          
                 if new2[j]==swaps1[k]:
+
            #         print("found2. swaps1 at k=",k,"swaps[k]=",swaps1[k],"at j=",j,"in new2")
         
                     found2=True
@@ -540,7 +541,7 @@ def mutate(newpool,mutation_rate):
 
 #################################################
 
-def ga_ts_run(stops,no_of_stops,poolsize,epoch_length,q):
+def ga_ts_run(stops,no_of_stops,poolsize,epoch_length,mutation_rate,q):
 
 # j is a copy of the variable class
 # q is the multiprocessing queue that the messages are sent back through
@@ -561,7 +562,7 @@ def ga_ts_run(stops,no_of_stops,poolsize,epoch_length,q):
   #  print("genes=",ts.genepool)
 
     
-    tsout=open("tsout.txt","a")
+    tsout=open("TSGAresults1.txt","a")
 
     print("Gene pool size",poolsize)
 
@@ -593,7 +594,7 @@ def ga_ts_run(stops,no_of_stops,poolsize,epoch_length,q):
             bestjourneydist=totalgenepool_dist
             print("")
           #  print("best journey=",ts.genepool[bestjourneyno],"dist=",bestjourneydist)
-            t="PID:"+str(os.getpid())+" best journey= "+str(genepool[bestjourneyno])+" dist="+str(round(bestjourneydist,2))+" gen:"+str(gencount)+"\n"
+            t="PID:"+str(os.getpid())+" best journey= "+str(genepool[bestjourneyno])+" dist="+str(round(bestjourneydist,2))+" gen:"+str(gencount)+" Mutation rate:"+str(mutation_rate)+"\n"
             tsout.write(t)
             add_to_queue(t,q)
         if gencount==epoch_length:
@@ -655,15 +656,15 @@ def ga_ts_run(stops,no_of_stops,poolsize,epoch_length,q):
         # turn the list of tuples of lists into a list of lists for the next round
         genepool=pmx_loop(mates)
 
-        genepool=mutate(genepool,3)   # mutation rate is numbner of mutations per call
+        genepool=mutate(genepool,mutation_rate)   # mutation rate is numbner of mutations per call
         
     #    print("new generation=")
 
     print("\n\nFinished PID:",os.getpid())   # genepool length=",len(ts.genepool))
-    print("Best journey dist=",round(bestjourneydist,2))
+    print("Best journey dist=",round(bestjourneydist,2),"Mutation rate=",mutation_rate)
     print("Best route")
     tsout.write("Best route\n")
-
+    starttime=str(datetime.datetime.now())
    # clock_end=timer()  #.process_time()
    # duration_clock=clock_end-clock_start
 
@@ -677,7 +678,10 @@ def ga_ts_run(stops,no_of_stops,poolsize,epoch_length,q):
 
    # return
     tsout.flush()
-    time.sleep(2)  # wait for other processes
+    time.sleep(4)  # wait for other processes
+    
+    finishtime=str(datetime.datetime.now())
+    print("Finished at",finishtime)
     return
 
 
@@ -717,6 +721,7 @@ def main():
     #ts.mates=[]
 
     poolsize=200
+    mutation_rate=[1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8]   # different mutation rates for the different parallel processes
     
     #ts.genepool=[]
 
@@ -774,7 +779,7 @@ def main():
 
     multiple_results=[]
     epoch_length=int(sys.argv[1])
-
+    i=0
     with Pool(processes=cpus) as pool:  # processes=cpus-1
          #put listener to work first
         watcher = pool.apply_async(listener, args=(q,filename ))
@@ -787,8 +792,9 @@ def main():
 
     
         for i in range(0,cpus-1):
-            multiple_results.append(pool.apply_async(ga_ts_run,args=(stops,no_of_stops,poolsize,epoch_length,q )))  # stops, journey and poolsize, epoch length and name of q
-        
+            multiple_results.append(pool.apply_async(ga_ts_run,args=(stops,no_of_stops,poolsize,epoch_length,mutation_rate[i],q )))  # stops, journey and poolsize, epoch length and name of q
+            i+=1
+            
         for res in multiple_results:
             result=res.get(timeout=None)
             res.wait()
