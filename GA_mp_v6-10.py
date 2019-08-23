@@ -1387,7 +1387,7 @@ def genetic_algorithm(bits,constraints,params,q):   # dictionary "params" contai
                     if params["batch_run"]=="y":
                         print("\rBATCH Total Progress:[%d%%]" % (round(((total_total_generations+1)/(params["epoch_length"]*params["no_of_epochs"]*2*(bits["arange"]+bits["brange"]+bits["crange"]+bits["drange"]+bits["erange"]+bits["frange"]+bits["grange"])))*100)),end="\r",flush=True)
                     else:    
-                        print("\rTotal Progress:[%d%%]" % (round(((total_generations+1)/(epoch_length*no_of_epochs))*100)),end="\r",flush=True)
+                        print("\rTotal Progress:[%d%%]" % (round(((total_generations+1)/(params["epoch_length"]*params["no_of_epochs"]))*100)),end="\r",flush=True)
                         
                 else:
                     #print("\n",returned_payoff," payoff.")
@@ -1881,7 +1881,7 @@ def main():
 
 
     print("\n")
-    params["advanced_diag"]="a"
+    params["advanced_diag"]=""
     while params["advanced_diag"]!="p" and params["advanced_diag"]!="a" and params["advanced_diag"]!="s":
         params["advanced_diag"]=input("Do you want to display standard-(p)rogress, (a)dvanced diagnostics or (s)ilent mode?")
 
@@ -2126,8 +2126,8 @@ def main():
        #         multiple_results = [pool.apply_async(generate_payoff_environment_1d_mp,args=(0,remainder,q,linewrite,lwremainder ))]
        #     else:
        #         multiple_results=[]
-           # for i in range(0,cpus-1):
-            multiple_results.append(pool.apply_async(genetic_algorithm,args=(bits,constraints,params,q )))
+            for i in range(0,cpus-1):
+                multiple_results.append(pool.apply_async(genetic_algorithm,args=(bits,constraints,params,q )))
 
             for res in multiple_results:
                 result=res.get(timeout=None)       
