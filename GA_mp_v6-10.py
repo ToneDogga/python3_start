@@ -94,10 +94,10 @@ from timeit import default_timer as timer
 #global TOTAL_TOTAL_GENERATIONS
 #TOTAL_TOTAL_GENERATIONS=0
 
-def writetofile(bytestr,f):   
-    f.write(str(bytestr)+"\n")
-    f.flush()
-    return
+#def writetofile(bytestr,f):   
+#    f.write(str(bytestr)+"\n")
+#    f.flush()
+#    return
 
 
 
@@ -109,33 +109,35 @@ def listener(q,results_file):    #,l_lock):
   #  g=open(diag_file,"w")
   #  g.close()
     
-    print("Multicore processing starting. Queue listener started on:",os.getpid())
+    print("Multicore processing starting. Queue listener started on PID:",os.getpid())
    # l_lock.acquire()
-    f=open(results_file,"a")   #,buffering=8096)
-  #  g=open(diag_file,"a")       
-    #f.flush()
-    while True:
-       # if q.full():
-       #     print("q full")
-       #     break
-        m = q.get()    #timeout=20)  get_nowait
-        if m == "kill":
-         #   print("trying to kill listener process.  Flushing q.  qsize=",q.qsize())
-            #f.write("killed\n")
-            while not q.empty():
-                m=q.get()
-                writetofile(m,f)
-   #             writetofile(m,g)
-            #   f.flush()
-            break
-        else: 
-            writetofile(m,f)
-        #    writetofile(m,g)
-           #+":"+q.qsize()+"\n")
-          #  f.write(str(q.qsize())+'\n')
-           # f.flush()
-       
-  #  q.close()
+    with open(results_file,"a") as f:   #,buffering=8096)
+        while True:
+           # if q.full():
+           #     print("q full")
+           #     break
+            message = q.get()    #timeout=20)  get_nowait
+            if message == "kill":
+             #   print("trying to kill listener process.  Flushing q.  qsize=",q.qsize())
+                #f.write("killed\n")
+                while not q.empty():
+                    message=q.get()
+                    f.write(str(message)+"\n")
+                    f.flush()
+                    #writetofile(m,f)
+       #             writetofile(m,g)
+                #   f.flush()
+                break
+            else: 
+                #writetofile(m,f)
+                f.write(str(message)+"\n")
+                f.flush()
+            #    writetofile(m,g)
+               #+":"+q.qsize()+"\n")
+              #  f.write(str(q.qsize())+'\n')
+               # f.flush()
+           
+      #  q.close()
     f.close()
  #   g.close()       
     print("Multicore processing finishing. Queue listener closed on:",os.getpid())
@@ -1385,11 +1387,11 @@ def genetic_algorithm(bits,constraints,params,mut_rate,q):   # dictionary "param
             
             allcount=(population['expressed']).count()
             avefitness=((population['fitness']).sum())/allcount
-            if params["advanced_diag"]=="a":   # extra advance detail
-                dupcount=allcount-(((population['expressed']).drop_duplicates()).count())
-            # count unique parents from parentid1 and parentid2
-                nondup_par1=(population['parentid1'].drop_duplicates()).count()   #+((population['parentid1']).drop_duplicates()).count()
-                nondup_par2=(population['parentid2'].drop_duplicates()).count()   #+((population['parentid1']).drop_duplicates()).count()
+         #   if params["advanced_diag"]=="a":   # extra advance detail
+            dupcount=allcount-(((population['expressed']).drop_duplicates()).count())
+        # count unique parents from parentid1 and parentid2
+            nondup_par1=(population['parentid1'].drop_duplicates()).count()   #+((population['parentid1']).drop_duplicates()).count()
+            nondup_par2=(population['parentid2'].drop_duplicates()).count()   #+((population['parentid1']).drop_duplicates()).count()
 
 
      #       Counter(probability_table).keys() # equals to list(set(words))
@@ -1490,9 +1492,9 @@ def genetic_algorithm(bits,constraints,params,mut_rate,q):   # dictionary "param
                 m=m+str(nondup_par1)+" unique first parents, and "+str(nondup_par2)+" unique second parents of "+str(allcount)+" chomosomes.\n"
                 m=m+"Scaling factor="+str(params["scaling_factor"])+" * genepool size "+str(params["pop_size"])+" = actual scaling: "+str(params["actual_scaling"])+"\n"
 
-                n=n+"PID:"+pid+" "+"Current a="+str(a)+" b="+str(b)+" c="+str(c)+" d="+str(d)+" e="+str(e)+" f="+str(f)+" g="+str(g)+"\n"
-                n=n+"PID:"+pid+" "+"Fittest so far:"+str(best_fittest)+" best rowno ["+str(best_rowno)+"] in best generation ["+str(best_gen)+"] in best epoch ["+str(best_epoch)+"] max payoff "+str(max_payoff)+"\n"
-                n=n+"PID:"+pid+" "+"Best a="+str(besta)+" b="+str(bestb)+" c="+str(bestc)+" d="+str(bestd)+" e="+str(beste)+" f="+str(bestf)+" g="+str(bestg)+"\n\n"
+                m=m+"PID:"+pid+" "+"Current a="+str(a)+" b="+str(b)+" c="+str(c)+" d="+str(d)+" e="+str(e)+" f="+str(f)+" g="+str(g)+"\n"
+                m=m+"PID:"+pid+" "+"Fittest so far:"+str(best_fittest)+" best rowno ["+str(best_rowno)+"] in best generation ["+str(best_gen)+"] in best epoch ["+str(best_epoch)+"] max payoff "+str(max_payoff)+"\n"
+                m=m+"PID:"+pid+" "+"Best a="+str(besta)+" b="+str(bestb)+" c="+str(bestc)+" d="+str(bestd)+" e="+str(beste)+" f="+str(bestf)+" g="+str(bestg)+"\n\n"
 
 
 
@@ -1547,9 +1549,9 @@ def genetic_algorithm(bits,constraints,params,mut_rate,q):   # dictionary "param
    #             outfile.write("Genepool size "+str(pop_size)+" * min_scaling factor "+str(min_scaling)+" / scaling factor "+str(scaling_factor)+" = actual scaling: "+str((pop_size*min_scaling)/scaling_factor)+"\n")
                 m=m+"Scaling factor="+str(params["scaling_factor"])+" * genepool size "+str(params["pop_size"])+" = actual scaling: "+str(params["actual_scaling"])+"\n"
 
-                n=n+"PID:"+pid+" "+"Current a="+str(a)+" b="+str(b)+" c="+str(c)+" d="+str(d)+" e="+str(e)+" f="+str(f)+" g="+str(g)+"\n"
-                n=n+"PID:"+pid+" "+"Fittest so far:"+str(best_fittest)+" best rowno ["+str(best_rowno)+"] in best generation ["+str(best_gen)+"] in best epoch ["+str(best_epoch)+"] min payoff "+str(min_payoff)+"\n"
-                n=n+"PID:"+pid+" "+"Best a="+str(besta)+" b="+str(bestb)+" c="+str(bestc)+" d="+str(bestd)+" e="+str(beste)+" f="+str(bestf)+" g="+str(bestg)+"\n\n"
+                m=m+"PID:"+pid+" "+"Current a="+str(a)+" b="+str(b)+" c="+str(c)+" d="+str(d)+" e="+str(e)+" f="+str(f)+" g="+str(g)+"\n"
+                m=m+"PID:"+pid+" "+"Fittest so far:"+str(best_fittest)+" best rowno ["+str(best_rowno)+"] in best generation ["+str(best_gen)+"] in best epoch ["+str(best_epoch)+"] min payoff "+str(min_payoff)+"\n"
+                m=m+"PID:"+pid+" "+"Best a="+str(besta)+" b="+str(bestb)+" c="+str(bestc)+" d="+str(bestd)+" e="+str(beste)+" f="+str(bestf)+" g="+str(bestg)+"\n\n"
 
 
            #     m=m+"Current a="+str(a)+" b="+str(b)+" c="+str(c)+" d="+str(d)+" e="+str(e)+" f="+str(f)+" g="+str(g)+"\n"
@@ -1628,7 +1630,11 @@ def genetic_algorithm(bits,constraints,params,mut_rate,q):   # dictionary "param
        #     print("")
 
 
-    print("\nPID:"+pid+" Fittest so far:"+str(best_fittest)+" best rowno ["+str(best_rowno)+"] in best generation ["+str(best_gen)+"] in best epoch ["+str(best_epoch)+"]\nMin cost "+str(min_payoff)+"\nMax payoff "+str(max_payoff))
+    print("\nPID:"+pid+" Fittest so far:"+str(best_fittest)+" best rowno ["+str(best_rowno)+"] in best generation ["+str(best_gen)+"] in best epoch ["+str(best_epoch)+"]")
+    if params["direction"]=="x":
+        print("Max payoff:"+str(max_payoff))
+    else:          
+        print("Min cost:"+str(min_payoff))
     print("PID:"+pid+" Genepool average fitness= "+str(avefitness)+"\n From pop_size:{"+str(params["pop_size"])+"}"+" Mutation rate 1/"+str(mut_rate)+"\n")
     print("PID:"+pid+" Best a="+str(besta)+" b="+str(bestb)+" c="+str(bestc)+" d="+str(bestd)+" e="+str(beste)+" f="+str(bestf)+" g="+str(bestg))
 
@@ -1647,9 +1653,9 @@ def genetic_algorithm(bits,constraints,params,mut_rate,q):   # dictionary "param
 
  #   n=n+"\n\n\n"+bestpopulation.to_string()
     n=n+"\n\n\n"
-
-    add_to_queue(m,q)   # diagnotistic string to file
-    time.sleep(1)
+    if params["advanced_diag"]=="y":
+        add_to_queue(m,q)   # diagnotistic string to file
+        time.sleep(1)
     
     add_to_queue(n,q)   # results string to file
 
@@ -1698,16 +1704,10 @@ def main():
         no_of_cols=8,
         ploidy=2,
         row_find_method="l",
+        advanced_diag="n",
         extra_eol_char=0,
         linewidth=76,
         total_rows=0,
-      #  besta=0,
-      #  bestb=0,
-      #  bestc=0,
-      #  bestd=0,
-      #  beste=0,
-      #  bestf=0,
-      #  bestg=0,
         epoch_length=20,
         no_of_epochs=1,
         total_generations=0,
@@ -1720,7 +1720,6 @@ def main():
         mutation_count=0,
         mutations=0,
         mutation_rate=[800,700,600,500,400,300,200],   # different mutation rates mutate 1 bit in every 400.  but the mutation is random 0 or 1 so we need to double the try to mutate rate. but there are also 2 chromos
-        advanced_diag="a",
         diagnostic_file="GA_diagnostic.txt",
         results_file="GA_results.txt")
 
@@ -1966,9 +1965,11 @@ def main():
 ##    diag_file=open(params["diagnostic_file"],"a")
 
 
-    results_file=open(params["results_file"],"w")
-    results_file.close()
+    with open(params["results_file"],"w") as results_file:
+        pass
+    #results_file.close()
 
+   # with open(params["results_file"],"a") as results_file:      
     results_file=open(params["results_file"],"a")       
 
 
@@ -1979,10 +1980,10 @@ def main():
 #        ga.c_over=input("(s)imple crossover or (p)mx?")
 
 
- #   print("\n")
- #   params["advanced_diag"]=""
- #   while params["advanced_diag"]!="p" and params["advanced_diag"]!="a" and params["advanced_diag"]!="s":
- #       params["advanced_diag"]=input("Do you want to display standard-(p)rogress, (a)dvanced diagnostics or (s)ilent mode?")
+   # print("\n")
+    params["advanced_diag"]=""
+    while params["advanced_diag"]!="y" and params["advanced_diag"]!="n":
+        params["advanced_diag"]=input("Do you want to log advanced diagnostics to file? (y/n)")
 
   #  print("\n")
 
