@@ -91,6 +91,8 @@ import hashlib
 import multiprocessing 
 from timeit import default_timer as timer
 
+#global TOTAL_TOTAL_GENERATIONS
+#TOTAL_TOTAL_GENERATIONS=0
 
 def writetofile(bytestr,f):   
     f.write(str(bytestr)+"\n")
@@ -99,11 +101,11 @@ def writetofile(bytestr,f):
 
 
 
-def listener(q,results_file,diag_file):    #,l_lock):
+def listener(q,results_file):    #,l_lock):
     '''listens for messages on the q, writes to file. '''
 # empty out file
-    f=open(results_file,"w")
-    f.close()
+   # f=open(results_file,"w")
+   # f.close()
   #  g=open(diag_file,"w")
   #  g.close()
     
@@ -811,12 +813,12 @@ def GA_mp(bits,constraints,params):  # multiprocessing! run the same epoch lengt
 ##            EOL='\n'
 
 
-    print("cpus=",cpus,". (1 queue listener, and",cpus-1,"cores optimising in parallel).")
+    print("\nCPUs=",cpus,". (1 queue listener, and",cpus-1,"cores optimising in parallel).")
     multiple_results=[]
 
     with Pool(processes=cpus) as pool:  # processes=cpus-1
          #put listener to work first
-        watcher = pool.apply_async(listener, args=(q,params["results_file"],params["diagnostic_file"] ))
+        watcher = pool.apply_async(listener, args=(q,params["results_file"] ))
 
 
    #     if remainder!=0:
@@ -827,7 +829,8 @@ def GA_mp(bits,constraints,params):  # multiprocessing! run the same epoch lengt
             multiple_results.append(pool.apply_async(genetic_algorithm,args=(bits,constraints,params,params["mutation_rate"][i],q )))
 
         for res in multiple_results:
-            result=res.get(timeout=None)       
+            result=res.get(timeout=None)
+            params["total_total_generations"]=result
             res.wait()
 
         print("Generate payoff results finished")
@@ -1052,7 +1055,7 @@ def genetic_algorithm(bits,constraints,params,mut_rate,q):   # dictionary "param
 ##    epoch_length=80
 ##    no_of_epochs=4
 ##    total_generations=0
-    total_total_generations=0
+  #  total_total_generations=0
 ##    
 ##    
 ##    scaling_factor=25  # 25 scaling figure is the last. this is related to the size of the genepool. this multiplies the payoff up so that diversity is not lost on the probability_table when probs are rounded
@@ -1395,50 +1398,53 @@ def genetic_algorithm(bits,constraints,params,mut_rate,q):   # dictionary "param
 
 
 
-            if params["advanced_diag"]=="s": # silent mode
-                pass
-            else:
-                tmp=sp.call(params["cls"],shell=True)  # clear screen 'use 'clear for unix, cls for windows
+           # if params["advanced_diag"]=="s": # silent mode
+           #     pass
+           # else:
 
-                print("Genetic algorithm. By Anthony Paech.")
-                print("Started at:",datetime.datetime.now())
-                if params["direction"]=="x":
-                    print("\nMAXIMISING.....")
-                elif params["direction"]=="n":
-                    print("\nMINIMISING.....")
-                if constraints["pconstrain"]:
-               # outfile.write(str(minp)+" <= payoff/cost <= "+str(maxp)+"\n")
-                    print(str(constraints["minp"])," <= payoff/cost <= ",str(constraints["maxp"]))
 
-                if constraints["aconstrain"]:
-               #     outfile.write(str(mina)+" <= a <= "+str(maxa)+"\n")
-                    print(str(constraints["mina"])," <= a <= ",str(constraints["maxa"]))
+           
+            tmp=sp.call(params["cls"],shell=True)  # clear screen 'use 'clear for unix, cls for windows
 
-                if constraints["bconstrain"]:
-                    #outfile.write(str(minb)+" <= b <= "+str(maxb)+"\n")
-                    print(str(constraints["minb"])," <= b <= ",str(constraints["maxb"]))
-            
-                if constraints["cconstrain"]:
-                    #outfile.write(str(minc)+" <= c <= "+str(maxc)+"\n")
-                    print(str(constraints["minc"])," <= c <= ",str(constraints["maxc"]))
-            
-                if constraints["dconstrain"]:
-                    #outfile.write(str(mind)+" <= d <= "+str(maxd)+"\n")
-                    print(str(constraints["mind"])," <= d <= ",str(constraints["maxd"]))
+            print("Genetic algorithm. By Anthony Paech.")
+            print("Started at:",datetime.datetime.now())
+            if params["direction"]=="x":
+                print("\nMAXIMISING.....")
+            elif params["direction"]=="n":
+                print("\nMINIMISING.....")
+            if constraints["pconstrain"]:
+           # outfile.write(str(minp)+" <= payoff/cost <= "+str(maxp)+"\n")
+                print(str(constraints["minp"])," <= payoff/cost <= ",str(constraints["maxp"]))
 
-                if constraints["econstrain"]:
-                    #outfile.write(str(mine)+" <= e <= "+str(maxe)+"\n")
-                    print(str(constraints["mine"])," <= e <= ",str(constraints["maxe"]))
+            if constraints["aconstrain"]:
+           #     outfile.write(str(mina)+" <= a <= "+str(maxa)+"\n")
+                print(str(constraints["mina"])," <= a <= ",str(constraints["maxa"]))
 
-                if constraints["fconstrain"]:
-                   # outfile.write(str(minf)+" <= f <= "+str(maxf)+"\n")
-                    print(str(constraints["minf"])," <= f <= ",str(constraints["maxf"]))
+            if constraints["bconstrain"]:
+                #outfile.write(str(minb)+" <= b <= "+str(maxb)+"\n")
+                print(str(constraints["minb"])," <= b <= ",str(constraints["maxb"]))
+        
+            if constraints["cconstrain"]:
+                #outfile.write(str(minc)+" <= c <= "+str(maxc)+"\n")
+                print(str(constraints["minc"])," <= c <= ",str(constraints["maxc"]))
+        
+            if constraints["dconstrain"]:
+                #outfile.write(str(mind)+" <= d <= "+str(maxd)+"\n")
+                print(str(constraints["mind"])," <= d <= ",str(constraints["maxd"]))
 
-                if constraints["gconstrain"]:
-                    #outfile.write(str(ming)+" <= g <= "+str(maxg)+"\n\n\n")
-                    print(str(constraints["ming"])," <= g <= ",str(constraints["maxg"]))
-         
-                print("======================================")
+            if constraints["econstrain"]:
+                #outfile.write(str(mine)+" <= e <= "+str(maxe)+"\n")
+                print(str(constraints["mine"])," <= e <= ",str(constraints["maxe"]))
+
+            if constraints["fconstrain"]:
+               # outfile.write(str(minf)+" <= f <= "+str(maxf)+"\n")
+                print(str(constraints["minf"])," <= f <= ",str(constraints["maxf"]))
+
+            if constraints["gconstrain"]:
+                #outfile.write(str(ming)+" <= g <= "+str(maxg)+"\n\n\n")
+                print(str(constraints["ming"])," <= g <= ",str(constraints["maxg"]))
+     
+            print("======================================")
 
 
 
@@ -1448,7 +1454,7 @@ def genetic_algorithm(bits,constraints,params,mut_rate,q):   # dictionary "param
                #     pass
                # else:
                 print("Epoch",epoch,"of",params["no_of_epochs"])
-                print("Epoch progress:[%d%%]" % (generation/params["epoch_length"]*100)," Generation no:",generation,"/",params["epoch_length"],"fittest of this generation:",fittest)
+                print("Epoch progress:[%d%%]" % (generation/params["epoch_length"]*100)," Generation no:",generation,"/",params["epoch_length"],"  Average fitness of this gen:",avefitness," max payoff->",max_payoff)
 
      #          if params["advanced_diag"]=="a":
                 m=m+"\nGenepool. Ave Fitness="+str(avefitness)+" #Duplicates expressed="+str(dupcount)+" of "+str(allcount)+" . Diversity of probability_table weighting=["+str(len_wheel)+"]. probability_table[] size="+str(len_probability_table)+" \n"
@@ -1459,7 +1465,7 @@ def genetic_algorithm(bits,constraints,params,mut_rate,q):   # dictionary "param
 #                    print("\rTotal Progress:[%d%%]" % (round(((total_generations+1)/(r.epoch_length*r.no_of_epochs))*100)),end="\r",flush=True)
 
                 if params["batch_run"]=="y":
-                    print("\rBATCH Total Progress:[%d%%]" % (round(((total_total_generations+1)/(params["epoch_length"]*params["no_of_epochs"]*2*(bits["arange"]+bits["brange"]+bits["crange"]+bits["drange"]+bits["erange"]+bits["frange"]+bits["grange"])))*100)),end="\r",flush=True)
+                    print("\rBATCH Total Progress:[%d%%]" % (round(((params["total_total_generations"]+1)/(params["epoch_length"]*params["no_of_epochs"]*2*(bits["arange"]+bits["brange"]+bits["crange"]+bits["drange"]+bits["erange"]+bits["frange"]+bits["grange"])))*100)),end="\r",flush=True)
                 else:    
                     print("\rTotal Progress:[%d%%]" % (round(((total_generations+1)/(params["epoch_length"]*params["no_of_epochs"]))*100)),end="\r",flush=True)
                         
@@ -1506,7 +1512,7 @@ def genetic_algorithm(bits,constraints,params,mut_rate,q):   # dictionary "param
              #   else:
              
                 print("Epoch",epoch,"of",params["no_of_epochs"])
-                print("Epoch progress:[%d%%]" % (generation/params["epoch_length"]*100),"Generation no:",generation,"fittest of this generation:",fittest)
+                print("Epoch progress:[%d%%]" % (generation/params["epoch_length"]*100),"Generation no:",generation,"/",params["epoch_length"],"  Average fitness of this gen:",avefitness," min cost->",min_payoff)
 
 #                if params["advanced_diag"]=="a":
                 m=m+"\nGenepool. Ave fitness="+str(avefitness)+" #Duplicates expressed="+str(dupcount)+" of "+str(allcount)+" . Diversity of probability_table weighting=["+str(len_wheel)+"].  probability_table[] size="+str(len_probability_table)+" \n"
@@ -1516,7 +1522,7 @@ def genetic_algorithm(bits,constraints,params,mut_rate,q):   # dictionary "param
 
          #   if params["advanced_diag"]=="s":  # silent mode
                 if params["batch_run"]=="y":
-                    print("\rBATCH Total Progress:[%d%%]" % (round(((total_total_generations+1)/(params["epoch_length"]*params["no_of_epochs"]*2*(bits["arange"]+bits["brange"]+bits["crange"]+bits["drange"]+bits["erange"]+bits["frange"]+bits["grange"])))*100)),end="\r",flush=True)
+                    print("\rBATCH Total Progress:[%d%%]" % (round(((params["total_total_generations"]+1)/(params["epoch_length"]*params["no_of_epochs"]*2*(bits["arange"]+bits["brange"]+bits["crange"]+bits["drange"]+bits["erange"]+bits["frange"]+bits["grange"])))*100)),end="\r",flush=True)
                 else:    
                     print("\rTotal Progress:[%d%%]" % (round(((total_generations+1)/(params["epoch_length"]*params["no_of_epochs"]))*100)),end="\r",flush=True)
 ##                else:
@@ -1530,7 +1536,7 @@ def genetic_algorithm(bits,constraints,params,mut_rate,q):   # dictionary "param
 
                 m=m+"Epoch "+str(epoch)+"/"+str(params["epoch_length"])+" Gen:[%d%%] " % (generation/params["epoch_length"]*100)+" generation # "+str(generation)+" fittest of this generation "+fittest+"="+str(returned_payoff)+" best="+str(min_fittest)+"\n"
                 m=m+"Best epoch "+str(best_epoch)+" best gen "+str(best_gen)+" best row no "+str(best_rowno)+" min cost "+str(min_payoff)+"\n"
-                n=n+"PID:"+pid+" "+"Best epoch "+str(best_epoch)+" best gen "+str(best_gen)+" best row no "+str(best_rowno)+" max pay off "+str(max_payoff)+"\n"
+                n=n+"PID:"+pid+" "+"Best epoch "+str(best_epoch)+" best gen "+str(best_gen)+" best row no "+str(best_rowno)+" min cost "+str(min_payoff)+"\n"
 
          #   if params["advanced_diag"]=="a":
                 m=m+"Diversity of probability_table weighting=["+str(len_wheel)+"]   len probability_table[]="+str(len_probability_table)+"\n"
@@ -1596,8 +1602,8 @@ def genetic_algorithm(bits,constraints,params,mut_rate,q):   # dictionary "param
             m=m+"Mutation rate: 1/"+str(mut_rate)+" alleles. Mutation in individuals:"+str(whichmember)+"\n\n\n"
 
 
-            if params["batch_run"]=="y" and params["advanced_diag"]!="s":
-                print("\nBATCH Total Progress:[%d%%]" % (round(((total_total_generations+1)/(params["epoch_length"]*params["no_of_epochs"]*2*(bits["arange"]+bits["brange"]+bits["crange"]+bits["drange"]+bits["erange"]+bits["frange"]+bits["grange"])))*100)),end="\n",flush=True)
+            if params["batch_run"]=="y":
+                print("\rBATCH Total Progress:[%d%%]" % (round(((params["total_total_generations"]+1)/(params["epoch_length"]*params["no_of_epochs"]*2*(bits["arange"]+bits["brange"]+bits["crange"]+bits["drange"]+bits["erange"]+bits["frange"]+bits["grange"])))*100)),end="\r",flush=True)
 
 
 
@@ -1616,7 +1622,7 @@ def genetic_algorithm(bits,constraints,params,mut_rate,q):   # dictionary "param
 
 
             total_generations+=1
-            total_total_generations+=1
+            params["total_total_generations"]+=1
 
        # if params["advanced_diag"]!="s":    
        #     print("")
@@ -1653,7 +1659,7 @@ def genetic_algorithm(bits,constraints,params,mut_rate,q):   # dictionary "param
  #   results.close()
 
 
-    return
+    return(params["total_total_generations"])
 
 
 ###########################################
@@ -1719,6 +1725,7 @@ def main():
         results_file="GA_results.txt")
 
      #   ga.c_over=""
+     
      
     params["total_rows"]=count_file_rows(params["payoff_filename"])       
     params["actual_scaling"]=params["scaling_factor"]*params["pop_size"]        
