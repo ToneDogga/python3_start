@@ -159,7 +159,7 @@ def numpy_pickle():
 
 
 
-def draw_path(redraw,pygame,screen,font,pid,generation,epoch_length,best_distance,bestgeneration,stoplist):
+def draw_path(redraw,pygame,screen,font,pid,generation,epoch_length,probtable_set,best_distance,bestgeneration,stoplist):
  #      font = pygame.font.SysFont('Arial', 25)
   #      pygame.display.set_caption('Box Test')
 
@@ -188,7 +188,7 @@ def draw_path(redraw,pygame,screen,font,pid,generation,epoch_length,best_distanc
 
        
         
-    blitspace=screen.blit(font.render("Gen:"+str(generation)+"/"+str(epoch_length), True, (0,255,0)), (300, 5))  #, 2)
+    blitspace=screen.blit(font.render("Gen:"+str(generation)+"/"+str(epoch_length)+" Health:"+str(probtable_set), True, (0,255,0)), (300, 5))  #, 2)
     screen.fill((0,0,0),rect=blitspace)
     screen.blit(font.render("Gen:"+str(generation)+"/"+str(epoch_length), True, (0,255,0)), (300, 5))  #, 2)
 
@@ -269,8 +269,9 @@ def listener(xsize,ysize,q,filename):    #,l_lock):
             generation=m["generation"][0]
             epoch_length=m["epoch_length"][0]
             bestgeneration=m["bestgeneration"][0]
+            probtable_set=m["probtable_set"][0]
             stoplist=m["stop"][0]
-            draw_path(redraw,pygame,windowSurface,font,pid,generation,epoch_length,shortestdist,bestgeneration,stoplist)
+            draw_path(redraw,pygame,windowSurface,font,pid,generation,epoch_length,probtable_set,shortestdist,bestgeneration,stoplist)
         
 
 
@@ -736,6 +737,7 @@ def dataout_load_and_send(dataout,q):
         dataout["epoch_length"][0]=epoch_length
         dataout["bestgeneration"][0]=bestjourneyno
         dataout["best_distance"][0]=bestjourneydist
+        dataout["probtable_set"][0]=probtable_set
         
         for i in range(0,len(genepool[bestjourneyno])):
         #    print(i,stops[genepool[bestjourneyno][i]]) # 
@@ -770,8 +772,8 @@ def ga_ts_run(stops,no_of_stops,poolsize,epoch_length,mutation_rate,q):
 #####################################################
 # define the numpy data type that this function in multiprocessor mode will use to send data through a queue to the listener function
     mp_dataout=dict(
-        names=["pid","message","redraw","generation", "epoch_length", "bestgeneration", "best_distance","stop"],
-        formats=[np.int32,'|S25',np.bool,np.int32, np.int32, np.int32, np.float64, (np.int32, (no_of_stops,2))]
+        names=["pid","message","redraw","generation", "epoch_length", "bestgeneration","probtable_set", "best_distance","stop"],
+        formats=[np.int32,'|S25',np.bool,np.int32, np.int32, np.int32, np.int32, np.float64, (np.int32, (no_of_stops,2))]
     )
 
 
@@ -817,7 +819,7 @@ def ga_ts_run(stops,no_of_stops,poolsize,epoch_length,mutation_rate,q):
     genepool=create_starting_genepool(no_of_stops,poolsize)
   #  print("genes=",ts.genepool)
 
-    
+    probtable_set=0
 
     t="PID:"+pid+" :Gene pool size "+str(poolsize)+"\n"
 
@@ -827,7 +829,7 @@ def ga_ts_run(stops,no_of_stops,poolsize,epoch_length,mutation_rate,q):
     t=t+"PID:"+pid+" Genetic algorithm. Started at: "+starttime+"\n"
     print("PID:"+pid+":starting....")
     for gencount in range(1,epoch_length+1):
-
+    
 
         #  genepool is a list of lists
         # each list genepool[x] is a journey
@@ -855,7 +857,7 @@ def ga_ts_run(stops,no_of_stops,poolsize,epoch_length,mutation_rate,q):
           
         if gencount==epoch_length:
             print("")
-        print("PID:",pid,"Generation:",gencount," shortest distance:",round(bestjourneydist,2))  #,end='\r',flush=True)
+        print("PID:",pid,"Generation:",gencount," shortest distance:",round(bestjourneydist,2)," health:",probtable_set)  #,end='\r',flush=True)
      #   w="PID:"+str(os.getpid())+" Generation:"+str(gencount)," shortest distance:",str(round(bestjourneydist,2))+"\n"
      #   add_to_queue(w,q)
 
@@ -873,6 +875,7 @@ def ga_ts_run(stops,no_of_stops,poolsize,epoch_length,mutation_rate,q):
         dataout["epoch_length"][0]=epoch_length
         dataout["bestgeneration"][0]=bestjourneygen
         dataout["best_distance"][0]=bestjourneydist
+        dataout["probtable_set"][0]=probtable_set
         
         for i in range(0,len(genepool[bestjourneyno])):
         #    print(i,stops[genepool[bestjourneyno][i]]) # 
@@ -908,6 +911,9 @@ def ga_ts_run(stops,no_of_stops,poolsize,epoch_length,mutation_rate,q):
         # setup a roulette wheel with the smallest distances having the largest slice of the wheel
 
         probtable_len=len(probability_table)
+
+        probtable_set=len(set(probability_table))
+        
         if probtable_len<5:
             print("Warning, increase scaling.  Probability table",probtable_len,"too small.   <5 ")
         elif probtable_len>500:
