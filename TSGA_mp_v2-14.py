@@ -845,19 +845,22 @@ def ga_ts_run(stops,no_of_stops,poolsize,epoch_length,mutation_rate,q):
        # bestdist.sort()
      #   print("best=",bestdist[0])
         
-        dataout["redraw"][0]=False
+        drawit=False
        # print("genepool dist=",ts.totalgenepool_dist)
         if totalgenepool_dist<bestjourneydist:
             bestjourneydist=totalgenepool_dist
             bestjourneygen=gencount
-            dataout["redraw"][0]=True
+            
         #    print("")
           #  print("best journey=",ts.genepool[bestjourneyno],"dist=",bestjourneydist)
             t=t+"PID:"+pid+" best journey= "+str(genepool[bestjourneyno])+" dist="+str(round(bestjourneydist,2))+" gen:"+str(gencount)+" Mutation rate: "+str(mutation_rate)+" \n\n"
+            print("PID:",pid,"Generation:",gencount," shortest distance:",round(bestjourneydist,2)," health:",probtable_set,"Mutation rate:",mutation_rate)  #,end='\r',flush=True)
+            drawit=True
           
         if gencount==epoch_length:
             print("")
-        print("PID:",pid,"Generation:",gencount," shortest distance:",round(bestjourneydist,2)," health:",probtable_set)  #,end='\r',flush=True)
+            print("PID:",pid,"Generation:",gencount," shortest distance:",round(bestjourneydist,2)," health:",probtable_set,"Mutation rate:",mutation_rate )  #,end='\r',flush=True)
+            drawit=True
      #   w="PID:"+str(os.getpid())+" Generation:"+str(gencount)," shortest distance:",str(round(bestjourneydist,2))+"\n"
      #   add_to_queue(w,q)
 
@@ -869,6 +872,7 @@ def ga_ts_run(stops,no_of_stops,poolsize,epoch_length,mutation_rate,q):
 
 # load data into numpy data structure
 
+        dataout["redraw"][0]=drawit
         dataout["pid"][0]=pid
         dataout["message"][0]=""    
         dataout["generation"][0]=gencount
@@ -1039,8 +1043,8 @@ def main():
     #ts.wheel_len=0
     #ts.mates=[]
 
-    poolsize=200
-    mutation_rate=[1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8]   # different mutation rates for the different parallel processes
+    poolsize=400
+    mutation_rate=[1,2,3,4,5,6,7,8,9,10]   # different mutation rates for the different parallel processes
     
     #ts.genepool=[]
 
