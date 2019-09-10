@@ -152,18 +152,30 @@ def multiplexer(no_of_address_bits,no_of_data_bits):
     print("output=",output)
     print("")
         
-    return(signal,output)
+    return([signal])
+
+def extract_messages_to_list(population):
+    message_list=population["message"].values.tolist()
+    return(message_list)
+
+def get_message_off_message_list(message_list):
+    if len(message_list)>0:
+        message=message_list[0]
+        del message_list[0]
+        return(message)
+    else:
+        return("")
 
 
 
-def create_classifiers(population,classifier_bits):
+def create_classifiers(population,condition_bits):
     population_len=len(population)
     
     for p in range(0,population_len):
         not_unique=True
         while not_unique:
             cl=""    
-            for alleles in range(0,classifier_bits):
+            for alleles in range(0,condition_bits):
                 bit=random.randint(-1,1)
                 if bit==-1:
                     b="#"
@@ -171,9 +183,9 @@ def create_classifiers(population,classifier_bits):
                     b=str(bit)
                 cl=cl+b
 
-            not_unique= not (population[population["classifier"]==cl].empty)
+            not_unique= not (population[population["condition"]==cl].empty)
 
-        population.loc[p,"classifier"]=cl
+        population.loc[p,"condition"]=cl
         
     return(population)   
  
@@ -197,14 +209,11 @@ def find_matches(message,population):
         match=False
         for allele in range(0,len(message)):
             m=message[allele]
-  #          t=population.loc[p].values.tolist()[0][allele]   # note classifer is on column 0
             t=population.iloc[p,0][allele]   # note classifer is on column 0
 
             if t=="#" or m==t:
-            #   print(m,t,"match")
                match=True
             else:
-             #  print(m,t,"no match")
                match=False
                break
         
@@ -230,14 +239,15 @@ def find_matches(message,population):
 # strength(t+1)=strength(t)-payments(t)-taxes(t)+receipts(t)
 
 def setup_df(p):
-    classifier_len="S"+str(p["classifier_bits"])
+    condition_len="S"+str(p["condition_bits"])
     message_len="S"+str(p["message_bits"])    
     
-    individual = np.dtype([("classifier",classifier_len),("message",message_len),("bid",'f'),("ebid",'f'),("match_flag",'b'),("strength",'f'),("payments","f"),("taxes","f"),("receipts","f")])
+    individual = np.dtype([("condition",condition_len),("message",message_len),("bid",'f'),("ebid",'f'),("match_flag",'b'),("strength",'f'),("payments","f"),("taxes","f"),("receipts","f")])
     poparray = np.zeros(p["size"], dtype=individual) 
-    population = pd.DataFrame({"classifier":poparray["classifier"],"message":poparray["message"],"bid":poparray["bid"],"ebid":poparray["ebid"],"match_flag":poparray["match_flag"],"strength":poparray["strength"],"payments":poparray["payments"],"taxes":poparray["taxes"],"receipts":poparray["receipts"]})  #,"xpoint":population['xpoint'],"chromopack":population['chromopack'],"expressed":population['expressed']})   #,'area': areaprint("\n\n")
+    population = pd.DataFrame({"condition":poparray["condition"],"message":poparray["message"],"bid":poparray["bid"],"ebid":poparray["ebid"],"match_flag":poparray["match_flag"],"strength":poparray["strength"],"payments":poparray["payments"],"taxes":poparray["taxes"],"receipts":poparray["receipts"]})  #,"xpoint":population['xpoint'],"chromopack":population['chromopack'],"expressed":population['expressed']})   #,'area': areaprint("\n\n")
     population["strength"]=p["starting_strength"]
-    population=create_classifiers(population,p["classifier_bits"])
+    population["match_flag"]=False
+    population=create_classifiers(population,p["condition_bits"])
     population=create_messages(population,p["message_bits"])
     
     return(population)
@@ -250,11 +260,12 @@ def main():
     params = dict(
         size=81,
        # input_file=sys.argv[1],
-        classifier_bits=4,
+        condition_bits=4,
         message_bits=4,
+        message_list=[],
         starting_strength=200.0,
         bidcoeff=0.1,
-        bidtax=0.1,
+        bidtax=0.01,
         lifetax=0.0,
         reward=1,
         noise=0.0,
@@ -263,14 +274,15 @@ def main():
         results_file="MLGA_results.txt")
 
 
-
+    message_temp=[]
 
     no_of_address_bits=4
     no_of_data_bits=2**no_of_address_bits
     total_inputs=no_of_address_bits+no_of_data_bits
     print("Address bits=",no_of_address_bits," Data bits=",no_of_data_bits," Total number of inputs=",total_inputs)
 
-    startenv,output=multiplexer(no_of_address_bits,no_of_data_bits)  # returns signal, output
+    message_temp.append(multiplexer(no_of_address_bits,no_of_data_bits)) # returns signal list
+  #  print("message temp=",message_temp)
 
 
 
@@ -280,10 +292,24 @@ def main():
     df=setup_df(params)
     print(df)
 
-   # startenv="0100"
+    startenv=str(message_temp[0][0])  # value is one element in a list inside a list
     matches=find_matches(startenv,df)
     print("startenv=",startenv,"matches=\n",matches)
 
+
+    message_temp.append(extract_messages_to_list(matches))
+#    print("message temp2=",message_temp)
+
+    #params["message_list"]
+    #message_temp=list(itertools.chain(*message_temp))
+    params["message_list"]=list(itertools.chain(*message_temp))
+ 
+    print("message list",params["message_list"])
+    m="m"
+    while m:
+        m=get_message_off_message_list(params["message_list"])
+        print("m=",m)
+        
 ##    newmatches=matches
 ##    m=len(newmatches)
 ##    print("m=",m)
