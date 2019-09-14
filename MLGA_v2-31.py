@@ -451,7 +451,7 @@ def mutate(newpopulation,no_of_alleles,ploidy,pop_size,mutation_rate):
 def read_env_file_in(filename):
     population=pd.read_csv(filename,dtype={"condition":np.str,"message":np.str,'match_flag': np.bool})
     print(population)
-    input("?")
+  #  input("?")
     return(population)
 
     
@@ -485,23 +485,50 @@ def add_message_to_message_list(messages,message_list):
      return(message_list+list(messages))
 
 
+def create_a_unique_condition(population,no_of_condition_bits):
+    not_unique=True
+    while not_unique:
+        cl=""    
+        for alleles in range(0,no_of_condition_bits):
+            bit=random.randint(-1,1)
+            if bit==-1:
+                b="#"
+            else:
+                b=str(bit)
+            cl=cl+b
+
+        not_unique= not (population[population["condition"]==cl].empty)
+    return(cl)
+
+
+
+def create_a_message(no_of_message_bits): 
+    ml=""    
+    for alleles in range(0,no_of_message_bits):
+        ml=ml+str(random.randint(0,1))   
+    return(ml)   
+ 
+
+
 
 def create_classifiers(population,condition_bits):
     population_len=len(population)
     
     for p in range(0,population_len):
-        not_unique=True
-        while not_unique:
-            cl=""    
-            for alleles in range(0,condition_bits):
-                bit=random.randint(-1,1)
-                if bit==-1:
-                    b="#"
-                else:
-                    b=str(bit)
-                cl=cl+b
-
-            not_unique= not (population[population["condition"]==cl].empty)
+        cl=create_a_unique_condition(population,condition_bits)
+        
+##        not_unique=True
+##        while not_unique:
+##            cl=""    
+##            for alleles in range(0,condition_bits):
+##                bit=random.randint(-1,1)
+##                if bit==-1:
+##                    b="#"
+##                else:
+##                    b=str(bit)
+##                cl=cl+b
+##
+##            not_unique= not (population[population["condition"]==cl].empty)
 
         population.loc[p,"condition"]=cl
         
@@ -512,9 +539,10 @@ def create_messages(population,message_bits):
     population_len=len(population)
     
     for p in range(0,population_len):
-        ml=""    
-        for alleles in range(0,message_bits):
-            ml=ml+str(random.randint(0,1))
+        ml=create_a_message(message_bits)
+        #ml=""    
+        #for alleles in range(0,message_bits):
+        #    ml=ml+str(random.randint(0,1))
            
         population.loc[p,"message"]=ml
         
@@ -577,6 +605,44 @@ def tax(population,params):
     return(population)
 
 
+def save_winners(temppop):
+    # of the population that matches  (match_flag=true) who are the conditions with the highest effective bids?
+    # we need to reward not just the strongest, but the the runner up and third place also is they exist
+    # we also don't award immediately, we wait 1 or 2 time cycles
+    # the winners_list is in params and is a list of a list.  a list a list of all the winners at each time cycle
+#    print("save w=",temppop)
+    
+    # randomise the order to prevent always choosing first one when there are multiple maxes
+  #  temppop = temppop.sample(frac=1)   #.reset_index(drop=True)
+  #  print("random=",temppop)
+    # find the highest bidder
+    
+    #highest=temppop["ebid"].max()
+    winners=temppop.index.tolist()[:4]   # the top 4 only
+#    print("winners=",winners)
+    
+#    input("?")
+    
+
+    return(winners)
+
+##def spoils_function(no_of_partipants,value):
+##    #  create a logarithmic function that divides the payments and receipts proportions amongst the winners
+##    # it returns a list of the value divided up amonsgt the particpants in a fair way
+##    spoils=[]
+##    print("spoils - value",value)
+##    for elem in range(0,no_of_participants):
+##        spoils.append(math.log(1/(elem+1)))
+##        
+##    print("spoils=",spoils)
+##    return
+##
+##def auction_and_clearing_house():
+##    # randomise the order to prevent always choosing first one when there are multiple maxes
+##    temppop = temppop.sample(frac=1)   #.reset_index(drop=True)
+##
+##    params["winners"].append(save_winners(temppop[temppop["match_flag"]==True].sort_values("ebid",ascending=False)))   # a list of a list of winners sorted in order by the size of ebid highest to lowest
+##
 
 
 
@@ -591,7 +657,22 @@ def winner(temppop,winner_list):
     return(highest,indexrow,message)
 
 
-def clearing_house(population,params):
+def clearing_house(temppop,params):
+    # randomise the order to prevent always choosing first one when there are multiple identical ebids
+    temppop = temppop.sample(frac=1)   #.reset_index(drop=True)
+
+    params["winners"].append(save_winners(temppop[temppop["match_flag"]==True].sort_values("ebid",ascending=False)))   # a list of a list of winners sorted in order by the size of ebid highest to lowest
+
+    # the winners list of lists contains the sorted order of the winners
+
+
+
+
+
+
+
+
+# print(population.sort_values("strength",ascending=False).to_string())    
     # return highest bidder
     if len(params["winner_list"])>1:
         previous_winner=params["winner_list"][-2]
@@ -608,12 +689,12 @@ def clearing_house(population,params):
 
 
 
-    value,rowindex,message=winner(population,params["winner_list"])
+    value,rowindex,message=winner(temppop,params["winner_list"])
     params["winner_list"].append(rowindex)
     
     print("best bid=",value,"rowindex=",rowindex,"message=",message)
     # add the payment value to winners row
-    population.loc[rowindex,"payments"]=value
+    temppop.loc[rowindex,"payments"]=value
         
 
     # divide the payment values among the previous winners according to their strength
@@ -626,19 +707,19 @@ def clearing_house(population,params):
             if previous_winner==rowindex:  # if the same winner as made the payment, try the previous winner
                 winner_spot+=1
             else:    
-                if (previous_winner in population.index): # and not nan_rows.loc[previous_winner,"condition"]:   # a previous winner exists
-                    population.loc[previous_winner,"receipts"]=value*params["reward"]
+                if (previous_winner in temppop.index): # and not nan_rows.loc[previous_winner,"condition"]:   # a previous winner exists
+                    temppop.loc[previous_winner,"receipts"]=value*params["reward"]
                     no_reward_flag=False
                 else:
                     winner_spot+=1   # look deeper into winner list
         else:
             print("not enough winners.  Reward unpaid.")
             # reverse payment
-            population.loc[rowindex,"payments"]=0.0
+            temppop.loc[rowindex,"payments"]=0.0
           #  del params["winner_list"][-1]    # remove winner from list
             no_reward_flag=False      
     
-    return(population)
+    return(temppop)
 
 
 
@@ -675,7 +756,21 @@ def find_matches(message,temppop):
 
                                         
 def create_new_condition(population,params):
-    pass
+    print("create a new condition")
+    new_condition=create_a_unique_condition(population,params["condition_bits"])
+    new_message=create_a_message(params["message_bits"])
+
+
+    # strength needs to start at the mean of the population so it doesnt die or dominate
+    new_strength=population["strength"].mean()
+
+    new_row={"condition":new_condition,"message":new_message,"match_flag":False,"bid":0.0,"ebid":0.0,"strength":new_strength,"payments":0.0, "taxes":0.0,"receipts":0.0}
+  #  print("new row=",new_row)
+  #  input("?")
+
+    #append row to the dataframe
+    population = population.append(new_row, ignore_index=True)
+
     return(population)
 
 
@@ -835,7 +930,7 @@ def classifier_GA(params):
             params["message_list"]=add_message_to_message_list(extract_messages_to_list(matches),params["message_list"])
 
       #  print("len6=",len(population))
-        print("message list=",params["message_list"])
+      #  print("message list=",params["message_list"])
         if len(params["message_list"])>0:
           #      params["message_list"].insert(0,multiplexer(messageparams["no_of_address_bits"],params["no_of_data_bits"]))   #        else:
      
@@ -853,12 +948,15 @@ def classifier_GA(params):
             population=clearing_house(population,params)
        #     print(population.to_string())
             print(population.sort_values("strength",ascending=False).to_string())
-         #  input("?")
+          #  input("?")
            
-            print(count,":winners=",params["winner_list"])
+         #   print(count,":winners=",params["winner_list"])
+            
+         #   print(count,":all winners=",params["winners"])
           #  input("?")
-            print("messages applied=",params["messages_applied"])
+    #        print("messages applied=",params["messages_applied"])
           #  input("?")
+            print("message list=",params["message_list"])
 
             population=update_strengths(population)  
 
@@ -895,7 +993,9 @@ def classifier_GA(params):
 
     print("\n\nFinal classifier solution")
     print(population.sort_values("strength",ascending=False).to_string())
-    print("messages applied",params["messages_applied"])
+   # print("messages applied",params["messages_applied"])
+    print(count,":all winners=",params["winners"])
+
     print("mplx_data=",params["mplx_data"])
      
 
@@ -904,12 +1004,12 @@ def main():
     freeze_support()
 
     params = dict(
-        no_of_address_bits=4,
-        no_of_data_bits=0,
-        mplx_data="",
-        import_flag=True,
+        no_of_address_bits=2,
+        no_of_data_bits=2**2,   # binary,  in this case 6 input , 1 output
+        mplx_data="",   # this contains the data in binary of the internal "wiring" of the multiplexer.  this is chosen randomly at the start
+        import_flag=False,  #True,
         size=24,
-        epoch=200,
+        epoch=100,
        # input_file=sys.argv[1],
         condition_bits=6,
         message_bits=1,
@@ -923,15 +1023,17 @@ def main():
         reward=1.2,    # reward scaling factor from payment
         envrate=2,    # every 4 iterations, inject an environment signal
         mutrate=23,  #[0,1,2],  every 50 cycles
-        birthrate=17,  # new condition is born every 10 cycles
-        deathrate=201,  # an old unfit condition is killed every 10 cycles
-        winner_list=[],
+        birthrate=7,  # new condition is born every 10 cycles
+        deathrate=5,  # an old unfit condition is killed every 10 cycles
+        winner_list=[],   # the top winners over time
+        winners=[],       # all winners over time          
+        winner_spoils=[0.5,0.3,0.17,0.13],   # strongest winner gets first one and so on.  If there are less winners than elements in the list, the winner gets the balance
         env_filename="perfect6mplx.csv",   #MLGA_environment.csv",
         diagnostic_file="MLGA_diagnostic.txt",
         results_file="MLGA_results.txt")
     
 
-    params["no_of_data_bits"]=2**params["no_of_address_bits"]
+  #  params["no_of_data_bits"]=2**params["no_of_address_bits"]
 
 
     classifier_mp_GA(params)  # run multiproceesing
