@@ -113,56 +113,75 @@ import pickle
 # on the Data or d lines is to be passed thwough to the mulriplexer output
 
 
-def generate_data(no_of_data_bits):
-    
+def generate_random_signal(no_of_bits):
     data=""
-    for i in range(0,no_of_data_bits):
+    for i in range(0,no_of_bits):
         data=data+str(random.randint(0,1))
         
-
     return(data)
 
-def generate_signal(no_of_address_bits):
-    
-    addresses=""
-    for i in range(0,no_of_address_bits):
-        addresses=addresses+str(random.randint(0,1))
-        
-   
-    return(addresses)
+def decode_signal(signal,no_of_data_bits,no_of_address_bits):
+    address=int(signal[:no_of_address_bits],2)
+    #print("address=",address)
+    data=signal[-no_of_data_bits:]
+   # print("data=",data)
+    result=data[address]
+   # print("address=",address,"data=",data,"result=",result)
+   # input("?")
+    return(result)
 
 
-
-def seed_message_list(params):
-    return(multiplexer(generate_signal(params["no_of_address_bits"]),params["mplx_data"]))
-
-
-def multiplexer_init(no_of_address_bits,no_of_data_bits):
-    data=generate_data(no_of_data_bits)
-    print("multiplexer data=",data,"data bits=",no_of_data_bits)
-    signal=generate_signal(no_of_address_bits)
-    print("example signal=",signal,"signal bits=",no_of_address_bits)
-    print("example output=",multiplexer(signal,data))
-    return(data) 
-
-
-def multiplexer(signal,mplx_data):
-    print("mplx signal",signal)
-  #  print("data=",data)
-    output_address=""
-    if len(signal)>0:
-        for i in range(0,len(signal)):
-            output_address=output_address+str(int(signal[i],2))    #"".join(map(str,signal)),2)
-        output=mplx_data[int(output_address,2)]
-
- #      print("output address=",output_address)
-        print("output=",output)
-  #     print("")
-        
-        return(output)
-    else:
-        return("no signal")
-
+##
+##def generate_data(no_of_data_bits):
+##    
+##    data=""
+##    for i in range(0,no_of_data_bits):
+##        data=data+str(random.randint(0,1))
+##        
+##
+##    return(data)
+##
+##def generate_signal(no_of_address_bits):
+##    
+##    addresses=""
+##    for i in range(0,no_of_address_bits):
+##        addresses=addresses+str(random.randint(0,1))
+##        
+##   
+##    return(addresses)
+##
+##
+##
+##def seed_message_list(params):
+##    return(multiplexer(generate_signal(params["no_of_address_bits"]),params["mplx_data"]))
+##
+##
+##def multiplexer_init(no_of_address_bits,no_of_data_bits):
+##    data=generate_data(no_of_data_bits)
+##    print("multiplexer data=",data,"data bits=",no_of_data_bits)
+##    signal=generate_signal(no_of_address_bits)
+##    print("example signal=",signal,"signal bits=",no_of_address_bits)
+##    print("example output=",multiplexer(signal,data))
+##    return(data) 
+##
+##
+##def multiplexer(signal,mplx_data):
+##    print("mplx signal",signal)
+##  #  print("data=",data)
+##    output_address=""
+##    if len(signal)>0:
+##        for i in range(0,len(signal)):
+##            output_address=output_address+str(int(signal[i],2))    #"".join(map(str,signal)),2)
+##        output=mplx_data[int(output_address,2)]
+##
+## #      print("output address=",output_address)
+##        print("output=",output)
+##  #     print("")
+##        
+##        return(output)
+##    else:
+##        return("no signal")
+##
 
 ########################
 
@@ -182,7 +201,7 @@ def reproduce(newpopulation,params):
 # create a list as a roulette wheel with a more entries for stronger genes
 
     total=newpopulation["strength"].sum()
-    print("total",total)
+ #   print("total",total)
     newpopulation["brkdown"]=round((newpopulation["strength"]/total)*params["scaling"],0)
     #newpopulation["brkdown"]=newpopulation["strength"]/total
 
@@ -205,7 +224,7 @@ def reproduce(newpopulation,params):
         wheel=wheel+([w] * abs(int(wheel_slices[w])))
   #  print("wheel=",wheel)
     wheel_len=len(wheel)
-    print("wheel len=",wheel_len)
+#    print("wheel len=",wheel_len)
 
 # spin the mating wheel twice.
     giveup_count=0
@@ -237,7 +256,7 @@ def reproduce(newpopulation,params):
                 giveup=True
                 break
     if not giveup:
-        print("mate1=",first_mate_index,"mate2=",second_mate_index)
+   #     print("mate1=",first_mate_index,"mate2=",second_mate_index)
 
 
     # crossover the condition at a random (non-zero) point on both alleles of the mates
@@ -249,7 +268,7 @@ def reproduce(newpopulation,params):
         message2=newpopulation.loc[second_mate_index,"message"]
 
 
-        print("a1=",gene1,"a2=",gene2)
+    #    print("a1=",gene1,"a2=",gene2)
 
         gene_len=len(gene1)
 
@@ -267,7 +286,7 @@ def reproduce(newpopulation,params):
 
         
 
-        print("sp=",split_point,"new1=",child1,"new2=",child2)
+    #    print("sp=",split_point,"new1=",child1,"new2=",child2)
 
 
         ##    # strength needs to start at the mean of the population so it doesnt die or dominate
@@ -646,7 +665,7 @@ def clearing_house(temppop,params):
         # divvy up payment.  Find the highest ebid
   #  print("\npayment for ",current_winners," of",value)
    
-    for elem in range(0,len(params["winner_spoils"])):
+    for elem in range(0,len(current_winners)):   #len(params["winner_spoils"])):
         temppop.loc[current_winners[elem],"payments"]=params["winner_spoils"][elem]*value
 
 
@@ -662,7 +681,7 @@ def clearing_house(temppop,params):
     if len(previous_winner)>0 and len(winner_before_previous)>0:
         temppop=mark_winners(previous_winner,temppop)   # set the winners flag for each row for last cycles winners (1 cycle back)
 
-        for elem in range(0,len(params["winner_spoils"])):
+        for elem in range(0,len(previous_winner)):   #params["winner_spoils"])):
             temppop.loc[previous_winner[elem],"receipts"]=params["winner_spoils"][elem]*value*params["minus1factor"]*params["reward"]
    
 ########################################################       
@@ -673,7 +692,7 @@ def clearing_house(temppop,params):
  
         temppop=mark_winners(winner_before_previous,temppop)   # set the winners flag for each row for (2 cycles back) previous last cycles winners
 
-        for elem in range(0,len(params["winner_spoils"])):
+        for elem in range(0,len(winner_before_previous)):  #params["winner_spoils"])):
             temppop.loc[winner_before_previous[elem],"receipts"]=temppop.loc[winner_before_previous[elem],"receipts"]+params["winner_spoils"][elem]*value*params["minus2factor"]*params["reward"]
 
 ##        else:
@@ -689,7 +708,7 @@ def clearing_house(temppop,params):
     else:
        # print("no prevous winners-reverse payment")
         ##            # reverse payment
-        for elem in range(0,len(params["winner_spoils"])):
+        for elem in range(0,len(current_winners)):  #params["winner_spoils"])):
             temppop.loc[current_winners[elem],"payments"]=0.0    #temppop.loc[current_winners[elem],"payments"]-params["winner_spoils"][elem]*value*params["minus1factor"]
 
         no_reward_flag=False      
@@ -706,36 +725,72 @@ def clearing_house(temppop,params):
 
 
 
-def check_condition(row,message,rowindex):
+def check_signal_and_output(row,signal,output,rowindex):
     condition=row["condition"]
-    alen=len(condition)  
+    message=row["message"]
+    alen=len(condition)
+    slen=len(signal)
+    clen=min(alen,slen)
+  #  print("signal=",signal,"condition=",condition,"clen=",clen)
+
+    
     mlen=len(message)
+    tlen=len(output)
+    olen=min(mlen,tlen)
+   # print("message=",message,"output=",output,"olen=",olen)
+    
  #   print("check alen=",alen,",mlen=",mlen)
  
   #  print("r=",r)
-    match=False  
-    for message_elem in range(mlen,0,-1):   # start with the right most
+
+
+    cmatch=False  
+    for condition_elem in range(0,clen):   # start with the left most
   #      print("e=",message_elem)
 
-        m=message[mlen-message_elem]
-        a=condition[alen-message_elem]   # note classifer is on column 0
-   #     print("check allele e=",message_elem,"m=",m,"a=",a)
+        m=signal[condition_elem]
+        a=condition[condition_elem]   # note classifer is on column 0
+    #    print("check condition e=",condition_elem,"m=",m,"a=",a)
         if a=="#" or a==m:
-           match=True
+           cmatch=True
         else:
-           match=False
+           cmatch=False
            break
+
+
+  #  print("conditions matching",cmatch)
+    mmatch=False  
+    for message_elem in range(0,olen):   # start with the left most
+  #      print("e=",message_elem)
+
+        m=message[message_elem]
+        a=output[message_elem]   # note classifer is on column 0
+   #     print("check message e=",message_elem,"m=",m,"a=",a)
+        if a=="#" or a==m:
+           mmatch=True
+        else:
+           mmatch=False
+           break
+
+   # print("message matching",mmatch)
+
+    match=cmatch and mmatch
+
+    if match:
+        pass
+   #     print("both matching",match)   #,"row=",rowindex)    
  #   print("check condition message=",message,"condition=",condition,"match=",match,"rowno=",row.name,"row index=",rowindex[row.name])
     return(match)
 
 
-def find_matches(message,temppop):
+
+def find_matches(signal,output,temppop):
   
-  # check each row that the allele in condition matches the message
-    temppop["match_flag"]=temppop.apply(check_condition,axis=1,args=[message,temppop.index])
+  # check each row that the gene in condition matches the message
+    temppop["match_flag"]=temppop.apply(check_signal_and_output,axis=1,args=[signal,output,temppop.index])
 
-    return(temppop.query("match_flag==True"))
-
+    #return(temppop.query("match_flag==True"))
+    return(temppop)
                                         
 #def create_new_condition(population,params):
 #   print("create a new condition")
@@ -760,7 +815,7 @@ def find_matches(message,temppop):
 
 
 def kill_the_most_unfit_condition(population,params):
-    print("killing the least fit")   
+ #   print("killing the least fit")   
     population=mark_winners(params["all_winners"],population)   # set the winners flag for each row for current winners to divvy up the payment
 
     # cant kill a winner, previous winner (1 cycle) or previous winner (2 cycles)  they are marked as winners in the dataframe field
@@ -801,8 +856,8 @@ def timer(count,params):
     if count%params["mutrate"]==0:
         mutate_flag=True
 
-    if count%params["envrate"]==0:
-        env_flag=True
+   # if count%params["envrate"]==0:
+    env_flag=True
 
     if count%params["deathrate"]==0:
         death_flag=True
@@ -857,11 +912,11 @@ def startup(params):
     
     message_temp=[]
 
-    total_inputs=params["no_of_address_bits"]+params["no_of_data_bits"]
-    print("Address bits=",params["no_of_address_bits"]," Data bits=",params["no_of_data_bits"]," Total number of inputs=",total_inputs)
+  #  total_inputs=params["no_of_address_bits"]+params["no_of_data_bits"]
+  #  print("Address bits=",params["no_of_address_bits"]," Data bits=",params["no_of_data_bits"]," Total number of inputs=",total_inputs)
 
-    params["mplx_data"]=multiplexer_init(params["no_of_address_bits"],params["no_of_data_bits"])
-    print("mplx_data=",params["mplx_data"])
+  #  params["mplx_data"]=multiplexer_init(params["no_of_address_bits"],params["no_of_data_bits"])
+  #  print("mplx_data=",params["mplx_data"])
     # create first environmental message (from multiplexer)
    # message_temp=add_message_to_message_list(multiplexer(params["no_of_address_bits"],params["no_of_data_bits"]),message_temp)
 
@@ -880,11 +935,13 @@ def classifier_mp_GA(params):   # multiprocessing stuff will go here later
 def classifier_GA(params):
     count=1
     population=startup(params)
+    print("\n\nGeneral Classifier genetic algorithm written by Anthony Paech 15/9/19")
+    print("=====================================================================")    
   # message=str(int(random.randint(0,2**params["no_of_address_bits"]-1),2))  # random starting message
-    params["message_list"].append(seed_message_list(params))   #add_message_to_message_list([generate_signal(params["no_of_address_bits"])],params["message_list"]) # random starting message
+ #   params["message_list"].append(seed_message_list(params))   #add_message_to_message_list([generate_signal(params["no_of_address_bits"])],params["message_list"]) # random starting message
  #   params["message_list"].insert(0,multiplexer(message,params["mplx_data"]))   #   send a message to the multiplexer, process the output as a message
 
-    print("random starting message",params["message_list"])
+ #   print("random starting message",params["message_list"])
 ##    
 ##    startenv=str(startenv_message[0])  # value is one element in a list inside a list
 ##    print("se=",startenv)
@@ -908,102 +965,120 @@ def classifier_GA(params):
 
     while count<params["epoch"]:   # loop while the message list is not empty
 
-        env_flag,mutate_flag,death_flag,birth_flag=timer(count,params)
+        env_flag,mutate_flag,death_flag,birth_flag=timer(count,params)   # time the actions based on the count
+ 
 
-     #   print("len5=",len(population))
-        message=get_message_off_message_list(params["message_list"],params)
-     #   print("len7=",len(population))
-        matches=find_matches(message,population)
-     #   print("len8=",len(population))
-    #    print("message=",message)
-        #print("matches=\n",matches)
+          #  the environment is a boolean function, a six lines in multiplexor
+          #  the first two lines (bits) are encoded as an unsigned integer (0-3)
+          #  that decides which of the 4 lines are used to pass a bit to the output
+          # randomly generate a 6 bit signal.
+          #  pass through the multiplexer and produce a one bit output
+          # send the same signal to the conditions.  reward the ones that have the correct message
 
-        if env_flag:
-            print("message from environment detector, message_list=",params["message_list"])   # insert the env message first on the list
+        if True:
+            signal=generate_random_signal(params["no_of_data_bits"]+params["no_of_address_bits"])
+         #   print("\nsignal=",signal)
+            output=decode_signal(signal,params["no_of_data_bits"],params["no_of_address_bits"])
+          #  print("output=",output)
+            
+            params["message_list"].append(signal)   # add 
+
+        #   print("len5=",len(population))
+            #message=get_message_off_message_list(params["message_list"],params)
+         #   print("len7=",len(population))
+     #       matches=find_matches(signal,output,population)
+            population=find_matches(signal,output,population)
+
+         #   print("len8=",len(population))
+        #    print("message=",message)
+        #    print("matches=\n",matches)
+         #   input("?")
+
+            
+      #      print("message from environment detector, message_list=",params["message_list"])   # insert the env message first on the list
         #    if len(params["message_list"])==0:
-            params["message_list"].insert(0,seed_message_list(params))   # jump the queue!
         #    else:    
         #        params["message_list"]=add_message_to_message_list(multiplexer(generate_signal(,params["mplx_data"]),params["message_list"]) # random starting message
         #    else:
      #       params["message_list"].insert(0,multiplexer(message_list,params["mplx_data"]))   #   send a message to the multiplexer, process the output as a message
-        else:
-            params["message_list"]=add_message_to_message_list(extract_messages_to_list(matches),params["message_list"])
+      #  else:
+       #     params["message_list"]=add_message_to_message_list(extract_messages_to_list(matches),params["message_list"])
 
       #  print("len6=",len(population))
       #  print("message list=",params["message_list"])
-        if len(params["message_list"])>0:
+        #if len(params["message_list"])>0:
           #      params["message_list"].insert(0,multiplexer(messageparams["no_of_address_bits"],params["no_of_data_bits"]))   #        else:
      
                 #print("message list empty")
                 #break
 
           #  print("len=",len(population))
-            population=bid(population,params)
-        #    print(population)
-            population=effective_bid(population,params)
-         #   print("len2=",len(population))
-            population=tax(population,params)
-         #   print(population)
-         #   input("?")
-            population=clearing_house(population,params)
-       #     print(population.to_string())
-       #     print(population.sort_values("strength",ascending=False).to_string())
-          #  input("?")
-           
-         #   print(count,":winners=",params["winner_list"])
+        population=bid(population,params)
+    #    print(population)
+        population=effective_bid(population,params)
+     #   print("len2=",len(population))
+        population=tax(population,params)
+     #   print(population)
+     #   input("?")
+        population=clearing_house(population,params)
+   #     print(population.to_string())
+   #     print(population.sort_values("strength",ascending=False).to_string())
+      #  input("?")
+       
+     #   print(count,":winners=",params["winner_list"])
+        
+     #   print(count,":all winners=",params["winners"])
+      #  input("?")
+#        print("messages applied=",params["messages_applied"])
+      #  input("?")
+     #   print("message list=",params["message_list"])
+
+        population=update_strengths(population)
+    #    print(population.sort_values("strength",ascending=False).to_string())
+    #    input("?")
+
+
+    #    print(population.to_string())
+     #   input("?")
+   #     print(population.to_string())
+  #      print(population.sort_values("strength",ascending=False).to_string())
+  #      input("?")
+      #  print("len before=",len(population),"pop before=",population)
+      
+        if death_flag:
+        #    print("death flag")
+            population=kill_the_most_unfit_condition(population,params)
+      #      print("death len after=",len(population),"pop after=",population)
+
+
+        if mutate_flag:
+         #   print("mutate flag")
+            population=mutate(population)
+
             
-         #   print(count,":all winners=",params["winners"])
-          #  input("?")
-    #        print("messages applied=",params["messages_applied"])
-          #  input("?")
-         #   print("message list=",params["message_list"])
 
-            population=update_strengths(population)
-        #    print(population.sort_values("strength",ascending=False).to_string())
-        #    input("?")
+        if birth_flag:
+          #  print("birth flag")
+            population=reproduce(population,params)
+       #     print("birth len after=",len(population),"pop after=",population)
 
+    #    print("\n")
+    #    print(population.sort_values("strength",ascending=False).to_string())
+    #    input("?")
 
-        #    print(population.to_string())
-         #   input("?")
-       #     print(population.to_string())
-      #      print(population.sort_values("strength",ascending=False).to_string())
-      #      input("?")
-          #  print("len before=",len(population),"pop before=",population)
-          
-            if death_flag:
-                print("death flag")
-                population=kill_the_most_unfit_condition(population,params)
-          #      print("death len after=",len(population),"pop after=",population)
+        match_count=population[population.match_flag==True].count()["condition"]  # df[df.a > 1]
+            
+        population=reset_fields_for_next_cycle(population)
+  #      print(population.sort_values("strength",ascending=False).to_string())
+  #      input("?")
 
-
-            if mutate_flag:
-                print("mutate flag")
-                population=mutate(population)
-
-                
-
-            if birth_flag:
-                print("birth flag")
-                population=reproduce(population,params)
-           #     print("birth len after=",len(population),"pop after=",population)
-
-            print("\n")
-            print(population.sort_values("strength",ascending=False).to_string())
-        #    input("?")
- 
-
-                
-            population=reset_fields_for_next_cycle(population)
-      #      print(population.sort_values("strength",ascending=False).to_string())
-      #      input("?")
- 
-                
+            
 
         #    print(population.to_string())
        #     nan_rows = population[population.isnull().any(1)]
        #     print("nan rows=",nan_rows)
          #   input("?")
-        print("\rgeneration count=",count,end="\r",flush=True)  
+        print("\rgeneration count=",count,"no of conditions",population["condition"].count(),"no of matching conditions",match_count,"median strength=",round(population["strength"].median(),1),"max strength=",round(population["strength"].max(),1),end="\r",flush=True)  
         count+=1  
 
     print("\n\nFinal classifier solution")
@@ -1014,7 +1089,7 @@ def classifier_GA(params):
    # print("messages applied",params["messages_applied"])
   #  print(count,":all winners=",params["winners"])
 
-    print("\n\nmplx_data=",params["mplx_data"])
+  #  print("\n\nmplx_data=",params["mplx_data"])
      
 
 
@@ -1026,24 +1101,24 @@ def main():
         no_of_data_bits=2**2,   # binary,  in this case 6 input , 1 output
         mplx_data="",   # this contains the data in binary of the internal "wiring" of the multiplexer.  this is chosen randomly at the start
         import_flag=False,  #True,
-        size=10,
-        epoch=200,
+        size=60,
+        epoch=500,
        # input_file=sys.argv[1],
         condition_bits=6,
         message_bits=1,
         message_list=[],
         messages_applied=[],
         scaling=1000,      #   scale the breakdown % of each strength into a whole number to create the wheel
-        starting_strength=200.0,
+        starting_strength=1000.0,
         bidcoeff=0.1,
         bidsigma=0.2,
         bidtax=0.04,
         lifetax=0.007,
-        reward=1.45,    # reward scaling factor from payment
-        envrate=11,    # every 4 iterations, inject an environment signal
-        mutrate=6,  #[0,1,2],  every 50 cycles
-        birthrate=8,  # new condition is born every 10 cycles
-        deathrate=4,  # an old unfit condition is killed every 10 cycles
+        reward=1.9,    # 1.45 reward scaling factor from payment
+        envrate=1,    # every 1 iterations, inject an environment signal
+        mutrate=9,  #[0,1,2],  every 50 cycles
+        birthrate=8,  # 2 new conditions are born every ? cycles
+        deathrate=4,  # an old unfit condition is killed every ? cycles
         winner_list=[],   # the top winners over time
         winners=[],       # all winners over time
         all_winners=[],   # keeps a list of winners to when a kill a row it can check first if it is on the list
