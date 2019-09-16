@@ -1,6 +1,9 @@
-condition,message,bid,ebid,match_flag,strength,payments,taxes,receipts
-"###000","0",0.0,0.0,False,0.0,0.0,0.0,0.0
-"##0#01","0",0.0,0.0,False,0.0,0.0,0.0,0.0
-"#0##10","0",0.0,0.0,False,0.0,0.0,0.0,0.0
-"0###11","0",0.0,0.0,False,0.0,0.0,0.0,0.0
-"######","1",0.0,0.0,False,0.0,0.0,0.0,0.0
+condition,message,bid,ebid,match_flag,strength,payments,taxes,receipts,winners
+"###000","0",0.0,0.0,False,0.0,0.0,0.0,0.0,False
+"##0#01","0",0.0,0.0,False,0.0,0.0,0.0,0.0,False
+"#0##10","0",0.0,0.0,False,0.0,0.0,0.0,0.0,False
+"0###11","0",0.0,0.0,False,0.0,0.0,0.0,0.0,False
+"###100","1",0.0,0.0,False,0.0,0.0,0.0,0.0,False
+"##1#01","1",0.0,0.0,False,0.0,0.0,0.0,0.0,False
+"#1##10","1",0.0,0.0,False,0.0,0.0,0.0,0.0,False
+"1###11","1",0.0,0.0,False,0.0,0.0,0.0,0.0,False
