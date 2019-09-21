@@ -1003,7 +1003,7 @@ def clearing_house(temppop,params):
 
 
 
-def check_signal_and_output(row,signal,output,rowindex,cms,mms,condition_bits):
+def check_signal_and_output(row,signal,output,rowindex,cms,cms_flag,mms,mms_flag,condition_bits):
   #  if row["condition"].isnan():
    #     print("\nmatching signal row empty")
     #    return(False)
@@ -1068,6 +1068,8 @@ def check_signal_and_output(row,signal,output,rowindex,cms,mms,condition_bits):
            cmatch_count+=1
         else:
            cmatch=False
+           if cms_flag:
+               break
            
     if cmatch_count>=clen*cms:       #params["condition_match_specificity"]
         cmatch=True
@@ -1088,6 +1090,8 @@ def check_signal_and_output(row,signal,output,rowindex,cms,mms,condition_bits):
            mmatch_count+=1
         else:
            mmatch=False
+           if mms_flag:
+               break
         
         
     if mmatch_count>=olen*mms:          #params["message_match_specificity"]
@@ -1119,7 +1123,7 @@ def find_matches(signal,output,temppop,params):
   
   # check each row that the gene in condition matches the message
     if not temppop.empty:
-        temppop["match_flag"]=temppop.apply(check_signal_and_output,axis=1,args=[signal,output,temppop.index,params["condition_match_specificity"],params["message_match_specificity"],params["condition_bits"]])
+        temppop["match_flag"]=temppop.apply(check_signal_and_output,axis=1,args=[signal,output,temppop.index,params["condition_match_specificity"],params["condition_match_specificity_test_disabled"],params["message_match_specificity"],params["message_match_specificity_test_disabled"],params["condition_bits"]])
 
     #return(temppop.query("match_flag==True"))
  #   print("temp=",temppop)
@@ -1541,7 +1545,8 @@ def classifier_GA(params,q):
      
                 #print("message list empty")
                 #break
-        population=update_specificity(population,params)         # the more general the condition (ie the more #'s) the weaker the reward for winning       
+        if not params["condition_match_specificity_test_disabled"]: 
+            population=update_specificity(population,params)         # the more general the condition (ie the more #'s) the weaker the reward for winning       
 
        
  
@@ -1751,7 +1756,9 @@ def main():
         crowding_depth=2,  #from the right going left, how many allelles have to be the same to form the crowd sets
         ideal_final_population_size=60,  # use a PID type control system to get the population size to be about this once the birth, death, crowding start 
         condition_match_specificity=1.0,   #  the condition needs only to match the signal 70% of the alleles in the gene to be marked a match
+        condition_match_specificity_test_disabled=True,   #condition_match_specificity_test_disabled
         message_match_specificity=1.0,      # the message need to match 100%
+        message_match_specificity_test_disabled=True,
         winner_list=[],   # the top winners over time
        # winner=0,       # current winner all winners over time
         all_winners=[],   # keeps a list of winners to when a kill a row it can check first if it is on the list
