@@ -1475,7 +1475,7 @@ def classifier_mp_GA(params):   # multiprocessing stuff will go here later
         
         add_to_queue(pickle.dumps("\n\nGenerate results finished\n"),q)
 
-        print("killing listener")
+        print("\n\nkilling listener")
         q.put("kill")
         result=watcher.get(timeout=None) 
         watcher.wait()
@@ -1778,7 +1778,7 @@ def main():
 ##        no_of_data_bits=2**2,   # binary,  in this case 6 input , 1 output
         min_pop=40,   #3**3,
         import_flag=False, #True, #False,  #True,
-        create_unique_classifiers_flag=False, #True, #False, #True,   # if true it creates all possible classifiers (conditions : messages) so that they are all unique.  It ignores the size number below, if false they are selected randomly to the size number below
+        create_unique_classifiers_flag=True, #True, #False, #True,   # if true it creates all possible classifiers (conditions : messages) so that they are all unique.  It ignores the size number below, if false they are selected randomly to the size number below
         size=1000,  #(3**9)*(2**2),  # =  17,600ish,  This is for random selection which occurs when no import and not universe creation
         epoch=int(sys.argv[1]),  #1000,
        # input_file=sys.argv[1],
@@ -1788,12 +1788,12 @@ def main():
         messages_applied=[],
         scaling=100000,      #   scale the breakdown % of each strength into a whole number to create the wheel
         starting_strength=5000.0,
-        bidcoeff1=0.03,   # the % of the strength
-        bidcoeff2=0.15,    #  added and adjusted by specificity of the genes ie the amountof '#'.  The total of the two should equal approx 0.12
+        bidcoeff1=0.04,   # the % of the strength
+        bidcoeff2=0.12,    #  added and adjusted by specificity of the genes ie the amountof '#'.  The total of the two should equal approx 0.12
         bidsigma=0.03,
         bidtax=0.0,   #0.01
         lifetax=0.0,
-        reward=1.1,    # 1.45 reward scaling factor from payment
+        reward=1.07,    # 1.45 reward scaling factor from payment
         envrate=1,    # every 1 iterations, inject an environment signal
         feedrate=6000,   # rate that messages are fedback into the conditions (higher is less frequent)  Currently not enabled
         drop_duplicates_enabled=False,  # any duplicate conditions are deleted out each cycle if True
@@ -1806,8 +1806,8 @@ def main():
         birthstart=1000,  # the number of cycles before repdocution starts
         birthfinish=1400,
         death_enabled=True,
-        deathrate=1,  # an old unfit condition or duplicate is killed every ? cycles
-        deathstart=20,  # the number of cycles before the deaths start
+        deathrate=20,  # an old unfit condition or duplicate is killed every ? cycles
+        deathstart=2000,  # the number of cycles before the deaths start
         deathfinish=10000,
         crowding_enabled=False,
         crowding_rate=201,  # purge a number of similar genes to prevent crowding
@@ -1826,7 +1826,7 @@ def main():
         winner_spoils=1.0,   #[1.0,0.0,0.0,0.0],   # strongest winner gets first one and so on.  If there are less winners than elements in the list, the winner gets the balance
         minus1factor=1.0,   # 100% of the receipts go into the previous weeks winners
         minus2factor=0.0,   # 0% of the receipts go to the week before the previous week winners
-        env_filename="shop_concat_SGC_encoded31.csv",   #MLGA_environment.csv",
+        env_filename="shop_concat_SGC_encoded31_5-1.csv",   #MLGA_environment.csv",
         diagnostic_file="MLGA_diagnostic.txt",
         report_freq=10,   # number of cycles between reporting progress
         results_file="MLGA_results.txt")
