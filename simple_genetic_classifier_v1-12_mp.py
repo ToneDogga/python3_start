@@ -951,7 +951,10 @@ def clearing_house(temppop,params):
   #  print("all winners=",params["all_winners"],"previous winner-",previous_winner,"winner_before previous=",winner_before_previous)
 
     temppop2=temppop.query("match_flag==True")
-    value=temppop2["bid"].max()  # payment value.  pay the actual bid, not the effective bid
+    if len(temppop2)>0:
+        value=temppop2["bid"].max()  # payment value.  pay the actual bid, not the effective bid
+    else:
+        value=0.0
 
 ###############################################################
         # divvy up payment.  Find the highest ebid
@@ -987,7 +990,8 @@ def clearing_house(temppop,params):
             temppop.loc[previous_winner,"receipts"]=params["winner_spoils"]*value*params["minus1factor"]*params["reward"]
         except KeyError:
             # no receipt so
-            # undo payment.  
+            # undo payment.
+            print("key error on pw=",previous_winner,"in",temppop)
             temppop.loc[current_winner,"payments"]=0.0
             
        # print("pw=",previous_winner)
@@ -1310,6 +1314,7 @@ def reset_fields_for_next_cycle(population):
      population["taxes"]=0.0
      population["receipts"]=0.0
      population["winners"]=False
+     population["brkdown"]=0.0
      population["address"]=""
      population["keeping"]=False
 
@@ -1331,8 +1336,8 @@ def timer(count,params):
     if count%params["mutrate"]==0:
         mutate_flag=True
 
-   # if count%params["envrate"]==0:
-    env_flag=True
+    if count%params["envrate"]==0:
+        env_flag=True
 
     if count%params["crowding_rate"]==0:
         crowding_flag=True
@@ -1372,15 +1377,15 @@ def setup_df(params):
         condition_len="S"+str(params["condition_bits"])
         message_len="S"+str(params["message_bits"])    
         
-        individual = np.dtype([("condition",condition_len),("message",message_len),("bid",'f'),("ebid",'f'),("match_flag",'b'),("strength",'f'),("specificity",'f'),("crowding",'f'),("payments","f"),("taxes","f"),("receipts","f"),("winners","b"),("address","S2"),("keeping","b")])
+        individual = np.dtype([("condition",condition_len),("message",message_len),("bid",'f'),("ebid",'f'),("match_flag",'b'),("strength",'f'),("specificity",'f'),("crowding",'f'),("payments","f"),("taxes","f"),("receipts","f"),("brkdown","f"),("winners","b"),("address","S2"),("keeping","b")])
 
         if params["create_unique_classifiers_flag"]:
             poparray = np.zeros((3**params["condition_bits"])*(2**params["message_bits"]), dtype=individual) 
-            population = pd.DataFrame({"condition":poparray["condition"],"message":poparray["message"],"bid":poparray["bid"],"ebid":poparray["ebid"],"match_flag":poparray["match_flag"],"strength":poparray["strength"],"specificity":poparray["specificity"],"crowding":poparray["crowding"],"payments":poparray["payments"],"taxes":poparray["taxes"],"receipts":poparray["receipts"],"winners":poparray["winners"],"address":poparray["address"],"keeping":poparray["keeping"]})  #,"xpoint":population['xpoint'],"chromopack":population['chromopack'],"expressed":population['expressed']})   #,'area': areaprint("\n\n")
+            population = pd.DataFrame({"condition":poparray["condition"],"message":poparray["message"],"bid":poparray["bid"],"ebid":poparray["ebid"],"match_flag":poparray["match_flag"],"strength":poparray["strength"],"specificity":poparray["specificity"],"crowding":poparray["crowding"],"payments":poparray["payments"],"taxes":poparray["taxes"],"receipts":poparray["receipts"],"winners":poparray["winners"],"brkdown":poparray["brkdown"],"address":poparray["address"],"keeping":poparray["keeping"]})  #,"xpoint":population['xpoint'],"chromopack":population['chromopack'],"expressed":population['expressed']})   #,'area': areaprint("\n\n")
             population=create_entire_classifier_space(population,params)
         else:
             poparray = np.zeros(params["size"], dtype=individual) 
-            population = pd.DataFrame({"condition":poparray["condition"],"message":poparray["message"],"bid":poparray["bid"],"ebid":poparray["ebid"],"match_flag":poparray["match_flag"],"strength":poparray["strength"],"specificity":poparray["specificity"],"crowding":poparray["crowding"],"payments":poparray["payments"],"taxes":poparray["taxes"],"receipts":poparray["receipts"],"winners":poparray["winners"],"address":poparray["address"],"keeping":poparray["keeping"]})  #,"xpoint":population['xpoint'],"chromopack":population['chromopack'],"expressed":population['expressed']})   #,'area': areaprint("\n\n")
+            population = pd.DataFrame({"condition":poparray["condition"],"message":poparray["message"],"bid":poparray["bid"],"ebid":poparray["ebid"],"match_flag":poparray["match_flag"],"strength":poparray["strength"],"specificity":poparray["specificity"],"crowding":poparray["crowding"],"payments":poparray["payments"],"taxes":poparray["taxes"],"receipts":poparray["receipts"],"winners":poparray["winners"],"brkdown":poparray["brkdown"],"address":poparray["address"],"keeping":poparray["keeping"]})  #,"xpoint":population['xpoint'],"chromopack":population['chromopack'],"expressed":population['expressed']})   #,'area': areaprint("\n\n")
             population=create_classifiers(population,params["condition_bits"],params["size"])
             population=create_messages(population,params["message_bits"],params["size"])
 
@@ -1393,7 +1398,8 @@ def setup_df(params):
     population["taxes"]=0.0
     population["receipts"]=False
     population["winners"]=False
-    population["address"]=False
+    population["address"]=""
+    population["brkdown"]=0.0
     population["keeping"]=False
     population["specificity"]=0.0
     population["crowding"]=False
@@ -1584,7 +1590,7 @@ def classifier_GA(params,q):
      #   print("len7=",len(population))
  #       matches=find_matches(signal,output,population)
         population=find_matches(signal,output,population,params)
-     #   print("\n",population)
+     #   print("\n",population.to_string())
      #   input("?")
 
      #   print("len8=",len(population))
@@ -1666,9 +1672,10 @@ def classifier_GA(params,q):
 
         nan_rows = population[population.isnull().any(1)]
         if len(nan_rows)>0:
-         #   print("\nnan rows=",nan_rows,"\n")
+            pn="\nnan rows to drop="+str(nan_rows.to_string())+"\n"
+            add_to_queue(pickle.dumps(pn),q)
             population.dropna(axis='rows',inplace=True)
-       #     population=population.drop(nan_rows)   #[population.isnull().any(1)]
+         #   population=population.drop(nan_rows)   #[population.isnull().any(1)]
 
 
 
