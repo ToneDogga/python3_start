@@ -979,7 +979,7 @@ def clearing_house(temppop,params):
   
    #     for elem in range(0,len(current_winners)):   #len(params["winner_spoils"])):
        #     print("payment=",elem,current_winners,value)
-        temppop.loc[current_winner,"payments"]=params["winner_spoils"]*value*params["minus1factor"]
+        temppop.loc[current_winner,"payments"]=params["winner_spoils"]*value
 
 
         temppop=mark_winners(previous_winner,temppop)   # set the winners flag for each row for last cycles winners (1 cycle back)
@@ -1630,14 +1630,21 @@ def classifier_GA(params,q):
  
           #  print("len=",len(population))
         population=bid(population,params)
-    #    print(population)
+     #   print(population)
         population=effective_bid(population,params)
      #   print("len2=",len(population))
         population=tax(population,params)
      #   print(population)
      #   input("?")
+     
+     #   add_to_queue(pickle.dumps("PID"+str(pid)+" Before clearing house\n\n"+population.to_string()+"\n\n"),q)
+
         population=clearing_house(population,params)
-        print(population.to_string())
+
+
+       # add_to_queue(pickle.dumps("PID"+str(pid)+" After clearing house\n\n"+population.to_string()+"\n\n"),q)
+
+   #     print(population.to_string())
    #     print(population.sort_values("strength",ascending=False).to_string())
       #  input("?")
        
@@ -1667,7 +1674,7 @@ def classifier_GA(params,q):
 ##        print("signal=",signal,"output=",output)
 ##        input("?")
       #  print("len before=",len(population),"pop before=",population)
-
+     #   add_to_queue(pickle.dumps("PID:"+str(pid)+" After update strengths\n\n"+population.to_string()+"\n\n"),q)
 
 
         nan_rows = population[population.isnull().any(1)]
@@ -1796,20 +1803,20 @@ def main():
     params = dict(
 ##        no_of_address_bits=2,
 ##        no_of_data_bits=2**2,   # binary,  in this case 6 input , 1 output
-        min_pop=10,   #3**3,
+        min_pop=40,   #3**3,
         import_flag=False, #True, #False,  #True,
         create_unique_classifiers_flag=False, #True,   # if true it creates all possible classifiers (conditions : messages) so that they are all unique.  It ignores the size number below, if false they are selected randomly to the size number below
-        size=101,  #(3**9)*(2**2),  # =  17,600ish,  This is for random selection which occurs when no import and not universe creation
+        size=43,  #(3**9)*(2**2),  # =  17,600ish,  This is for random selection which occurs when no import and not universe creation
         epoch=int(sys.argv[1]),  #1000,
        # input_file=sys.argv[1],
-        condition_bits=10,
+        condition_bits=5,
         message_bits=2,
         message_list=[],
         messages_applied=[],
         scaling=100000,      #   scale the breakdown % of each strength into a whole number to create the wheel
         starting_strength=5000.0,
-        bidcoeff1=0.0,   # the % of the strength
-        bidcoeff2=0.1,    #  added and adjusted by specificity of the genes ie the amountof '#'.  The total of the two should equal approx 0.12
+        bidcoeff1=0.07,  # the % of the strength
+        bidcoeff2=0.07,    #  added and adjusted by specificity of the genes ie the amountof '#'.  The total of the two should equal approx 0.12
         bidsigma=0.03,
         bidtax=0.0,   #0.01
         lifetax=0.0,
@@ -1846,7 +1853,7 @@ def main():
         winner_spoils=1.0,   #[1.0,0.0,0.0,0.0],   # strongest winner gets first one and so on.  If there are less winners than elements in the list, the winner gets the balance
         minus1factor=1.0,   # 100% of the receipts go into the previous weeks winners
         minus2factor=0.0,   # 0% of the receipts go to the week before the previous week winners
-        env_filename="shop_concat_SGC_encoded31.csv",   #MLGA_environment.csv",
+        env_filename="shop_concat_SGC_encoded31_5-1.csv",   #MLGA_environment.csv",
         diagnostic_file="MLGA_diagnostic.txt",
         report_freq=10,   # number of cycles between reporting progress
         results_file="MLGA_results.txt")
