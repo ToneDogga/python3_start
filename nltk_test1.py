@@ -26,19 +26,6 @@ from sklearn.cluster import KMeans
 
 
 
-
-##print(groups.keys())
-##print(groups["target_names"])
-##print(groups.target)
-##print(np.unique(groups.target))
-##print(groups.data[0])
-##print(groups.target[0])
-##print(groups.target_names[groups.target[0]])
-##print(len(groups.data[0]))
-##print(len(groups.data[1]))
-##sns.distplot(groups.target)
-##plt.show()
-
 def letters_only(astr):
     return(astr.isalpha())
 
@@ -48,27 +35,47 @@ def letters_only(astr):
 cv=CountVectorizer(stop_words="english",max_features=500)
 groups=fetch_20newsgroups()
 
+
+
+
+print(groups.keys())
+print(groups["target_names"])
+print(groups.target)
+print(np.unique(groups.target))
+print("\n\n\n")
+print(groups.data[0])
+print(groups.target[0])
+print(groups.DESCR[0])
+print("\n\n")
+print(groups.target_names[groups.target[0]])
+##print(len(groups.data[0]))
+##print(len(groups.data[1]))
+##sns.distplot(groups.target)
+##plt.show()
+
+
+
 ##sns.distplot(np.log(transformed.toarray().sum(axis=0)))
 ##plt.xlabel("log count")
 ##plt.ylabel("frequency")
 ##plt.title("distribution plot of 500 word sounts")
 ##plt.show()
+##
+##cleaned=[]
+##
+##all_names=set(names.words())
+##lemmatizer=WordNetLemmatizer()
 
-cleaned=[]
-
-all_names=set(names.words())
-lemmatizer=WordNetLemmatizer()
-
-
-for post in groups.data:
-    cleaned.append(" ".join([lemmatizer.lemmatize(word.lower()) for word in post.split() if letters_only(word) and word not in all_names]))
-transformed=cv.fit_transform(cleaned)
-#print(cv.get_feature_names())
-km=KMeans(n_clusters=20)
-km.fit(transformed)
-labels=groups.target
-plt.scatter(labels,km.labels_)
-plt.xlabel("Newsgroup")
-plt.ylabel("Cluster")
-plt.show()
+##
+##for post in groups.data:
+##    cleaned.append(" ".join([lemmatizer.lemmatize(word.lower()) for word in post.split() if letters_only(word) and word not in all_names]))
+##transformed=cv.fit_transform(cleaned)
+###print(cv.get_feature_names())
+##km=KMeans(n_clusters=20)
+##km.fit(transformed)
+##labels=groups.target
+##plt.scatter(labels,km.labels_)
+##plt.xlabel("Newsgroup")
+##plt.ylabel("Cluster")
+##plt.show()
 

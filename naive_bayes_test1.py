@@ -1,3 +1,27 @@
+import glob
+import os
+import numpy as np
+
+emails=[]
+labels =[]
+file_path="enron-spam/enron1/spam"
+for filename in glob.glob(os.path.join(file_path,"*.txt")):
+    with open(filename,"r",encoding="ISO-8859-1") as infile:
+        emails.append(infile.read())
+        labels.append(1)
+
+file_path="enron-spam/enron1/ham"
+for filename in glob.glob(os.path.join(file_path,"*.txt")):
+    with open(filename,"r",encoding="ISO-8859-1") as infile:
+        emails.append(infile.read())
+        labels.append(0)
+
+print(len(emails))
+print(len(labels))
+
+      
+
+
 # bayes theorem simple
 # the probability of A happening given B has occured is denoted as P(A|B)
 # in bayes theorem this is equal to
@@ -24,7 +48,7 @@
 # = 0.02*0.45 / 0.01625 = 0.5538
 #
 # (p67)
-# if x is a column of a dataset
+# if x is a row of a dataset
 # it is called a feature vector
 # x= {x1,x2,x3,.....xn}
 #
@@ -42,6 +66,8 @@
 # that is how likely the features with such values co-occur
 # the likeihood
 # for this to all work, we assume that the features are independent
+#
+# posterier =  likelihood * prior / evidence   
 #
 # so P(x|yk)=P(x1|yk)*P(x2|yk)*P(x3|yk)* ....   *P(xn|yk)
 # this can be learned from a set of training samples
@@ -73,29 +99,86 @@
 ##print(lemmatizer.lemmatize("machines"))
 ##print(lemmatizer.lemmatize("learning"))
 ##
-##from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
 ##from sklearn.datasets import fetch_20newsgroups
-##from nltk.corpus import names
+from nltk.corpus import names
 ###from nltk.corpus import shakespeare as sp
 ##
 ##import seaborn as sns
 ##import matplotlib.pyplot as plt
 ##import numpy as np    
 ##
-##from nltk.stem import WordNetLemmatizer
+from nltk.stem import WordNetLemmatizer
 ##from sklearn.cluster import KMeans
 ##from sklearn.decomposition import NMF
 ##
 ##
 ##
 ##
-##def letters_only(astr):
-##    return(astr.isalpha())
+def letters_only(astr):
+    return(astr.isalpha())
+
+
+def clean_text(docs):
+    cleaned_docs=[]
+    for doc in docs:
+        cleaned_docs.append(" ".join([lemmatizer.lemmatize(word.lower())
+                                    for word in doc.split()
+                                      if letters_only(word)
+                                          and word not in all_names]))
+    return(cleaned_docs)
+    
+
+def get_label_index(labels):
+    from collections import defaultdict
+    label_index=defaultdict(list)
+    for index, label in enumerate(labels):
+        label_index[label].append(index)
+    return(label_index)
+
+
+def get_prior(label_index):
+    # compute prior based on training samples
+    #Args:
+    #    label_index (grouped sample indicies by class)
+    # returns:
+    #  a dictionary, with class label as key, corresponding prior as the value    
+
+    prior={label: len(index) for label, index
+           in label_index.iteritems()}
+
+    total_count=sum(prior.values())
+    for label in prior:
+        prior[label] /= float(total_count)
+    return(prior)
+
+
+def get_likelihood(term_document_matrix, label_index, smoothing=1):
+    # compute likelihood based on training samples
+    # args
+    #   term_document_matrix (sparse matrix)
+    #   label_index (grouped sample indices by class)
+    #   smoothing (integer, additive laplace smoothing)
+    #
+    # Returns:
+    #   dictionary, with class as key, corresponding conditional probability P(feature|class)
+    #   vector as value
+
+        likelihood={}
+        for label, index in label_index.iteritems():
+            likelihood[label]=term_document_matrix[index,:].sum(axis=0)+smoothing
+            likelihood[label]=np.asarray(likelihood[label])[0]
+            total_count=likelihood[label].sum()
+            likelihood[label]=likelihood[label] / float(total_count)
+        return(likelihood)
+    
+
+
 ##
 ##
 ###transformed=cv.fit_transform(groups.data)
 ####print(cv.get_feature_names())
-##cv=CountVectorizer(stop_words="english",max_features=500)
+cv=CountVectorizer(stop_words="english",max_features=500)
 ##groups=fetch_20newsgroups()
 ##
 ##
@@ -129,10 +212,10 @@
 ##
 ##cleaned=[]
 ##
-##all_names=set(names.words())
+all_names=set(names.words())
 ###all_names=set(sp.words("macbeth.xml"))
 ###print(all_names)
-##lemmatizer=WordNetLemmatizer()
+lemmatizer=WordNetLemmatizer()
 ##
 ##
 ##for post in groups.data:   #all_names:  #groups.data:
@@ -156,3 +239,30 @@
 ####plt.ylabel("Cluster")
 ####plt.show()
 ##
+
+
+
+cleaned_emails=clean_text(emails)
+print(cleaned_emails[40])
+term_docs=cv.fit_transform(cleaned_emails)
+print(term_docs[40])
+feature_names=cv.get_feature_names()
+print(feature_names[197])
+feature_mapping=cv.vocabulary_
+print(feature_mapping)
+
+
+label_index=get_label_index(labels)
+print(label_index)
+prior=get_prior(label_index)
+print(prior)
+
+smoothing=1
+likelihood=get_likelihood(term_docs, label_index, smoothing)
+print(len(likelihood[0]))
+
+print(likelihood[0][:5])
+      
+print(likelihood[1][:5])
+
+print(feature_names[:5])
