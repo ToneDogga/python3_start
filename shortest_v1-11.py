@@ -508,15 +508,18 @@ def mutate(genepool,mutation_rate):
     #clock_start=time.process_time()
     # the mutation rate is the number of mutations per generation, regardless of the genepool size
     #
-    rand_row=np.unique(np.random.randint(0,genepool.shape[0]-1,(1,mutation_rate),dtype=int))
-    from_rand_col=np.random.randint(1,genepool.shape[1]-2,(1,len(rand_row)),dtype=int)
-    to_rand_col=np.random.randint(1,genepool.shape[1]-2,(1,len(rand_row)),dtype=int)
+    if mutation_rate>0:
+        rand_row=np.unique(np.random.randint(0,genepool.shape[0]-1,(1,mutation_rate),dtype=int))
+        from_rand_col=np.random.randint(1,genepool.shape[1]-2,(1,len(rand_row)),dtype=int)
+        to_rand_col=np.random.randint(1,genepool.shape[1]-2,(1,len(rand_row)),dtype=int)
 
-    swap=genepool[rand_row,from_rand_col]
-    genepool[rand_row,from_rand_col]=genepool[rand_row,to_rand_col]
-    genepool[rand_row,to_rand_col]=swap  
-    return(genepool,len(rand_row))
-
+        swap=genepool[rand_row,from_rand_col]
+        genepool[rand_row,from_rand_col]=genepool[rand_row,to_rand_col]
+        genepool[rand_row,to_rand_col]=swap  
+        return(genepool,len(rand_row))
+    else:
+        return(genepool,0)
+         
 
 
 
@@ -538,11 +541,11 @@ def distance_table_prohibit_paths_start(dt):
 #    print("start flat cpi=",cpi)
 #    print("statr dt before prohibit=\n",dt)
     cpi=np.arange(0,len(dt))
-    dt[cpi,cpi]=999   # mark paths it is on so it can't go back
+    dt[cpi,cpi]=99999   # mark paths it is on so it can't go back
 
    # dt[current_path_indexes,current_path_indexes]=999   # mark paths it is on so it can't go back
-    dt[0,dt.shape[1]-1]=999   # remove the option to go straight to the end which is itself
-    dt[dt.shape[0]-1,0]=999   # remove the option to go straight to the end which is itself
+    dt[0,dt.shape[1]-1]=99999   # remove the option to go straight to the end which is itself
+    dt[dt.shape[0]-1,0]=99999   # remove the option to go straight to the end which is itself
   #  print("start dt after prohibit=\n",dt)
 
     return(dt)  
@@ -556,9 +559,9 @@ def distance_table_prohibit_paths_loop(dt,row_index,col_index):
 
   #  print("loop flat rpi=",rpi,"cpi=",cpi)
   #  print("dt before prohibit loop=\n",dt)
-  #  dt[cpi,cpi]=999   # mark paths it is on so it can't go back
-    dt[rpi,cpi]=999
-    dt[cpi,rpi]=999   # mark both sides of the table
+  #  dt[cpi,cpi]=99999   # mark paths it is on so it can't go back
+    dt[rpi,cpi]=99999
+    dt[cpi,rpi]=99999   # mark both sides of the table
 
    # dt[current_path_indexes,current_path_indexes]=999   # mark paths it is on so it can't go back
    # dt[current_path_indexes,dt.shape[1]-1]=999   # remove the option to go straight to the end which is itself
