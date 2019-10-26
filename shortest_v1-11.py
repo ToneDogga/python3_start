@@ -705,12 +705,12 @@ def main():
     xsize=0
     ysize=0
     
-    greedy_gene_count=30    # the number of initial "greedy" genes added to the initial genepool
+    greedy_gene_count=100    # the number of initial "greedy" genes added to the initial genepool 50% seems right
     
 
-    poolsize=100
+    poolsize=200   # the final poolsize including the greedy genes
     epoch_length=int(sys.argv[1])
-    mutation_rate=1  # number of mutations per generation regardless of the genepool size or number of stops (gene length) 
+    mutation_rate=10  # number of mutations per generation regardless of the genepool size or number of stops (gene length) 
 
     xsize=int(input("x size?"))
     ysize=int(input("y size?"))
@@ -730,7 +730,7 @@ def main():
 
 
     genepool=create_starting_genepool(no_of_stops,poolsize-greedy_gene_count)
-    print("\nfirst genepool=\n",genepool,genepool.shape,"len=",len(genepool))
+    #print("\nfirst genepool=\n",genepool,genepool.shape,"len=",len(genepool))
 
     g=0
     while (g<greedy_gene_count) or (len(genepool)%2==1):
@@ -743,8 +743,8 @@ def main():
    # print("unique rows\n",unique_rows,"\nlen\n",len(unique_rows),"\n",uniq_cnt)
    # genepool = unique_rows[uniq_cnt==1]  #,...]
 
-    print("\ngenepool=\n",genepool,genepool.shape,"len=",len(genepool))
-    input("?")
+  #  print("\ngenepool=\n",genepool,genepool.shape,"len=",len(genepool))
+  #  input("?")
 
    # distance_table=build_distance_lookup(sp.ysize,sp.xsize,sp.no_of_stops)
     #stops = np.array(stops1)
@@ -785,7 +785,8 @@ def main():
     while gen_count<=epoch_length:
 
     #  genepool consists of a list of lists of stops in a 2D numpy array
-
+        genepool=create_one_greedy_gene(genepool,stops,no_of_stops)
+        
         fitness,best_distance,best_list=fitness_calc(genepool,stops)
 
        # print("fitness=",fitness,"\nbest_distance=",best_distance,"\nbest_list=",best_list)
