@@ -577,7 +577,8 @@ def create_one_greedy_gene(genepool,stops,no_of_stops):
     # pick a random point
     # find the closest.  connect rinse and repeat
     # remove last return stop
- #   stops=stops[:,:no_of_stops-1,:]
+    stops=stops[:,:no_of_stops-1,:]
+    no_of_stops-=1
  #   print("stops -1=",stops)
     
 
@@ -602,7 +603,7 @@ def create_one_greedy_gene(genepool,stops,no_of_stops):
     dist_for_start_only=distance_table_prohibit_paths_start(dist)
     #dist_for_start_only=distance_table_prohibit_paths_loop(dist_for_start_only,start_index,start_index)
 
-    while stop_count<no_of_stops-2:
+    while stop_count<no_of_stops-1:
 
         # "from" is the rows, "to" is the columns
         # distance table contains only the rows of the start index
@@ -652,12 +653,13 @@ def create_one_greedy_gene(genepool,stops,no_of_stops):
     #    print("final dist at end of loop=\n",dist)
     #    print("greedy paths=\n",greedy_paths)
         stop_count+=1
-  #  print("final greedy path=\n",greedy_path)
+#    print("final greedy path=\n",greedy_path)
     greedy_path=np.append(greedy_path,greedy_path[0:1])   #,axis=0)
     greedy_path=greedy_path[np.newaxis,...]
  #   print("final greedy path=\n",greedy_path,"\ngp=\n",genepool)
-    genepool=np.append(genepool,greedy_path,axis=0)
-    return(genepool)
+    genepool2=np.append(genepool,greedy_path,axis=0)
+  #  print("gp2len",genepool2.shape)
+    return(genepool2)
 
 
 
@@ -703,12 +705,12 @@ def main():
     xsize=0
     ysize=0
     
-    greedy_gene_count=5    # the number of initial "greedy" genes added to the initial genepool
+    greedy_gene_count=30    # the number of initial "greedy" genes added to the initial genepool
     
 
-    poolsize=200
+    poolsize=100
     epoch_length=int(sys.argv[1])
-    mutation_rate=10  # number of mutations per generation regardless of the genepool size or number of stops (gene length) 
+    mutation_rate=1  # number of mutations per generation regardless of the genepool size or number of stops (gene length) 
 
     xsize=int(input("x size?"))
     ysize=int(input("y size?"))
@@ -728,11 +730,21 @@ def main():
 
 
     genepool=create_starting_genepool(no_of_stops,poolsize-greedy_gene_count)
-    for g in range(1,greedy_gene_count):
-        create_one_greedy_gene(genepool,stops,no_of_stops)
-    
-  #  print("\ngenepool=\n",genepool,genepool.shape,"len=",len(genepool))
-  #  input("?")
+    print("\nfirst genepool=\n",genepool,genepool.shape,"len=",len(genepool))
+
+    g=0
+    while (g<greedy_gene_count) or (len(genepool)%2==1):
+        genepool=create_one_greedy_gene(genepool,stops,no_of_stops)
+      #  print("g=",g)
+        g+=1
+        #draw_path(pygame,windowSurface,font,best_best_list,best_gen,best_best_distance,best_best_distance)
+
+  #  unique_rows, uniq_cnt = np.unique(genepool, return_counts=True)
+   # print("unique rows\n",unique_rows,"\nlen\n",len(unique_rows),"\n",uniq_cnt)
+   # genepool = unique_rows[uniq_cnt==1]  #,...]
+
+    print("\ngenepool=\n",genepool,genepool.shape,"len=",len(genepool))
+    input("?")
 
    # distance_table=build_distance_lookup(sp.ysize,sp.xsize,sp.no_of_stops)
     #stops = np.array(stops1)
