@@ -23,16 +23,17 @@ df=pd.read_excel("shopsales32.xlsx", "shopsales32")
 #print(df)
 X=df.iloc[0:1996,0:7].values
 Y=df.iloc[0:1996,8].values
-print(X)
-print(Y)
-input("?")
-print(Counter(Y))
+#print(X)
+#print(Y)
+#input("?")
+print("Features:",Counter(Y))
 
 
-X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size=0.2,random_state=42)
+X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size=0.5,random_state=42)
 
 
-svc=SVC(kernel="rbf")
+#svc=SVC(kernel="rbf")
+svc=SVC(kernel="linear")
 parameters={"C":(100,1e3,1e4,1e5), "gamma":(1e-08,1e-7,1e-6,1e-5)}
 
 grid_search=GridSearchCV(svc, parameters, n_jobs=-1, cv=3)
