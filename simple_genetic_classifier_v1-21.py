@@ -932,7 +932,7 @@ def kill_a_non_winning_random_condition(population,params):
   
   #  mean=population["strength"].mean()
     started=str(params["starting_strength"])
-    temppop=population.query("winners==False & match_flag==False & strength="+started)    #str(mean))  #,inplace=True)
+    temppop=population.query("winners==False & match_flag==False & strength=="+started)    #str(mean))  #,inplace=True)
  #   print("query before delete=",temppop)
  #   input("?")
     if len(temppop)>0:
