@@ -324,10 +324,14 @@ def reproduce(newpopulation,params):
 
         ##    # strength needs to start at the mean of the population so it doesnt die or dominate
         new_strength=newpopulation["strength"].mean()
-        specificity1=count_specificity(child1,params["condition_bits"])
+       # specificity1=count_specificity(child1,params["condition_bits"])
+        specificity1=(params["condition_bits"]-str(child1).count("#"))/params["condition_bits"]
+
         new_row1={"condition":child1,"message":message2,"match_flag":False,"bid":0.0,"ebid":0.0,"strength":new_strength,"specificity":specificity1,"crowding":0.0,"payments":0.0, "taxes":0.0,"receipts":0.0,"winners":False,"brkdown":0.0,"address":"  ","keeping":False}
         newpopulation = newpopulation.append(new_row1, ignore_index=True)
-        specificity2=count_specificity(child2,params["condition_bits"])
+      #  specificity2=count_specificity(child2,params["condition_bits"])
+        specificity2=(params["condition_bits"]-str(child2).count("#"))/params["condition_bits"]
+
         new_row2={"condition":child2,"message":message1,"match_flag":False,"bid":0.0,"ebid":0.0,"strength":new_strength,"specificity":specificity2,"crowding":0.0,"payments":0.0, "taxes":0.0,"receipts":0.0,"winners":False,"brkdown":0.0,"address":"  ","keeping":False}
         newpopulation = newpopulation.append(new_row2, ignore_index=True)
      #   print("ns=",specificity1,specificity2)
@@ -346,9 +350,9 @@ def mutate(population,params):
 # (0=>[1,#],1=>[0,#],#=>[0,1])  we will use -1 to represent # and vice versa
 #    
     
-    mean=population["strength"].mean()  
+    med=population["strength"].median()  
 
-    temppop=population.query("winners==False & strength<="+str(mean)) #,inplace=True)
+    temppop=population.query("winners==False & match_flag==False & strength<"+str(med)) #,inplace=True)
     templen=len(temppop)
   #  print("mutate.  templen=",templen)
     # pick a random row.  don't mutate a winner
@@ -387,6 +391,7 @@ def mutate(population,params):
                 newgene=newgene+gene[elem]
                 
         population.loc[ginx,"condition"]=newgene
+        population.loc[ginx,"specificity"]=(params["condition_bits"]-str(newgene).count("#"))/params["condition_bits"]
     else:
         pass
         #print("no mutation, population is all winners.")
@@ -465,7 +470,7 @@ def extract_messages_to_list(population):
 def get_message_off_message_list(message_list,params):
     if len(message_list)>0:
         message=message_list[0]
-        params["messages_applied"].append(message)
+        params["messages_applied"].append(messprintage)
         del message_list[0]
         return(message)
     else:
@@ -602,6 +607,9 @@ def cleanup_crowding(temppop,params):
     return(temppop3)
 
 
+def count_specificity(population,params):
+    p=population["condition"]   #.ma.count("#",axis=1))
+    return(p.np.count("#",axis=0))
 
 
 def update_specificity(population,params):   # a very specific condition has no #'s in it.  It means it gets a higher reward if it wins
@@ -894,7 +902,7 @@ def check_signal_and_output(row,signal,output,rowindex,cms,cms_flag,mms,mms_flag
 
 
 
-##def check_for_nans_in_rows(population):
+##def check_for_nans_in_rows(population):winners==False & match_flag==False & strength<
 ##    df1 = population[population.isna().any(axis=1)]
 ##    print("check for nans=",df1)
 ##    return
@@ -929,10 +937,10 @@ def kill_a_non_winning_random_condition(population,params):
 
     # cant kill a winner, previous winner (1 cycle) or previous winner (2 cycles)  they are marked as winners in the dataframe field
   #  population.drop(population['strength'].idxmin())
-  
+    med=population["strength"].median()
   #  mean=population["strength"].mean()
-    started=str(params["starting_strength"])
-    temppop=population.query("winners==False & match_flag==False & strength=="+started)    #str(mean))  #,inplace=True)
+    #started=str(params["starting_strength"])
+    temppop=population.query("winners==False & match_flag==False & strength<"+str(med))    #str(mean))  #,inplace=True)
  #   print("query before delete=",temppop)
  #   input("?")
     if len(temppop)>0:
@@ -1354,7 +1362,7 @@ def classifier_GA(params,q):
 
 
        
-        if params["death_enabled"] and death_flag and count>params["deathstart"] and count<params["deathfinish"]:
+        if params["death_enabled"] and death_flag and count>params["deathstart"] and count<params["deathfinish"] and len(population)>(params["min_pop"]+random.randint(-20,20)):
             pass
           #  print("death flag count=",count)
 
@@ -1362,10 +1370,10 @@ def classifier_GA(params,q):
 
             
             population=kill_a_non_winning_random_condition(population,params)
-            population=kill_a_non_winning_random_condition(population,params)
-            population=kill_a_non_winning_random_condition(population,params)
-            population=kill_a_non_winning_random_condition(population,params)
-            population=kill_a_non_winning_random_condition(population,params)
+#            population=kill_a_non_winning_random_condition(population,params)
+#            population=kill_a_non_winning_random_condition(population,params)
+#            population=kill_a_non_winning_random_condition(population,params)
+#            population=kill_a_non_winning_random_condition(population,params)
 ##            population=kill_a_non_winning_random_condition(population,params)
 ##            population=kill_a_non_winning_random_condition(population,params)
 
@@ -1397,7 +1405,7 @@ def classifier_GA(params,q):
 
             
 
-        if params["birth_enabled"] and birth_flag and count>params["birthstart"] and count<params["birthfinish"]:
+        if params["birth_enabled"] and birth_flag and count>params["birthstart"] and count<params["birthfinish"] and len(population)<(params["max_pop"]+random.randint(-20,20)):
           #  print("birth flag")
             population=reproduce(population,params)   # make two new random conditiosn and messages
         #    print(population.sort_values("strength",ascending=False).to_string())
@@ -1415,6 +1423,10 @@ def classifier_GA(params,q):
    #     population=population.sort_values("strength",ascending=False)
         
         if params["drop_duplicates_enabled"]:
+            #med=population["strength"].median()  
+
+            #temppop=population.query("winners==False & match_flag==False & strength<"+str(med)) #,inplace=True)
+
             population=population.sort_values("strength",ascending=False)
             df2=population.drop_duplicates(subset=["condition","message"])   # remove non-unique conditions and messages
             population=df2
@@ -1456,6 +1468,7 @@ def classifier_GA(params,q):
 
 
  
+   # add_to_queue(pickle.dumps(population.loc[:,["condition","message",'strength']].sort_values("strength",ascending=False).head(50).to_string()),q)   #.to_string())
     add_to_queue(pickle.dumps(population.loc[:,["condition","message",'strength']].sort_values("strength",ascending=False).to_string()),q)   #.to_string())
 
 
@@ -1491,14 +1504,15 @@ def main():
     params = dict(
 ##        no_of_address_bits=2,
 ##        no_of_data_bits=2**2,   # binary,  in this case 6 input , 1 output
-        min_pop=40,   #3**3,
-        import_flag=True, #False,  #True,  imports the starting classifier population 
+        min_pop=50,   #3**3,
+        max_pop=300,  # start culling if pop gets too high
+        import_flag=False,  #True,  imports the starting classifier population 
         use_big_env_file=False, #True,   #  use linecache for the env file instead of pandas
         create_unique_classifiers_flag=False,  #True,   # if true it creates all possible classifiers (conditions : messages) so that they are all unique.  It ignores the size number below, if false they are selected randomly to the size number below
-        size=10000,  #(3**9)*(2**2),  # =  17,600ish,  This is for random selection which occurs when no import and not universe creation
+        size=100,  #(3**9)*(2**2),  # =  17,600ish,  This is for random selection which occurs when no import and not universe creation
         epoch=int(sys.argv[1]),  #1000,
        # input_file=sys.argv[1],
-        condition_bits=10,
+        condition_bits=5,
         message_bits=2,
         message_list=[],
         messages_applied=[],
@@ -1513,23 +1527,23 @@ def main():
         reward=1,    # 1.45 reward scaling factor from payment
         envrate=1,    # every 1 iterations, inject an environment signal
         feedrate=6000,   # rate that messages are fedback into the conditions (higher is less frequent)  Currently not enabled
-        drop_duplicates_enabled=False,  # any duplicate conditions are deleted out each cycle if True
-        mutation_enabled=False,
-        mutrate=303,  #[0,1,2],  every 50 cycles
-        mutstart=23000,  # mutate starting
-        mutfinish=24000,
-        birth_enabled=False,  #True,  #False,
-        birthrate=4,  # 2 new conditions are born every ? cycles
+        drop_duplicates_enabled=False, #True,   #False,  # any duplicate conditions are deleted out each cycle if True
+        mutation_enabled=False,  #True,  #False,
+        mutrate=50,  #[0,1,2],  every 50 cycles
+        mutstart=200,  # mutate starting
+        mutfinish=18000,
+        birth_enabled=True,  #False,
+        birthrate=10,  # 2 new conditions are born every ? cycles
         birthstart=3,  # the number of cycles before repdocution starts
-        birthfinish=2000,
+        birthfinish=20000,
         death_enabled=True,  #False,
-        deathrate=1,  # an old unfit condition or duplicate is killed every ? cycles
-        deathstart=2000,  # the number of cycles before the deaths start
-        deathfinish=5000,
-        crowding_enabled=False,
+        deathrate=3,  # an old unfit condition or duplicate is killed every ? cycles
+        deathstart=5000,  # the number of cycles before the deaths start
+        deathfinish=20000,
+        crowding_enabled=False,  #True,   #False,
         crowding_rate=201,  # purge a number of similar genes to prevent crowding
-        crowdingstart=30000,   # the number of cycles befoes crowding kills start
-        crowdingfinish=40000,
+        crowdingstart=3000,   # the number of cycles befoes crowding kills start
+        crowdingfinish=10000,
         crowding_depth=2,  #from the right going left, how many allelles have to be the same to form the crowd sets
         ideal_final_population_size=60,  # use a PID type control system to get the population size to be about this once the birth, death, crowding start 
         condition_match_specificity=1.0,   #  the condition needs only to match the signal 100% of the alleles in the gene to be marked a match
@@ -1543,7 +1557,7 @@ def main():
         winner_spoils=1.0,   #[1.0,0.0,0.0,0.0],   # strongest winner gets first one and so on.  If there are less winners than elements in the list, the winner gets the balance
         minus1factor=1.0,   # 100% of the receipts go into the previous weeks winners
         minus2factor=0.0,   # 0% of the receipts go to the week before the previous week winners
-        env_filename="shop_concat_SGC_encoded34-4.csv",  #   shop_concat_SGC_encoded31_5-1.csv",   #MLGA_environment.csv",
+        env_filename="shop_concat_SGC_encoded31_5-1.csv",  #   shop_concat_SGC_encoded31_5-1.csv",   #MLGA_environment.csv",
         starting_pop_filename="starting_population.csv",
         diagnostic_file="MLGA_diagnostic.txt",
         outfile_csv="results_csv.csv",    # shop csv
