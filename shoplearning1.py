@@ -19,18 +19,18 @@ import pandas as pd
 from collections import Counter
 from sklearn.model_selection import train_test_split
 
-df=pd.read_excel("shopsales33.xlsx", "shopsales32")
+df=pd.read_excel("shopsales36.xlsx", "shopsales32")
 #print(df)
-X=df.iloc[0:1996,0:7].values
-Y=df.iloc[0:1996,8].values
-#print(X)
-#print(Y)
+X=df.iloc[0:1996,0:7].values   # features (inputs)
+Y=df.iloc[0:1996,8].values    # classes (output)
+print(X)
+print(Y)
 #input("?")
 #print("features: X",Counter(X))
 print("Class Y:",Counter(Y))
 
 
-X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size=0.3,random_state=42)
+X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size=0.2,random_state=42)
 
 print("\n\n\nLinear SVC")
 svc_linear=LinearSVC()
