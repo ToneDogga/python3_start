@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import csv
 from sklearn.feature_extraction import DictVectorizer
+from sklearn.metrics import roc_auc_score
 
 
 def sigmoid(input):
@@ -122,7 +123,7 @@ def train_logistic_regression(X_train, y_train, max_iter, learning_rate, fit_int
     weights=np.zeros(X_train.shape[1])
     for iteration in range(max_iter):
         weigths=update_weights_sgd(X_train,y_train,weights,learning_rate)
-        if iteration%100==0:
+        if iteration%2==0:
             print(compute_cost(X_train,y_train,weights))
     return weights
 
@@ -133,45 +134,45 @@ def predict(X,weights):
         X=np.hstack((intercept,X))
     return compute_prediction(X,weights)
 
-
-X_train=np.array([[6,7],
-                  [2,4],
-                  [3,6],
-                  [4,7],
-                  [1,6],
-                  [5,2],
-                  [2,0],
-                  [6,3],
-                  [4,1],
-                  [7,2]])
-
-y_train=np.array([0,0,0,0,0,1,1,1,1,1])
-                
-
-
-weights=train_logistic_regression(X_train,y_train,max_iter=1000, learning_rate=0.1, fit_intercept=True)
-
-X_test=np.array([[6,1],
-                 [1,3],
-                 [3,1],
-                 [4,5]])
-
-predictions=predict(X_test,weights)
-print(predictions)
-
-plt.scatter(X_train[:,0],X_train[:,1],c=['b']*5+["k"]*5, marker='o')
-colours=["k" if prediction >=0.5 else 'b' for prediction in predictions]
-plt.scatter(X_test[:,0],X_test[:,1],marker="*",c=colours)
-plt.xlabel('x1')
-plt.ylabel('x2')
-plt.show()
+##
+##X_train=np.array([[6,7],
+##                  [2,4],
+##                  [3,6],
+##                  [4,7],
+##                  [1,6],
+##                  [5,2],
+##                  [2,0],
+##                  [6,3],
+##                  [4,1],
+##                  [7,2]])
+##
+##y_train=np.array([0,0,0,0,0,1,1,1,1,1])
+##                
+##
+##
+##weights=train_logistic_regression(X_train,y_train,max_iter=1000, learning_rate=0.1, fit_intercept=True)
+##
+##X_test=np.array([[6,1],
+##                 [1,3],
+##                 [3,1],
+##                 [4,5]])
+##
+##predictions=predict(X_test,weights)
+##print(predictions)
+##
+##plt.scatter(X_train[:,0],X_train[:,1],c=['b']*5+["k"]*5, marker='o')
+##colours=["k" if prediction >=0.5 else 'b' for prediction in predictions]
+##plt.scatter(X_test[:,0],X_test[:,1],marker="*",c=colours)
+##plt.xlabel('x1')
+##plt.ylabel('x2')
+##plt.show()
 
 
 
 
 ##n=10000
 ##X_dict_train, y_train=read_ad_click_data(n)
-##dict_one_hot_encoder=DictVectorizer(sparse=False)
+dict_one_hot_encoder=DictVectorizer(sparse=False)
 ##X_train=dict_one_hot_encoder.fit_transform(X_dict_train)
 ##X_dict_test, y_test = read_ad_click_data(n,n)
 ##X_test=dict_one_hot_encoder.transform(X_dict_test)
@@ -180,31 +181,61 @@ plt.show()
 ##
 ##import timeit
 ##start_time=timeit.default_timer()
-##weights=train_logistic_regression(X_train_10k,y_train_10k, max_iter=5, learning_rate=0.01,fit_intercept=True)
+##weights=train_logistic_regression(X_train_10k,y_train_10k, max_iter=25, learning_rate=0.01,fit_intercept=True)
 ##print("---- %0.3fs seconds ----------" %(timeit.default_timer()-start_time))
 ##
 ##X_test_10k=X_test
 ##predictions=predict(X_test_10k, weights)
 ##from sklearn.metrics import roc_auc_score
-##print("the ROC AUC score on the testing ser is: {0:.3f}".format(roc_auc_score(y_test,predictions)))
+##print("the ROC AUC score on the testing set is: {0:.3f}".format(roc_auc_score(y_test,predictions)))
 
-n=30000
+n=10000
 X_dict_train, y_train=read_ad_click_data(n)
 dict_one_hot_encoder=DictVectorizer(sparse=False)
 X_train=dict_one_hot_encoder.fit_transform(X_dict_train)
-X_dict_test, y_test = read_ad_click_data(n,n)
-X_test=dict_one_hot_encoder.transform(X_dict_test)
-X_train_100k=X_train
-y_train_100k=np.array(y_train)
+##X_dict_test, y_test = read_ad_click_data(n,n)
+##X_test=dict_one_hot_encoder.transform(X_dict_test)
+X_train_10k=X_train
+y_train_10k=np.array(y_train)
+##
+###import timeit
+##start_time=timeit.default_timer()
+##weights=train_logistic_regression(X_train_100k,y_train_100k, max_iter=5, learning_rate=0.01,fit_intercept=True)
+##print("---- %0.3fs seconds ----------" %(timeit.default_timer()-start_time))
+##
+##X_test_10k=X_test
+##predictions=predict(X_test_10k, weights)
+###from sklearn.metrics import roc_auc_score
+##print("the ROC AUC score on the testing ser is: {0:.3f}".format(roc_auc_score(y_test,predictions)))
 
-import timeit
-start_time=timeit.default_timer()
-weights=train_logistic_regression(X_train_100k,y_train_100k, max_iter=5, learning_rate=0.01,fit_intercept=True)
-print("---- %0.3fs seconds ----------" %(timeit.default_timer()-start_time))
+X_dict_test, y_test_next10k=read_ad_click_data(10000,10000)
+X_test_next10k=dict_one_hot_encoder.transform(X_dict_test)
 
-X_test_10k=X_test
-predictions=predict(X_test_10k, weights)
-from sklearn.metrics import roc_auc_score
-print("the ROC AUC score on the testing ser is: {0:.3f}".format(roc_auc_score(y_test,predictions)))
+
+
+print("sklearn no regulatization....\n\n")
+
+from sklearn.linear_model import SGDClassifier
+sgd_lr=SGDClassifier(loss="log", penalty=None, fit_intercept=True, max_iter=45, learning_rate="constant", eta0=0.01)
+
+sgd_lr.fit(X_train_10k,y_train_10k)
+predictions=sgd_lr.predict_proba(X_test_next10k)[:,1]
+print("The ROC AUC on testing set is: {0:.3f}".format(roc_auc_score(y_test_next10k, predictions)))
+
+
+print("sklearn with L1 regulization....\n\n")
+
+l1_feature_selector=SGDClassifier(loss="log", penalty="l1", alpha=0.0001, fit_intercept=True, max_iter=5, learning_rate="constant", eta0=0.01)
+
+l1_feature_selector.fit(X_train_10k,y_train_10k)
+X_train_10k_selected=l1_feature_selector.partial_fit(X_train_10k)
+print(X_train_10k_selected.shape)
+print(X_train_10k.shape)
+#predictions=sgd_lr.predict_proba(X_test_next10k)[:,1]
+#print("The ROC AUC on testing set is: {0:.3f}".format(roc_auc_score(y_test_next10k, predictions)))
+
+
+print(l1_feature_selector.coef_)
+
 
 
