@@ -9,7 +9,7 @@ mydata = quandl.get("YAHOO/INDEX_DJI", start_date="2005-12-01", end_date="2005-1
 import pandas as pd
 
 
-authtoken = 'DrxQ6jniVGwDnrDrrb_Y'
+authtoken = 'r3zLPYJ8VjNxs6TrRfTy'
 
 def get_data_quandl(symbol, start_date, end_date):
     data = quandl.get(symbol, start_date=start_date, end_date=end_date, authtoken=authtoken)
