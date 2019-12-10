@@ -38,6 +38,10 @@ datasetworking="datasetworking.csv"
 predict_start_date=dt.datetime.now
 one_year_ago = (dt.datetime.now()+relativedelta(years=-1)).strftime('%Y/%m/%d')
 
+########################################
+# reporting date format
+#dateformat="year/month/day"
+dateformat="year/month"
 
 #####################################################
 # binning.  no columns or rows are excluded
@@ -56,6 +60,12 @@ excludecols=["cat","costval","glset","doctype","docentrynum","linenumber","locat
 #featureorder=["prod_encode","qty","productgroup","date","date_encode","day_delta","day_of_year","week_of_year","month_of_year","year"]
 featureorder_r=["code_encode","prod_encode","qty","productgroup","date","date_encode","day_delta"]    #,"day_order_delta"]   #,"day_of_year","week_of_year","month_of_year","year"]
 featureorder_c=["code_encode","prod_encode","qty","productgroup","date","date_encode","day_delta"]    #,"day_order_delta"]   #,"day_of_year","week_of_year","month_of_year","year"]
+##############################
+
+bins = [0,30,60,90,120,150,180,210,240,270,300,330,360,390,420,450,480,510,540,570,600,630,660,690,720,750,780,810,840,870,900,930,960,990]
+noofbins=33
+sensitivity_constant = 0.35   # same as 1/3   #0.2   # the factor that the scaling effects the calculated last_order_upspd
+
 
 
 #################################3

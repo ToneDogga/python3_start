@@ -68,7 +68,9 @@ def main():
 
 ######################################################3
 
-    start_d=input("Start date for predictions? YYYY/MM/DD  (you can only predict 1 year in advance of current date):")
+  #  start_d=input("Start date for predictions? YYYY/MM/DD  (you can only predict 1 year in advance of current date):")
+    start_d="2019/11/01"   #str(dt.datetime.now)   #input("Start date for predictions? YYYY/MM/DD  (you can only predict 1 year in advance of current date):")
+
     start_date=pd.to_datetime(start_d)
     one_year_ago = (start_date+relativedelta(years=-1)).strftime('%Y/%m/%d')
  
@@ -173,7 +175,13 @@ def main():
   #  print("now=",now)
     dbd2["new_date"]=start_date  #.dt.date
     dbd2['new_date'] = dbd2['new_date'] + pd.to_timedelta(dbd2['day_order_delta'], unit='d')
-    dbd2['predict_date']=dbd2['new_date'].dt.strftime('%Y/%m/%d')
+    if cfg.dateformat=="year/week":
+        dbd2['predict_date']=dbd2['new_date'].dt.strftime('%Y/%w')    # ('%Y/%m/%d")
+    elif cfg.dateformat=="year/month/day":
+        dbd2['predict_date']=dbd2['new_date'].dt.strftime('%Y/%m/%d')
+    elif cfg.dateformat=="year/month":
+        dbd2['predict_date']=dbd2['new_date'].dt.strftime('%Y/%m')
+        
    # new_datetime_obj = datetime.strptime(orig_datetime_obj.strftime('%d-%m-%y'), '%d-%m-%y').date()
  
     dbd2= dbd2[["code","product","predict_date","predict_qty"]]
@@ -188,7 +196,7 @@ def main():
 #############################################################################3
     #  create a pivot table of code, product, day delta and predicted qty and export back to excel
 
-    table = pd.pivot_table(dbd2, values='predict_qty', index=['product', 'predict_date'],columns=['code'], aggfunc=np.sum, margins=True, fill_value=0)
+    table = pd.pivot_table(dbd2, values='predict_qty', index=['product', 'predict_date'],columns=['code'], aggfunc=np.sum, margins=True, fill_value=0)   #, observed=True)
   #  print("\ntable=\n",table.head(5))
     f.write("\n\n"+table.to_string())
 

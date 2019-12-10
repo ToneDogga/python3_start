@@ -143,6 +143,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import gc
 
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import scale
 
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.linear_model import SGDRegressor
@@ -423,6 +424,39 @@ def shift_reference(df,timeperiod,negshift,colname):
    # df3["product","qty"]
     return df
 
+
+def smoothing_distributions(df,prod_list,noofbins):
+    #  create a dictionary of prod_encodes as keys and the values are a counter is the day_delta as a key and the value is the sum of the qty sales for each day
+    e=df.groupby(["prod_encode",pd.qcut(df.day_delta,q=noofbins,labels=range(noofbins))],as_index=[False,False])[['qty']].agg('sum').fillna(0)
+    f=e.unstack(fill_value=0.0)
+ #   print("f shape=",f.shape)
+    sumf=f.qty.sum(axis=1).to_numpy()    #.reshape(-1,1)     #.tolist()
+    #g=f.append(f,sumf.tolist())
+   # print(sumf)
+  #  print("sumf shape=",sumf.shape)
+    i=0
+    smoothing=[]   #np.empty((1,1),dtype=float)   #empty((len(prod_list),noofbins))    #np.zeros((len(prod_list,noofbins),dtype=float)
+  #  print("smoothing shpae",smoothing.shape)
+    for prod in prod_list:
+        row=f.iloc[i,:].to_numpy()
+        brkdwn=row/sumf[i]   #.reshape(-1,1)
+     #   print("brk",brkdwn,"brkdwn shape=",brkdwn.shape)
+        smoothing.append(brkdwn)
+    #    print("smoothing shape=",smoothing.shape)
+        i+=1
+  #  print("smoothing=",smoothing)
+  #  print("smoothing len=",len(smoothing))
+    s=np.asarray(smoothing)
+   # print(s[0:100])
+    # normalise around zero.
+    scale( s, axis=1, with_mean=False, with_std=True, copy=False )
+    
+   # print("scaled s",s[0:100])
+   # print(s.shape,s.min(),s.max(),s.mean(),s.sum(axis=1))
+    return s
+
+
+       
 def order_delta(df):
     df2=df.sort_values(by=["code_encode","prod_encode","day_delta"],ascending=[True,True,False])   #,inplace=True)
 
@@ -437,6 +471,7 @@ def order_delta(df):
     cust_list_len=len(cust_list)-1
     prod_list_len=len(prod_list)-1
 
+    scaler=smoothing_distributions(df2,prod_list,cfg.noofbins)
     i=0
     print("\n\n\n\n")
    # no_of_products=len(prod_list)
@@ -457,10 +492,67 @@ def order_delta(df):
           #  df2.drop(df2[(df2["last_order_qty"] == 0)].index,inplace=True)
 
     df3.drop(df3[(df3["day_order_delta"]<=0) | (df3["last_order_upspd"]<=0)].index,inplace=True)
-    print(df3)
+
+#################################
+    
+    print("Add bins on day_delta:",cfg.bins)
+    df3["bin_no"]=pd.qcut(df3["day_delta"],q=cfg.noofbins,labels=range(cfg.noofbins))
+#    print(df3)
+    
+###################################
+
+ 
+    print("add scaling...")
+    k=0
+    df3["scaler"]=0.0
+   # df4=df3.copy(deep=True)
+
+ #   print("scaler=\n",scaler)
+ #   print("len scaler",len(scaler))
+  #  print("-0.363680344 = scaler[101,30]",scaler[101,30])
+  #  input("?")
+    for prod in prod_list:
+        print("\rScaling Progress:{0:.1f}%".format(k/prod_list_len*100),end="\r",flush=True)
+        prod_mask=((df3["prod_encode"]==prod))
+        binnumber_array=df3[prod_mask].bin_no
+     #   print("binnumber_array=",binnumber_array)
+     #   print("len=",df3[prod_mask].shape,"\ndf3=\n",df3[prod_mask])
+      #  df4=df3[prod_mask]
+        j=0
+        #df4.scaler=scaler[i]
+      #  i=df3[prod_mask].index
+       # print("df3 index=",j)
+
+        for abin in binnumber_array:
+          #  print("abin=",abin,"i=",i,"scaler=",scaler[i,abin])
+       #     df3[prod_mask].scaler.iloc[j] = scaler[i,abin]   #.apply(copy_scaler)
+        #    df3.at[j, 'scaler'] = scaler[i,abin]
+        #    df.set_value('Row_index', 'Column_name', value)
+            df3.at[df3[prod_mask].index[j], 'scaler']= scaler[k,abin]
+            j+=1
+        k+=1
+      #  print("df5=\n",df4.head(100))
+
+    
+  #  print(df3)
+    
     print("\n\n\n")
+
+
+####################################################################3
+    #  Multiply out scaling  scaled_updpd = last_order_upsdp * scaler * sensitivity_constant
+
+    df3["scaled_upspd"]=df3["last_order_upspd"]*df3["scaler"]*cfg.sensitivity_constant
+
+   # print("final df3-=\n",df3)
+    
+
+    
     return df3
 
+
+##def copy_scaler(scaler,df3):
+##    return =scaler[abin,i]   
 
 
 def remove_poor_sellers(df,sales,n):   
@@ -630,7 +722,11 @@ def main():
     #print(sales)
     Xr_df.dropna(inplace=True)
  #   Xc_df.dropna(inplace=True)
-
+ 
+    print("last_order_upspd mean=",Xr_df["last_order_upspd"].mean(),"last_order_upspd stdev=",Xr_df["last_order_upspd"].std())
+    print("scaler mean=",Xr_df["scaler"].mean(),"scaler stdev=",Xr_df["scaler"].std())
+    print("scaled_upspd mean=",Xr_df["scaled_upspd"].mean(),"scaled upspd stdev=",Xr_df["scaled_upspd"].std())
+    print("scale sensitivity constant=",cfg.sensitivity_constant)
   #  X = X[["code_encode","cat","prod_encode","productgroup","week_of_year","order_delta"]]  
     
 
@@ -697,7 +793,7 @@ def main():
     fulldataset=Xr_df.copy(deep=True)
 
     
-    Xr_df.drop(columns=["qty"],inplace=True)
+    Xr_df.drop(columns=["qty","last_order_upspd","scaler","bin_no"],inplace=True)
     Xc_df.drop(columns=["prod_encode"],inplace=True)
 
 
@@ -749,16 +845,17 @@ def main():
 
     print("Xr_train.shape",Xr_train.shape)
 
-    scaler=StandardScaler()
-    scaler.fit(Xr_train)
-
-    joblib.dump(scaler,open(cfg.scaler_save,"wb"))
-    print("Scaler saved to:",cfg.scaler_save)
-    f.write("Scaler saved to:"+str(cfg.scaler_save)+"\n")
-
-    
-    Xr_scaled_train=scaler.transform(Xr_train)
-    Xr_scaled_test=scaler.transform(Xr_test)
+#  this is not needed for random forest, only for SVC and SGDC
+##    scaler=StandardScaler()
+##    scaler.fit(Xr_train)
+##
+##    joblib.dump(scaler,open(cfg.scaler_save,"wb"))
+##    print("Scaler saved to:",cfg.scaler_save)
+##    f.write("Scaler saved to:"+str(cfg.scaler_save)+"\n")
+##
+##    
+##    Xr_scaled_train=scaler.transform(Xr_train)
+##    Xr_scaled_test=scaler.transform(Xr_test)
 
 
 ##    if True:
