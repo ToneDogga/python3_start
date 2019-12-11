@@ -1,10 +1,10 @@
 import datetime as dt
 from dateutil.relativedelta import relativedelta
 
-#infilename="FLFUL_FLPAS_FLFRE-raw.xlsx"
+infilename="FLFUL_FLPAS_FLFRE-raw.xlsx"
 #infilename="FLNOR_FLBRI-raw.xlsx"
 #infilename="FLNOR-raw.xlsx"
-infilename="NAT-raw.xlsx"
+#infilename="NAT-raw.xlsx"
 
 
 importrows=-1  # all
@@ -29,19 +29,22 @@ outxlsfile="SalesPredictResults.xlsx"
 
 datasetpluspredict="datasetpluspredict.csv"
 datasetworking="datasetworking.csv"
+scalerdump1="prescaler1.xlsx"
+scalerdump2="postscaler1.xlsx"
 
 
 ##########################################################
 
 #customer_codes=["FLNOR","FLBRI"]
 
-predict_start_date=dt.datetime.now
-one_year_ago = (dt.datetime.now()+relativedelta(years=-1)).strftime('%Y/%m/%d')
+#predict_start_date=dt.datetime.now
+#one_year_ago = (dt.datetime.now()+relativedelta(years=-1)).strftime('%Y/%m/%d')
 
 ########################################
 # reporting date format
-#dateformat="year/month/day"
-dateformat="year/month"
+dateformat="year/month/day"
+#dateformat="year/week"
+#dateformat="year/month"
 
 #####################################################
 # binning.  no columns or rows are excluded
@@ -62,9 +65,10 @@ featureorder_r=["code_encode","prod_encode","qty","productgroup","date","date_en
 featureorder_c=["code_encode","prod_encode","qty","productgroup","date","date_encode","day_delta"]    #,"day_order_delta"]   #,"day_of_year","week_of_year","month_of_year","year"]
 ##############################
 
-bins = [0,30,60,90,120,150,180,210,240,270,300,330,360,390,420,450,480,510,540,570,600,630,660,690,720,750,780,810,840,870,900,930,960,990]
-noofbins=33
-sensitivity_constant = 0.35   # same as 1/3   #0.2   # the factor that the scaling effects the calculated last_order_upspd
+# data starts 2/2/2018
+bins = [0,26,57,87,118,148,179,210,240,271,301,332,363,391,420,451,481,512,543,574,604,635,665,696,727,755,786,817,847,878,908,930,960,990,1020,1050,1080,1110,1140,1170,1200,1230]
+#noofbins=40
+sensitivity_constant = 1   # same as 1/3   #0.2   # the factor that the scaling effects the calculated last_order_upspd
 
 
 
@@ -72,7 +76,7 @@ sensitivity_constant = 0.35   # same as 1/3   #0.2   # the factor that the scali
 #include_productgroup=[10,11,12,13,14,15,16]
 
 #RF_estimators=4000  # regression
-RF_estimators=1000  # regression
+RF_estimators=5000  # regression
 RFC_estimators=100   # classification
 mintransactions=16
 minqty=16
