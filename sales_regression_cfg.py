@@ -29,9 +29,9 @@ outxlsfile="SalesPredictResults.xlsx"
 
 datasetpluspredict="datasetpluspredict.csv"
 datasetworking="datasetworking.csv"
-scalerdump1="prescaler1.xlsx"
-scalerdump2="postscaler1.xlsx"
-
+#scalerdump1="prescaler1.xlsx"
+scalerdump="scalerarraybyproduct.xlsx"
+scalerdump2="scalerarraybyproduct2.xlsx"
 
 ##########################################################
 
@@ -42,8 +42,8 @@ scalerdump2="postscaler1.xlsx"
 
 ########################################
 # reporting date format
-dateformat="year/month/day"
-#dateformat="year/week"
+#dateformat="year/month/day"
+dateformat="year/week"
 #dateformat="year/month"
 
 #####################################################
@@ -61,22 +61,28 @@ dateformat="year/month/day"
 excludecols=["cat","costval","glset","doctype","docentrynum","linenumber","location","refer","salesrep","salesval","territory","specialpricecat"]  #2,3,4,5,6,7,9,10,12,13,14]  # this is for the coding and decoding (after binning and day delta conversion)
 #excludecols=["cat","code","costval","glset","doctype","docentrynum","linenumber","location","refer","salesrep","salesval","territory","specialpricecat"]  #2,3,4,5,6,7,9,10,12,13,14]  # this is for the coding and decoding (after binning and day delta conversion)
 #featureorder=["prod_encode","qty","productgroup","date","date_encode","day_delta","day_of_year","week_of_year","month_of_year","year"]
-featureorder_r=["code_encode","prod_encode","qty","productgroup","date","date_encode","day_delta"]    #,"day_order_delta"]   #,"day_of_year","week_of_year","month_of_year","year"]
-featureorder_c=["code_encode","prod_encode","qty","productgroup","date","date_encode","day_delta"]    #,"day_order_delta"]   #,"day_of_year","week_of_year","month_of_year","year"]
+featureorder_r=["code_encode","product","qty","productgroup","date","date_encode","day_delta"]    #,"day_order_delta"]   #,"day_of_year","week_of_year","month_of_year","year"]
+featureorder_c=["code_encode","product","qty","productgroup","date","date_encode","day_delta"]    #,"day_order_delta"]   #,"day_of_year","week_of_year","month_of_year","year"]
 ##############################
+# forecasting purposes
+# data starts 2/2/2018  with week 0 as a bin_no
+startbin=51  # 1/2/2019   
 
-# data starts 2/2/2018
-bins = [0,26,57,87,118,148,179,210,240,271,301,332,363,391,420,451,481,512,543,574,604,635,665,696,727,755,786,817,847,878,908,930,960,990,1020,1050,1080,1110,1140,1170,1200,1230]
+###################################################
+
+#bins = [0,26,57,87,118,148,179,210,240,271,301,332,363,391,420,451,481,512,543,574,604,635,665,696,727,755,786,817,847,878,908,930,960,990,1020,1050,1080,1110,1140,1170,1200,1230]
+bins = list(range(0,1120,7))
 #noofbins=40
-sensitivity_constant = 1   # same as 1/3   #0.2   # the factor that the scaling effects the calculated last_order_upspd
+rescale_constant = 8   #24   # 0.69 is mean of all the scaler array by product .xlsx entries     productsame as 1/3   #0.2   # the factor that the scaling effects the calculated last_order_upspd
 
+###################################
 
 
 #################################3
 #include_productgroup=[10,11,12,13,14,15,16]
 
 #RF_estimators=4000  # regression
-RF_estimators=5000  # regression
+RF_estimators=1000  # regression
 RFC_estimators=100   # classification
 mintransactions=16
 minqty=16
