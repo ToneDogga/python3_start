@@ -87,6 +87,7 @@
 #       Cross validation
 #       Regulatization
 #       simplify
+#       balance specific data trained features with wider data features to avoid overfitting 
 #
 #   Diagnose overfitting and underfitting
 #       use Scikit-learn learning_curve package and plot learning curve
@@ -525,7 +526,7 @@ def cleanout_slow_sellers(df,n):
 ##    return scaled,active_bins,correction_factor
 
 def promotions(X_df):
-    X_df["GMV"]=(X_df["salesval"]-X_df["costval"])/(X_df["qty"]+0.0001)
+    X_df["GMV"]=round((X_df["salesval"]-X_df["costval"])/(X_df["qty"]+0.0001),2)
     return X_df
        
 def order_delta(df):
@@ -573,8 +574,8 @@ def order_delta(df):
    # no_of_products=len(prod_list)
    # sales=Counter()
     for cust in cust_list:
-        print("\rData Analysis Progress:{0:.1f}%".format(i/cust_list_len*100),end="\r",flush=True)
         i+=1
+        print("\rData Analysis Progress:{0:.1f}%".format(i/cust_list_len*100),end="\r",flush=True)
         for prod in product_list:
             last_order=((df2["product"]==prod) & (df2["code_encode"]==cust))    # & (df2.day_order_delta>=4) & (df2.day_order_delta<=45))
 
@@ -591,7 +592,7 @@ def order_delta(df):
 
 #################################
     
-    print("Add bins on day_delta:",cfg.bins)
+    print("\n\nAdd bins on day_delta:",cfg.bins)
     #df3["bin_no"]=pd.qcut(df3["day_delta"],q=cfg.noofbins,labels=range(cfg.noofbins))
     df3["bin_no"]=pd.cut(df3["day_delta"],bins=cfg.bins,labels=range(len(cfg.bins)-1))
 
@@ -637,9 +638,8 @@ def order_delta(df):
     product_list_len=len(product_list)
     scaler_df.drop(['product'], axis=1,inplace=True)
     scaler=scaler_df.to_numpy()
-
+    print("\n\n")
     for prod in product_list:
-        print("\rScaling Progress:{0:.1f}%".format(k/product_list_len*100),end="\r",flush=True)
         prod_mask=((df3["product"]==prod))
         binnumber_array=df3[prod_mask].bin_no
        # binnumber_array=df3[prod_mask].bin_no    #columns[1:].tolist()
@@ -662,6 +662,8 @@ def order_delta(df):
             df3.at[df3[prod_mask].index[j], 'prod_scaler']= scaler[k,abin]
             j+=1
         k+=1
+        print("\rScaling Progress:{0:.1f}%".format(k/product_list_len*100),end="\r",flush=True)
+
       #  print("df5=\n",df4.head(100))
 
     
@@ -683,9 +685,10 @@ def order_delta(df):
     
  #   correction_factor=1/Xr_df["last_order_upspd"].mean()
     print("scaled upspd correction factor=",cfg.rescale_constant)
+    print("balance factor between local data and general data=",cfg.balance)
     
 
-    print("final df3 shape",df3.shape,df3.columns)
+    print("\nfinal df3 shape",df3.shape,"\n",df3.columns)
   #  print("final df3=\n",df3)
     
     #sdf = pd.DataFrame (scaled)
@@ -799,10 +802,9 @@ def main():
 
 
     X_df=df.iloc[:,0:17]
+      
     
-  
-    
-   # del df  # clear memory 
+    del df  # clear memory 
 
     print("Imported into pandas=\n",X_df.columns,"\n",X_df.shape)    #head(10))
 
@@ -851,6 +853,7 @@ def main():
     Xr_df = X_df[cfg.featureorder_r]    # for regression
  #   print(X_df.columns)
 
+    del X_df   # clear memory
 
  #   X_df=shift_reference(X_df,"days",-1,"yesterday")
   #  X_df=shift_reference(X_df,"weeks",-1,"last_weeks")
@@ -880,9 +883,10 @@ def main():
  #   Xc_df.dropna(inplace=True)
 
     print(Xr_df.columns)
-    print("last_order_upspd mean=",Xr_df["last_order_upspd"].mean(),"median=",Xr_df["last_order_upspd"].median(),"last_order_upspd stdev=",Xr_df["last_order_upspd"].std())
+    print("\nlast_order_upspd mean=",Xr_df["last_order_upspd"].mean(),"median=",Xr_df["last_order_upspd"].median(),"last_order_upspd stdev=",Xr_df["last_order_upspd"].std())
     print("scaler mean=",Xr_df["prod_scaler"].mean(),"scaler median=",Xr_df["prod_scaler"].median(),"scaler stdev=",Xr_df["prod_scaler"].std())
     print("scaled_upspd mean=",Xr_df["scaled_upspd"].mean(),"scaled_upspd median=",Xr_df["scaled_upspd"].median(),"scaled upspd stdev=",Xr_df["scaled_upspd"].std())
+    print("\n")
     #print("scale sensitivity constant=",cfg.sensitivity_constant)
 
   #  X = X[["code_encode","prod_encode","productgroup","week_of_year","order_delta"]]  
@@ -925,6 +929,10 @@ def main():
     counts=Counter(Xr_df.code_encode)   #.unique()
     print("\nFrequency of customer codes:",counts)   #dict(zip(unique, counts)))
     f.write("\nFrequency of customer codes:"+str(counts)+"\n")   #dict(zip(unique, counts)))
+
+##    counts=Counter(Xr_df.product)   #.unique()
+##    print("\nFrequency of products:",counts)   #dict(zip(unique, counts)))
+##    f.write("\nFrequency of products:"+str(counts)+"\n")   #dict(zip(unique, counts)))
 
     counts=Counter(Xr_df.prod_encode)   #.unique()
     print("\nFrequency of product codes:",counts)   #dict(zip(unique, counts)))
