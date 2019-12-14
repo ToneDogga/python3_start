@@ -121,6 +121,8 @@ from __future__ import division
 
 import numpy as np
 import pandas as pd
+from pandas.plotting import scatter_matrix
+
 import csv
 import sys
 import datetime as dt
@@ -1239,6 +1241,7 @@ def main():
         print("RF r2 score",name,score)
         f.write("RF r2 score "+str(name)+" = "+str(score)+"\n")
 
+
  #   for name,score in zip(df.columns, feature_sorted):
  #       print("sorted r2 score",name,score)
 
@@ -1376,6 +1379,11 @@ def main():
 
     dbd.sort_values(by=["date"],axis=0,ascending=[True],inplace=True)
 
+    scatter_matrix(dbd,alpha=0.2,figsize=(12,9))
+    plt.show()
+
+    print("\n\nCorrelations:\n",dbd.corr())
+    print("\n\n")
 
     dbd.to_csv(cfg.datasetpluspredict,header=True,index=False)
 
