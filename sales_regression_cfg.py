@@ -74,7 +74,7 @@ startbin=51  # 1/2/2019
 bins = list(range(0,1120,7))
 #noofbins=40
 rescale_constant = 130   #24   # 0.69 is mean of all the scaler array by product .xlsx entries     productsame as 1/3   #0.2   # the factor that the scaling effects the calculated last_order_upspd
-balance=0.85   # 80% on fixed element and 20% on sales distributions
+balance=0.88   # 80% on fixed element and 20% on sales distributions
 ###################################
 
 
