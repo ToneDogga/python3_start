@@ -1,7 +1,7 @@
 import datetime as dt
 from dateutil.relativedelta import relativedelta
 
-infilename="IRI_ww_jam_features.xlsx"
+infilename="IRI_ww_jam_features_v2.xlsx"
 
 importrows=-1  # all
 
@@ -25,9 +25,9 @@ outxlsfile="BrandIndexResults.xlsx"
 
 ##datasetpluspredict="datasetpluspredict.csv"
 ##datasetworking="datasetworking.csv"
-scalerdump1="brandmatrix.xlsx"
+scalerdump1="brandcorrmatrix1.xlsx"
 ##scalerdump="scalerarraybyproduct.xlsx"
-##scalerdump2="scalerarraybyproduct2.xlsx"
+scalerdump2="brandcorrmatrix2.xlsx"
 
 ##########################################################
 

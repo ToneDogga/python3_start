@@ -221,7 +221,7 @@ from sklearn.exceptions import ConvergenceWarning
 
 
 def read_excel(filename,rows):
-    xls = pd.read_excel(filename,sheet_name="Sheet1",header=0,index_col=None)    #'salestransslice1.xlsx')
+    xls = pd.read_excel(filename,sheet_name="Sheet1",header=1,index_col=None)    #'salestransslice1.xlsx')
     if rows==-1:
         return xls   #.parse(xls.sheet_names[0])
     else:        
@@ -418,7 +418,7 @@ def main():
 
 
 
-    X_df=df.iloc[:,0:13]
+    X_df=df.iloc[:,0:25]
       
     
     del df  # clear memory 
@@ -485,7 +485,9 @@ def main():
   #  X_df['day_delta'] = (X_df.date-X_df.date.min()).dt.days.astype(int)
     X_df['day_delta'] = (X_df.date.max()-X_df.date).dt.days.astype(int)
 
-    X_df.drop(columns=["date","date_encode","woolworths_scan_week"],inplace=True)
+
+
+    X_df.drop(columns=["date","date_encode","woolworths_scan_week","bb_price","sd_price","c_price","bm_price","bb_upspw_incremental","sd_upspw_incremental","c_upspw_incremental","bm_upspw_incremental","bb_on_promo","sd_on_promo","bm_on_promo","c_on_promo"],inplace=True)
  
     #print(sales)
     X_df.dropna(inplace=True)
@@ -493,6 +495,8 @@ def main():
 
     print(X_df.columns)
     print("\nX_df=\n",X_df)
+
+
 ##    print("\nlast_order_upspd mean=",Xr_df["last_order_upspd"].mean(),"median=",Xr_df["last_order_upspd"].median(),"last_order_upspd stdev=",Xr_df["last_order_upspd"].std())
 ##    print("scaler mean=",Xr_df["prod_scaler"].mean(),"scaler median=",Xr_df["prod_scaler"].median(),"scaler stdev=",Xr_df["prod_scaler"].std())
 ##    print("scaled_upspd mean=",Xr_df["scaled_upspd"].mean(),"scaled_upspd median=",Xr_df["scaled_upspd"].median(),"scaled upspd stdev=",Xr_df["scaled_upspd"].std())
@@ -519,11 +523,18 @@ def main():
 ##    Xr_df.drop(columns=["product"],inplace=True)
 ######################################################################
 
-    important_attributes=["beerenberg_upspw_baseline","st_dalfour_upspw_baseline","bon_maman_upspw_baseline","cottees_upspw_baseline"]
+ #   important_attributes=["bb_total_upspw","sd_total_upspw","bm_total_upspw","c_total_upspw"]
   #  scatter_matrix(X_test[important_attributes],alpha=0.2,figsize=(12,9))
-    scatter_matrix(X_df[important_attributes],alpha=0.2,figsize=(12,9))
+  #  scatter_matrix(X_df[important_attributes],alpha=0.2,figsize=(12,9))
+  #  plt.show()
 
+
+  #  important_attributes=["bb_promo_disc","sd_promo_disc","bm_promo_disc","c_promo_disc","bb_total_upspw","sd_total_upspw","bm_total_upspw","c_total_upspw"]
+    important_attributes=["bb_promo_disc","sd_promo_disc","bm_promo_disc","bb_total_upspw","sd_total_upspw","bm_total_upspw"]
+
+    scatter_matrix(X_df[important_attributes],alpha=0.2,figsize=(12,9))
     plt.show()
+
 
  #   important_attributes2=["beerenberg_upspw_incremental","st_dalfour_upspw_incremental","bon_maman_upspw_incremental","cottees_upspw_incremental"]
 
@@ -543,8 +554,11 @@ def main():
 ############################################3
 
 
-    y=X_df["beerenberg_upspw_baseline"].to_numpy()  # regression
-    X_df.drop(columns=["beerenberg_upspw_baseline"],inplace=True)
+    y=X_df["bb_upspw_baseline"].to_numpy()  # regression
+    y2=X_df["bb_total_upspw"].to_numpy()  # regression
+ 
+    
+    X_df.drop(columns=["bb_upspw_baseline","bb_total_upspw"],inplace=True)
 
   #  yc=Xc_df["prod_encode"].to_numpy()   # classification
 
@@ -586,9 +600,9 @@ def main():
 ##    Xr_df.to_csv(cfg.datasetpluspredict,header=True,index=False)
 
 
-    print("Xr",X_df.columns)
-    print("Xr_df cleaned. shape:",X_df.shape)
-    f.write("Xr_df cleaned. shape:"+str(X_df.shape)+"\n")
+    print("X",X_df.columns)
+    print("X_df cleaned. shape:",X_df.shape)
+    f.write("X_df cleaned. shape:"+str(X_df.shape)+"\n")
 
     
     X=X_df.to_numpy()   # for regression on qty
@@ -596,10 +610,10 @@ def main():
 
    # print("y=\n",y)
 
-    print("Xr shape:",X.shape)
-    f.write("Xr shape:"+str(X.shape)+"\n")
-    print("yr shape:",y.shape)
-    f.write("yr shape:"+str(y.shape)+"\n")
+    print("X shape:",X.shape)
+    f.write("X shape:"+str(X.shape)+"\n")
+    print("y shape:",y.shape)
+    f.write("r shape:"+str(y.shape)+"\n")
 
 ###########################################################
 
@@ -610,12 +624,28 @@ def main():
 
 
     X_train, X_test,y_train,y_test = train_test_split(X,y, test_size=0.2,random_state=42)  # regression of qty
+    X_train, X_test,y2_train,y2_test = train_test_split(X,y2, test_size=0.2,random_state=42)  # regression of qty
+
  #   Xc_train, Xc_test,yc_train,yc_test = train_test_split(Xc,yc, test_size=0.2,random_state=42)   # classification of prod_encode
 
     print("X_train.shape",X_train.shape)
+    print("X_test.shape",X_test.shape)
+    print("y_train.shape",y_train.shape)
+    print("y_test.shape",y_test.shape)
+    print("y2_train.shape",y2_train.shape)
+    print("y2_test.shape",y2_test.shape)
 
+    print("X",X_df.columns)
 
-        
+    #X2_test=np.copy(X_test)
+    
+    
+##    dbd=pd.DataFrame(np.copy(X_test),columns=["sd_upspw_baseline","c_upspw_baseline","bm_upspw_baseline","bb_promo_disc","sd_promo_disc","c_promo_disc","bm_promo_disc","sd_total_upspw","c_total_upspw","bm_total_upspw","day_delta"])
+##    dbd["bb_upspw_baseline"]=y_test
+##    dbd["bb_total_upspw"]=y2_test
+##
+##    print("dbd=\n",dbd)
+    
     ##    regressor = SGDRegressor(loss='squared_loss', penalty='l2', alpha=0.0001, learning_rate='constant', eta0=0.01, max_iter=1000)
     ##    regressor.fit(X_train, y_train)
     ##
@@ -748,7 +778,7 @@ def main():
 ##        f.write("SVR R2="+str(r2_score(yr_test, predictions))+"\n")
 ##        f.write("SVR predictions=\n"+str(predictions[:10].tolist())+"\n")
 
-    print("\nStarting RandomForestRegression")
+    print("\nStarting RandomForestRegression on bb_baseline_upspw.")
     param_grid = {
    #     "alpha": [1e-07, 1e-06, 1e-05],
    #     "penalty": [None, "l2"],
@@ -783,17 +813,78 @@ def main():
     print("RF MSE=",mean_squared_error(y_test, predictions))
     print("RF MAE=",mean_absolute_error(y_test, predictions))
     print("RF OOB score=",regressor_best.oob_score_)
-    print("RF OOB prediction=",regressor_best.oob_prediction_)
+ #   print("RF OOB prediction=",regressor_best.oob_prediction_)
     print("RF R2=",r2_score(y_test, predictions))
 #    print("RF predictions=\n",predictions[:10])
-    print("RF predictions=\n",predictions)
+  #  print("RF predictions=\n",predictions)
 
     f.write("RF MSE="+str(mean_squared_error(y_test, predictions))+"\n")
     f.write("RF MAE="+str(mean_absolute_error(y_test, predictions))+"\n")
     f.write("RF OOB score="+str(regressor_best.oob_score_)+"\n")
-    f.write("RF OOB prediction="+str(regressor_best.oob_prediction_)+"\n")
+ #   f.write("RF OOB prediction="+str(regressor_best.oob_prediction_)+"\n")
     f.write("RF R2="+str(r2_score(y_test, predictions))+"\n")
-    f.write("RF predictions=\n"+str(predictions[:10].tolist())+"\n")
+  #  f.write("RF predictions=\n"+str(predictions[:10].tolist())+"\n")
+ #   f.write("RF predictions=\n"+str(predictions.tolist())+"\n")
+
+
+    feature_sorted=np.argsort(regressor_best.feature_importances_)
+    print("feature importance in order from weakest to strongest=",feature_sorted)
+    f.write("feature importance in order from weakest to strongest="+str(feature_sorted.tolist())+"\n")
+
+    cols=X_df[X_df.columns[feature_sorted]].columns
+    print(cols)
+    for name,score in zip(X_df.columns, regressor_best.feature_importances_):
+        print("RF r2 score",name,score)
+        f.write("RF r2 score "+str(name)+" = "+str(score)+"\n")
+
+##################################################################################33333
+
+    print("\nStarting RandomForestRegression on bb_total_upspw")
+    param_grid = {
+   #     "alpha": [1e-07, 1e-06, 1e-05],
+   #     "penalty": [None, "l2"],
+   #     "eta0": [0.001, 0.005, 0.01],
+   #     "max_iter": [3000, 10000, 30000]
+    #     "kernel":("linear"),
+         "max_depth":[20,30,40],
+         "min_samples_split":[3,5]
+    }
+    regressor = RandomForestRegressor(n_estimators=cfg.RF_estimators,random_state=42,oob_score=True,bootstrap=True)
+    grid_search = GridSearchCV(regressor, param_grid, cv=5, scoring='neg_mean_absolute_error',verbose=True,n_jobs=-1)
+    grid_search.fit(X_train, y2_train)
+
+
+
+    print("Random Forest best params",grid_search.best_params_)
+    f.write("Random Forest best params"+str(grid_search.best_params_)+"\n")
+
+    regressor_best = grid_search.best_estimator_
+
+    joblib.dump(regressor_best,open(cfg.RFR_save,"wb"))
+    print("RFR saved to:",cfg.RFR_save)
+    f.write("RFR saved to:"+str(cfg.RFR_save)+"\n")
+
+    
+    print("RF best score:",regressor_best.score(X_test, y2_test))
+    f.write("RF best score:"+str(regressor_best.score(X_test, y2_test))+"\n")
+
+    predictions2 = regressor_best.predict(X_test)
+
+
+    print("RF MSE=",mean_squared_error(y2_test, predictions))
+    print("RF MAE=",mean_absolute_error(y2_test, predictions))
+    print("RF OOB score=",regressor_best.oob_score_)
+ #   print("RF OOB prediction=",regressor_best.oob_prediction_)
+    print("RF R2=",r2_score(y2_test, predictions))
+#    print("RF predictions=\n",predictions[:10])
+  #  print("RF predictions=\n",predictions)
+
+    f.write("RF MSE="+str(mean_squared_error(y2_test, predictions))+"\n")
+    f.write("RF MAE="+str(mean_absolute_error(y2_test, predictions))+"\n")
+    f.write("RF OOB score="+str(regressor_best.oob_score_)+"\n")
+ #   f.write("RF OOB prediction="+str(regressor_best.oob_prediction_)+"\n")
+    f.write("RF R2="+str(r2_score(y2_test, predictions))+"\n")
+  #  f.write("RF predictions=\n"+str(predictions[:10].tolist())+"\n")
  #   f.write("RF predictions=\n"+str(predictions.tolist())+"\n")
 
 
@@ -825,38 +916,38 @@ def main():
 #######################################################333
 # visualisations
 
-    ccode_counts=Counter(Xr_df.code_encode)   #.unique()
-    print("\nFrequency of customer codes:",ccode_counts)   #dict(zip(unique, counts)))
-    f.write("\nFrequency of customer codes:"+str(ccode_counts)+"\n")   #dict(zip(unique, counts)))
-
-##    counts=Counter(Xr_df.product)   #.unique()
-##    print("\nFrequency of products:",counts)   #dict(zip(unique, counts)))
-##    f.write("\nFrequency of products:"+str(counts)+"\n")   #dict(zip(unique, counts)))
-
-    pcode_counts=Counter(Xr_df.prod_encode)   #.unique()
-    print("\nFrequency of product codes:",pcode_counts)   #dict(zip(unique, counts)))
-    f.write("\nFrequency of product codes:"+str(pcode_counts)+"\n")   #dict(zip(unique, counts)))
-
-    pg_counts=Counter(Xr_df.productgroup)   #.unique()
-    print("\nFrequency of product groups:",pg_counts)   #dict(zip(unique, counts)))
-    f.write("\nFrequency of product groups:"+str(pg_counts)+"\n\n")   #dict(zip(unique, counts)))
-
-
-    print(Xr_df.columns)
-
-    print("\n\nCorrelations:\n",Xr_df.corr())
-    print("\n\n")
-
-
-
-
-    plt.hist(Xr_df["bin_no"].to_numpy(),histtype='stepfilled', density=False, bins=150) # density
-
-#    sns.distplot(Xr_df["bin_no"],bins=150,rug=True)
-    plt.xlabel("Week Bin number")
-    plt.ylabel("Frequency")
-    plt.title("Number of transactions per week bin")
-  
+##    ccode_counts=Counter(X_df.code_encode)   #.unique()
+##    print("\nFrequency of customer codes:",ccode_counts)   #dict(zip(unique, counts)))
+##    f.write("\nFrequency of customer codes:"+str(ccode_counts)+"\n")   #dict(zip(unique, counts)))
+##
+####    counts=Counter(X_df.product)   #.unique()
+####    print("\nFrequency of products:",counts)   #dict(zip(unique, counts)))
+####    f.write("\nFrequency of products:"+str(counts)+"\n")   #dict(zip(unique, counts)))
+##
+##    pcode_counts=Counter(X_df.prod_encode)   #.unique()
+##    print("\nFrequency of product codes:",pcode_counts)   #dict(zip(unique, counts)))
+##    f.write("\nFrequency of product codes:"+str(pcode_counts)+"\n")   #dict(zip(unique, counts)))
+##
+##    pg_counts=Counter(X_df.productgroup)   #.unique()
+##    print("\nFrequency of product groups:",pg_counts)   #dict(zip(unique, counts)))
+##    f.write("\nFrequency of product groups:"+str(pg_counts)+"\n\n")   #dict(zip(unique, counts)))
+##
+##
+##    print(Xr_df.columns)
+##
+##    print("\n\nCorrelations:\n",Xr_df.corr())
+##    print("\n\n")
+##
+##
+##
+##
+##    plt.hist(Xr_df["bin_no"].to_numpy(),histtype='stepfilled', density=False, bins=150) # density
+##
+###    sns.distplot(Xr_df["bin_no"],bins=150,rug=True)
+##    plt.xlabel("Week Bin number")
+##    plt.ylabel("Frequency")
+##    plt.title("Number of transactions per week bin")
+##  
 
 
 
@@ -864,42 +955,73 @@ def main():
  #   pc=pd.DataFrame(np.array(list(pcode_counts.items())),columns=["x","y"])
    # pc=np.array(list(pcode_counts.items()))[:,1]
  
-   # print("pc=",pc)
-   # #pdf=pd.DataFrame(pc).hist()
-    plt.bar(list(pcode_counts.keys()), list(pcode_counts.values()))
-  #  plt.hist(pc,bins=100)    #,histtype='stepfilled', density=False, bins=250) # density
+##   # print("pc=",pc)
+##   # #pdf=pd.DataFrame(pc).hist()
+##    plt.bar(list(pcode_counts.keys()), list(pcode_counts.values()))
+##  #  plt.hist(pc,bins=100)    #,histtype='stepfilled', density=False, bins=250) # density
+##
+##   # sns.distplot(pc["x"],kde=False, bins=200,rug=True)
+##    plt.xlabel("Product Code")
+##    plt.ylabel("Frequency")
+##  #  plt.title("Product code frequency as a % of total transactions")
+##    plt.show()
+##
+##    plt.bar(list(pg_counts.keys()), list(pg_counts.values()))
+##    plt.xlabel("Product Groups")
+##    plt.ylabel("Frequency")
+##  #  plt.title("Product group frequency as a count of total transactions")
+##    plt.show()
+##
+##    plt.bar(list(ccode_counts.keys()), list(ccode_counts.values()))
+##
+##    #sns.distplot(ccf["y"],kde=False,bins=200,rug=True)
+##    plt.xlabel("Customer Code")
+##    plt.ylabel("Frequency")
+##  #  plt.title("Customer code frequency as a count of total transactions")
+##    plt.show()
+##
+#############################################################################################3
 
-   # sns.distplot(pc["x"],kde=False, bins=200,rug=True)
-    plt.xlabel("Product Code")
-    plt.ylabel("Frequency")
-  #  plt.title("Product code frequency as a % of total transactions")
-    plt.show()
-
-    plt.bar(list(pg_counts.keys()), list(pg_counts.values()))
-    plt.xlabel("Product Groups")
-    plt.ylabel("Frequency")
-  #  plt.title("Product group frequency as a count of total transactions")
-    plt.show()
-
-    plt.bar(list(ccode_counts.keys()), list(ccode_counts.values()))
-
-    #sns.distplot(ccf["y"],kde=False,bins=200,rug=True)
-    plt.xlabel("Customer Code")
-    plt.ylabel("Frequency")
-  #  plt.title("Customer code frequency as a count of total transactions")
-    plt.show()
 
 
-    dbd["predict_qty"]=predictions.reshape(-1,1)
+
+    dbd=pd.DataFrame(np.copy(X_test),columns=["sd_upspw_baseline","c_upspw_baseline","bm_upspw_baseline","bb_promo_disc","sd_promo_disc","c_promo_disc","bm_promo_disc","sd_total_upspw","c_total_upspw","bm_total_upspw","day_delta"])
+    dbd["bb_upspw_baseline"]=y_test
+    dbd["bb_total_upspw"]=y2_test
+    dbd["predict_bb_upspw_baseline"]=predictions.reshape(-1,1)
+    dbd["predict_bb_total_upspw"]=predictions2.reshape(-1,1)
+
    # dbd2=pd.DataFrame(np.hstack((dbd.to_numpy(),predictions.reshape(-1,1))),columns=["day_order_delta","code","product","date","predict_qty"])
 
-    dbd.sort_values(by=["date"],axis=0,ascending=[True],inplace=True)
 
-    scatter_matrix(dbd[["qty","predict_qty"]],alpha=0.2,figsize=(12,9))
+
+    print("dbd=\n",dbd)
+
+
+   # dbd.sort_values(by=["date"],axis=0,ascending=[True],inplace=True)
+
+    scatter_matrix(dbd[["bb_upspw_baseline","predict_bb_upspw_baseline","bb_total_upspw","predict_bb_total_upspw"]],alpha=0.2,figsize=(12,9))
 
  #   scatter_matrix(Xr_df["scaled_upspd","last_order_upspd","day_order_delta"],alpha=0.2,figsize=(12,9))
     plt.show()
 
+    important_attributes=["beerenberg_total_upspw","st_dalfour_total_upspw","bon_maman_total_upspw","cottees_total_upspw"]
+##
+##    
+    corr_matrix=dbd.corr()    #important_attributes)   #.sort_values(ascending=False)   #[important_attributes])   #important_attributes2,method="pearson")
+##    print("\n\nCorrelations:\n",corr_matrix,"\n\n")
+##  #  print(corr_matrix["st_dalfour_upspw_incremental"])
+##
+    print("\n\nCorrelations:\n",corr_matrix)
+    print("\n\n")
+
+    sarraydf = pd.DataFrame (corr_matrix)
+
+###### save to xlsx file
+    print("Correlation matrix array saved to",cfg.scalerdump2)
+    sarraydf.to_excel(cfg.scalerdump2, index=True)
+   
+#
 ###################################################################
 
  #   scatter_matrix(Xr_df[["scaled_upspd","last_order_upspd","qty"]],alpha=0.2,figsize=(12,9))
