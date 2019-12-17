@@ -1,7 +1,7 @@
 import datetime as dt
 from dateutil.relativedelta import relativedelta
 
-infilename="IRI_ww_jam_features_v2.xlsx"
+infilename="IRI_ww_jam_features_v3.xlsx"
 
 importrows=-1  # all
 
