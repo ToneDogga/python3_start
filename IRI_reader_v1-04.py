@@ -429,6 +429,49 @@ def calculate_columns(X_df_dict,colnames,startdate,finishdate,f):
     tempcolnamesdict[key].append(tempcolnames)
     tempcolsdict[key].append(X_df_dict[key][1:5])
 
+
+    ######################
+     #  4) sd vs BB strawberry jam 
+
+    key=2
+    queryno=4
+    
+    tempcols,tempcolnames=temp_columns_by_col_no(X_df_dict[key][0],colnames[key],queryno,["5","86","99","100"])
+    
+    tempcolsdict.setdefault(key, [])
+    tempcolnamesdict.setdefault(key,[])
+
+    tempcolsdict[key].append(tempcols)
+    tempcolnamesdict[key].append(tempcolnames)
+    tempcolsdict[key].append(X_df_dict[key][1:5])
+
+
+    ######################
+     #  5) sd vs BB strawberry jam 
+
+    key=3
+    queryno=5
+    
+    tempcols,tempcolnames=temp_columns_by_col_no(X_df_dict[key][0],colnames[key],queryno,["7","8","18"])
+    
+    tempcolsdict.setdefault(key, [])
+    tempcolnamesdict.setdefault(key,[])
+
+    tempcolsdict[key].append(tempcols)
+    tempcolnamesdict[key].append(tempcolnames)
+    tempcolsdict[key].append(X_df_dict[key][1:5])
+
+
+
+
+
+
+
+
+
+
+
+
     
 ##    tempcolsdict.update({key:tempcols})
 ##    tempcolnamesdict.update({key:tempcolnames})
@@ -816,8 +859,9 @@ def main():
 
     print("finished_df_dict=\n",finished_df_dict)
     
-
-
+    # save colnames dictionary
+    with open(cfg.colnamespklsave,"wb") as f3:
+        pickle.dump(df_colnames_dict,f3)
 
 
 #################################################################
@@ -833,6 +877,9 @@ def main():
     df_dict=load_df_dict(cfg.pklsave)
  
 
+    # load colnames dictionary
+    with open(cfg.colnamespklsave,"rb") as f3:
+        df_cn_dict=pickle.load(f3)
 
 
 
@@ -840,7 +887,6 @@ def main():
 #########################################################################3
  #  print("dfdict=\n",dfdict)
 
- #   print("coldictlist=\n",coldictlist)
 
     print("\n\n\nnew finished df dict=\n",df_dict,"\n\n")
     
@@ -849,7 +895,9 @@ def main():
   #  f.write("\nfinished df dict=\n"+pd.DataFrame.from_dict(finished_df_dict)+"\n\n")
    # f.write("\nfinished df dict=\n"+json.dumps(finished_df_dict,sort_keys=False,indent=4)+"\n\n")
 
+ #   print("\n\nold colnames dict=\n",df_colnames_dict,"\n\n")
 
+    print("\n\nnew colnames dict=\n",df_cn_dict,"\n\n")
 
 
 
