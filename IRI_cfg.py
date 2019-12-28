@@ -1,10 +1,20 @@
-infilename="IRI_WW_jams_v11.xlsx"
+# IRI_cfg.py
+# constants for IRI_reader_vx-xx.py
+#
+
+
+
+
+infilenamedict=dict({0:"IRI_WW_jams_v11.xlsx",
+                     1:"IRI_coles_jams_v11.xlsx"
+                   })
+
+
 logfile="IRI_reader_logfile.txt"
-colonevalue="Woolworths"
-column_zero_name="0"   #"WW scan week"
-unique_measures_count=14
-unique_features_count=10
-no_of_cols=unique_measures_count*unique_features_count
+resultsfile="IRI_reader_results.txt"
+pklsave="IRI_savenames.pkl"
+
+column_zero_name="0"   #scan week"
 startdatestr='2018/07/14'
 finishdatestr='2022/07/01'
 
