@@ -98,7 +98,8 @@ def temp_columns_by_col_no(df,colnames,queryno,collist):
     for col in collist:
      #   coldict.update({key : colnames[col]})
        # coldict.setdefault(key,[])
-        coldict[queryno].append(col)
+        #coldict[queryno].append(col)
+        colnames[col].insert(0,col)       
         coldict[queryno].append(colnames[col])        
         
   #  coldict[queryno].insert(0,col)    
