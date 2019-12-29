@@ -71,7 +71,7 @@ def get_load_filename_details(filename):
   #  print("20:25",filename[20:25])
 
    # print("4:11",filename[4:11])
-    print("load filename=",filename)
+ #   print("load filename=",filename)
     return filename[6],filename[8:13],filename[14:19],filename[20:25]
 
 
@@ -87,7 +87,9 @@ def load_df_dict(pklsave):
         savenames=pickle.load(f2)
 
     if savenames:
-        print("Savenames unpickled=",savenames,"\n\n")
+        pass
+        print("\n")
+        #print("Savenames unpickled=",savenames,"\n\n")
     else:
         print("unpickling error on",cfg.pklsave,"\n\n")
 
@@ -104,7 +106,7 @@ def load_df_dict(pklsave):
                 #df_details.append(pickle.load(f2))
                 df_dict[key].append(pickle.load(f2))
         #df_dict[key].append(df_details) 
-    print("\n\ndf dict unpickled\n\n")
+ #   print("\n\ndf dict unpickled\n\n")
     return df_dict
    
 
@@ -130,25 +132,43 @@ def main():
         df_colnames_dict=pickle.load(f3)
 
 
+    # load ALL colnames dictionary
+    with open(cfg.fullcolnamespklsave,"rb") as f3:
+        colnames=pickle.load(f3)
 
-    print("\n\n\nnew finished df dict=\n",df_dict,"\n\n")
+
+
+ #   print("\n\n\nnew finished df dict=\n",df_dict,"\n\n")
     
 
  #   print("\n\nnew colnames dict=\n",df_colnames_dict,"\n\n")
-    print("\n\n New colnames dict=\n",json.dumps(df_colnames_dict,sort_keys=False,indent=4))
+  #  print("\n\n New colnames dict=\n",json.dumps(df_colnames_dict,sort_keys=False,indent=4))
+
+  #  print("\n\n ALL colnames dict=\n",json.dumps(colnames,sort_keys=False,indent=4))
+  #  print("\n\n ALL colnames dict=\n",colnames)
+
 
 ##############################################33
-    # display quesry columns
-    for key in df_colnames_dict.keys():
-        print("\nsheet",key)   #,":",df_colnames_dict[key])
-        for cquery in df_colnames_dict[key]:
-            print("\nquery no",list(cquery)) #[1:])  #,"+",list(key2.values())[0])
-            print(df_colnames_dict[key][1:4])
-        #    print(cquery[0])
-            #,df_colnames_dict.items())
-      #  highest=max(df_colnames_dict.items())
-      #  print("highest=",highest)
+##    # display quesry columns
+##    for key in df_colnames_dict.keys():
+##        print("\nsheet",key)   #,":",df_colnames_dict[key])
+##        for cquery in df_colnames_dict[key]:
+##            print("\nquery no",list(cquery)) #[1:])  #,"+",list(key2.values())[0])
+##            print(df_colnames_dict[key][1:4])
 
+
+
+##############################################33
+    # display querydict columns
+    for queryno in cfg.querydict.keys():
+        #print("\nquery no",queryno)   #,":",df_colnames_dict[key])
+
+        spreadsheetno=cfg.querydict[queryno][0]
+        columnlist=cfg.querydict[queryno][1]
+        print("queryno=",queryno,"spreadsheetno=",spreadsheetno,"columnlist=",columnlist)
+ 
+        for colno in columnlist:
+            print("-> colno no",colno,"column=",colnames[spreadsheetno][colno])
 
 
 
