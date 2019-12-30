@@ -120,15 +120,15 @@ def load_IRI_xlsx(f):
     dfdict=dict({})
     i=0
     for infile in cfg.infilenamedict.keys():
-        print(cfg.infilenamedict[infile])
-        f.write("\n\nIRI spreadsheet reader "+str(cfg.infilenamedict[infile])+"\n\n")
+        print(cfg.infilenamedict[infile][0])
+        f.write("\n\nIRI spreadsheet reader "+str(cfg.infilenamedict[infile][0])+"\n\n")
     
-        df=read_excel(cfg.infilenamedict[infile],-1)  # -1 means all rows
+        df=read_excel(cfg.infilenamedict[infile][0],-1)  # -1 means all rows
         df.dropna(axis="columns",inplace=True)
    
         if df.empty:
-            print(cfg.infilenamedict[infile],"Not found. Check IRI_cfg.py file")
-            f.write(cfg.infilenamdict[infile]+" Not found. Check IRI_cfg.py file\n")
+            print(cfg.infilenamedict[infile][0],"Not found. Check IRI_cfg.py file")
+            f.write(cfg.infilenamdict[infile][0]+" Not found. Check IRI_cfg.py file\n")
         #   sys.exit()
         else:
             title1,row1_len,row2_len,row3_len=get_no_of_cols(df)
@@ -319,6 +319,12 @@ def main():
 
   #  print("dfdict=\n",dfdict)
 
+##    with open(cfg.dfdictpklsave, 'wb') as handle:
+##        pickle.dump(dfdict, handle)    #, protocol=pickle.HIGHEST_PROTOCOL)
+            #pickle.dump(cfg.dfdictpklsave)
+
+
+
 # create a list of dictionaries "colnames" of column names indexed by column number integer as a string
 
     row1_title=[]
@@ -375,7 +381,7 @@ def main():
             coldict.update({str(col):[colnames[key][str(col)][2],indexes]})    #str(col+1*unique_measures_count),str(col+2*unique_measures_count)]})
         coldictlist.append(coldict)
 ##    print("\nColumn links=\n",json.dumps(coldictlist,sort_keys=False,indent=4))
-##    f.write("\nColumn links=\n"+json.dumps(coldictlist,sort_keys=False,indent=4)+"\n\n")
+    f.write("\nColumn links=\n"+json.dumps(coldictlist,sort_keys=False,indent=4)+"\n\n")
     
 ################################################################33
 # turn the raw excel import into a dataframe we can use
@@ -411,6 +417,11 @@ def main():
     # save ALL colnames dictionary
     with open(cfg.fullcolnamespklsave,"wb") as f3:
         pickle.dump(colnames,f3)
+
+
+#################################################################
+    #  save and load df in pickle
+
 
 
 #################################################################
