@@ -21,6 +21,9 @@
 # a) total category gain
 # b) WW category gain
 # c) coles category loss
+
+#  promotional intensity
+
 # d) total premium category gain
 # e) WW premium category gain
 # f) coles premium category loss
@@ -53,63 +56,79 @@
 
 
 # { spreadsheet number : [spreadsheet name, alias_for_column_names] }
-infilenamedict=dict({0:["IRI_WW_jams_v11.xlsx","p_ww_bl"],
-                     1:["IRI_coles_jams_v11.xlsx","p_coles_bl"],
-                     2:["IRI_WW_jams_v11.xlsx","p_ww_total"],
-                     3:["IRI_coles_jams_v11.xlsx","p_coles_total"],
-                     4:["IRI_WW_jams_v11.xlsx","ww_sd_bl"],
-                     5:["IRI_coles_jams_v11.xlsx","coles_sd_bl"],
-                     6:["IRI_WW_jams_v11.xlsx","ww_sd_total"],
-                     7:["IRI_coles_jams_v11.xlsx","coles_sd_total"],
-                     8:["IRI_WW_jams_v11.xlsx","ww_sd_dod"],
-                     9:["IRI_coles_jams_v11.xlsx","coles_sd_dod"],
-                     10:["IRI_WW_jams_v11.xlsx","ww_dod"],
-                     11:["IRI_coles_jams_v11.xlsx","coles_dod"],
-                     12:["IRI_WW_jams_v11.xlsx","ww_main_bl"],
-                     13:["IRI_coles_jams_v11.xlsx","coles_main_bl"],
-                     14:["IRI_WW_jams_v11.xlsx","ww_bb_dod"],
-                     15:["IRI_coles_jams_v11.xlsx","coles_bb_dod"],
-                     16:["IRI_WW_jams_v11.xlsx","ww_total"],
-                     17:["IRI_coles_jams_v11.xlsx","coles_total"],
-                     18:["IRI_WW_jams_v11.xlsx","ww_premium_dod"],
-                     19:["IRI_coles_jams_v11.xlsx","coles_premium_dod"],
-                     20:["IRI_WW_jams_v11.xlsx","ww_main_dod"],
-                     21:["IRI_coles_jams_v11.xlsx","coles_main_dod"]
+infilenamedict=dict({0:["IRI_WW_jams_v11.xlsx","ww_units_total"],
+                     1:["IRI_coles_jams_v11.xlsx","coles_units_total"],
+                     2:["IRI_WW_jams_v11.xlsx","ww_units_mainstream"],
+                     3:["IRI_coles_jams_v11.xlsx","coles_units_mainstream"],
+                     4:["IRI_WW_jams_v11.xlsx","ww_units_premium"],
+                     5:["IRI_coles_jams_v11.xlsx","coles_units_premium"],
+                     6:["IRI_WW_jams_v11.xlsx","ww_total_dod"],
+                     7:["IRI_coles_jams_v11.xlsx","coles_total_dod"],
+                     8:["IRI_WW_jams_v11.xlsx","ww_mainstream_dod"],
+                     9:["IRI_coles_jams_v11.xlsx","coles_mainstream_dod"],
+                     10:["IRI_WW_jams_v11.xlsx","ww_premium_dod"],
+                     11:["IRI_coles_jams_v11.xlsx","coles_premium_dod"],
+                     12:["IRI_WW_jams_v11.xlsx","ww_units_baseline_mainstream"],
+                     13:["IRI_coles_jams_v11.xlsx","coles_units_baseline_mainstream"],
+                     14:["IRI_WW_jams_v11.xlsx","ww_units_baseline_premium"],
+                     15:["IRI_coles_jams_v11.xlsx","coles_units_baseline_premium"],
+                     16:["IRI_WW_jams_v11.xlsx","ww_units_incremental_mainstream"],
+                     17:["IRI_coles_jams_v11.xlsx","coles_units_incremental_mainstream"],
+                     18:["IRI_WW_jams_v11.xlsx","ww_units_incremental_premium"],
+                     19:["IRI_coles_jams_v11.xlsx","coles_units_incremental_premium"],
+                     20:["IRI_WW_jams_v11.xlsx","ww_percentunits_mainstream"],
+                     21:["IRI_coles_jams_v11.xlsx","coles_percentunits_mainstream"],
+                     22:["IRI_WW_jams_v11.xlsx","ww_percentunits_premium"],
+                     23:["IRI_coles_jams_v11.xlsx","coles_percentunits_premium"]
 
                     })
 
 # plot number, list of queryies to plot, corr and scatter
-plotdict=dict({0: ["ww_dod","coles_dod","ww_sd_dod","coles_sd_dod"],
-               1: ["p_coles_total","p_ww_total","ww_total","coles_total"],
-               2: ["ww_premium_dod","coles_premium_dod","ww_main_dod","coles_main_dod","ww_dod","coles_dod"]
+plotdict=dict({0: ["ww_units_total","coles_units_total","smooth_ww","smooth_coles"],
+               1: ["ww_total_dod","coles_total_dod"],
+               2: ["ww_units_mainstream","ww_units_premium","smooth_ww_mainstream","smooth_ww_premium","ww_total_mshare"],
+               3: ["ww_mainstream_dod","ww_premium_dod"],
+               4: ["coles_units_mainstream","coles_units_premium","smooth_coles_mainstream","smooth_coles_premium","coles_total_mshare"],
+               5: ["coles_mainstream_dod","coles_premium_dod"],
+               6: ["ww_units_mainstream","coles_units_mainstream","ww_mainstream_mshare","coles_mainstream_mshare"], 
+               7: ["ww_units_premium","coles_units_premium","ww_premium_mshare","coles_premium_mshare"], 
+               8: ["ww_units_baseline_mainstream","coles_units_baseline_mainstream"], 
+               9: ["ww_units_baseline_premium","coles_units_baseline_premium"], 
+               10: ["ww_units_incremental_mainstream","ww_percentunits_mainstream"], 
+               11: ["coles_units_incremental_mainstream","coles_percentunits_mainstream"], 
+               12: ["ww_units_incremental_premium","ww_percentunits_premium"], 
+               13: ["coles_units_incremental_premium","coles_percentunits_premium"] 
+
                })
 
 
 
 #  { queryno : [spreadsheet number,[list of column names]]}
-querydict=dict({0: [0,["36"]], # ,"15","29"]],
-                1: [1,["36"]],
-                2: [2,["29"]],
-                3: [3,["29"]],
-                4: [4,["57"]],
-                5: [5,["57"]],
-                6: [6,["64"]],
-                7: [7,["64"]],
-                8: [8,["61"]],
-                9: [9,["61"]],
-                10: [10,["5"]],
-                11: [11,["5"]],
+querydict=dict({0: [0,["1"]], # ,"15","29"]],
+                1: [1,["1"]],
+                2: [2,["15"]],
+                3: [3,["15"]],
+                4: [4,["29"]],
+                5: [5,["29"]],
+                6: [6,["5"]],
+                7: [7,["5"]],
+                8: [8,["19"]],
+                9: [9,["19"]],
+                10: [10,["33"]],
+                11: [11,["33"]],
                 12: [12,["22"]],
                 13: [13,["22"]],
-                14: [14,["47"]],
-                15: [15,["47"]],
-                16: [16,["1"]],
-                17: [17,["1"]],
-                18: [18,["33"]],
-                19: [19,["33"]],
-                20: [20,["19"]],
-                21: [21,["19"]]
-                
+                14: [14,["36"]],
+                15: [15,["36"]],
+                16: [16,["23"]],
+                17: [17,["23"]],
+                18: [18,["37"]],
+                19: [19,["37"]],
+                20: [20,["27"]],
+                21: [21,["27"]],
+                22: [22,["41"]],
+                23: [23,["41"]]
+                 
                 })
 
 
@@ -121,6 +140,8 @@ pklsave="IRI_savenames.pkl"
 colnamespklsave="IRI_savecoldetails.pkl"
 fullcolnamespklsave="IRI_saveallcoldetails.pkl"
 dfdictpklsave="IRI_savedfdict.pkl"
+dfpklsave="IRI_fullspreadsheetsave.pkl"
+
 
 column_zero_name="0"   #scan week"
 startdatestr='2018/07/14'

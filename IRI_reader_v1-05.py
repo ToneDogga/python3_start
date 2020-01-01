@@ -319,10 +319,7 @@ def main():
 
   #  print("dfdict=\n",dfdict)
 
-##    with open(cfg.dfdictpklsave, 'wb') as handle:
-##        pickle.dump(dfdict, handle)    #, protocol=pickle.HIGHEST_PROTOCOL)
-            #pickle.dump(cfg.dfdictpklsave)
-
+ 
 
 
 # create a list of dictionaries "colnames" of column names indexed by column number integer as a string
@@ -390,6 +387,12 @@ def main():
     for key in dfdict.keys():        
         X_df_dict.update({i:[dfdict[key][0].iloc[3:,:no_of_cols[key]+1],dfdict[key][1],dfdict[key][2],dfdict[key][3],dfdict[key][4]]})
         i+=1
+
+
+    with open(cfg.dfpklsave, 'wb') as handle:
+        pickle.dump(dfdict, handle)    #, protocol=pickle.HIGHEST_PROTOCOL)
+            #pickle.dump(cfg.dfdictpklsave)
+
         
     del dfdict  # clear memory 
 
@@ -408,6 +411,14 @@ def main():
     finished_df_dict,df_colnames_dict=calculate_columns(X_df_dict,colnames,startdate,finishdate,f)
 
     print("finished_df_dict=\n",finished_df_dict)
+
+
+
+#    with open(cfg.dfpklsave, 'wb') as handle:
+#        pickle.dump(finished_df_dict, handle)    #, protocol=pickle.HIGHEST_PROTOCOL)
+            #pickle.dump(cfg.dfdictpklsave)
+
+
     
     # save used colnames dictionary
     with open(cfg.colnamespklsave,"wb") as f3:
@@ -418,7 +429,8 @@ def main():
     with open(cfg.fullcolnamespklsave,"wb") as f3:
         pickle.dump(colnames,f3)
 
-
+    f.write("\nColumn names=\n"+json.dumps(colnames,sort_keys=False,indent=4)+"\n\n")
+ 
 #################################################################
     #  save and load df in pickle
 

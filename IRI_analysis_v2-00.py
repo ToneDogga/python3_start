@@ -126,8 +126,37 @@ def main():
   #  pd.set_option('display.max_rows', None)
     f=open(cfg.logfile,"w")
 
+
+
+
+#################################################################
+    # load raw spreadsheet for column combinations later
+    with open(cfg.dfpklsave, 'rb') as handle:
+        fullspreadsheetsave=pickle.load(handle)    #, protocol=pickle.HIGHEST_PROTOCOL)
+        
     startdate=pd.to_datetime(cfg.startdatestr, format="%Y/%m/%d %H:%M:%S")
     finishdate=pd.to_datetime(cfg.finishdatestr, format="%Y/%m/%d %H:%M:%S")
+
+
+    for key in fullspreadsheetsave.keys():
+        fullspreadsheetsave[key][0]= fullspreadsheetsave[key][0][4:]  # remove headers
+
+        
+        fullspreadsheetsave[key][0] =  fullspreadsheetsave[key][0].set_index(pd.DatetimeIndex(pd.to_datetime(fullspreadsheetsave[key][0][cfg.column_zero_name], format="%Y/%m/%d %H:%M:%S",infer_datetime_format=True)))
+
+        fullspreadsheetsave[key][0].drop(columns=[cfg.column_zero_name],inplace=True)
+
+        fullspreadsheetsave[key][0].dropna(inplace=True)
+
+        fullspreadsheetsave[key][0].sort_index(axis=0,ascending=[True],inplace=True)
+
+        start =fullspreadsheetsave[key][0].index.searchsorted(startdate)    #dt.datetime(2013, 1, 2))
+        finish=fullspreadsheetsave[key][0].index.searchsorted(finishdate)
+        fullspreadsheetsave[key][0]=fullspreadsheetsave[key][0].iloc[start:finish]
+
+
+
+#################################################################################333
 
     # load df dictionary
     df_dict=load_df_dict(cfg.pklsave)
@@ -146,6 +175,8 @@ def main():
   #  f.write(json.dumps(colnames)+"\n\n")
     f.write(json.dumps(df_colnames_dict,sort_keys=False,indent=4)+"\n\n")
     
+
+
 
  #   print("\n\n\nnew finished df dict=\n",df_dict,"\n\n")
     
@@ -282,12 +313,31 @@ def main():
     final_df=final_df.astype(float)
 
 #####################################################33
-    #  smoothing and scaling
+    #  extra calculations, smoothing and scaling
     
-   # final_df["ww_dod"]=10   #final_df["p_ww_bl"].astype(float) *10
-   # final_df["coles_dod"]=10   #final_df["p_ww_bl"].astype(float) *10
-    final_df["smooth_ww"]=final_df["ww_total"].rolling("42d",min_periods=3).mean()
-    final_df["smooth_coles"]=final_df["coles_total"].rolling("42d",min_periods=3).mean()
+    final_df["smooth_ww"]=final_df["ww_units_total"].rolling("42d",min_periods=3).mean()
+    final_df["smooth_coles"]=final_df["coles_units_total"].rolling("42d",min_periods=3).mean()
+
+    final_df["smooth_ww_mainstream"]=final_df["ww_units_mainstream"].rolling("42d",min_periods=3).mean()
+    final_df["smooth_coles_mainstream"]=final_df["coles_units_mainstream"].rolling("42d",min_periods=3).mean()
+
+    final_df["smooth_ww_premium"]=final_df["ww_units_premium"].rolling("42d",min_periods=3).mean()
+    final_df["smooth_coles_premium"]=final_df["coles_units_premium"].rolling("42d",min_periods=3).mean()
+
+    final_df["ww_total_mshare"]=final_df["smooth_ww"]/(final_df["smooth_ww"]+final_df["smooth_coles"])*100
+    final_df["coles_total_mshare"]=final_df["smooth_coles"]/(final_df["smooth_ww"]+final_df["smooth_coles"])*100
+
+    final_df["ww_premium_mshare"]=final_df["smooth_ww_premium"]/(final_df["smooth_ww_premium"]+final_df["smooth_coles_premium"])*100
+    final_df["coles_premium_mshare"]=final_df["smooth_coles_premium"]/(final_df["smooth_ww_premium"]+final_df["smooth_coles_premium"])*100
+
+    final_df["ww_mainstream_mshare"]=final_df["smooth_ww_mainstream"]/(final_df["smooth_ww_mainstream"]+final_df["smooth_coles_mainstream"])*100
+    final_df["coles_mainstream_mshare"]=final_df["smooth_coles_mainstream"]/(final_df["smooth_ww_mainstream"]+final_df["smooth_coles_mainstream"])*100
+
+
+
+
+
+
 
 
 ##########################################################
@@ -305,15 +355,258 @@ def main():
         
         final_df.plot(y=column_list)
       #  plt.show()
-        plt.savefig("plot_dod"+str(plots)+".png")
+        plt.savefig("plot"+str(plots)+".png")
         
         scatter_matrix(final_df[column_list],alpha=0.7,figsize=(12,9))
       #  plt.show()
-        plt.savefig("scatter_dod"+str(plots)+".png")
+        plt.savefig("scatter"+str(plots)+".png")
+        plt.close("all")
+
+
+#################################################################
+        # plot every combination of 4 columns with one column in each of no_of_features columns
+
+    no_of_features=10
+    no_of_measures=14
+
+    usable_measures=[0,4,5,8,9,10,11,12,13]
+    len_usable_measures=len(usable_measures)
+
+    measures_array=np.array(usable_measures).T.reshape(-1,1)
+
+    print("measures=",measures_array)
+    lenma=len(measures_array)
+    
+    start_plot=plots+1
+
+
+    if False:
+        
+        print("\n\nCombination plot...\n")
+
+#        start_plot=plots+1
 
 
 
+        print("Calculating combinations based on #features=",no_of_features,"#measures",no_of_measures,"\n")
+
+
+
+        h=range(0,no_of_features)
+
+        new_array = np.array(np.meshgrid(h,h,h,h)).T.reshape(-1,4)
+        unique_list=[]
+        for elem in new_array:
+           if len(elem)==len(set(elem)):
+               unique_list.append(list(elem))
+
+        #unique_list.sort()
+        #print("list",unique_list)
+
+        unique_list2 = sorted(list(set(map(tuple,unique_list))))
+
+        #print("u",unique_list2)
+        #unique_array=np.array(unique_list2)
+        del unique_list
+
+        unique_list3=[]
+        i=0
+        for row in unique_list2:
+           sr=tuple(sorted(row))
+         #  print("sr=",sr)
+
+           j=0
+           for row2 in unique_list2:
+              if i!=j:
+                 if sr==row2:
+                 #   print("match",i,":",sr,j,":",row2)
+                    break
+                 else:
+                #    print(" no match appending",i,":",sr,j,":",row2)
+                    unique_list3.append(sr)
+               #     print("ul=",unique_list3)   
+              j+=1
+           i+=1
+
+        del unique_list2
+
+        uniques=np.array(list(set(unique_list3)))                      
+        #print("uniques=",uniques)
+        no_of_uniques=len(uniques)
+        #print("no_of uniques=",no_of_uniques)
+
+
+        #print("len measures array",lenma)
+
+
+        i=0
+        big_list=[]
+        for row in uniques:
+           for j in range(0,lenma):
+              row3=list(np.array(row)*no_of_measures)+measures_array[j]+1
+              big_list.append(row3)
+              i+=1
+
+        uniques=np.array(big_list).reshape(-1,4)
+        len_uniques=uniques.shape[1]
+        print(uniques)
+        #print(l.shape)
+           
+
+    #####################################################################33333
+
+        
+        plot_work_size=len(uniques)
+        print("Plot work size=",plot_work_size,"\n")
+
+        
+        for spreadsheetno in range(0,2):   #    fullspreadsheetsave.keys():
+        
+            print("Final_df columns=\n",fullspreadsheetsave[spreadsheetno][0].columns)
+          #  f.write("Final_df columns=\n"+str(fullspreadsheetsave[spreadsheetno][0].columns)+"\n\n")
+
+                        
+            for p in range(plot_work_size):
+                column_list=list(uniques[p].astype(str))
+      #          print("\nPlotting spreadsheet:",spreadsheetno,"plot no:",p+start_plot,":",column_list,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
+                print("Plotting spreadsheet:",spreadsheetno,"plot no:",p+start_plot,"/",(2*plot_work_size)+start_plot+1,":",column_list)   #,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
+
+             #   f.write("\nPlotting spreadsheet: "+str(spreadsheetno)+" plot no: "+str(p+start_plot)+" : "+str(column_list)+"\n\n")   #,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
+
+                fullspreadsheetsave[spreadsheetno][0].plot(y=column_list)
+              #  plt.show()
+
+                plt.savefig("plot_"+str(spreadsheetno)+"_"+str(p)+".png")
+                plt.close("all")
+
+
+
+        start_plot=plots+1
+
+
+
+                        
+        for p in range(plot_work_size):
+            column_list=list(uniques[p].astype(str))
+    #          print("\nPlotting spreadsheet:",spreadsheetno,"plot no:",p+start_plot,":",column_list,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
+            print("Plotting spreadsheet:",spreadsheetno,"plot no:",p+start_plot,"/",(2*plot_work_size)+start_plot+1,":",column_list)   #,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
+
+         #   f.write("\nPlotting spreadsheet: "+str(spreadsheetno)+" plot no: "+str(p+start_plot)+" : "+str(column_list)+"\n\n")   #,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
+
+            fullspreadsheetsave[0][0].plot(y=column_list)
+            fullspreadsheetsave[1][0].plot(y=column_list)
+            plt.show()
+
+            plt.savefig("plot0_vs_1_"+str(p)+".png")
+            plt.close("all")
+
+
+
+
+            
+        del uniques
+        
 #############################################33
+# plot double combinations of coles and woolworths
+
+
+    print("\n\nCombination plot...\n")
+
+
+    h=range(0,no_of_features)
+
+    new_array = np.array(np.meshgrid(h,h)).T.reshape(-1,2)
+    unique_list=[]
+    for elem in new_array:
+       if len(elem)==len(set(elem)):
+           unique_list.append(list(elem))
+
+    #unique_list.sort()
+    #print("list",unique_list)
+
+    unique_list2 = sorted(list(set(map(tuple,unique_list))))
+
+    #print("u",unique_list2)
+    #unique_array=np.array(unique_list2)
+    del unique_list
+
+    unique_list3=[]
+    i=0
+    for row in unique_list2:
+       sr=tuple(sorted(row))
+     #  print("sr=",sr)
+
+       j=0
+       for row2 in unique_list2:
+          if i!=j:
+             if sr==row2:
+             #   print("match",i,":",sr,j,":",row2)
+                break
+             else:
+            #    print(" no match appending",i,":",sr,j,":",row2)
+                unique_list3.append(sr)
+           #     print("ul=",unique_list3)   
+          j+=1
+       i+=1
+
+    del unique_list2
+
+    uniques=np.array(list(set(unique_list3)))                      
+    #print("uniques=",uniques)
+    no_of_uniques=len(uniques)
+    #print("no_of uniques=",no_of_uniques)
+
+
+    plot_work_size=len(uniques)
+    print("Plot work size=",plot_work_size,"\n")
+
+    print("measures=",measures_array)
+    lenma=len(measures_array)
+    #print("len measures array",lenma)
+
+
+    i=0
+    big_list=[]
+    for row in uniques:
+       for j in range(0,lenma):
+          row3=list(np.array(row)*no_of_measures)+measures_array[j]+1
+          big_list.append(row3)
+          i+=1
+
+    uniques=np.array(big_list).reshape(-1,2)
+#    len_uniques=uniques.shape[1]
+    print(uniques)
+     
+                    
+    for p in range(plot_work_size):
+        column_list=list(uniques[p].astype(str))
+
+        clean_df_list=[]
+        clean_df_list.append(fullspreadsheetsave[0][0][column_list])
+        clean_df_list.append(fullspreadsheetsave[1][0][column_list])
+
+        joined=pd.concat(clean_df_list,axis=1)     # , left_index=True, right_index=True)
+  #      print("joined=",joined.columns)
+
+        
+#          print("\nPlotting spreadsheet:",spreadsheetno,"plot no:",p+start_plot,":",column_list,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
+        print("plot no:",p+start_plot,"/",(plot_work_size)+start_plot-1,":",column_list)   #,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
+
+     #   f.write("\nPlotting spreadsheet: "+str(spreadsheetno)+" plot no: "+str(p+start_plot)+" : "+str(column_list)+"\n\n")   #,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
+
+        joined.plot(y=column_list)
+        
+
+      #  plt.show()
+
+        plt.savefig("plot_vs_"+str(p)+".png")
+        plt.close("all")
+##
+
+
+
+
+    
     #  B)
 ##    c=0
 ##    clean_df_list=[]
@@ -357,14 +650,6 @@ def main():
 
 
 
-
-
-  
-
-    
-
-
-
 #
 # 2) St Dalfours incremental sales are huge during promotions, particularly in WW.
 # is the growth bad ie pantry loading or
@@ -373,120 +658,7 @@ def main():
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-##########################################################################3
-
-
-#    X_df["c_ave_baseline_units"]=X_df["c_baseline_units"].rolling("42d",min_periods=3).mean()
-#    X_df["bm_ave_baseline_units"]=X_df["bm_baseline_units"].rolling("42d",min_periods=3).mean()
-
-##    X_df["bb_baseline_units_next_3_weeks"]=X_df["bb_baseline_units"].shift(periods=1).rolling(3,min_periods=1).mean()
-##    X_df["sd_baseline_units_next_3_weeks"]=X_df["sd_baseline_units"].shift(periods=1).rolling(3,min_periods=1).mean()
-
-##    important_attributes=["bb_promo_disc","sd_promo_disc","bm_promo_disc","bb_total_units","sd_total_units","bm_total_units"]
-##
-##    scatter_matrix(X_df[important_attributes],alpha=0.2,figsize=(12,9))
-##    plt.show()
-##
-##
-## #   important_attributes2=["beerenberg_upspw_incremental","st_dalfour_upspw_incremental","bon_maman_upspw_incremental","cottees_upspw_incremental"]
-##    important_attributes=["date","bb_total_units","sd_total_units","bm_total_units","c_total_units","bb_promo_disc","sd_promo_disc","bm_promo_disc","c_promo_disc"]
-##    dbh=dbg[important_attributes]
-##    corr_matrix=dbh.corr(method="pearson")    #important_attributes)   #.sort_values(ascending=False)   #[important_attributes])   #important_attributes2,method="pearson")
-##
-##    
-##    corr_matrix=X_df.corr()   #.sort_values(ascending=False)   #[important_attributes])   #important_attributes2,method="pearson")
-##    print("\n\nCorrelations:\n",corr_matrix,"\n\n")
-##
-##
-##    sarraydf = pd.DataFrame (corr_matrix)
-##
-######## save to xlsx file
-##    print("Correlation matrix array saved to",cfg.scalerdump1)
-##    sarraydf.to_excel(cfg.scalerdump1, index=True)
-##
-##
-##
-##    dbe[["sd_promo_disc","bm_promo_disc","c_promo_disc"]].plot(kind='density', subplots=True, layout=(3,3), sharex=False)
-##    plt.show()
-### turns counter dictionary into a numpy array
- #   pc=pd.DataFrame(np.array(list(pcode_counts.items())),columns=["x","y"])
-   # pc=np.array(list(pcode_counts.items()))[:,1]
  
-##   # print("pc=",pc)
-##   # #pdf=pd.DataFrame(pc).hist()
-##    plt.bar(list(pcode_counts.keys()), list(pcode_counts.values()))
-##  #  plt.hist(pc,bins=100)    #,histtype='stepfilled', density=False, bins=250) # density
-##
-##   # sns.distplot(pc["x"],kde=False, bins=200,rug=True)
-##    plt.xlabel("Product Code")
-##    plt.ylabel("Frequency")
-##  #  plt.title("Product code frequency as a % of total transactions")
-##    plt.show()
-##
-##    plt.bar(list(pg_counts.keys()), list(pg_counts.values()))
-##    plt.xlabel("Product Groups")
-##    plt.ylabel("Frequency")
-##  #  plt.title("Product group frequency as a count of total transactions")
-##    plt.show()
-##
-##    plt.bar(list(ccode_counts.keys()), list(ccode_counts.values()))
-##
-##    #sns.distplot(ccf["y"],kde=False,bins=200,rug=True)
-##    plt.xlabel("Customer Code")
-
-#  covariance
-##    data1=dbe[["bb_total_upspw"]]
-##    data2=dbe[["sd_promo_disc"]]
-##
-##    covariance = cov(data1, data2)
-##    print("\nCovariance between bb_total_upspw and SD promo disc=",covariance)
-##
-##########  Spearman R
-##    corr, _ = spearmanr(data1, data2)
-##    print('\nSpearmans correlation between bb_total_upspw and SD promo disc=: %.3f' % corr)
-
-    
 ############################################################################3
 
     f.close()
