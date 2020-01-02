@@ -132,6 +132,7 @@ querydict=dict({0: [0,["1"]], # ,"15","29"]],
                 })
 
 
+usable_measures=[0,4,5,8,9,10,11,12,13]
 
 
 logfile="IRI_reader_logfile.txt"
