@@ -36,6 +36,7 @@ import datetime as dt
 import joblib
 import pickle
 import json
+import itertools
 
 from pandas.plotting import scatter_matrix
 from dateutil.relativedelta import relativedelta
@@ -116,7 +117,22 @@ def load_df_dict(pklsave):
     return df_dict
    
 
+def column_name(col_no,colnames,spreadsheetno):
+    # returns a list of column names from the colnames dictionary 
+    # the column name is a concatted and shrunk
+    #
+   # print("col_no1",col_no1)
+   # print("col_no2",col_no2)
 
+  #  print("colnames[0]=",colnames[0])   # 0 is the first spreadhsheet
+    names=[]
+    
+    separator = '-'
+    names.append(separator.join(colnames[spreadsheetno][col_no[0]]))
+    names.append(separator.join(colnames[spreadsheetno][col_no[1]]))
+
+   # print("names=",names)
+    return names
 
 
 ##############################################################################################3333
@@ -380,132 +396,132 @@ def main():
     start_plot=plots+1
 
 
-    if False:
-        
-        print("\n\nCombination plot...\n")
-
-#        start_plot=plots+1
-
-
-
-        print("Calculating combinations based on #features=",no_of_features,"#measures",no_of_measures,"\n")
-
-
-
-        h=range(0,no_of_features)
-
-        new_array = np.array(np.meshgrid(h,h,h,h)).T.reshape(-1,4)
-        unique_list=[]
-        for elem in new_array:
-           if len(elem)==len(set(elem)):
-               unique_list.append(list(elem))
-
-        #unique_list.sort()
-        #print("list",unique_list)
-
-        unique_list2 = sorted(list(set(map(tuple,unique_list))))
-
-        #print("u",unique_list2)
-        #unique_array=np.array(unique_list2)
-        del unique_list
-
-        unique_list3=[]
-        i=0
-        for row in unique_list2:
-           sr=tuple(sorted(row))
-         #  print("sr=",sr)
-
-           j=0
-           for row2 in unique_list2:
-              if i!=j:
-                 if sr==row2:
-                 #   print("match",i,":",sr,j,":",row2)
-                    break
-                 else:
-                #    print(" no match appending",i,":",sr,j,":",row2)
-                    unique_list3.append(sr)
-               #     print("ul=",unique_list3)   
-              j+=1
-           i+=1
-
-        del unique_list2
-
-        uniques=np.array(list(set(unique_list3)))                      
-        #print("uniques=",uniques)
-        no_of_uniques=len(uniques)
-        #print("no_of uniques=",no_of_uniques)
-
-
-        #print("len measures array",lenma)
-
-
-        i=0
-        big_list=[]
-        for row in uniques:
-           for j in range(0,lenma):
-              row3=list(np.array(row)*no_of_measures)+measures_array[j]+1
-              big_list.append(row3)
-              i+=1
-
-        uniques=np.array(big_list).reshape(-1,4)
-        len_uniques=uniques.shape[1]
-        print(uniques)
-        #print(l.shape)
-           
-
-    #####################################################################33333
-
-        
-        plot_work_size=len(uniques)
-        print("Plot work size=",plot_work_size,"\n")
-
-        
-        for spreadsheetno in range(0,2):   #    fullspreadsheetsave.keys():
-        
-            print("Final_df columns=\n",fullspreadsheetsave[spreadsheetno][0].columns)
-          #  f.write("Final_df columns=\n"+str(fullspreadsheetsave[spreadsheetno][0].columns)+"\n\n")
-
-                        
-            for p in range(plot_work_size):
-                column_list=list(uniques[p].astype(str))
-      #          print("\nPlotting spreadsheet:",spreadsheetno,"plot no:",p+start_plot,":",column_list,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
-                print("Plotting spreadsheet:",spreadsheetno,"plot no:",p+start_plot,"/",(2*plot_work_size)+start_plot+1,":",column_list)   #,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
-
-             #   f.write("\nPlotting spreadsheet: "+str(spreadsheetno)+" plot no: "+str(p+start_plot)+" : "+str(column_list)+"\n\n")   #,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
-
-                fullspreadsheetsave[spreadsheetno][0].plot(y=column_list)
-              #  plt.show()
-
-                plt.savefig("plot_"+str(spreadsheetno)+"_"+str(p)+".png")
-                plt.close("all")
-
-
-
-        start_plot=plots+1
-
-
-
-                        
-        for p in range(plot_work_size):
-            column_list=list(uniques[p].astype(str))
-    #          print("\nPlotting spreadsheet:",spreadsheetno,"plot no:",p+start_plot,":",column_list,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
-            print("Plotting spreadsheet:",spreadsheetno,"plot no:",p+start_plot,"/",(2*plot_work_size)+start_plot+1,":",column_list)   #,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
-
-         #   f.write("\nPlotting spreadsheet: "+str(spreadsheetno)+" plot no: "+str(p+start_plot)+" : "+str(column_list)+"\n\n")   #,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
-
-            fullspreadsheetsave[0][0].plot(y=column_list)
-            fullspreadsheetsave[1][0].plot(y=column_list)
-            plt.show()
-
-            plt.savefig("plot0_vs_1_"+str(p)+".png")
-            plt.close("all")
-
-
-
-
-            
-        del uniques
-        
+##    if False:
+##        
+##        print("\n\nCombination plot...\n")
+##
+###        start_plot=plots+1
+##
+##
+##
+##        print("Calculating combinations based on #features=",no_of_features,"#measures",no_of_measures,"\n")
+##
+##
+##
+##        h=range(0,no_of_features)
+##
+##        new_array = np.array(np.meshgrid(h,h,h,h)).T.reshape(-1,4)
+##        unique_list=[]
+##        for elem in new_array:
+##           if len(elem)==len(set(elem)):
+##               unique_list.append(list(elem))
+##
+##        #unique_list.sort()
+##        #print("list",unique_list)
+##
+##        unique_list2 = sorted(list(set(map(tuple,unique_list))))
+##
+##        #print("u",unique_list2)
+##        #unique_array=np.array(unique_list2)
+##        del unique_list
+##
+##        unique_list3=[]
+##        i=0
+##        for row in unique_list2:
+##           sr=tuple(sorted(row))
+##         #  print("sr=",sr)
+##
+##           j=0
+##           for row2 in unique_list2:
+##              if i!=j:
+##                 if sr==row2:
+##                 #   print("match",i,":",sr,j,":",row2)
+##                    break
+##                 else:
+##                #    print(" no match appending",i,":",sr,j,":",row2)
+##                    unique_list3.append(sr)
+##               #     print("ul=",unique_list3)   
+##              j+=1
+##           i+=1
+##
+##        del unique_list2
+##
+##        uniques=np.array(list(set(unique_list3)))                      
+##        #print("uniques=",uniques)
+##        no_of_uniques=len(uniques)
+##        #print("no_of uniques=",no_of_uniques)
+##
+##
+##        #print("len measures array",lenma)
+##
+##
+##        i=0
+##        big_list=[]
+##        for row in uniques:
+##           for j in range(0,lenma):
+##              row3=list(np.array(row)*no_of_measures)+measures_array[j]+1
+##              big_list.append(row3)
+##              i+=1
+##
+##        uniques=np.array(big_list).reshape(-1,4)
+##        len_uniques=uniques.shape[1]
+##        print(uniques)
+##        #print(l.shape)
+##           
+##
+##    #####################################################################33333
+##
+##        
+##        plot_work_size=len(uniques)
+##        print("Plot work size=",plot_work_size,"\n")
+##
+##        
+##        for spreadsheetno in range(0,2):   #    fullspreadsheetsave.keys():
+##        
+##            print("Final_df columns=\n",fullspreadsheetsave[spreadsheetno][0].columns)
+##          #  f.write("Final_df columns=\n"+str(fullspreadsheetsave[spreadsheetno][0].columns)+"\n\n")
+##
+##                        
+##            for p in range(plot_work_size):
+##                column_list=list(uniques[p].astype(str))
+##      #          print("\nPlotting spreadsheet:",spreadsheetno,"plot no:",p+start_plot,":",column_list,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
+##                print("Plotting spreadsheet:",spreadsheetno,"plot no:",p+start_plot,"/",(2*plot_work_size)+start_plot+1,":",column_list)   #,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
+##
+##             #   f.write("\nPlotting spreadsheet: "+str(spreadsheetno)+" plot no: "+str(p+start_plot)+" : "+str(column_list)+"\n\n")   #,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
+##
+##                fullspreadsheetsave[spreadsheetno][0].plot(y=column_list)
+##              #  plt.show()
+##
+##                plt.savefig("plot_"+str(spreadsheetno)+"_"+str(p)+".png")
+##                plt.close("all")
+##
+##
+##
+##        start_plot=plots+1
+##
+##
+##
+##                        
+##        for p in range(plot_work_size):
+##            column_list=list(uniques[p].astype(str))
+##    #          print("\nPlotting spreadsheet:",spreadsheetno,"plot no:",p+start_plot,":",column_list,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
+##            print("Plotting spreadsheet:",spreadsheetno,"plot no:",p+start_plot,"/",(2*plot_work_size)+start_plot+1,":",column_list)   #,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
+##
+##         #   f.write("\nPlotting spreadsheet: "+str(spreadsheetno)+" plot no: "+str(p+start_plot)+" : "+str(column_list)+"\n\n")   #,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
+##
+##            fullspreadsheetsave[0][0].plot(y=full_column_list)
+##            fullspreadsheetsave[1][0].plot(y=full_column_list)
+##            plt.show()
+##
+##            plt.savefig("plot0_vs_1_"+str(p)+".png")
+##            plt.close("all")
+##
+##
+##
+##
+##            
+##        del uniques
+##        
 #############################################33
 # plot double combinations of coles and woolworths
 
@@ -560,7 +576,7 @@ def main():
     plot_work_size=len(uniques)
     print("Plot work size=",plot_work_size,"\n")
 
-    print("measures=",measures_array)
+    #print("measures=",measures_array)
     lenma=len(measures_array)
     #print("len measures array",lenma)
 
@@ -575,81 +591,73 @@ def main():
 
     uniques=np.array(big_list).reshape(-1,2)
 #    len_uniques=uniques.shape[1]
-    print(uniques)
+#    print(uniques)
      
                     
     for p in range(plot_work_size):
         column_list=list(uniques[p].astype(str))
-
+      #  print("\ncolumn list=",column_list)
+        
         clean_df_list=[]
-        clean_df_list.append(fullspreadsheetsave[0][0][column_list])
-        clean_df_list.append(fullspreadsheetsave[1][0][column_list])
+        clean_df_list.append(fullspreadsheetsave[0][0][column_list])  # two from WW
+        clean_df_list.append(fullspreadsheetsave[1][0][column_list])  # two from coles
 
-        joined=pd.concat(clean_df_list,axis=1)     # , left_index=True, right_index=True)
-  #      print("joined=",joined.columns)
+     #   print("clean df list=",clean_df_list)
+        
+        joined_df=pd.concat(clean_df_list,axis=1)     # , left_index=True, right_index=True)
 
         
+    #    print("joined=",joined_df.head(5))
+
+        full_column_list=[]
+        full_column_list.append(column_name(column_list,colnames,0))   # 0 is first spreadsheet
+        full_column_list.append(column_name(column_list,colnames,1))   # 0 is first spreadsheet
+
+        double_column_list=column_list*2
+
+   #     print("double column list=",double_column_list)
+   #     print("full column list=\n",full_column_list)
+        merged_full_column_list = list(itertools.chain(*full_column_list))
+        print("\nfull column list=\n",merged_full_column_list)
+        f.write("\nfull column list=\n"+str(merged_full_column_list)+"\n\n")
+
+
+
+        joined_df.columns=merged_full_column_list
+       # print("joined_df=\n",joined_df)
+        #plt.ylabel(merged_full_column_list)
+        
 #          print("\nPlotting spreadsheet:",spreadsheetno,"plot no:",p+start_plot,":",column_list,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
-        print("plot no:",p+start_plot,"/",(plot_work_size)+start_plot-1,":",column_list)   #,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
+        print("plot no:",p+start_plot,"/",(plot_work_size)+start_plot-1,":",double_column_list)   #,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
+        f.write("plot no:"+str(p+start_plot)+"/"+str((plot_work_size)+start_plot-1)+":"+str(double_column_list)+"\n\n")   #,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
 
      #   f.write("\nPlotting spreadsheet: "+str(spreadsheetno)+" plot no: "+str(p+start_plot)+" : "+str(column_list)+"\n\n")   #,fullspreadsheetsave[spreadsheetno][0][column_list].head(5))
 
-        joined.plot(y=column_list)
-        
+     #   joined.plot(y=column_list)
+        joined_df.plot(y=merged_full_column_list)
+##        i=0
+##        for ax in joined_df[double_column_list[i]]:
+##            print("ax=",ax)
+##            line, = ax.plot(y=double_column_list[i])
+##            line.set_label(merged_full_column_list[i])
+##            i+=1
+            
+        plt.legend(merged_full_column_list,fontsize="xx-small",loc="best")
+        #plt.legend(merged_full_column_list,fontsize="xx-small",loc="best") 
 
-      #  plt.show()
+        plt.title("WW vs Coles")
+        plt.xlabel("Scan week")
 
-        plt.savefig("plot_vs_"+str(p)+".png")
+
+    #    plt.show()
+        plt.savefig("plot_vs_"+str(p+start_plot)+".png")
         plt.close("all")
 ##
 
 
 
 
-    
-    #  B)
-##    c=0
-##    clean_df_list=[]
-##    for spreadsheetno in df_dict.keys():
-##        if cfg.infilenamedict[spreadsheetno][1]:
-##            df_dict[spreadsheetno][0].columns=[cfg.infilenamedict[spreadsheetno][1]]
-##        clean_df_list.append(df_dict[spreadsheetno][0])
-##        c+=1
-##
-##    final_df=pd.concat(clean_df_list,axis=1)     # , left_index=True, right_index=True)
-##
-##
-## #   final_df["WW","coles"].hist()
-## #   plt.show()
-##    
-###    scatter_matrix(final_df,alpha=0.2,figsize=(12,9))
-###    plt.show()
-###
-##
-##    final_df["smooth_ww"]=final_df["ww"].rolling("42d",min_periods=3).mean()
-##    final_df["smooth_coles"]=final_df["coles"].rolling("42d",min_periods=3).mean()
-##    final_df["ww_ms"]=final_df["smooth_ww"]/(final_df["smooth_ww"]+final_df["smooth_coles"])*100
-##    final_df["sd"]=final_df["sd"].astype(float)
-##  #  final_df["ww_m"]=final_df["WW"]/(final_df["WW"]+final_df["coles"])*100
-##    
-## #   final_df["bb_baseline_units_next_3_weeks"]=X_df["bb_baseline_units"].shift(periods=1).rolling(3,min_periods=1).mean()
-##
-##    print(final_df.columns)
-##    print(final_df)
-##    print(final_df[["ww_ms","sd"]].corr())
-##
-##
-##    final_df.plot(y=['ww_ms',"sd"])
-##  #  final_df.plot(y='57')
-##
-##    plt.show()
-##
-##    scatter_matrix(final_df[["ww_ms","sd"]],alpha=0.5,figsize=(12,9))
-##    plt.show()
-##
-
-
-
+ 
 #
 # 2) St Dalfours incremental sales are huge during promotions, particularly in WW.
 # is the growth bad ie pantry loading or
