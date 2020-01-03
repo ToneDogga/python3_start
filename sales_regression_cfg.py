@@ -66,7 +66,8 @@ featureorder_c=["code_encode","product","qty","productgroup","date","date_encode
 ##############################
 # forecasting purposes
 # data starts 2/2/2018  with week 0 as a bin_no
-startbin=51  # 1/2/2019   
+startbin=51  # 1/2/2019
+backshift=80   #  weeks to look forward so we have to look back from the newest week of data
 
 ###################################################
 
