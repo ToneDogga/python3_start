@@ -198,23 +198,38 @@ def main():
     latest_date=pd.to_datetime(df_pp.date.max())
   #  print("latest date=",latest_date)
 
-    first_date=pd.to_datetime(pd.to_datetime(latest_date)+pd.to_timedelta(-1,unit="Y"))   #.dt.strftime('%Y/%m/%d')
+    first_date=pd.to_datetime(pd.to_datetime(latest_date)+pd.to_timedelta(-365,unit="d"))   #.dt.strftime('%Y/%m/%d')
 
-    print(type(first_date)) 
+   # print(type(first_date)) 
     
     print("first_date=",first_date,"latest date=",latest_date)
     mask=((df_pp["date"]>=first_date) & (df_pp["date"]<=latest_date))
     extendyear=df_pp.loc[mask].copy(deep=True)
-    extendyear["date"]=pd.to_datetime(pd.to_datetime(extendyear.date)+pd.to_timedelta(2,unit="Y"),format="%Y/%m/%d") 
+    extendyear["date"]=pd.to_datetime(pd.to_datetime(extendyear.date)+pd.to_timedelta(730,unit="d"),format="%Y/%m/%d") 
     extendyear.sort_values(by=['date'],ascending=True,inplace=True)
     extendyear["date"]=extendyear["date"].dt.strftime("%Y/%m/%d")
     extendyear["predict_qty"]=extendyear["predict_qty"].round(0)   
     extendyear["predict_qty_ctnsof8"]=extendyear["predict_qty_ctnsof8"].round(0)   
 
-    #print("extendyear=\n",extendyear)            
+    #print("extendyear=\n",extendyear)
+    
 
     dbd2=pd.concat((dbd2,extendyear))
     
+    #startdate=pd.to_datetime(cfg.startdate) #.format("%y/%m/%d")
+    #finishdate=pd.to_datetime(cfg.finishdate) #.format("%y/%m/%d")
+
+
+    print("\nForecast start date",cfg.startdate,"Forecast finish date=",cfg.finishdate)
+  #  dbd2["date"]=pd.to_datetime(dbd2["date"],format="%Y/%m/%d")   #.dt.strftime("%Y/%m/%d")
+    dbd2["date"]=pd.to_datetime(dbd2["date"],format="%Y/%m/%d")  #.dt.strftime("%Y/%m/%d")  
+
+    mask=((dbd2["date"]>=cfg.startdate) & (dbd2["date"]<=cfg.finishdate))
+    dbd2=dbd2.loc[mask]   #.copy(deep=True)
+
+    dbd2["date"]=pd.to_datetime(dbd2["date"],format="%Y/%m/%d")  #.dt.strftime("%Y/%m/%d")  
+    dbd2["date"]=dbd2["date"].dt.strftime("%Y/%m/%d")  
+
     print("new dbd2=\n",dbd2)
 
     dbd2.to_excel("dbd2.xlsx")

@@ -1,5 +1,7 @@
 import datetime as dt
 from dateutil.relativedelta import relativedelta
+import pandas as pd
+
 
 infilename="FLFUL_FLPAS_FLFRE-raw.xlsx"
 #infilename="FLNOR_FLBRI-raw.xlsx"
@@ -67,7 +69,7 @@ featureorder_c=["code_encode","product","qty","productgroup","date","date_encode
 # forecasting purposes
 # data starts 2/2/2018  with week 0 as a bin_no
 startbin=51  # 1/2/2019
-backshift=80   #  weeks to look forward so we have to look back from the newest week of data
+#backshift=80   #  weeks to look forward so we have to look back from the newest week of data
 
 ###################################################
 
@@ -77,6 +79,12 @@ bins = list(range(0,1120,7))
 rescale_constant = 130   #24   # 0.69 is mean of all the scaler array by product .xlsx entries     productsame as 1/3   #0.2   # the factor that the scaling effects the calculated last_order_upspd
 balance=0.88   # 80% on fixed element and 20% on sales distributions
 ###################################
+#startdate=pd.to_datetime("20/07/01",format="%Y/%m/%d")
+#finishdate=pd.to_datetime("21/06/30",format="%Y/%m/%d")
+startdate=pd.to_datetime("2020/07/01",format="%Y/%m/%d")  #.dt.strftime("%Y/%m/%d")
+finishdate=pd.to_datetime("2021/06/30",format="%Y/%m/%d") #.dt.strftime("%Y/%m/%d")
+startdate = dt.datetime.strftime(startdate, '%Y/%m/%d')  # %H:%M:%S.%f')
+finishdate = dt.datetime.strftime(finishdate, '%Y/%m/%d')  # %H:%M:%S.%f')
 
 
 #################################3
