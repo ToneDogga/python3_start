@@ -178,8 +178,8 @@ def main():
     #print("Sales Qty Predictions=\n",dbd2[0:100].to_string())
 
 
-    print(dbd2)
-    print(dbd2.columns)
+  #  print(dbd2)
+  #  print(dbd2.columns)
 
 ##################################3
     # extend dbd2 a further 1 year
@@ -271,6 +271,24 @@ def main():
     f.write("\n\n"+table8.to_string())
 
 
+    table9 = pd.pivot_table(dbd2, values='predict_qty_ctnsof8', index=['productgroup','product'],columns=['code'], aggfunc=np.sum, margins=True, fill_value=0)
+  #  print("\ntable5=\n",table5.head(5))
+    f.write("\n\n"+table9.to_string())
+
+    table10 = pd.pivot_table(dbd2, values='predict_qty_ctnsof8', index=['code'],columns=['productgroup','product'], aggfunc=np.sum, margins=True, fill_value=0)
+  #  print("\ntable6=\n",table6.head(5))
+    f.write("\n\n"+table10.to_string())
+
+
+    table11 = pd.pivot_table(dbd2, values='predict_qty_ctnsof8', index=['product',"productgroup"],columns=['code'], aggfunc=np.sum, margins=True, fill_value=0)
+  #  print("\ntable8=\n",table8.head(5))
+    f.write("\n\n"+table11.to_string())
+
+    table12 = pd.pivot_table(dbd2, values='predict_qty_ctnsof8', index=['product'],columns=['code'], aggfunc=np.sum, margins=True, fill_value=0)
+  #  print("\ntable5=\n",table5.head(5))
+    f.write("\n\n"+table12.to_string())
+
+
     with pd.ExcelWriter(cfg.outxlsfile) as writer:  # mode="a" for append
         table.to_excel(writer,sheet_name="Units1")
         table2.to_excel(writer,sheet_name="Units2")
@@ -280,6 +298,10 @@ def main():
         table6.to_excel(writer,sheet_name="CtnsOfEight6")
         table7.to_excel(writer,sheet_name="CtnsOfEight7")
         table8.to_excel(writer,sheet_name="CtnsOfEight8")
+        table9.to_excel(writer,sheet_name="CtnsOfEight9")
+        table10.to_excel(writer,sheet_name="CtnsOfEight10")
+        table11.to_excel(writer,sheet_name="CtnsOfEight11")
+        table12.to_excel(writer,sheet_name="CtnsOfEight12")
 
     print("\n\nSales Prediction results written to spreadsheet",cfg.outxlsfile,"\n\n")
     f.write("\n\nSales Prediction results written to spreadsheet:"+str(cfg.outxlsfile)+"\n\n")
