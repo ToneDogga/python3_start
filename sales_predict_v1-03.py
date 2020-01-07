@@ -238,6 +238,11 @@ def main():
 #############################################################################3
     #  create a pivot table of code, product, day delta and predicted qty and export back to excel
 
+
+    table1 = pd.pivot_table(dbd2, values='predict_qty_ctnsof8', index=['productgroup'],columns=['code'], aggfunc=np.sum, margins=True, fill_value=0)
+  #  print("\ntable1=\n",table1.head(5))
+    f.write("\n\n"+table1.to_string())
+
     table = pd.pivot_table(dbd2, values='predict_qty', index=['productgroup','product', 'date'],columns=['code'], aggfunc=np.sum, margins=True, fill_value=0)   #, observed=True)
   #  print("\ntable=\n",table.head(5))
     f.write("\n\n"+table.to_string())
@@ -290,10 +295,7 @@ def main():
 
 
     with pd.ExcelWriter(cfg.outxlsfile) as writer:  # mode="a" for append
-        table.to_excel(writer,sheet_name="Units1")
-        table2.to_excel(writer,sheet_name="Units2")
-        table3.to_excel(writer,sheet_name="Units3")
-        table4.to_excel(writer,sheet_name="Units4")
+        table1.to_excel(writer,sheet_name="CtnsOfEight1")
         table5.to_excel(writer,sheet_name="CtnsOfEight5")
         table6.to_excel(writer,sheet_name="CtnsOfEight6")
         table7.to_excel(writer,sheet_name="CtnsOfEight7")
@@ -302,6 +304,11 @@ def main():
         table10.to_excel(writer,sheet_name="CtnsOfEight10")
         table11.to_excel(writer,sheet_name="CtnsOfEight11")
         table12.to_excel(writer,sheet_name="CtnsOfEight12")
+        table.to_excel(writer,sheet_name="Units1")
+        table2.to_excel(writer,sheet_name="Units2")
+        table3.to_excel(writer,sheet_name="Units3")
+        table4.to_excel(writer,sheet_name="Units4")
+
 
     print("\n\nSales Prediction results written to spreadsheet",cfg.outxlsfile,"\n\n")
     f.write("\n\nSales Prediction results written to spreadsheet:"+str(cfg.outxlsfile)+"\n\n")
