@@ -257,6 +257,74 @@ plt.show()
 
 from sklearn.metrics import roc_auc_score
 
-print("rpc auc score",roc_auc_score(y_train_5, y_scores))
+print("roc auc score",roc_auc_score(y_train_5, y_scores))
+
+from sklearn.ensemble import RandomForestClassifier
+forest_clf = RandomForestClassifier(n_estimators=10, random_state=42)
+y_probas_forest = cross_val_predict(forest_clf, X_train, y_train_5, cv=3,
+                                    method="predict_proba")
+
+
+y_scores_forest = y_probas_forest[:, 1] # score = proba of positive class
+fpr_forest, tpr_forest, thresholds_forest = roc_curve(y_train_5,y_scores_forest)
+
+plt.figure(figsize=(8, 6))
+plt.plot(fpr, tpr, "b:", linewidth=2, label="SGD")
+plot_roc_curve(fpr_forest, tpr_forest, "Random Forest")
+plt.legend(loc="lower right", fontsize=16)
+#save_fig("roc_curve_comparison_plot")
+plt.show()
+
+print("roc auc score",roc_auc_score(y_train_5, y_scores_forest))
+
+y_train_pred_forest = cross_val_predict(forest_clf, X_train, y_train_5, cv=3)
+print("precision score=",precision_score(y_train_5, y_train_pred_forest))
+
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train.astype(np.float64))
+print("cross val score=",cross_val_score(sgd_clf, X_train_scaled, y_train, cv=3, scoring="accuracy"))
+
+y_train_pred = cross_val_predict(sgd_clf, X_train_scaled, y_train, cv=3)
+conf_mx = confusion_matrix(y_train, y_train_pred)
+print("conf_mx",conf_mx)
+
+def plot_confusion_matrix(matrix):
+    """If you prefer color and a colorbar"""
+    fig = plt.figure(figsize=(8,8))
+    ax = fig.add_subplot(111)
+    cax = ax.matshow(matrix)
+    fig.colorbar(cax)
+
+plt.matshow(conf_mx, cmap=plt.cm.gray)
+#save_fig("confusion_matrix_plot", tight_layout=False)
+plt.show()
+
+
+row_sums = conf_mx.sum(axis=1, keepdims=True)
+norm_conf_mx = conf_mx / row_sums
+
+np.fill_diagonal(norm_conf_mx, 0)
+plt.matshow(norm_conf_mx, cmap=plt.cm.gray)
+#save_fig("confusion_matrix_errors_plot", tight_layout=False)
+plt.show()
+
+
+
+from sklearn.neighbors import KNeighborsClassifier
+
+y_train_large = (y_train >= 7)
+y_train_odd = (y_train % 2 == 1)
+y_multilabel = np.c_[y_train_large, y_train_odd]
+
+knn_clf = KNeighborsClassifier()
+knn_clf.fit(X_train, y_multilabel)
+
+
+print("is it large and is it odd?",knn_clf.predict([some_digit]))
+
+y_train_knn_pred = cross_val_predict(knn_clf, X_train, y_multilabel, cv=3, n_jobs=-1)
+f1_score(y_multilabel, y_train_knn_pred, average="macro")
+
 
 
