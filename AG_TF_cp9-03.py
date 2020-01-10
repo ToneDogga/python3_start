@@ -1,0 +1,197 @@
+import tensorflow as tf
+import numpy as np
+from sklearn.datasets import fetch_california_housing
+
+housing=fetch_california_housing()
+
+m,n = housing.data.shape
+print("m,n",m,n)
+housing_data_plus_bias=np.c_[np.ones((m,1)), housing.data]
+
+##X=tf.constant(housing_data_plus_bias, dtype=tf.float32, name="X")
+##y=tf.constant(housing.target.reshape(-1,1), dtype=tf.float32, name="y")
+##
+##XT=tf.transpose(X)
+##
+##theta=tf.matmul(tf.matmul(tf.matrix_inverse(tf.matmul(XT,X)),XT),y)
+##
+##with tf.Session() as sess:
+##    theta_value=theta.eval()
+##
+##
+##print("theta=",theta_value)
+
+#tf.reset_graph()
+tf.reset_default_graph()
+
+X = housing_data_plus_bias
+y = housing.target.reshape(-1, 1)
+##theta_numpy = np.linalg.inv(X.T.dot(X)).dot(X.T).dot(y)
+##
+##print("numpy theta=",theta_numpy)
+##
+##from sklearn.linear_model import LinearRegression
+##lin_reg = LinearRegression()
+##lin_reg.fit(housing.data, housing.target.reshape(-1, 1))
+##
+##print("skikit-learn theta",np.r_[lin_reg.intercept_.reshape(-1, 1), lin_reg.coef_.T])
+##
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+scaled_housing_data = scaler.fit_transform(housing.data)
+scaled_housing_data_plus_bias = np.c_[np.ones((m, 1)), scaled_housing_data]
+##
+##
+##
+##print(scaled_housing_data_plus_bias.mean(axis=0))
+##print(scaled_housing_data_plus_bias.mean(axis=1))
+##print(scaled_housing_data_plus_bias.mean())
+##print(scaled_housing_data_plus_bias.shape)
+##
+##sess.close()
+
+
+#reset_graph()
+
+##print("manually calc")
+##n_epochs = 1000
+##learning_rate = 0.01
+##
+##X = tf.constant(scaled_housing_data_plus_bias, dtype=tf.float32, name="X")
+##y = tf.constant(housing.target.reshape(-1, 1), dtype=tf.float32, name="y")
+##theta = tf.Variable(tf.random_uniform([n + 1, 1], -1.0, 1.0, seed=42), name="theta")
+##y_pred = tf.matmul(X, theta, name="predictions")
+##error = y_pred - y
+##mse = tf.reduce_mean(tf.square(error), name="mse")
+##gradients = 2/m * tf.matmul(tf.transpose(X), error)
+##training_op = tf.assign(theta, theta - learning_rate * gradients)
+##
+##init = tf.global_variables_initializer()
+##
+##with tf.Session() as sess:
+##    sess.run(init)
+##
+##    for epoch in range(n_epochs):
+##        if epoch % 100 == 0:
+##            print("Epoch", epoch, "MSE =", mse.eval())
+##        sess.run(training_op)
+##    
+##    best_theta = theta.eval()
+
+
+
+print("tf autodiff calc")
+n_epochs = 1000
+learning_rate = 0.01
+
+X = tf.constant(scaled_housing_data_plus_bias, dtype=tf.float32, name="X")
+print("X=\n",X)
+
+y = tf.constant(housing.target.reshape(-1, 1), dtype=tf.float32, name="y")
+print("y=\n",y)
+theta = tf.Variable(tf.random_uniform([n + 1, 1], -1.0, 1.0, seed=42), name="theta")
+y_pred = tf.matmul(X, theta, name="predictions")
+error = y_pred - y
+mse = tf.reduce_mean(tf.square(error), name="mse")
+#gradients = 2/m * tf.matmul(tf.transpose(X), error)
+gradients=tf.gradients(mse,[theta])[0]
+training_op = tf.assign(theta, theta - learning_rate * gradients)
+
+init = tf.global_variables_initializer()
+
+with tf.Session() as sess:
+    sess.run(init)
+
+    for epoch in range(n_epochs):
+        if epoch % 100 == 0:
+            print("Epoch", epoch, "MSE =", mse.eval())
+        sess.run(training_op)
+    
+    best_theta = theta.eval()
+
+print("Best theta:")
+print(best_theta)
+
+
+
+tf.reset_default_graph()
+
+#reset_graph()
+
+n_epochs = 1000
+learning_rate = 0.01
+
+X = tf.constant(scaled_housing_data_plus_bias, dtype=tf.float32, name="X")
+y = tf.constant(housing.target.reshape(-1, 1), dtype=tf.float32, name="y")
+theta = tf.Variable(tf.random_uniform([n + 1, 1], -1.0, 1.0, seed=42), name="theta")
+y_pred = tf.matmul(X, theta, name="predictions")
+error = y_pred - y
+mse = tf.reduce_mean(tf.square(error), name="mse")
+
+optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)
+training_op = optimizer.minimize(mse)
+
+init = tf.global_variables_initializer()
+
+with tf.Session() as sess:
+    sess.run(init)
+
+    for epoch in range(n_epochs):
+        if epoch % 100 == 0:
+            print("opt Epoch", epoch, "MSE =", mse.eval())
+        sess.run(training_op)
+    
+    best_theta = theta.eval()
+
+print("opt Best theta:")
+print(best_theta)
+
+
+
+
+
+tf.reset_default_graph()
+
+#reset_graph()
+
+n_epochs = 1000
+learning_rate = 0.01
+
+X = tf.constant(scaled_housing_data_plus_bias, dtype=tf.float32, name="X")
+y = tf.constant(housing.target.reshape(-1, 1), dtype=tf.float32, name="y")
+theta = tf.Variable(tf.random_uniform([n + 1, 1], -1.0, 1.0, seed=42), name="theta")
+y_pred = tf.matmul(X, theta, name="predictions")
+error = y_pred - y
+mse = tf.reduce_mean(tf.square(error), name="mse")
+
+optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate,momentum=0.9)
+training_op = optimizer.minimize(mse)
+
+init = tf.global_variables_initializer()
+
+with tf.Session() as sess:
+    sess.run(init)
+
+    for epoch in range(n_epochs):
+        if epoch % 100 == 0:
+            print("mom Epoch", epoch, "MSE =", mse.eval())
+        sess.run(training_op)
+    
+    best_theta = theta.eval()
+
+print("mom Best theta:")
+print(best_theta)
+
+
+tf.reset_default_graph()
+
+#reset_graph()
+
+A = tf.placeholder(tf.float32, shape=(None, 3))
+B = A + 5
+with tf.Session() as sess:
+    B_val_1 = B.eval(feed_dict={A: [[1, 2, 3]]})
+    B_val_2 = B.eval(feed_dict={A: [[4, 5, 6], [7, 8, 9]]})
+
+print("b1=",B_val_1)
+print("b2=",B_val_2)
