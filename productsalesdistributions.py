@@ -107,7 +107,10 @@ def smoothing_distributions(df,product_list,bins):
   #  print("smoothing shpae",smoothing.shape)
     for prod in product_list:
         row=f.iloc[i,:].to_numpy()
-        brkdwn=row/sumf[i]   #.reshape(-1,1)
+     #   if sumf[i]==0:
+     #       brkdwn=0
+     #   else:    
+        brkdwn=row/(sumf[i]+0.00001)   #.reshape(-1,1)
         smoothing.append(brkdwn)
         i+=1
     r=np.asarray(smoothing)
@@ -143,7 +146,7 @@ def smoothing_distributions(df,product_list,bins):
 
 
 def main():
-    big_trans_file="NAT-raw.xlsx"
+    big_trans_file=cfg.infilename   #"NAT-raw1.xlsx"
     print("Create a product sales distribution breakdown file from",big_trans_file)
     endloop=False
     while not endloop:
@@ -172,13 +175,14 @@ def main():
         print("Remove columns not needed.")
     #    df.drop(columns=["cat","code","costval","glset","doctype","docentrynum","linenumber","location","refer","salesrep","salesval","territory","specialpricecat"],inplace=True)
         df.drop(columns=cfg.excludecols,inplace=True)
+        df.drop(columns=["salesrep"],inplace=True)
 
         print("Columns deleted:",b4-df.shape[1]) 
 
-        print("Delete rows for productgroup <10 or >15.")
-        b4=df.shape[0]
-        df.drop(df[(df["productgroup"]<10) | (df["productgroup"]>15)].index,inplace=True)
-        print("Rows deleted:",b4-df.shape[0])
+     #   print("Delete rows for productgroup <10 or >15.")
+     #   b4=df.shape[0]
+     #   df.drop(df[(df["productgroup"]<10) | (df["productgroup"]>15)].index,inplace=True)
+     #   print("Rows deleted:",b4-df.shape[0])
         
 
 
