@@ -100,9 +100,9 @@ def load_data(filename):   #,mask_text):   #,batch_size,n_steps,n_inputs):
 
   #  mask=(df['product']=='SJ300')
   #  mask=(df['code']=='FLPAS')
-  #  mask=((df['code']=='FLPAS') & (df['productgroup']==10) & (df['product']=="SJ300"))
- #   mask=((df['code']=='FLPAS') & (df['productgroup']==10))  # & ((df['product']=='SJ300') | (df['product']=='AJ300')))
-    mask=((df['code']=='FLPAS') & ((df['product']=='SJ300') | (df['product']=='AJ300') | (df['product']=='TS300')))
+    mask=((df['code']=='FLPAS') & (df['productgroup']==10) & (df['product']=="SJ300"))
+  #  mask=((df['code']=='FLPAS') & (df['productgroup']==10))  # & ((df['product']=='SJ300') | (df['product']=='AJ300')))
+ #   mask=((df['code']=='FLPAS') & ((df['product']=='SJ300') | (df['product']=='AJ300') | (df['product']=='TS300')))
 
    # print("mask=",str(mask))
     print("pivot table being created.")
@@ -152,7 +152,7 @@ def build_mini_batch_input(series,no_of_batches,no_of_steps):
           
   #  print("series shape after change:",series[0,:10],series.shape)
 
-    random_offsets=np.random.randint(0,series_steps_size-no_of_steps-1,size=(no_of_batches)).tolist()
+    random_offsets=np.random.randint(0,series_steps_size-no_of_steps,size=(no_of_batches)).tolist()
   #  print("random_offsets=",random_offsets)   #,random_offset.shape)
  #   single_batch=series[:,:no_of_steps]
   #  new_mini_batch=np.roll(series[:,:no_of_steps+1],random_offsets[0],axis=1).astype(int) 
@@ -181,7 +181,7 @@ def plot_learning_curves(title,epochs,loss, val_loss):
     plt.plot(np.arange(len(loss)) + 0.5, loss, "b.-", label="Training loss")
     plt.plot(np.arange(len(val_loss)) + 1, val_loss, "r.-", label="Validation loss")
     plt.gca().xaxis.set_major_locator(mpl.ticker.MaxNLocator(integer=True))
-    plt.axis([1, epochs, 0, 2])
+    plt.axis([1, epochs, 0, np.amax(loss)/3])
     plt.legend(fontsize=11)
     plt.title(title,fontsize=11)
     plt.xlabel("Epochs")
@@ -216,9 +216,9 @@ def main():
  #   mask=((df["code"]=="FLPAS") & (df["product"]=="SJ300"))
 
    # n_steps = 100
-    predict_ahead_steps=52
-    epochs=100
-    no_of_batches=10000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
+    predict_ahead_steps=180
+    epochs=130
+    no_of_batches=20000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
     batch_length=20   #20
  #   no_of_batch_copies=4  # duplicate the batches
  #   max_batch_size=1
@@ -377,7 +377,7 @@ def main():
         tf.random.set_seed(42)
         
         model = keras.models.Sequential([
-            keras.layers.SimpleRNN(batch_length, return_sequences=True, input_shape=[None,n_query_rows]),   #[none,1]
+            keras.layers.SimpleRNN(batch_length*n_query_rows, return_sequences=True, input_shape=[None,n_query_rows]),   #[none,1]
             keras.layers.SimpleRNN(batch_length),
             keras.layers.Dense(n_query_rows)
         ])
@@ -516,33 +516,33 @@ def main():
     ################################################3                    
     #  test the model    
     
-        print("testing the model")
+     #    print("testing the model")
     
     
             
-     #   for product_row_no in range(0,n_rows):
-            #plt.title("Testing the model", fontsize=14)
-        y_pred = model.predict(X_valid)[0]   #series2[0,:].reshape(1,-1,1))
-        print("X_valid y_pred=",y_pred,y_pred.shape)   #[:,-n_steps:,:]
+     # #   for product_row_no in range(0,n_rows):
+     #        #plt.title("Testing the model", fontsize=14)
+     #    y_pred = model.predict(X_valid)[0]   #series2[0,:].reshape(1,-1,1))
+     #    print("X_valid y_pred=",y_pred,y_pred.shape)   #[:,-n_steps:,:]
  
-        for p in range(0,n_query_rows):
+     #    for p in range(0,n_query_rows):
 
-            plt.title("Testing the model: "+str(product_names[p]),fontsize=14)
-            plt.plot(x_axis[:n_steps+1], series2[p,:], label=r"$unit sales$")
+     #        plt.title("Testing the model: "+str(product_names[p]),fontsize=14)
+     #        plt.plot(x_axis[:n_steps+1], series2[p,:], label=r"$unit sales$")
         
    
-            plt.plot(x_axis[-predict_ahead_steps], y_pred[p], "r.", markersize=10, label="prediction")
-      #  plt.plot(X_valid[0, :, 0], y_valid[0, 0], y_pred[0, 0])
+     #        plt.plot(x_axis[-predict_ahead_steps], y_pred[p], "r.", markersize=10, label="prediction")
+     #  #  plt.plot(X_valid[0, :, 0], y_valid[0, 0], y_pred[0, 0])
         
      
         
-            plt.legend(loc="best")
-            plt.xlabel("Week")
+     #        plt.legend(loc="best")
+     #        plt.xlabel("Week")
         
-            plt.show()
+     #        plt.show()
          
         
-        print("testing the model finished")
+     #    print("testing the model finished")
 
 
     else:    
@@ -699,16 +699,20 @@ def main():
     
     
     print("Validate model & learning curve")
-    
-    X,Y=build_mini_batch_input(np.swapaxes(Y_new,0,2),no_of_batches,n_steps)
-    print("X shape,Y_shape",X.shape,Y.shape)
-    print("n_steps=",n_steps)
-    new_steps=X.shape[1]
+    new_steps=n_steps   #Y_new.shape[1]-1-batch_length
+    print("X_new shape, Y_new shape",X_new.shape,Y_new.shape)
 
     
-    X_train, Y_train = X[:train_size, -new_steps:], Y[:train_size,-new_steps:]
-    X_valid, Y_valid = X[train_size:train_size+validate_size, -new_steps:], Y[train_size:train_size+validate_size,-new_steps:]
-    X_test, Y_test = X[train_size+validate_size:, -new_steps:], Y[train_size+validate_size:,-new_steps:]
+    X,Y=build_mini_batch_input(np.swapaxes(Y_new,0,2),no_of_batches,new_steps)
+    print("X shape,Y shape, Y_new shape",X.shape,Y.shape)
+    print("number of steps in series from the start to be validated : n_steps=",n_steps)
+    #new_steps=X.shape[1]
+  
+  #  print("new steps the number of -new_steps: ",new_steps)
+    
+    X_train, Y_train = X[:train_size, :new_steps], Y[:train_size,:new_steps]
+    X_valid, Y_valid = X[train_size:train_size+validate_size, :new_steps], Y[train_size:train_size+validate_size,:new_steps]
+    X_test, Y_test = X[train_size+validate_size:, :new_steps], Y[train_size+validate_size:,:new_steps]
     
 
    # print("\npredict series shape",series.shape)
