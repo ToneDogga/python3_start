@@ -172,7 +172,7 @@ def load_shop_data(filename):   #,mask_text):   #,batch_size,n_steps,n_inputs):
 
   #  df["period"]=df.date.dt.to_period('W')
   #  df["period"]=df.date.dt.to_period('B')    # business days  'D' is every day
-    df["period"]=df.date.dt.to_period('M')    # business days  'D' is every day
+    df["period"]=df.date.dt.to_period('W')    # business days  'D' is every day
 
    
  #   mask = mask.replace('"','').strip()    
@@ -341,9 +341,10 @@ def main():
 
    # n_steps = 100
     predict_ahead_steps=80 #4
-    epochs=50
+    epochs=100
     no_of_batches=50000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
-    batch_length=25
+    batch_length=100
+    
     #104 #364 #30   #20
  #   no_of_batch_copies=4  # duplicate the batches
  #   max_batch_size=1
@@ -370,20 +371,20 @@ def main():
  
 
 #    mask="(df['product']=='SJ300')"
-        filename="NAT-raw310120all.xlsx"
-#    filename="cashsales020218to090320.xlsx"
+   #     filename="NAT-raw310120all.xlsx"
+       # filename="cashsales020218to080320.xlsx"
     
         
      #   print("\n")    
      #   answer=input("Load series?")
      #   if answer=="y":
     
-      #  filename="shopsales010114to070320.xlsx"
+        filename="shopsales010114to070320.xlsx"
     
         print("loading series....",filename) 
     #   series2,product_names=load_data(filename)    #,n_steps+1)  #,batch_size,n_steps,n_inputs)
-     #   series2,product_names=load_shop_data(filename)    #,n_steps+1)  #,batch_size,n_steps,n_inputs)
-        series2,product_names=load_data(filename)    #,n_steps+1)  #,batch_size,n_steps,n_inputs)
+        series2,product_names=load_shop_data(filename)    #,n_steps+1)  #,batch_size,n_steps,n_inputs)
+      #  series2,product_names=load_data(filename)    #,n_steps+1)  #,batch_size,n_steps,n_inputs)
     
         print("Saving series2")
         np.save("series2.npy",series2)
@@ -944,9 +945,9 @@ def main():
     
     step_ahead=tf.constant(1,dtype=tf.int32)
 
- #   for step_ahead in tf.range(1,pas):
- #         y_pred_one = model.predict(ys[:,:step_ahead,:])[:, tf.newaxis,:]  #[:,step_ahead:,:])   #X[:, new_step:])    #[:, np.newaxis,:]
- #         ys = tf.concat((ys, y_pred_one[:,:,-1,:]),axis=1)    #[:, np.newaxis,:]), axis=1)
+    for step_ahead in tf.range(1,pas):
+          y_pred_one = model.predict(ys[:,:step_ahead,:])[:, tf.newaxis,:]  #[:,step_ahead:,:])   #X[:, new_step:])    #[:, np.newaxis,:]
+          ys = tf.concat((ys, y_pred_one[:,:,-1,:]),axis=1)    #[:, np.newaxis,:]), axis=1)
 
    
 
@@ -957,18 +958,18 @@ def main():
     
     # step_ahead=tf.constant(1,dtype=float)
           
-    print("try with a tf.while_loop")      
-    def cond_func(ys,i,step_ahead):
-         return tf.math.less_equal(i,pas)
+ #    print("try with a tf.while_loop")      
+ #    def cond_func(ys,i,step_ahead):
+ #         return tf.math.less_equal(i,pas)
  
-    def body_func(ys,i,step_ahead):
-         y_pred_one = model.predict(ys[:,:i,:])[:, tf.newaxis,:]  
-         return tf.concat((ys, y_pred_one[:,:,-1,:]),axis=1),tf.add(i,1),step_ahead
+ #    def body_func(ys,i,step_ahead):
+ #         y_pred_one = model.predict(ys[:,:i,:])[:, tf.newaxis,:]  
+ #         return [tf.concat((ys, y_pred_one[:,:,-1,:]),axis=1),tf.add(i,1),step_ahead]
 
         
 
-    ys=tf.while_loop(cond_func,body_func,[ys,1,step_ahead])
- #       y_pred_one = model.predict(ys[:,:step_ahead,:])[:, tf.newaxis,:]  #[:,step_ahead:,:])   #X[:, new_step:])    #[:, np.newaxis,:]
+ #    ys=tf.while_loop(cond_func,body_func,[ys,1,step_ahead])
+ # #       y_pred_one = model.predict(ys[:,:step_ahead,:])[:, tf.newaxis,:]  #[:,step_ahead:,:])   #X[:, new_step:])    #[:, np.newaxis,:]
  #       ys = tf.concat((ys, y_pred_one[:,:,-1,:]),axis=1)    #[:, np.newaxis,:]), axis=1)
    #     tf.add(step_ahead,1))
 
@@ -989,7 +990,8 @@ def main():
 
     
  #  #  print("\n\n")    
-    print("ys new finished.shape=",ys, ys.shape)
+  #  ys=ys[0]
+  #  print("ys new finished.shape=",ys[0], ys[0].shape)
                       
             
  #   for product_row_no in range(0,n_rows):
