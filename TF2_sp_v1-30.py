@@ -862,7 +862,7 @@ def main():
    # #     print(sequence)
     with open("sales_prediction_"+str(product_names[0])+".csv", 'w') as csvfile:
         s_writer=csv.writer(csvfile) 
-        s.writew.writerow(periods)
+        s_writer.writerow(periods)
         s_writer.writerow(product_names)
         s_writer.writerows(Y_new[0])
 
