@@ -397,14 +397,14 @@ def last_time_step_mse(Y_true, Y_pred):
 def main():
 
    # n_steps = 100
-    predict_ahead_steps=366
+    predict_ahead_steps=36
     epochs_cnn=1
-    epochs_wavenet=5
-    no_of_batches=1000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
+    epochs_wavenet=12
+    no_of_batches=10000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
     batch_length=5  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
     y_length=1
-    neurons=800
-    start_point=20
+    neurons=600
+    start_point=2
  #   mat_length=20
 #    overlap=0  # the over lap between the X series and the target y
 
@@ -423,22 +423,24 @@ def main():
 # load the query.xls file
 #    this contains all the products, product groups, customers, customer groups, glsets and special price categories you want to     
 
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
+
 
     answer=input("Rebuild batches?")
     if answer=="y":
  
 #    mask="(df['product']=='SJ300')"
-      #  filename="NAT-raw310120all.xlsx"
+        filename="NAT-raw310120all.xlsx"
    #     filename="allsalestrans020218-190320.xlsx"
     
     
      
-        filename="shopsales020218to070320.xlsx"
+    #    filename="shopsales020218to070320.xlsx"
     
         print("loading series....",filename) 
     #   series2,product_names,periods=load_data(filename)    #,n_steps+1)  #,batch_size,n_steps,n_inputs)
-        series2,product_names,ddates,table,mat_table,mat_sales,mat_sales_90=load_shop_data(filename)    #,n_steps+1)  #,batch_size,n_steps,n_inputs)
-    #    series2,product_names,ddates,table,mat_table,mat_sales,mat_sales_90=load_data(filename)    #,n_steps+1)  #,batch_size,n_steps,n_inputs)
+     #   series2,product_names,ddates,table,mat_table,mat_sales,mat_sales_90=load_shop_data(filename)    #,n_steps+1)  #,batch_size,n_steps,n_inputs)
+        series2,product_names,ddates,table,mat_table,mat_sales,mat_sales_90=load_data(filename)    #,n_steps+1)  #,batch_size,n_steps,n_inputs)
     
         print("Saving series2")
         np.save("series2.npy",series2)
@@ -811,12 +813,25 @@ def main():
         model.add(keras.layers.Conv1D(filters=n_query_rows, kernel_size=1))    
         model.compile(loss="mse", optimizer="adam", metrics=[last_time_step_mse])
         
-        callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
+        callback1 = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
         # This callback will stop the training when there is no improvement in
         # the validation loss for three consecutive epochs.
 
         
-        history = model.fit(X_train, y_train, epochs=epochs_wavenet,
+        
+        callback2 = keras.callbacks.ModelCheckpoint(
+                   filepath='mymodel_{epoch}',
+                   # Path where to save the model
+                   # The two parameters below mean that we will overwrite
+                   # the current checkpoint if and only if
+                   # the `val_loss` score has improved.
+                   save_best_only=True,
+                   monitor='val_loss',
+                   verbose=1)
+            
+
+        
+        history = model.fit(X_train, y_train, epochs=epochs_wavenet, callbacks=[callback1,callback2],
                             validation_data=(X_valid, y_valid))
                 
             
@@ -827,8 +842,15 @@ def main():
    #     model.evaluate(X_valid, Y_valid)
 
 
+        # Evaluate the model on the test data using `evaluate`
+        print('\n# Evaluate on test data')
+        results = model.evaluate(X_test, y_test, batch_size=5)
+        print('test loss, test acc:', results)
+
+      #  print('\nhistory dict:', history.history)
+
         print("plot learning curve")
-        plot_learning_curves(history.history["loss"], history.history["val_loss"])
+        plot_learning_curves("learning curve",epochs_wavenet,history.history["loss"], history.history["val_loss"])
         plt.show()
 
 
@@ -840,8 +862,8 @@ def main():
      #   model = keras.models.load_model("Deep_RNN_with_batch_norm_sales_predict_model.h5")
        # model=keras.models.load_model("LSTM_sales_predict_model.h5")
    #     model=keras.models.load_model("GRU_sales_predict_model.h5",custom_objects={"last_time_step_mse": last_time_step_mse})
-        model=keras.models.load_model("cnn_sales_predict_model.h5",custom_objects={"last_time_step_mse": last_time_step_mse})
-      #  model=keras.models.load_model("wavenet_sales_predict_model.h5",custom_objects={"last_time_step_mse": last_time_step_mse})
+       # model=keras.models.load_model("cnn_sales_predict_model.h5",custom_objects={"last_time_step_mse": last_time_step_mse})
+    #    model=keras.models.load_model("wavenet_sales_predict_model.h5",custom_objects={"last_time_step_mse": last_time_step_mse})
 
      #   model=keras.models.load_model("simple_shallow_sales_predict_model.h5")
 
@@ -912,7 +934,6 @@ def main():
          
   ############################################################################3
         
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
     
     print("Series Predicting",predict_ahead_steps,"steps ahead.")
     
