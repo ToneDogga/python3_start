@@ -836,7 +836,7 @@ def main():
         model.add(keras.layers.InputLayer(input_shape=[None,n_query_rows]))
         for rate in (1,2,4,8) *2:
             model.add(keras.layers.Conv1D(filters=neurons, kernel_size=2,padding='causal',activation='relu',dilation_rate=rate))
-            if (layer_count==7) | (layer_count==8):
+            if (layer_count==6) | (layer_count==7):
                 model.add(keras.layers.Dropout(rate=0.1))   # calls the MCDropout class defined earlier
            #     model.add(keras.layers.MCDropout(rate=0.1))   # calls the MCDropout class defined earlier
 
@@ -875,7 +875,7 @@ def main():
 
         # Evaluate the model on the test data using `evaluate`
         print('\n# Evaluate on test data')
-        results = model.evaluate(X_test, y_test, batch_size=5,training=False)
+        results = model.evaluate(X_test, y_test, batch_size=5)
         print('test loss, test acc:', results)
 
       #  print('\nhistory dict:', history.history)
@@ -886,7 +886,8 @@ def main():
 
 ###################################
         #   measure the models accuracy at different dropout levels
-        y_values=np.stack([model(X_test,training=True) for sample in range(100)])
+        print("Test accuracy of predictions")
+        y_values=np.stack([model(X_test,training=True) for sample in range(10)])
         y_value=y_values.mean(axis=0)
 
         print("y_value=\n",y_value)        
@@ -1016,8 +1017,9 @@ def main():
  #   print("mat sales shape",mat_sales.shape)
 
   
-    yerr = np.linspace(2000, 5000, predict_ahead_steps-1)
-    
+    #yerr = np.linspace(2000, 5000, predict_ahead_steps-1)
+    yerr = np.linspace(0, 0, predict_ahead_steps-1)
+   
     
     for p in range(0,n_query_rows):
 
