@@ -983,7 +983,124 @@ def main():
   ############################################################################3
         
     
-    print("Series Predicting",predict_ahead_steps,"steps ahead.")
+    print("Single Series Predicting",predict_ahead_steps,"steps ahead.")
+    
+    model=keras.models.load_model("wavenet_sales_predict_model.h5",custom_objects={"last_time_step_mse": last_time_step_mse})
+   
+  #   X_new,Y_new=build_mini_batch_input(series2,no_of_batches,n_steps+1)
+    sales=np.swapaxes(series2,0,2)
+    print("sales shape=",sales.shape)
+    n_steps=sales.shape[1]
+ 
+    mat_sales=np.swapaxes(mat_sales,0,2)
+    mat_sales_90=np.swapaxes(mat_sales_90,0,2)
+
+    print("mat_sales_90 shape",mat_sales_90.shape)
+   
+    #print("mat sales shape",mat_sales.shape)
+
+    #   n_steps=sales.shape[1]
+    ys= model.predict(sales[:,start_point:,:])    #[:, np.newaxis,:]
+    print("ys shape",ys.shape)
+
+   # print("y value mean shape=",y_value_mean.shape)
+   # y_pred_mean= model.predict(y_value_mean[:,start_point:,:])    #[:, np.newaxis,:]
+  #  print("y pred mean",y_pred_mean.shape)
+
+    #       y_values=np.stack([model(X_test,training=True) for sample in range(20)])
+ #       y_value_mean=y_values.mean(axis=0)
+ #       y_value_std=y_values.std(axis=0)
+
+    
+    #ys= model.predict(mat_sales_90[:,start_point:,:])    #[:, np.newaxis,:]
+    pas=predict_ahead_steps   #,dtype=tf.none)
+    
+ #   step_ahead=tf.constant(1,dtype=tf.int32)
+
+    for step_ahead in range(1,pas):
+          print("\rstep:",step_ahead,"/",pas,"ys shape",ys.shape,"n_steps",n_steps,end='\r',flush=True)
+          y_pred_one = model.predict(ys[:,:(start_point+step_ahead),:])[:, np.newaxis,:]  #[:,step_ahead:,:])   #X[:, new_step:])    #[:, np.newaxis,:]
+          ys = np.concatenate((ys,y_pred_one[:,:,-1,:]),axis=1)    #[:, np.newaxis,:]), axis=1)
+   #       print("ys shape",ys.shape,step_ahead)
+         
+
+    print("\rstep:",step_ahead+1,"/",pas,end='\n\n',flush=True)
+
+ #   new1_ys=tf.make_ndarray(tf_ys)
+  #  new1_ys=np.array(tf_ys)
+#################################################################    
+    
+ #   mat_swap_sales=np.swapaxes(mat_sales,0,1)
+ #   print("mat_swap_sales shape",mat_swap_sales.shape)
+ #   print("mat sales shape",mat_sales.shape)
+    #      y_values=np.stack([model(X_test,training=True) for sample in range(20)])
+ 
+    # y_value_mean=y_values.mean(axis=0)
+    # y_value_std=y_values.std(axis=0)
+    
+    # print("first pred=",np.round(model.predict(X_test[:1]),2))
+    # print("y values=",np.round(y_values[:,:1],2))    
+    
+    # print("y_value_mean, std=\n",y_value_mean,"\n\n",y_value_std) 
+    # print("y_values.shape=",y_values.shape)
+    # print("y value mean shape=",y_value_mean.shape)
+    # print("y value stddev shape=",y_value_std.shape)
+        
+    # print('\n# Evaluate y_pred on test data')
+    # results = model.evaluate(X_test, y_value_mean, batch_size=4)
+    # print('test loss, test acc:', results)
+
+       
+    # history = model.fit(X_test, y_value_mean, epochs=epochs_wavenet)
+    # print("loss history=",history.history["loss"])
+    #    #, callbacks=callbacks,
+    #     #                    validation_data=(X_valid, y_valid))
+
+    # print("plot y values learning curve")
+    # plot_learning_curves("y values learning curve",epochs_wavenet,history.history["loss"],[])   #, history.history["val_loss"])
+    # plt.show()
+
+    # #yerr = np.linspace(2000, 5000, predict_ahead_steps-1)
+    # yerr = np.linspace(100, 5000, predict_ahead_steps-1)
+    # print("yerr shape=",yerr.shape)
+    
+    for p in range(0,n_query_rows):
+
+        plt.title("Series Prediction: Actual vs Prediction: "+str(product_names[p]),fontsize=14)
+        
+        plt.plot(range(0,sales.shape[1]), sales[0,:,p], "b-", markersize=5, label="actual wk")
+        plt.plot(range(0,mat_sales.shape[1]), mat_sales[0,:,p], "m-", markersize=5, label="actual mat")
+        plt.plot(range(0,mat_sales_90.shape[1]), mat_sales_90[0,:,p], "r-", markersize=5, label="actual 28 day MT")
+
+        plt.plot(range(sales.shape[1],sales.shape[1]+predict_ahead_steps), ys[0,-(predict_ahead_steps):,p], "r-", markersize=5, label="prediction")
+
+   #     print("yerr=",yerr)
+  #      plt.errorbar(range(sales.shape[1],sales.shape[1]+predict_ahead_steps), ys[0,-(predict_ahead_steps):,p], "r-", markersize=5, yerr=yerr, label="prediction")
+
+        plt.plot(range(start_point,ys.shape[1]+start_point), ys[0,:,p], "g.", markersize=5, label="validation")
+
+   #     plt.plot(range(start_point,y_pred_mean.shape[1]+start_point), y_pred_mean[0,:,p], "y-", markersize=5, label="validation")
+
+   #     plt.plot(range(start_point,ys.shape[1]), ys[0,start_point:,p], "b.", markersize=5, label="validation")
+
+ #       plt.plot(range(start_point,sales.shape[1]), ys[0,start_point:sales.shape[1],p], "g.", markersize=5, label="validation")
+
+
+  #      plt.errorbar(range(sales.shape[1],sales.shape[1]+predict_ahead_steps-1), ys[0,-(predict_ahead_steps-1):,p], yerr=yerr, linestyle="-",label='Prediction + error')      
+        plt.legend(loc="best")
+        plt.xlabel("Period")
+        
+        plt.show()
+         
+  
+    
+    
+    
+    
+ ############################################################################3
+        
+    
+    print("\nRange Series Predicting",predict_ahead_steps,"steps ahead.")
     
     model=keras.models.load_model("wavenet_sales_predict_model.h5",custom_objects={"last_time_step_mse": last_time_step_mse})
    
@@ -1057,22 +1174,22 @@ def main():
         #                    validation_data=(X_valid, y_valid))
 
     print("plot y values learning curve")
-    plot_learning_curves("y values learning curve",epochs_wavenet,history.history["loss"])   #, history.history["val_loss"])
+    plot_learning_curves("y values learning curve",epochs_wavenet,history.history["loss"],[])   #, history.history["val_loss"])
     plt.show()
 
     #yerr = np.linspace(2000, 5000, predict_ahead_steps-1)
-    yerr = np.linspace(100, 5000, predict_ahead_steps-1)
+    yerr = np.linspace(2000, 12000, predict_ahead_steps)
     print("yerr shape=",yerr.shape)
     
     for p in range(0,n_query_rows):
 
-        plt.title("Series Prediction: Actual vs Prediction: "+str(product_names[p]),fontsize=14)
+        plt.title("Multiple Series Prediction: Actual vs Prediction: "+str(product_names[p]),fontsize=14)
         
         plt.plot(range(0,sales.shape[1]), sales[0,:,p], "b-", markersize=5, label="actual wk")
         plt.plot(range(0,mat_sales.shape[1]), mat_sales[0,:,p], "m-", markersize=5, label="actual mat")
         plt.plot(range(0,mat_sales_90.shape[1]), mat_sales_90[0,:,p], "r-", markersize=5, label="actual 28 day MT")
 
-       # plt.plot(range(sales.shape[1],sales.shape[1]+predict_ahead_steps), ys[0,-(predict_ahead_steps):,p], "r-", markersize=5, label="prediction")
+        plt.plot(range(sales.shape[1],sales.shape[1]+predict_ahead_steps), ys[0,-(predict_ahead_steps):,p], "r.", markersize=5, label="prediction")
 
    #     print("yerr=",yerr)
   #      plt.errorbar(range(sales.shape[1],sales.shape[1]+predict_ahead_steps), ys[0,-(predict_ahead_steps):,p], "r-", markersize=5, yerr=yerr, label="prediction")
@@ -1086,13 +1203,17 @@ def main():
  #       plt.plot(range(start_point,sales.shape[1]), ys[0,start_point:sales.shape[1],p], "g.", markersize=5, label="validation")
 
 
-        plt.errorbar(range(sales.shape[1],sales.shape[1]+predict_ahead_steps-1), ys[0,-(predict_ahead_steps-1):,p], yerr=yerr, linestyle="-",label='Prediction + error')      
+        plt.errorbar(range(sales.shape[1],sales.shape[1]+predict_ahead_steps), ys[0,-(predict_ahead_steps):,p], yerr=yerr, linestyle="-",label='Prediction + error')      
         plt.legend(loc="best")
         plt.xlabel("Period")
         
         plt.show()
          
-  
+    
+    
+    
+    
+    
 #####################################################
 # wavenet predictions using a tf.while_loop to avoid traceback
 #          
