@@ -456,8 +456,8 @@ def main():
    # n_steps = 100
     predict_ahead_steps=120
     epochs_cnn=1
-    epochs_wavenet=24
-    no_of_batches=10000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
+    epochs_wavenet=40
+    no_of_batches=60000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
     batch_length=10  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
     y_length=1
     neurons=800
@@ -491,7 +491,7 @@ def main():
         filename="NAT-raw310120all.xlsx"
    #     filename="allsalestrans020218-190320.xlsx"
     
-        mats=[90]    # series moving average window periods for each data column to add to series table
+        mats=[5,65]    # series moving average window periods for each data column to add to series table
       #  col_name_list=["10","14"]
       #  window_size=90
         
@@ -622,14 +622,16 @@ def main():
     
        #plt.title("A unit sales series", fontsize=14)
     
-        plt.plot(range(0,series_table.shape[1]), series_table.iloc[p,:], "b-",alpha=1,label=r"$Units$")
-      #  plt.plot(x_axis, series2[0,:], "b-",label=r"$unit sales$")
+    #    plt.plot(range(0,series_table.shape[1]), series_table.iloc[p,:], "b-",alpha=1,label=r"$Units$")
+        plt.plot(series_table.index, series_table.iloc[p,:], "b-",alpha=1,label=r"$Units$")
+
+        #  plt.plot(x_axis, series2[0,:], "b-",label=r"$unit sales$")
     
     #   plt.plot(x_axis[:-1], sales[product_row_no,x_axis[:-1]], "b-", linewidth=3, label="A training instance")
         plt.legend(loc="best", fontsize=14)
         plt.axis([0, series_table.shape[1]+predict_ahead_steps+1, 0, series_table.iloc[p].max()*1.1])
         plt.xlabel("Period")
-        plt.ylabel("dollars")
+        plt.ylabel("units")
        
         plt.show()
 
