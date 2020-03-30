@@ -403,8 +403,11 @@ def graph_a_series(series_table,dates,column_number):
     series_table=series_table.T  
     series_table['period'] = pd.to_datetime(dates,infer_datetime_format=True)
     ax = plt.gca()
-    col=series_table.iloc[:,column_number]
-#    print("1cols=",col)
+    cols=list(series_table.columns)
+    del cols[-1]  # delete reference to period column
+
+  #  col=cols[column_number]
+   # print("1cols=",col)
    # del cols[-1]  # delete reference to period column
   #  print("2cols=",cols)
    
@@ -413,7 +416,7 @@ def graph_a_series(series_table,dates,column_number):
 
     #for col in cols[column_number]:
       #  color=np.random.rand(len(cols),3)
-    series_table.plot(kind='line',x='period',y=col.index,color='blue',ax=ax,fontsize=8)
+    series_table.plot(kind='line',x='period',y=cols[column_number],color='blue',ax=ax,fontsize=8)
 
   #  plt.show()
   #  print("graph finished")
