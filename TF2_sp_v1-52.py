@@ -48,6 +48,7 @@ import csv
 import pickle
 from pickle import dump,load
 import datetime as dt
+from datetime import date
 
 from sklearn.preprocessing import StandardScaler,MinMaxScaler
 
@@ -377,6 +378,7 @@ def build_mini_batch_input(series,no_of_batches,no_of_steps):
 
 
 def graph_whole_pivot_table(series_table,dates): 
+    np.random.seed(43) 
     series_table=series_table.T  
     series_table['period'] = pd.to_datetime(dates,infer_datetime_format=True)
     ax = plt.gca()
@@ -400,6 +402,77 @@ def graph_whole_pivot_table(series_table,dates):
   #  print("graph finished")
     return 
  
+
+def extend_pivot_table(series_table,dates,predict_ahead_steps): 
+  #  print("ex dates=\n",dates)
+    series_table=series_table.T
+    series_table=series_table.reset_index()
+  #  print("series table",series_table)
+ #   series_table['period'].remove_categories()
+    
+    plus_five_years = date.today().year+5
+ #   print("+5y=",plus_five_years)
+  
+  #  transformed_series_table=series_table.T
+  #  print("tsc=",transformed_series_table.columns)
+    last_date=dates[-1]
+    new_dates1=pd.bdate_range(start=last_date, end='3/24/'+str(plus_five_years))  # usa format
+    #print("1ex test=\n",test)
+    
+    new_dates2=new_dates1.strftime('%Y-%m-%d').to_list()
+ #   print("new dates2=",new_dates2)
+    #del test2[0]
+  
+    extended_series=pd.DataFrame(new_dates2[1:predict_ahead_steps+1],columns=['period'])
+
+ #   extended_series['period'] = extended_series['period'].astype('category')
+  #  extended_series=extended_series.T
+    #   new_dates=pd.DataFrame([new_dates2[1:predict_ahead_steps+1],0,0],columns=transformed_series_table.columns)
+  #  print("1extended series=\n",extended_series,extended_series.columns,extended_series.shape)
+    
+    for col in series_table.columns:
+        if col=='period':
+            pass
+        else:
+            extended_series[col]=0.0
+    
+  #  extended_series=extended_series.rename(columns={'0':'period'})
+    extended_series['period'] = extended_series['period'].astype('category')
+
+ #   print("2extended series=\n",extended_series,extended_series.columns,extended_series.shape)
+ 
+ #   print("2series table=\n",series_table,series_table.columns,series_table.shape)
+   
+    extended_series2=series_table.append(extended_series)   #,ignore_index=True)  #,right_index=True, left_on='period')
+   # extended_series=extended_series.T
+    #test3=test2.to_list()
+    #print("3ex test3=\n",test3)
+    extended_series2.set_index('period', inplace=True)
+ #   print("3extended series2=\n",extended_series2,extended_series2.columns,"\n\n index=",extended_series2.index,extended_series2.shape)
+ #   extended_series2=extended_series2['period'].index
+ #   extended_series2['period'] = extended_series2['period'].astype('category')
+ 
+  #  print("4extended series2=\n",extended_series2,extended_series2.columns,extended_series2.shape)
+  
+    extended_table3=extended_series2.T
+ #   transformed_series_table['period'] = pd.to_datetime(dates,infer_datetime_format=True)
+ #   extended_table=transformed_series_table.append(new_dates,columns=['period'],ignore_index=True)
+    print("extended_table3=\n",extended_table3,extended_table3.columns,extended_table3.shape)    
+
+  #  extended_dates=extended_series2.index.dt.strftime("%Y-%m-%d")
+   #   extended_dates.append(dates,extended_series2.index.tolist())
+ #dates=list(set(list(df['date'].dt.strftime("%Y-%m-%d"))))
+    exdates=extended_series2.index.astype(str).tolist()  #.astype(str)) #strftime("%Y-%m-%d"))
+  #  print("exdates=",exdates)
+    dates.append(exdates)   #.astype(str)) #strftime("%Y-%m-%d"))
+ #   extended_dates=list(set(dates))  #.dt.strftime("%Y-%m-%d")))
+ #   extended_dates.sort()
+    print("ed",dates)
+ #   extended_series=extended_table.T
+  #  extended_dates=extended_series2['period'].to_list()
+    return extended_table3.T,dates
+ 
+    
 
    
 
@@ -677,6 +750,10 @@ def main():
         
         #  this adds 
         graph_whole_pivot_table(series_table,dates)
+        series_table,dates=extend_pivot_table(series_table,dates,predict_ahead_steps)
+        graph_whole_pivot_table(series_table,dates)
+        
+        
         #print("Saving series table with date \n",series_table_with_date)
         #pd.to_pickle(series_table_with_date,"series_table_with_date.pkl")
      
