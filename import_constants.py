@@ -37,8 +37,8 @@ def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
 
 predict_ahead_steps=320
 epochs_cnn=1
-epochs_wavenet=8
-no_of_batches=40000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
+epochs_wavenet=120
+no_of_batches=60000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
 batch_length=16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
 y_length=1
 neurons=514
@@ -96,7 +96,7 @@ def load_data(mats,filename):    #,col_name_list,window_size):   #,mask_text):  
  #   print("mask=",mask)
     
  #   mask=((df['code']=='FLPAS')) & (df['product']=='SJ300'))
-  #  mask=((df['productgroup']>=10) & (df['productgroup']<=14))
+    mask=((df['productgroup']>=10) & (df['productgroup']<=14))
  #   mask=(df['product']=='SJ300')
   #  mask=(df['code']=='FLPAS')
   #  mask=((df['code']=='FLPAS') & (df['product']=="SJ300") & (df['glset']=="NAT"))
@@ -104,7 +104,7 @@ def load_data(mats,filename):    #,col_name_list,window_size):   #,mask_text):  
  #   mask=((df['productgroup']>=10) & (df['productgroup']<=14))
  #   mask=bool(mask_str)   #((df['productgroup']>=10) & (df['productgroup']<=14))"
 
-    mask=(df['productgroup']==11)
+ #   mask=(df['productgroup']==11)
  #   mask=((df['code']=='FLPAS') & (df['product']=="SJ300"))
   
  #   mask=((df['code']=='FLPAS') & ((df['product']=="CAR280") | (df['product']=="SJ300")))
