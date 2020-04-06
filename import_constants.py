@@ -35,14 +35,15 @@ def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
 
 
 
-predict_ahead_steps=320
+predict_ahead_steps=366
 epochs_cnn=1
-epochs_wavenet=120
+epochs_wavenet=220
 no_of_batches=60000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
 batch_length=16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
 y_length=1
 neurons=514
 start_point=150
+pred_error_sample_size=200
 #predict_start_point=20
  #   plot_y_extra=1000   # extra y to graph plot 
  #   mat_length=20
@@ -61,7 +62,7 @@ test_percent=0.1
 filename="NAT-raw310120all.xlsx"
    #     filename="allsalestrans020218-190320.xlsx"   
 
-mats=[65,240]    # 22 work days is approx one month 16 series moving average window periods for each data column to add to series table
+mats=[20]    # 22 work days is approx one month 16 series moving average window periods for each data column to add to series table
 
 
     
@@ -104,7 +105,7 @@ def load_data(mats,filename):    #,col_name_list,window_size):   #,mask_text):  
  #   mask=((df['productgroup']>=10) & (df['productgroup']<=14))
  #   mask=bool(mask_str)   #((df['productgroup']>=10) & (df['productgroup']<=14))"
 
- #   mask=(df['productgroup']==11)
+ #   mask=(df['productgroup']==13)
  #   mask=((df['code']=='FLPAS') & (df['product']=="SJ300"))
   
  #   mask=((df['code']=='FLPAS') & ((df['product']=="CAR280") | (df['product']=="SJ300")))
