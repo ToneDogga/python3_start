@@ -201,39 +201,49 @@ def extend_pivot_table(series_table,dates,predict_ahead_steps):
     extended_series=extended_table3.T
     return extended_table3,exdates
  
+
+def find_series_type(series_name):
+    return series_name[series_name.find(':')+1:]
+
+
     
 
-def graph_a_series(series_table,dates,column_number): 
+def graph_a_series(series_table,dates,column_names,series_dict): 
+
+ #   series_dict_elem=series_dict_elem.astype(str)  
+    
     series_table=series_table.T  
     series_table['period'] = pd.to_datetime(dates,infer_datetime_format=True)
+ #   print("\ngraph a series, table.T=\n",series_table,series_table.shape)
     ax = plt.gca()
     cols=list(series_table.columns)
     del cols[-1]  # delete reference to period column
     col_count=0
     for col in cols:
-        if col_count==column_number:
-            series_table.plot(kind='line',x='period',y=col,color="blue",ax=ax,fontsize=8)
+      #  print("find series type",col,"=",find_series_type(col))  
+        series_suffix= str(find_series_type(col)) 
+        print("series suffix=",series_suffix)
+        series_type=str(series_dict[series_suffix])   # name, type of plot, colour
+   #     print("series type=\n",series_type,">",series_type)   # name, type of plot, colour
+        if (series_suffix=="mt_pred_mc"): # | (series_suffix=="mt_yerr_mc")):
+            pred_plot=col
+            print("pred_polt=",pred_plot)
+
+        if col in column_names:
+#            series_table.plot(kind=series_dict_elem[1],x='period',y=col,color=series_dict_elem[2],ax=ax,fontsize=8)
+             #    plt.errorbar('period', series_table[col], yerr=series_table.iloc[col_count+1], data=series_table)
+            if series_suffix=="mt_yerr_mc":
+                print("\nplotting error bar\n")
+                plt.errorbar('period', pred_plot, yerr=col, data=series_table,ecolor=series_type)
+ 
+            else:        
+                series_table.plot(kind='line',x='period',y=col,color=series_type,ax=ax,fontsize=8)
+
         col_count+=1    
 
     return 
     
   
-
-def graph_a_prediction(series_table,dates,column_number): 
-    series_table=series_table.T  
-    series_table['period'] = pd.to_datetime(dates,infer_datetime_format=True)
-    ax = plt.gca()
-    cols=list(series_table.columns)
-    del cols[-1]  # delete reference to period column        
-    series_table.plot(kind='line',x='period',y=cols[0],color="blue",ax=ax,fontsize=8)    
-    if len(cols)>1:
-        series_table.plot(kind='line',x='period',y=cols[1],color="green",ax=ax,fontsize=8)   
-    return 
-    
-
-
-
-
 
 
 
@@ -310,6 +320,12 @@ def main():
     neurons=ic.neurons     #800
     start_point=ic.start_point   #  20
     pred_error_sample_size=ic.pred_error_sample_size
+    
+    series_dict=ic.series_dict
+    
+   # series_dict=dict({"_mt":["_mt","line","blue"],"_pred":["_pred","line","red"],"_mc_pred":["_mc_pred","dotted","green"],"_mc_yerr":["_mc_yerr","dotted","green"]})
+    
+    
 
     kernel_size=ic.kernel_size  #4   # for CNN
     strides=ic.strides   #2   # for CNN
@@ -350,7 +366,7 @@ def main():
         print("loading data....",filename) 
     #   series2,product_names,periods=load_data(filename)    #,n_steps+1)  #,batch_size,n_steps,n_inputs)
      #   series2,product_names,ddates,table,mat_table,mat_sales,mat_sales_90=load_shop_data(filename)    #,n_steps+1)  #,batch_size,n_steps,n_inputs)
-        series_table,dates=ic.load_data(mats,filename)    #,col_name_list,window_size)    #,n_steps+1)  #,batch_size,n_steps,n_inputs)
+        series_table,dates=ic.load_data(mats,filename,series_dict)    #,col_name_list,window_size)    #,n_steps+1)  #,batch_size,n_steps,n_inputs)
 
 
 
@@ -366,7 +382,7 @@ def main():
         
         extended_series_table,extended_dates=extend_pivot_table(series_table,dates,predict_ahead_steps)
         
-        graph_whole_pivot_table(extended_series_table,extended_dates)
+      #  graph_whole_pivot_table(extended_series_table,extended_dates)
         
      
         print("Saving pickled table - series_table.pkl")
@@ -440,17 +456,19 @@ def main():
     n_inputs=X.shape[2]
     max_y=np.max(X)
       
-    for p in range(0,series_table.shape[0]):
-        plt.figure(figsize=(11,4))
-        plt.subplot(121)
-        plt.title("A unit sales series: "+str(product_names[p]),fontsize=14)
+    original_product_names=product_names
+    
+    # for p in range(0,series_table.shape[0]):
+    #     plt.figure(figsize=(11,4))
+    #     plt.subplot(121)
+    #     plt.title("A unit sales series: "+str(original_product_names[p]),fontsize=14)
       
-        plt.ylabel("Units")
-        plt.xlabel("Period") 
-        graph_a_series(series_table,dates,p)
+    #     plt.ylabel("Units")
+    #     plt.xlabel("Period") 
+    #     graph_a_series(series_table,dates,original_product_names[p],series_dict)
         
-        plt.legend(loc="best")
-        plt.show()
+    #     plt.legend(loc="best")
+    #     plt.show()
         
 
     print("epochs_cnn=",epochs_cnn)
@@ -572,9 +590,9 @@ def main():
 
       #  print('\nhistory dict:', history.history)
 
-        print("plot learning curve")
-        plot_learning_curves("learning curve",epochs_wavenet,history.history["loss"], history.history["val_loss"])
-        plt.show()
+     #   print("plot learning curve")
+     #   plot_learning_curves("learning curve",epochs_wavenet,history.history["loss"], history.history["val_loss"])
+     #   plt.show()
  
         print("plot log learning curve")       
         plot_log_learning_curves("Log learning curve",epochs_wavenet,history.history["loss"], history.history["val_loss"])
@@ -610,17 +628,40 @@ def main():
          
 
     print("\rstep:",step_ahead+1,"/",pas,end='\n\n',flush=True)
+    pred_product_names=[s + "_pred" for s in original_product_names]
+    print("pred product names=\n",pred_product_names)
+ 
+    extended_series_table,product_names=ic.add_a_new_series(extended_series_table,pred_product_names,ys)
 
+    
 
-    for p in range(0,n_query_rows):
-        plt.title("Series Pred: Actual vs Prediction: "+str(product_names[p]),fontsize=14)
-        plt.plot(range(0,mat_sales_x.shape[1]), mat_sales_x[0,:,p], "b-", markersize=5, label="actual")
-        plt.plot(range(start_point,original_steps), ys[0,:(original_steps-start_point),p],"g.", markersize=5, label="validation")
-        plt.plot(range(mat_sales_x.shape[1]-1,mat_sales_x.shape[1]+predict_ahead_steps-1), ys[0,-(predict_ahead_steps):,p], "r-", markersize=5, label="prediction")
-        plt.legend(loc="best")
-        plt.xlabel("Period")
+    # for p in range(0,extended_series_table.shape[0]):
+    #     plt.figure(figsize=(11,4))
+    #     plt.subplot(121)
+    #     plt.title("Series Pred: Actual vs Prediction: "+str(product_names[p]),fontsize=14)
+      
+    #     plt.ylabel("Units")
+    #     plt.xlabel("Period") 
+    #     graph_a_series(extended_series_table,extended_dates,product_names[p],series_dict)
         
-        plt.show()
+    #     plt.legend(loc="best")
+    #     plt.show()
+        
+
+
+
+    # for p in range(0,n_query_rows):
+    #     ax = plt.gca()
+    #     plt.plot(range(0,len(extended_dates)), extended_dates,ax=ax, markersize=5, label="period")
+ 
+    #     plt.title("Series Pred: Actual vs Prediction: "+str(product_names[p]),fontsize=14)
+    #     plt.plot(range(0,mat_sales_x.shape[1]), mat_sales_x[0,:,p], "b-", markersize=5, label="actual")
+    #     plt.plot(range(start_point,original_steps), ys[0,:(original_steps-start_point),p],"g.", markersize=5, label="validation")
+    #     plt.plot(range(mat_sales_x.shape[1]-1,mat_sales_x.shape[1]+predict_ahead_steps-1), ys[0,-(predict_ahead_steps):,p], "r-", markersize=5, label="prediction")
+    #     plt.legend(loc="best")
+    #     plt.xlabel("Period")
+        
+    #     plt.show()
  
 
 ##########################################################################33
@@ -672,26 +713,52 @@ def main():
 
 
     print("\rstep:",step_ahead+1,"/",pas,end='\n\n',flush=True)
+   
+    pred_product_names=[s + "_pred_mc" for s in original_product_names]
+    extended_series_table,product_names=ic.add_a_new_series(extended_series_table,pred_product_names,mc_ys)
+
+    pred_product_names=[s + "_yerr_mc" for s in original_product_names]  
+    extended_series_table,product_names=ic.add_a_new_series(extended_series_table,pred_product_names,mc_yerr)
 
 
-    for p in range(0,n_query_rows):
+    for p in range(0,extended_series_table.shape[0]):
+        plt.figure(figsize=(11,4))
+        plt.subplot(121)
         plt.title("Series Pred: Actual vs 95% Prediction: "+str(product_names[p]),fontsize=14)
-        plt.plot(range(0,mat_sales_x.shape[1]), mat_sales_x[0,:,p], "b-", markersize=5, label="actual")
-        plt.plot(range(start_point,original_steps), ys[0,:(original_steps-start_point),p],"g.", markersize=5, label="validation")
-   #     plt.plot(range(start_point,original_steps), mc_ys[0,:(original_steps-start_point),p],"y-", markersize=5, label="mc validation")
-#        plt.plot(range(mat_sales_x.shape[1]-1,mat_sales_x.shape[1]+predict_ahead_steps-1), mc_ys[0,-(predict_ahead_steps):,p], "m-", markersize=5, label="mc prediction")
-        plt.errorbar(range(mat_sales_x.shape[1]-1,mat_sales_x.shape[1]+predict_ahead_steps-1), mc_ys[0,-(predict_ahead_steps):,p], yerr=mc_yerr[0,-(predict_ahead_steps):,p]*2,color='red',linestyle='dotted', label="dropout mean pred 95% conf")
-
-
-     #   plt.plot(range(mat_sales_x.shape[1]-1,mat_sales_x.shape[1]+predict_ahead_steps-1), ys[0,-(predict_ahead_steps):,p], "r-", markersize=5, label="single prediction")
-        plt.legend(loc="best")
-        plt.xlabel("Period")
+      
+        plt.ylabel("Units")
+        plt.xlabel("Period") 
+        graph_a_series(extended_series_table,extended_dates,product_names[p],series_dict)
         
+        plt.legend(loc="best")
         plt.show()
+        
+
+
+
+
+
+#     for p in range(0,n_query_rows):
+#      #   ax = plt.gca()
+#         plt.plot(range(0,len(extended_dates)), extended_dates,ax=x, markersize=5, label="period")
+        
+#         plt.title("Series Pred: Actual vs 95% Prediction: "+str(product_names[p]),fontsize=14)
+#         plt.plot(range(0,mat_sales_x.shape[1]), mat_sales_x[0,:,p], "b-", markersize=5, label="actual")
+#         plt.plot(range(start_point,original_steps), ys[0,:(original_steps-start_point),p],"g.", markersize=5, label="validation")
+#    #     plt.plot(range(start_point,original_steps), mc_ys[0,:(original_steps-start_point),p],"y-", markersize=5, label="mc validation")
+# #        plt.plot(range(mat_sales_x.shape[1]-1,mat_sales_x.shape[1]+predict_ahead_steps-1), mc_ys[0,-(predict_ahead_steps):,p], "m-", markersize=5, label="mc prediction")
+#         plt.errorbar(range(mat_sales_x.shape[1]-1,mat_sales_x.shape[1]+predict_ahead_steps-1), mc_ys[0,-(predict_ahead_steps):,p], yerr=mc_yerr[0,-(predict_ahead_steps):,p]*2,errorevery=20,ecolor='magenta',color='red',linestyle='dotted', label="dropout mean pred 95% conf")
+
+
+#      #   plt.plot(range(mat_sales_x.shape[1]-1,mat_sales_x.shape[1]+predict_ahead_steps-1), ys[0,-(predict_ahead_steps):,p], "r-", markersize=5, label="single prediction")
+#         plt.legend(loc="best")
+#         plt.xlabel("Period")
+        
+#         plt.show()
  
 
 
-
+     
     print("MC dropout predict finished\n")
 
 #############################################################################33

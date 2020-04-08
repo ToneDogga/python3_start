@@ -35,15 +35,27 @@ def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
 
 
 
-predict_ahead_steps=366
+predict_ahead_steps=36
 epochs_cnn=1
-epochs_wavenet=240
-no_of_batches=60000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
+epochs_wavenet=25
+no_of_batches=50000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
 batch_length=16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
 y_length=1
 neurons=514
 start_point=150
-pred_error_sample_size=200
+pred_error_sample_size=60
+
+series_dict=dict({"mt":"blue",
+                  "pred":"red",
+                  "mt_pred":"red",
+                  "pred_mc":"green",
+                  "mt_pred_mc":"green",
+                  "yerr_mc":"magenta",
+                  "mt_yerr_mc":"magenta"
+                  })
+
+
+
 #predict_start_point=20
  #   plot_y_extra=1000   # extra y to graph plot 
  #   mat_length=20
@@ -66,7 +78,7 @@ mats=[40]    # 22 work days is approx one month 16 series moving average window 
 
 
     
-def load_data(mats,filename):    #,col_name_list,window_size):   #,mask_text):   #,batch_size,n_steps,n_inputs):   
+def load_data(mats,filename,series_dict):    #,col_name_list,window_size):   #,mask_text):   #,batch_size,n_steps,n_inputs):   
     df=pd.read_excel(filename,-1)  # -1 means all rows
    
     df.fillna(0,inplace=True)
@@ -136,7 +148,7 @@ def load_data(mats,filename):    #,col_name_list,window_size):   #,mask_text):  
         col_no=0
         for col in colnames:
             table.rename(columns={col: str(col)+"@1"},inplace=True)
-            table=add_mat(table,col_no,col,mats[window_length])
+            table=add_mat(table,col_no,col,mats[window_length],series_dict)
             col_no+=1
   
     table = table.reindex(natsorted(table.columns), axis=1) 
@@ -148,16 +160,16 @@ def load_data(mats,filename):    #,col_name_list,window_size):   #,mask_text):  
 
 
 
-def add_mat(table,col_no,col_name,window_period):
+def add_mat(table,col_no,col_name,window_period,series_dict):
    #   print("table iloc[:window period]",table.iloc[:,:window_period])     #shape[1])
   #  start_mean=table.iloc[:window_period,0].mean(axis=0) 
-
+  #  print("series dict=",series_dict["_mt",0])
     start_mean=table.iloc[:window_period,col_no].mean(axis=0) 
     
 #  print("start mean=",window_period,start_mean)   # axis =1
-    mat_label=str(col_name)+"@"+str(window_period)  
+    mat_label=str(col_name)+"@"+str(window_period)+":mt" 
     table[mat_label]= table.iloc[:,col_no].rolling(window=window_period,axis=0).mean()
-
+    
  #   table=table.iloc[:,0].fillna(start_mean)
     return table.fillna(start_mean)
 
@@ -172,5 +184,29 @@ def remove_some_table_columns(table,window_size):   #,col_name_list,window_size)
     return table.filter(regex=col_filter)
 
     
-
+def add_a_new_series(table,arr_names,arr):
+    table=table.T
+ 
+    start_arr = np.empty((table.shape[0]-arr.shape[1],arr.shape[2]))
+  #  print("startarr1 shape=",start_arr.shape)
+    start_arr[:] = np.NaN
+  #  print("start arr shape2=",start_arr.shape)
+    new_arr=np.vstack((start_arr,arr[0]))  
+    new_cols=pd.DataFrame(new_arr,columns=arr_names)
+    new_cols['period']=table.index
+    new_cols.set_index('period', inplace=True)
+ #   new_cols=new_cols.T
+ #   new_cols['series_type']=arr_type
+  #  new_cols=new_cols.T
+    
+    table2=table.join(new_cols,on='period',how='left')
+    table2 = table2.reindex(natsorted(table2.columns), axis=1) 
+    new_product_names=table2.columns
+    
+    table2=table2.T
+#    print("table2 cols=",table2.columns)
+    print("new series added. extended_series_table=\n",table2,table2.shape) 
+    print("new product names=\n",new_product_names)
+    return table2,new_product_names
+    
 
