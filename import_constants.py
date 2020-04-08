@@ -50,8 +50,8 @@ series_dict=dict({"mt":"blue",
                   "mt_pred":"red",
                   "pred_mc":"green",
                   "mt_pred_mc":"green",
-                  "yerr_mc":"magenta",
-                  "mt_yerr_mc":"magenta"
+                  "yerr_mc":"green",
+                  "mt_yerr_mc":"green"
                   })
 
 
@@ -180,7 +180,7 @@ def remove_some_table_columns(table,window_size):   #,col_name_list,window_size)
     # col name is a str
     # returns anumpy array of the 
     col_filter="(@"+str(window_size)+")"
-    print("col filter=\n",col_filter)
+#    print("col filter=\n",col_filter)
     return table.filter(regex=col_filter)
 
     
@@ -205,8 +205,8 @@ def add_a_new_series(table,arr_names,arr):
     
     table2=table2.T
 #    print("table2 cols=",table2.columns)
-    print("new series added. extended_series_table=\n",table2,table2.shape) 
-    print("new product names=\n",new_product_names)
+  #  print("new series added. extended_series_table=\n",table2,table2.shape) 
+  #  print("new product names=\n",new_product_names)
     return table2,new_product_names
     
 

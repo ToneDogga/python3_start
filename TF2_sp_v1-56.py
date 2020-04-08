@@ -222,19 +222,19 @@ def graph_a_series(series_table,dates,column_names,series_dict):
     for col in cols:
       #  print("find series type",col,"=",find_series_type(col))  
         series_suffix= str(find_series_type(col)) 
-        print("series suffix=",series_suffix)
+     #   print("series suffix=",series_suffix)
         series_type=str(series_dict[series_suffix])   # name, type of plot, colour
    #     print("series type=\n",series_type,">",series_type)   # name, type of plot, colour
         if (series_suffix=="mt_pred_mc"): # | (series_suffix=="mt_yerr_mc")):
             pred_plot=col
-            print("pred_polt=",pred_plot)
+      #      print("pred_polt=",pred_plot)
 
         if col in column_names:
 #            series_table.plot(kind=series_dict_elem[1],x='period',y=col,color=series_dict_elem[2],ax=ax,fontsize=8)
              #    plt.errorbar('period', series_table[col], yerr=series_table.iloc[col_count+1], data=series_table)
             if series_suffix=="mt_yerr_mc":
-                print("\nplotting error bar\n")
-                plt.errorbar('period', pred_plot, yerr=col, data=series_table,ecolor=series_type)
+       #         print("\nplotting error bar\n")
+                plt.errorbar('period', pred_plot, yerr=col, color=series_type, data=series_table,ecolor="magenta",errorevery=4)
  
             else:        
                 series_table.plot(kind='line',x='period',y=col,color=series_type,ax=ax,fontsize=8)
@@ -449,7 +449,7 @@ def main():
     print("\n\nseries table loaded shape=",series_table.shape,"\n")  
     print("product names=\n",product_names)
   #  print("series table with date=\n",series_table_with_date)
-    print("dates array=\n",len(dates))
+  #  print("dates array=\n",len(dates))
     
     n_query_rows=X.shape[2]
     n_steps=X.shape[1]-1
@@ -629,7 +629,7 @@ def main():
 
     print("\rstep:",step_ahead+1,"/",pas,end='\n\n',flush=True)
     pred_product_names=[s + "_pred" for s in original_product_names]
-    print("pred product names=\n",pred_product_names)
+  #  print("pred product names=\n",pred_product_names)
  
     extended_series_table,product_names=ic.add_a_new_series(extended_series_table,pred_product_names,ys)
 
@@ -675,7 +675,7 @@ def main():
 
     model=keras.models.load_model("wavenet_sales_predict_model.h5",custom_objects={"last_time_step_mse": last_time_step_mse})
 
-    print("mat_sales_x shape",mat_sales_x.shape,"n_steps=",n_steps)
+ #   print("mat_sales_x shape",mat_sales_x.shape,"n_steps=",n_steps)
  
 
 
@@ -934,7 +934,7 @@ def main():
     print("\nwrite predictions to sales_prediction.CSV file....")
 #    dates.sort()
     extended_series_table=extended_series_table.T
-    print("extended series table=\n",extended_series_table)
+   # print("extended series table=\n",extended_series_table)
     
     print("\nextended series table shape=",extended_series_table.shape)
 
