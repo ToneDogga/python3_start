@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Created on Thu Apr  9 14:29:55 2020
+
+@author: tonedogga
+"""
+
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
 Created on Mon Mar 30 07:17:37 2020
 
 @author: tonedogga
@@ -35,7 +44,7 @@ def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
 
 
 
-predict_ahead_steps=36
+predict_ahead_steps=1200
 epochs_cnn=1
 epochs_wavenet=25
 no_of_batches=50000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
@@ -186,13 +195,16 @@ def remove_some_table_columns(table,window_size):   #,col_name_list,window_size)
     
 def add_a_new_series(table,arr_names,arr):
     table=table.T
- 
+ #   print("add a new series table.shape",table.shape)
+ #   print("arr shape=",arr.shape)
+    
     start_arr = np.empty((table.shape[0]-arr.shape[1],arr.shape[2]))
   #  print("startarr1 shape=",start_arr.shape)
     start_arr[:] = np.NaN
   #  print("start arr shape2=",start_arr.shape)
     new_arr=np.vstack((start_arr,arr[0]))  
     new_cols=pd.DataFrame(new_arr,columns=arr_names)
+  #  print("nc=\n",new_cols,new_cols.shape)
     new_cols['period']=table.index
     new_cols.set_index('period', inplace=True)
  #   new_cols=new_cols.T

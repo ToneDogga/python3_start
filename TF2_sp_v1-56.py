@@ -180,11 +180,11 @@ def extend_pivot_table(series_table,dates,predict_ahead_steps):
   #  print("ex dates=\n",dates)
     series_table=series_table.T
     series_table=series_table.reset_index()
-    plus_five_years = date.today().year+5
+    plus_twelve_years = date.today().year+12
     last_date=dates[-1]
-    new_dates1=pd.bdate_range(start=last_date, end='3/24/'+str(plus_five_years))  # usa format
+    new_dates1=pd.bdate_range(start=last_date, end=str(plus_twelve_years)+'/12/31')  # usa format
     new_dates2=new_dates1.strftime('%Y-%m-%d').to_list()
-  
+ #   print("new dates2",new_dates2,len(new_dates2))
     extended_series=pd.DataFrame(new_dates2[1:predict_ahead_steps+1],columns=['period'])
     for col in series_table.columns:
         if col=='period':
@@ -198,7 +198,8 @@ def extend_pivot_table(series_table,dates,predict_ahead_steps):
   
     extended_table3=extended_series2.T
     exdates=extended_series2.index.astype(str).tolist()  #.astype(str)) #strftime("%Y-%m-%d"))
-    extended_series=extended_table3.T
+  #  extended_series=extended_table3.T
+    
     return extended_table3,exdates
  
 
@@ -234,7 +235,7 @@ def graph_a_series(series_table,dates,column_names,series_dict):
              #    plt.errorbar('period', series_table[col], yerr=series_table.iloc[col_count+1], data=series_table)
             if series_suffix=="mt_yerr_mc":
        #         print("\nplotting error bar\n")
-                plt.errorbar('period', pred_plot, yerr=col, color=series_type, data=series_table,ecolor="magenta",errorevery=4)
+                plt.errorbar('period', pred_plot, yerr=col, color=series_type, data=series_table,ecolor="magenta",errorevery=2)
  
             else:        
                 series_table.plot(kind='line',x='period',y=col,color=series_type,ax=ax,fontsize=8)
@@ -630,22 +631,23 @@ def main():
     print("\rstep:",step_ahead+1,"/",pas,end='\n\n',flush=True)
     pred_product_names=[s + "_pred" for s in original_product_names]
   #  print("pred product names=\n",pred_product_names)
- 
+    print("est before=",extended_series_table,extended_series_table.shape)  
     extended_series_table,product_names=ic.add_a_new_series(extended_series_table,pred_product_names,ys)
+    print("est after=",extended_series_table,extended_series_table.shape)  
 
-    
+   # print("est=",extended_series_table.shape)
 
-    # for p in range(0,extended_series_table.shape[0]):
-    #     plt.figure(figsize=(11,4))
-    #     plt.subplot(121)
-    #     plt.title("Series Pred: Actual vs Prediction: "+str(product_names[p]),fontsize=14)
+    for p in range(0,extended_series_table.shape[0]):
+        plt.figure(figsize=(11,4))
+        plt.subplot(121)
+        plt.title("Series Pred: Actual vs Prediction: "+str(product_names[p]),fontsize=14)
       
-    #     plt.ylabel("Units")
-    #     plt.xlabel("Period") 
-    #     graph_a_series(extended_series_table,extended_dates,product_names[p],series_dict)
+        plt.ylabel("Units")
+        plt.xlabel("Period") 
+        graph_a_series(extended_series_table,extended_dates,product_names[p],series_dict)
         
-    #     plt.legend(loc="best")
-    #     plt.show()
+        plt.legend(loc="best")
+        plt.show()
         
 
 
