@@ -158,7 +158,7 @@ def load_data(mats,filename,series_dict):    #,col_name_list,window_size):   #,m
 
     df=create_margins_col(df)
 
-    print("df=\n",df,df.shape)
+ #   print("df=\n",df,df.shape)
     
        #     dates=list(set(list(series_table.T['period'])))   #.dt.strftime("%Y-%m-%d"))))
   #  dates=list(set(list(df['period'].dt.strftime("%Y-%m-%d"))))   #.dt.strftime("%Y-%m-%d"))))
@@ -174,8 +174,9 @@ def load_data(mats,filename,series_dict):    #,col_name_list,window_size):   #,m
  #   print("mask=",mask)
     
  #   mask=((df['code']=='FLPAS')) & (df['product']=='SJ300'))
-    mask=((df['productgroup']>=10) & (df['productgroup']<=14))
- #   mask=(df['product']=='SJ300')
+  #  mask=((df['productgroup']>=10) & (df['productgroup']<=11))
+    mask=((df['code']=='FLPAS') & ((df['product']=='SJ300') | (df['product']=='TS300') | (df['product']=='CRN280')))
+  #  mask=(df['cat']=='77')
   #  mask=(df['code']=='FLPAS')
   #  mask=((df['code']=='FLPAS') & (df['product']=="SJ300") & (df['glset']=="NAT"))
 #    df['productgroup'] = df['productgroup'].astype('category')
@@ -203,7 +204,7 @@ def load_data(mats,filename,series_dict):    #,col_name_list,window_size):   #,m
     
     df['period'] = df['period'].astype('category')
    # df[mask]=df[mask].astype('category')
-
+  #  print("1per?",df['period'])
 #    table = pd.pivot_table(df[mask], values='qty', index=['productgroup'],columns=['period'], aggfunc=np.sum, margins=False,dropna=False,observed=False, fill_value=0).T  #observed=True
  
  
@@ -212,10 +213,10 @@ def load_data(mats,filename,series_dict):    #,col_name_list,window_size):   #,m
     print("Making pivot table on unit sales...")
     mat_type="u"   #  "u" "d","m"   # unit, dollars, margin
 
-    table_u = pd.pivot_table(df[mask], values='qty', index=['productgroup'],columns=['period'], aggfunc=np.sum, margins=False,dropna=False,observed=False, fill_value=0).T  #observed=True
+    table_u = pd.pivot_table(df[mask], values='qty', index=['code','product'],columns=['period'], aggfunc=np.sum, margins=False,dropna=False,observed=False, fill_value=0).T  #observed=True
 
     colnames=list(table_u.columns)
-    print("colnames_u=\n",colnames)
+ #   print("colnames_u=\n",colnames)
     for window_length in range(0,len(mats)):
         col_no=0
         for col in colnames:
@@ -224,14 +225,14 @@ def load_data(mats,filename,series_dict):    #,col_name_list,window_size):   #,m
             col_no+=1
   
 ################################################33
-    print("Making pivot table on doller sales...")
+    print("Making pivot table on dollar sales...")
 
     mat_type="d"   #  "u" "d","m"   # unit, dollars, margin
 
-    table_d = pd.pivot_table(df[mask], values='salesval', index=['productgroup'],columns=['period'], aggfunc=np.sum, margins=False,dropna=False,observed=False, fill_value=0).T  #observed=True
-
+    table_d = pd.pivot_table(df[mask], values='salesval', index=['code','product'],columns=['period'], aggfunc=np.sum, margins=False,dropna=False,observed=False, fill_value=0).T  #observed=True
+ 
     colnames=list(table_d.columns)
-  #  print("colnames_d=\n",colnames)
+ #   print("colnames_d=\n",colnames)
     for window_length in range(0,len(mats)):
         col_no=0
         for col in colnames:
@@ -243,11 +244,18 @@ def load_data(mats,filename,series_dict):    #,col_name_list,window_size):   #,m
     print("Making pivot table on margins...")
 
     table_1=table_u.merge(table_d,on='period',how='left')
+  #  table_1=table_1.T
+  #  print("table_1=\n",table_1)
+ #   table_1['period'] = table_1['period'].astype('category')
 
- 
+  #  print("2per?",table_1,table_1.shape)
+ #   table_1=table_1.T
+
+
+
     mat_type="m"   # "u" "d","m"   # unit, dollars, margin
 
-    table_m = pd.pivot_table(df[mask], values='margin', index=['productgroup'],columns=['period'], aggfunc=np.sum, margins=False,dropna=False,observed=False, fill_value=0).T  #observed=True
+    table_m = pd.pivot_table(df[mask], values='margin', index=['code','product'],columns=['period'], aggfunc=np.sum, margins=False,dropna=False,observed=False, fill_value=0).T  #observed=True
 
     colnames=list(table_m.columns)
   #  print("colnames_d=\n",colnames)
@@ -259,23 +267,36 @@ def load_data(mats,filename,series_dict):    #,col_name_list,window_size):   #,m
             col_no+=1
  
 ####################################################
-    
+   
+#    table['period'] = table['period'].astype('category')
+
+  #  print("final merge table=\n",table,table.shape)
+  #  print("FMT T",table.columns)
+  #  print("per?",table['period'])
+###################################################  
     table=table_1.merge(table_m,on='period',how='left')
 
-    print("final concat table=\n",table.shape)    
-  
-###################################################  
-    
     table = table.reindex(natsorted(table.columns), axis=1) 
+    
+  #  print("reindexed final merge table=\n",table,table.shape)
+
+    
     if len(mats)>0:
-        table=return_a_series_subset(table,"@1#")   #if other mats, delete original series
-  
+     #   table=remove_series_without_str(table,"@1#")
+        table=remove_a_series_subset(table,"@1#")   #if other mats, delete original series
+    
+    table=filter_series_on_str(table,"@")   #if other mats, delete original series
+
+ #   print("final concat table=\n",table,table.shape) 
+ #   print("final concat table.T=\n",table.T,table.T.shape) 
+
     return table,dates
 
 
 def create_margins_col(df):
     # add a column of salesval-costval for every transaction
     df['margin']=df['salesval']-df['costval']
+#    df['gross_margin']=round(df['margin']/df['salesval'],3)
     return df
 
 
@@ -284,6 +305,7 @@ def add_mat(table,col_no,col_name,window_period,series_dict,mat_type):
    #   print("table iloc[:window period]",table.iloc[:,:window_period])     #shape[1])
   #  start_mean=table.iloc[:window_period,0].mean(axis=0) 
   #  print("series dict=",series_dict["_mt",0])
+ #   print("add mat col name",col_name)  
     start_mean=table.iloc[:window_period,col_no].mean(axis=0) 
     
 #  print("start mean=",window_period,start_mean)   # axis =1
@@ -294,9 +316,23 @@ def add_mat(table,col_no,col_name,window_period,series_dict,mat_type):
     return table.fillna(start_mean)
 
 
+def filter_series_on_str(table,mask_str):
+   # table=table.T
+  #  print("remove cols withour str",mask_str,"\n",table.shape)
+ #   print("FSS table.columns=\n",table.columns)
+ #   print("FSS ",table)
+ #   print("FSS T",table.T)
+  #  mask_str=mask_str+" \ 'period'"
+    return table.filter(like=mask_str,axis=0)
+    
+   # table = table[table.columns.drop(list(table.filter(regex=mask_str)))]
+
+#    print("table after=\n",table,table.shape)
+#    table.drop(table[mask_str in table.columns)
+#    return table
 
 
-def return_a_series_subset(table,mask_str):   #,col_name_list,window_size):
+def remove_a_series_subset(table,mask_str):   #,col_name_list,window_size):
     # col name is a str
     # returns anumpy array of the 
     #col_filter="((@"+str(window_size[0])+") "
@@ -305,14 +341,31 @@ def return_a_series_subset(table,mask_str):   #,col_name_list,window_size):
     #col_filter=col_filter+")"   
  #   col_filter="(@1)"
     #print("col filter=\n",col_filter)
-    mask=~table.columns.str.contains(mask_str)
+   # mask = ~table.columns.str.applymap(lambda x: 1 if mask_str in str(x) else 0)
+ #   print("RSS table coulumnc=",table.columns)
+  #  print("RSS table coulumns.values=",table.columns.values)
+
+    #   rc = ['_'.join(col) for col in table.columns]   #.values]
+ #   print("rc=",rc)
+ #   table=table.T
+    tc = ['_'.join(col).strip() for col in table.columns.values]
+  #  print("tc=",tc,"\nmask_str=",mask_str,len(tc))
+    mask=[(mask_str not in tc[elem])  for elem in range(0,len(tc))]
+ #   tc = [rc for lis in table.columns] 
+ #   res = list(filter(lambda x: "@2" in x, tc))
+  #  print("mask=\n",mask,len(mask))
+ #   print("rc=",rc)#,"res=",res)
+   # print("tc[,-1]=",tc[...][-1])
+   # mask=~tc.contains(mask_str)
+  #  mask=~table.columns.str.contains(mask_str)
     table=table.T
+    table=table[mask]
  #   print("table,table.shape=\n",table,table.shape)
     #print("table columns=",table.columns)
- #   print("~table",mask)
-    tm=table[mask]
-    print("tm=",tm)
-    return tm
+   # print("RSS table[mask]=\n",table,table.shape)
+    return table
+  #  print("tm=",tm)
+  #  return tm
    # return table.filter(regex=col_filter)
 
   
@@ -453,31 +506,156 @@ def graph_whole_pivot_table(series_table,dates):
     return 
  
 
+
 def extend_pivot_table(series_table,dates,predict_ahead_steps): 
-  #  print("ex dates=\n",dates)
-    series_table=series_table.T
-    series_table=series_table.reset_index()
-    plus_twelve_years = date.today().year+12
-    last_date=dates[-1]
-    new_dates1=pd.bdate_range(start=last_date, end=str(plus_twelve_years)+'/01/01')  #  date format yy/mm/dd 
-    new_dates2=new_dates1.strftime('%Y-%m-%d').to_list()
- #   print("new dates2",new_dates2,len(new_dates2))
-    extended_series=pd.DataFrame(new_dates2[1:predict_ahead_steps+1],columns=['period'])
-    for col in series_table.columns:
-        if col=='period':
-            pass
-        else:
-            extended_series[col]=np.nan   # matplot lib wont graph nans
-    extended_series['period'] = extended_series['period'].astype('category')
-   
-    extended_series2=series_table.append(extended_series)   #,ignore_index=True)  #,right_index=True, left_on='period')
-    extended_series2.set_index('period', inplace=True)
-  
-    extended_table3=extended_series2.T
-    exdates=extended_series2.index.astype(str).tolist()  #.astype(str)) #strftime("%Y-%m-%d"))
-  #  extended_series=extended_table3.T
+    first_date=series_table.T.index[0].strftime('%Y-%m-%d')
+    last_date=series_table.T.index[-1].strftime('%Y-%m-%d')
     
-    return extended_table3,exdates
+  #  plus_five_years = date.today().year+5
+    #plus_ten_years = first_date.year+10
+    
+  #  final_date=(str(plus_five_years)+"-01-01")   #.strftime('%Y-%m-%d')
+    
+    
+    #print("first daye=",first_date)
+    #print("last date=",last_date)
+  #  print("foinal date=",final_date)
+    
+    #print("pty=",plus_ten_years)
+    series_table.index = series_table.index.map('_'.join).astype(str)  
+    
+    pidx = pd.period_range(first_date, periods=2000)   # 2000 days
+    #print("series_table=\n",series_table,series_table.index)
+    new_table = pd.DataFrame(np.nan, index=series_table.index,columns=pidx)   #,dtype='category')  #series_table.columns)
+    new_table=new_table.T
+    series_table=series_table.T
+    
+    extended_table=new_table.join(series_table,how='left',rsuffix="_r") 
+    print("extended_table.T=\n",extended_table.T)
+
+    exdates=extended_table.index.astype(str).tolist()  #.astype(str)) #strftime("%Y-%m-%d"))
+
+   # print("exdates=",exdates)    
+#  extended_series=extended_table3.T
+    
+    return extended_table.T,exdates
+ 
+    
+    
+    
+    
+#   #  print("ex dates=\n",dates)
+#  #   print("extend pivot table=\n",series_table,series_table.shape)  
+#     series_table=series_table.T
+#   #  print("1series table=\n",series_table,series_table.shape,series_table.index)
+#     series_table.columns = series_table.columns.get_level_values(0)
+    
+#     print("2series table=\n",series_table,series_table.columns,series_table.shape,series_table.index)
+
+#     #  series_table=series_table.reset_index()
+#    # dates_in_series=len(dates)
+#    # print("dates in series=",dates_in_series)
+#     first_date=dates[0]
+# #    plus_twelve_years = date.today().year+12
+#     last_date=dates[-1]
+#     plus_ten_years = date.today().year+10
+
+#    # 
+#     # business day dates
+#     #new_dates1=pd.bdate_range(start=last_date, end=str(plus_fifteen_years)+'/01/01')  #  date format yy/mm/dd 
+#     # all dates
+#     new_dates1=pd.date_range(start=last_date, end=str(plus_ten_years)+'/01/01')  #  date format yy/mm/dd 
+
+
+#     new_dates2=new_dates1.strftime('%Y-%m-%d').to_list()
+#   #  print("new dates2",new_dates2,len(new_dates2))
+#     # skip first date to avoid doubling up on the same date
+#     extended_series=pd.DataFrame(new_dates2[1:predict_ahead_steps+1],columns=['period'])
+#   #  print("ets1=\n",extended_series,extended_series.shape)
+
+#     for col in series_table.columns:
+#         if col=='period':
+#             pass
+#         else:
+#             extended_series[col]=np.nan   # matplot lib wont graph nans
+    
+#   #  extended_series=extended_series.stack().reset_index()
+#   #  extended_series.set_index('period', inplace=True)
+#   #  extended_series['period'] = extended_series['period'].astype('category')
+#     print("extedned serios=",extended_series,extended_series.columns) 
+#   #  extended_series.drop(columns=['period'],inplace=True) 
+#    # print("ets2=\n",extended_series)
+#   #  series_table=series_table.stack().reset_index()
+#     #series_table.stack().set_index('period', inplace=True)
+#     series_table.index=series_table.index.astype('str')
+#   #  series_table.set_index(['period'],inplace=True)
+
+
+#     print("series table=\n",series_table,series_table.columns,series_table.index)
+#  #   extended_series2=series_table.join(extended_series,on='period',how='left')
+#   #  extended_series2=series_table.append(extended_series)   #,on='period',how='left')
+#   #  extended_series2=pd.concat((series_table,extended_series)) #,on='period',how='left')
+
+#   #  extended_series=extended_series.T
+#    # series_table=series_table.T
+#    # print("2extedned serios=",extended_series,extended_series.columns) 
+#    # print("2series table=\n",series_table,series_table.columns)
+  
+#  #   extended_series2=series_table.join(extended_series,rsuffix="_r",on='period',how='left')   #,ignore_index=True)  #,right_index=True, left_on='period')
+#    # print("ets2.T=\n",extended_series)
+# #    extended_series2=extended_series2.T
+#     extended_series.set_index('period', inplace=True)
+#     print("ets3=\n",extended_series)
+#     extended_series.drop(extended_series.columns[0], axis=1,inplace=True)
+#     print("ets3.5=\n",extended_series)
+#     #extended_series.drop(column[0],inplace=True)
+#   #  extended_series['period'] = extended_series['period'].astype('category')
+#  #   extended_series.index=extended_series.index.astype('category')
+ 
+#     #  extended_series.set_index('period', inplace=True)
+#     print("ets4=\n",extended_series,extended_series.shape,extended_series.index)
+#     extended_series2=series_table.append(extended_series)   #,on='period',how='left')
+#     #extended_series2=series_table.join(extended_series,rsuffix="_r",on='period',how='left')   #,ignore_index=True)  #,right_index=True, left_on='period')
+#     print("ets5=\n",extended_series2)
+
+#     #extended_table3=extended_series2.T
+#     exdates=extended_series2.index.astype(str).tolist()  #.astype(str)) #strftime("%Y-%m-%d"))
+#   #  extended_series=extended_table3.T
+    
+#     return extended_table2,exdates
+ 
+    
+
+# def extend_pivot_table2(series_table,dates,predict_ahead_steps): 
+#   #  print("ex dates=\n",dates)
+#     series_table=series_table.T
+#     series_table=series_table.reset_index()
+#     plus_twelve_years = date.today().year+12
+#     last_date=dates[-1]
+#     new_dates1=pd.bdate_range(start=last_date, end=str(plus_twelve_years)+'/01/01')  #  date format yy/mm/dd 
+#     new_dates2=new_dates1.strftime('%Y-%m-%d').to_list()
+#  #   print("new dates2",new_dates2,len(new_dates2))
+#     extended_series=pd.DataFrame(new_dates2[1:predict_ahead_steps+1],columns=['period'])
+#     for col in series_table.columns:
+#         if col=='period':
+#             pass
+#         else:
+#             extended_series[col]=np.nan   # matplot lib wont graph nans
+#     extended_series['period'] = extended_series['period'].astype('category')
+   
+#     extended_series2=series_table.append(extended_series)   #,ignore_index=True)  #,right_index=True, left_on='period')
+#     extended_series2.set_index('period', inplace=True)
+  
+#     extended_table3=extended_series2.T
+#     exdates=extended_series2.index.astype(str).tolist()  #.astype(str)) #strftime("%Y-%m-%d"))
+#   #  extended_series=extended_table3.T
+    
+#     return extended_table3,exdates
+ 
+ 
+    
+ 
+    
  
 
 
@@ -590,13 +768,13 @@ class MCDropout(keras.layers.AlphaDropout):
 def main():
 
     
-    predict_ahead_steps=300
+    predict_ahead_steps=100
     epochs_cnn=1
-    epochs_wavenet=200
+    epochs_wavenet=50
     no_of_batches=40000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
     batch_length=16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
     y_length=1
-    neurons=800
+    neurons=1600
     start_point=150
     pred_error_sample_size=100
     
@@ -629,7 +807,7 @@ def main():
     filename="NAT-raw310120_no_shop_WW_Coles.xlsx"
        #     filename="allsalestrans020218-190320.xlsx"   
     
-    mats=[21,250]    # 22 work days is approx one month 16 series moving average window periods for each data column to add to series table
+    mats=[21,250]    # 21 work days is approx one month 16 series moving average window periods for each data column to add to series table
     
      
 #     predict_ahead_steps=ic.predict_ahead_steps   # 120
