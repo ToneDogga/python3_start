@@ -134,6 +134,8 @@ print("tf.config.get_visible_devices('GPU'):",tf.config.get_visible_devices('GPU
 np.random.seed(42)
 tf.random.set_seed(42)
 
+PERIODS=2000
+
 # To plot pretty figures
 #%matplotlib inline
 
@@ -216,7 +218,11 @@ def load_data(mats,filename,series_dict):    #,col_name_list,window_size):   #,m
     table_u = pd.pivot_table(df[mask], values='qty', index=['code','product'],columns=['period'], aggfunc=np.sum, margins=False,dropna=False,observed=False, fill_value=0).T  #observed=True
 
     colnames=list(table_u.columns)
- #   print("colnames_u=\n",colnames)
+    print("colnames_u=\n",colnames)
+    
+
+    
+    
     for window_length in range(0,len(mats)):
         col_no=0
         for col in colnames:
@@ -275,6 +281,10 @@ def load_data(mats,filename,series_dict):    #,col_name_list,window_size):   #,m
   #  print("per?",table['period'])
 ###################################################  
     table=table_1.merge(table_m,on='period',how='left')
+
+   # table.index = table.index.map('_'.join).astype(str)  
+
+
 
     table = table.reindex(natsorted(table.columns), axis=1) 
     
@@ -369,35 +379,6 @@ def remove_a_series_subset(table,mask_str):   #,col_name_list,window_size):
    # return table.filter(regex=col_filter)
 
   
-  
-def add_a_new_series(table,arr_names,arr):
-    table=table.T
- #   print("add a new series table.shape",table.shape)
- #   print("arr shape=",arr.shape)
-    
-    start_arr = np.empty((table.shape[0]-arr.shape[1],arr.shape[2]))
-  #  print("startarr1 shape=",start_arr.shape)
-    start_arr[:] = np.NaN
-  #  print("start arr shape2=",start_arr.shape)
-    new_arr=np.vstack((start_arr,arr[0]))  
-    new_cols=pd.DataFrame(new_arr,columns=arr_names)
-  #  print("nc=\n",new_cols,new_cols.shape)
-    new_cols['period']=table.index
-    new_cols.set_index('period', inplace=True)
- #   new_cols=new_cols.T
- #   new_cols['series_type']=arr_type
-  #  new_cols=new_cols.T
-    
-    table2=table.join(new_cols,on='period',how='left')
-    table2 = table2.reindex(natsorted(table2.columns), axis=1) 
-    new_product_names=table2.columns
-    
-    table2=table2.T
-#    print("table2 cols=",table2.columns)
-  #  print("new series added. extended_series_table=\n",table2,table2.shape) 
-  #  print("new product names=\n",new_product_names)
-    return table2,new_product_names
-    
 
 
 
@@ -507,7 +488,7 @@ def graph_whole_pivot_table(series_table,dates):
  
 
 
-def extend_pivot_table(series_table,dates,predict_ahead_steps): 
+def extend_pivot_table(series_table,dates,product_names): 
     first_date=series_table.T.index[0].strftime('%Y-%m-%d')
     last_date=series_table.T.index[-1].strftime('%Y-%m-%d')
     
@@ -522,16 +503,43 @@ def extend_pivot_table(series_table,dates,predict_ahead_steps):
   #  print("foinal date=",final_date)
     
     #print("pty=",plus_ten_years)
-    series_table.index = series_table.index.map('_'.join).astype(str)  
-    
-    pidx = pd.period_range(first_date, periods=2000)   # 2000 days
+  #  series_table_column_names = series_table.columns.map('_'.join).astype(str)  
+ #   print("1product names=\n",product_names)
+    len_product_names=len(product_names)
+    pidx = pd.period_range(first_date, periods=PERIODS)   # 2000 days
     #print("series_table=\n",series_table,series_table.index)
-    new_table = pd.DataFrame(np.nan, index=series_table.index,columns=pidx)   #,dtype='category')  #series_table.columns)
+    new_table = pd.DataFrame(np.nan, index=product_names,columns=pidx)   #,dtype='category')  #series_table.columns)
     new_table=new_table.T
+ #   print("new table=\n",new_table,new_table.columns)
+   
     series_table=series_table.T
+ #   print("series table2=\n",series_table,series_table.columns)
     
-    extended_table=new_table.join(series_table,how='left',rsuffix="_r") 
-    print("extended_table.T=\n",extended_table.T)
+  #  extended_table=new_table.join(series_table,how='left',rsuffix="_r") 
+    extended_table=series_table.join(new_table,how='outer',rsuffix="_r?",sort=True) 
+ #   print("1extended_table=\n",extended_table,extended_table.shape)  #[:4,:4].to_string())
+ #   print("1extended_table columns=\n",extended_table.columns)  #[:4,:4].to_string())
+
+    
+ #  extended_table=series_table.join(new_table,how='inner',rsuffix="_r?",sort=True) 
+    #extended_table.drop(extended_table[-3:]=="_r?"],axis=1,inplace=True)  
+  #  print("2extended_table=\n",extended_table,extended_table.shape)  #[:4,:4].to_string())
+
+    #   extended_table=series_table.merge(new_table,how='right') #,rsuffix="_r") 
+#    extended_table=new_table.merge(series_table,how='left') #,rsuffix="_r") 
+ #   extended_table=new_table.merge(series_table,how='outer',left_index=True,right_on='period') #,rsuffix="_r") 
+ #   extended_table=pd.concat((new_table,series_table),join='inner') #,rsuffix="_r") 
+  #  extended_table=extended_table.sort_index()
+    
+   # extended_table=extended_table.T
+  #  extended_table.drop([list(extended_table.columns) not in product_names],axis=1,inplace=True)
+    extended_table.drop(extended_table.columns[range(len_product_names,len_product_names*2)],axis=1,inplace=True)
+
+  #  print("3extended_table=\n",extended_table,extended_table.shape)
+    # extended_table=extended_table.T    #[:4,:4].to_string())
+    # print("4extended_table.T=\n",extended_table,extended_table.shape)  #[:4,:4].to_string())
+    # extended_table=extended_table.T
+
 
     exdates=extended_table.index.astype(str).tolist()  #.astype(str)) #strftime("%Y-%m-%d"))
 
@@ -541,6 +549,40 @@ def extend_pivot_table(series_table,dates,predict_ahead_steps):
     return extended_table.T,exdates
  
     
+   
+    
+  
+def add_a_new_series(table,arr_names,arr):
+    table=table.T
+    print("add a new series table.shape",table.shape)
+    print("arr shape=",arr.shape)
+    
+    start_arr = np.empty((table.shape[0]-arr.shape[1],arr.shape[2]))
+  #  print("startarr1 shape=",start_arr.shape)
+    start_arr[:] = np.NaN
+  #  print("start arr shape2=",start_arr.shape)
+    new_arr=np.vstack((start_arr,arr[0]))  
+    new_cols=pd.DataFrame(new_arr,columns=arr_names)
+  #  print("nc=\n",new_cols,new_cols.shape)
+    new_cols['period']=table.index
+    new_cols.set_index('period', inplace=True)
+ #   new_cols=new_cols.T
+ #   new_cols['series_type']=arr_type
+  #  new_cols=new_cols.T
+    print("new_cols=",new_cols,new_cols.shape)
+    table2=pd.concat((table,new_cols),axis=1)   #,on='period',how='left')
+    print("table2=\n",table2,table2.shape)
+    table2 = table2.reindex(natsorted(table2.columns), axis=1) 
+    new_product_names=table2.columns
+  #  new_product_names = table2.index.map('_'.join).astype(str)
+    table2=table2.T
+#    print("table2 cols=",table2.columns)
+ # series_table.index = series_table.index.map('_'.join).astype(str)  
+    print("new series added. extended_series_table=\n",table2,table2.shape) 
+    print("new product names=\n",new_product_names)
+    return table2,new_product_names
+    
+   
     
     
     
@@ -768,12 +810,12 @@ class MCDropout(keras.layers.AlphaDropout):
 def main():
 
     
-    predict_ahead_steps=100
-    epochs_cnn=1
-    epochs_wavenet=50
-    no_of_batches=40000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
+    predict_ahead_steps=10
+ #   epochs_cnn=1
+    epochs_wavenet=4
+    no_of_batches=4000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
     batch_length=16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
-    y_length=1
+#    y_length=1
     neurons=1600
     start_point=150
     pred_error_sample_size=100
@@ -794,8 +836,8 @@ def main():
      #   mat_length=20
     #    overlap=0  # the over lap between the X series and the target y
     
-    kernel_size=4   # for CNN
-    strides=2   # for CNN
+   # kernel_size=4   # for CNN
+   # strides=2   # for CNN
     
     
     # train validate test split 
@@ -807,7 +849,7 @@ def main():
     filename="NAT-raw310120_no_shop_WW_Coles.xlsx"
        #     filename="allsalestrans020218-190320.xlsx"   
     
-    mats=[21,250]    # 21 work days is approx one month 16 series moving average window periods for each data column to add to series table
+    mats=[14,365]   #omving average window periods for each data column to add to series table
     
      
 #     predict_ahead_steps=ic.predict_ahead_steps   # 120
@@ -868,7 +910,7 @@ def main():
         series_table,dates=load_data(mats,filename,series_dict)    #,col_name_list,window_size)    #,n_steps+1)  #,batch_size,n_steps,n_inputs)
 
 
-
+        series_table.index = series_table.index.map('_'.join).astype(str) 
         
         product_names=list(series_table.index) 
         print("\nProduct names, length=",product_names,len(product_names))
@@ -879,13 +921,14 @@ def main():
         #  this adds 
         graph_whole_pivot_table(series_table,dates)
         
-        extended_series_table,extended_dates=extend_pivot_table(series_table,dates,predict_ahead_steps)
+        extended_series_table,extended_dates=extend_pivot_table(series_table,dates,product_names)
         
       #  graph_whole_pivot_table(extended_series_table,extended_dates)
         
      
         print("Saving pickled table - series_table.pkl")
         pd.to_pickle(series_table,"series_table.pkl")
+        print("Saving pickled extended_series_table - extended_series_table.pkl")
         pd.to_pickle(extended_series_table,"extended_series_table.pkl")
 
         extended_series_table.to_csv("extended_series_table.csv")     
@@ -971,7 +1014,7 @@ def main():
     #     plt.show()
         
 
-    print("epochs_cnn=",epochs_cnn)
+   # print("epochs_cnn=",epochs_cnn)
     print("epochs_wavenet=",epochs_wavenet)
    # print("dates=",dates)
     
@@ -1003,9 +1046,9 @@ def main():
  #  print("validate_size=",validate_size)
  #  print("test_size=",test_size)
    
-    X_train, y_train = X[:train_size, :,:], y[:train_size,-y_length:,:]
-    X_valid, y_valid = X[train_size:train_size+validate_size, :,:], y[train_size:train_size+validate_size,-y_length:,:]
-    X_test, y_test = X[train_size+validate_size:, :,:], y[train_size+validate_size:,-y_length:,:]
+    X_train, y_train = X[:train_size, :,:], y[:train_size,-1:,:]
+    X_valid, y_valid = X[train_size:train_size+validate_size, :,:], y[train_size:train_size+validate_size,-1:,:]
+    X_test, y_test = X[train_size+validate_size:, :,:], y[train_size+validate_size:,-1:,:]
    # X_all, y_all = series2,series2[-1]
        #       #  normalise
 #    print("Normalising (L2)...")
@@ -1128,7 +1171,7 @@ def main():
          
 
     print("\rstep:",step_ahead+1,"/",pas,end='\n\n',flush=True)
-    pred_product_names=[s + "_pred" for s in original_product_names]
+    pred_product_names=[s + "pred" for s in original_product_names]
   #  print("pred product names=\n",pred_product_names)
 #    print("est before=",extended_series_table,extended_series_table.shape)  
     extended_series_table,product_names=add_a_new_series(extended_series_table,pred_product_names,ys)
@@ -1215,10 +1258,10 @@ def main():
 
     print("\rstep:",step_ahead+1,"/",pas,end='\n\n',flush=True)
    
-    pred_product_names=[s + "_pred_mc" for s in original_product_names]
+    pred_product_names=[s + "pred_mc" for s in original_product_names]
     extended_series_table,product_names=add_a_new_series(extended_series_table,pred_product_names,mc_ys)
 
-    pred_product_names=[s + "_yerr_mc" for s in original_product_names]  
+    pred_product_names=[s + "yerr_mc" for s in original_product_names]  
     extended_series_table,product_names=add_a_new_series(extended_series_table,pred_product_names,mc_yerr)
 
 
