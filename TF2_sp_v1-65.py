@@ -176,7 +176,7 @@ def load_data(mats,filename,series_dict):    #,col_name_list,window_size):   #,m
     
  #   mask=((df['code']=='FLPAS')) & (df['product']=='SJ300'))
   #  mask=((df['productgroup']>=10) & (df['productgroup']<=11))
-    mask=((df['code']=='FLPAS') & ((df['product']=='SJ300') | (df['product']=='TS300') | (df['product']=='CRN280')))
+    mask=((df['code']=='FLPAS') & ((df['product']=='SJ300') | (df['product']=='TS300')))
   #  mask=(df['cat']=='77')
   #  mask=(df['code']=='FLPAS')
   #  mask=((df['code']=='FLPAS') & (df['product']=="SJ300") & (df['glset']=="NAT"))
@@ -209,12 +209,15 @@ def load_data(mats,filename,series_dict):    #,col_name_list,window_size):   #,m
 #    table = pd.pivot_table(df[mask], values='qty', index=['productgroup'],columns=['period'], aggfunc=np.sum, margins=False,dropna=False,observed=False, fill_value=0).T  #observed=True
  
  
+    index_code=['code','product']
+ 
+ 
 #################################################################
 
     print("Making pivot table on unit sales...")
     mat_type="u"   #  "u" "d","m"   # unit, dollars, margin
 
-    table_u = pd.pivot_table(df[mask], values='qty', index=['code','product'],columns=['period'], aggfunc=np.sum, margins=False,dropna=False,observed=False, fill_value=0).T  #observed=True
+    table_u = pd.pivot_table(df[mask], values='qty', index=index_code,columns=['period'], aggfunc=np.sum, margins=False,dropna=False,observed=False, fill_value=0).T  #observed=True
 
     colnames=list(table_u.columns)
     print("colnames_u=\n",colnames)
@@ -230,67 +233,70 @@ def load_data(mats,filename,series_dict):    #,col_name_list,window_size):   #,m
             col_no+=1
   
 ################################################33
-#     print("Making pivot table on dollar sales...")
-
-#     mat_type="d"   #  "u" "d","m"   # unit, dollars, margin
-
-#     table_d = pd.pivot_table(df[mask], values='salesval', index=['code','product'],columns=['period'], aggfunc=np.sum, margins=False,dropna=False,observed=False, fill_value=0).T  #observed=True
- 
-#     colnames=list(table_d.columns)
-#  #   print("colnames_d=\n",colnames)
-#     for window_length in range(0,len(mats)):
-#         col_no=0
-#         for col in colnames:
-#             table_d.rename(columns={col: str(col)+"@1#"+str(mat_type)},inplace=True)
-#             table_d=add_mat(table_d,col_no,col,mats[window_length],series_dict,mat_type)
-#             col_no+=1
- 
-# ####################################################
-#     print("Making pivot table on margins...")
-
-#     table_1=table_u.merge(table_d,on='period',how='left')
-#   #  table_1=table_1.T
-#   #  print("table_1=\n",table_1)
-#  #   table_1['period'] = table_1['period'].astype('category')
-
-#   #  print("2per?",table_1,table_1.shape)
-#  #   table_1=table_1.T
-
-
-
-#     mat_type="m"   # "u" "d","m"   # unit, dollars, margin
-
-#     table_m = pd.pivot_table(df[mask], values='margin', index=['code','product'],columns=['period'], aggfunc=np.sum, margins=False,dropna=False,observed=False, fill_value=0).T  #observed=True
-
-#     colnames=list(table_m.columns)
-#   #  print("colnames_d=\n",colnames)
-#     for window_length in range(0,len(mats)):
-#         col_no=0
-#         for col in colnames:
-#             table_m.rename(columns={col: str(col)+"@1#"+str(mat_type)},inplace=True)
-#             table_m=add_mat(table_m,col_no,col,mats[window_length],series_dict,mat_type)
-#             col_no+=1
  
 
-
-#   table=table_1.merge(table_m,on='period',how='left')
-
-####################################################
-   
-#    table['period'] = table['period'].astype('category')
-
-  #  print("final merge table=\n",table,table.shape)
-  #  print("FMT T",table.columns)
-  #  print("per?",table['period'])
-###################################################  
-  
-
-   # table.index = table.index.map('_'.join).astype(str)  
-
-
-    table = table_u.reindex(natsorted(table_u.columns), axis=1) 
-
- #   table = table.reindex(natsorted(table.columns), axis=1) 
+    if False:    #  extra series
+       print("Making pivot table on dollar sales...")
+    
+        mat_type="d"   #  "u" "d","m"   # unit, dollars, margin
+    
+        table_d = pd.pivot_table(df[mask], values='salesval', index=index_code,columns=['period'], aggfunc=np.sum, margins=False,dropna=False,observed=False, fill_value=0).T  #observed=True
+     
+        colnames=list(table_d.columns)
+      #   print("colnames_d=\n",colnames)
+        for window_length in range(0,len(mats)):
+            col_no=0
+            for col in colnames:
+                table_d.rename(columns={col: str(col)+"@1#"+str(mat_type)},inplace=True)
+                table_d=add_mat(table_d,col_no,col,mats[window_length],series_dict,mat_type)
+                col_no+=1
+     
+    ####################################################
+        print("Making pivot table on margins...")
+    
+        table_1=table_u.merge(table_d,on='period',how='left')
+      #  table_1=table_1.T
+      #  print("table_1=\n",table_1)
+      #   table_1['period'] = table_1['period'].astype('category')
+    
+      #  print("2per?",table_1,table_1.shape)
+      #   table_1=table_1.T
+    
+    
+    
+        mat_type="m"   # "u" "d","m"   # unit, dollars, margin
+    
+        table_m = pd.pivot_table(df[mask], values='margin', index=index_code,columns=['period'], aggfunc=np.sum, margins=False,dropna=False,observed=False, fill_value=0).T  #observed=True
+    
+        colnames=list(table_m.columns)
+      #  print("colnames_d=\n",colnames)
+        for window_length in range(0,len(mats)):
+            col_no=0
+            for col in colnames:
+                table_m.rename(columns={col: str(col)+"@1#"+str(mat_type)},inplace=True)
+                table_m=add_mat(table_m,col_no,col,mats[window_length],series_dict,mat_type)
+                col_no+=1
+     
+    
+    
+        table=table_1.merge(table_m,on='period',how='left')
+    
+    ###################################################
+       
+     #   table['period'] = table['period'].astype('category')
+    
+      #  print("final merge table=\n",table,table.shape)
+      #  print("FMT T",table.columns)
+      #  print("per?",table['period'])
+    ###################################################  
+      
+    
+       # table.index = table.index.map('_'.join).astype(str)  
+    
+    
+        table = table_u.reindex(natsorted(table_u.columns), axis=1) 
+    else:
+        table = table.reindex(natsorted(table.columns), axis=1) 
     
   #  print("reindexed final merge table=\n",table,table.shape)
 
@@ -849,8 +855,8 @@ def graph_a_series(series_table,dates,column_names,series_dict):
                 plt.errorbar('period', pred_plot, yerr=col, color=series_type,data=series_table,ecolor="magenta",errorevery=6)
  
             else:        
-                series_table.plot(kind='scatter',x='period',y=col,color=series_type,ax=ax,fontsize=8,s=2,legend=False)
-       #         series_table.plot(kind='line',x='period',y=col,color=series_type,ax=ax,fontsize=5,s=3)
+             #   series_table.plot(kind='scatter',x='period',y=col,color=series_type,ax=ax,fontsize=8,s=2,legend=False)
+                series_table.plot(kind='line',x='period',y=col,color=series_type,ax=ax,fontsize=8)
 
         col_count+=1    
 
@@ -927,13 +933,13 @@ def main():
     predict_ahead_steps=560
 
  #   epochs_cnn=1
-    epochs_wavenet=30
+    epochs_wavenet=100
     no_of_batches=50000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
     batch_length=16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
 #    y_length=1
-    neurons=1000
+    neurons=1600
     start_point=150
-    pred_error_sample_size=20
+    pred_error_sample_size=40
     
     series_dict=dict({"mt":"blue",
                       "mt_":"blue",
@@ -965,7 +971,7 @@ def main():
     filename="NAT-raw310120_no_shop_WW_Coles.xlsx"
        #     filename="allsalestrans020218-190320.xlsx"   
     
-    mats=[30,365]   #omving average window periods for each data column to add to series table
+    mats=[30]   #omving average window periods for each data column to add to series table
     
      
 #     predict_ahead_steps=ic.predict_ahead_steps   # 120
