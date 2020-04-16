@@ -174,9 +174,9 @@ def load_data(mats,filename,series_dict):    #,col_name_list,window_size):   #,m
  #   mask = mask.replace('"','').strip()    
  #   print("mask=",mask)
     
- #   mask=((df['code']=='FLPAS')) & (df['product']=='SJ300'))
+    mask=((df['code']=='FLPAS') & (df['product']=='SJ300'))
   #  mask=((df['productgroup']>=10) & (df['productgroup']<=11))
-    mask=((df['code']=='FLPAS') & ((df['product']=='SJ300') | (df['product']=='TS300')))
+  #  mask=((df['code']=='FLPAS') & ((df['product']=='SJ300') | (df['product']=='TS300')))
   #  mask=(df['cat']=='77')
   #  mask=(df['code']=='FLPAS')
   #  mask=((df['code']=='FLPAS') & (df['product']=="SJ300") & (df['glset']=="NAT"))
@@ -236,7 +236,7 @@ def load_data(mats,filename,series_dict):    #,col_name_list,window_size):   #,m
  
 
     if False:    #  extra series
-       print("Making pivot table on dollar sales...")
+        print("Making pivot table on dollar sales...")
     
         mat_type="d"   #  "u" "d","m"   # unit, dollars, margin
     
@@ -854,9 +854,16 @@ def graph_a_series(series_table,dates,column_names,series_dict):
        #         print("\nplotting error bar\n")
                 plt.errorbar('period', pred_plot, yerr=col, color=series_type,data=series_table,ecolor="magenta",errorevery=6)
  
-            else:        
+            else:   
+                if series_suffix=="mt_":
+                #    plt.plot(pd.to_datetime(dates,infer_datetime_format=True),series_table[col],"b.",markersize=2)    #,range(start_point,original_steps), ys[0,:(original_steps-start_point),p],"g.", markersize=5, label="validation")
+                    plt.plot(series_table['period'],series_table[col],"b-",markersize=3,label=col)    #,range(start_point,original_steps), ys[0,:(original_steps-start_point),p],"g.", markersize=5, label="validation")
+
+                    #plt.plot(dates,series_table[col],"b.",markersize=5)    #,range(start_point,original_steps), ys[0,:(original_steps-start_point),p],"g.", markersize=5, label="validation")
+ 
+                else:  
              #   series_table.plot(kind='scatter',x='period',y=col,color=series_type,ax=ax,fontsize=8,s=2,legend=False)
-                series_table.plot(kind='line',x='period',y=col,color=series_type,ax=ax,fontsize=8)
+                    series_table.plot(kind='line',x='period',y=col,color=series_type,ax=ax,fontsize=8)
 
         col_count+=1    
 
@@ -930,14 +937,14 @@ class MCDropout(keras.layers.AlphaDropout):
 def main():
 
     
-    predict_ahead_steps=560
+    predict_ahead_steps=100
 
  #   epochs_cnn=1
     epochs_wavenet=100
     no_of_batches=50000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
     batch_length=16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
 #    y_length=1
-    neurons=1600
+    neurons=1400
     start_point=150
     pred_error_sample_size=40
     
@@ -971,7 +978,7 @@ def main():
     filename="NAT-raw310120_no_shop_WW_Coles.xlsx"
        #     filename="allsalestrans020218-190320.xlsx"   
     
-    mats=[30]   #omving average window periods for each data column to add to series table
+    mats=[90]   #omving average window periods for each data column to add to series table
     
      
 #     predict_ahead_steps=ic.predict_ahead_steps   # 120
@@ -1487,7 +1494,7 @@ def main():
     for p in range(0,extended_series_table.shape[0]):
         plt.figure(figsize=(11,4))
         plt.subplot(121)
-        plt.title("Sales/day:Actual+Pred: "+str(product_names[p]),fontsize=10)
+        plt.title("Sales/day:Actual+Pred: "+str(product_names[p]),fontsize=8)
       
         plt.ylabel("Units or $")
         plt.xlabel("Date") 
