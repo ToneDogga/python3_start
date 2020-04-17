@@ -180,7 +180,7 @@ def load_data(mats,filename,index_code):    #,col_name_list,window_size):   #,ma
  #   print("mask=",mask)
        # mask=(df['product']=='SJ300')
    # mask=((df['code']=='FLPAS') & (df['product']=='SJ300'))
-    mask=((df['code']=='FLPAS') & (df['productgroup']==10) & (df['product']=='SJ300'))   #mask=bool(mask_str)
+#    mask=((df['code']=='FLPAS') & (df['productgroup']==10) & (df['product']=='SJ300'))   #mask=bool(mask_str)
   #  mask=((df['productgroup']>=10) & (df['productgroup']<=11))
   #  mask=((df['code']=='FLPAS') & ((df['product']=='SJ300') | (df['product']=='TS300')))
   #  mask=(df['cat']=='77')
@@ -195,7 +195,7 @@ def load_data(mats,filename,index_code):    #,col_name_list,window_size):   #,ma
   #  mask=((df['productgroup']>=10) & (df['productgroup']<=11))
   #  mask=((df['code']=='FLPAS') & ((df['product']=='SJ300') | (df['product']=='TS300')))
   #  mask=(df['cat']=='77')
-  #  mask=(df['code']=='FLPAS')
+ #   mask=(df['code']=='FLPAS')
   #  mask=((df['code']=='FLPAS') & (df['product']=="SJ300") & (df['glset']=="NAT"))
 #    df['productgroup'] = df['productgroup'].astype('category')
  #   mask=((df['productgroup']>=10) & (df['productgroup']<=14))
@@ -205,7 +205,7 @@ def load_data(mats,filename,index_code):    #,col_name_list,window_size):   #,ma
  #   mask=((df['code']=='FLPAS') & (df['product']=="SJ300"))
   
  #   mask=((df['code']=='FLPAS') & ((df['product']=="CAR280") | (df['product']=="SJ300")))
-  #  mask=((df['code']=='FLPAS') & (df['productgroup']==10))  # & ((df['product']=='SJ300') | (df['product']=='AJ300')))
+    mask=((df['code']=='FLPAS') & ((df['productgroup']>=10) & (df['product']]<=15))) 
  #   mask=((df['code']=='FLPAS') & ((df['product']=='SJ300') | (df['product']=='AJ300') | (df['product']=='TS300')))
 
    # print("mask=",str(mask))
@@ -329,21 +329,21 @@ def remove_a_series_subset(table,mask_str):   #,col_name_list,window_size):
     if table.index.nlevels>1: 
         if len(table.columns)>1:
             tc = [''.join(col).strip() for col in table.columns.values]
-            print("len>1 multi index tc=",tc)
+        #    print("len>1 multi index tc=",tc)
             mask=[(mask_str not in tc[elem])  for elem in range(0,len(tc))]
       #      table=table.T
      #       table=table[mask]
 
         else:
             tc=list(table.columns.values)
-            print("len <=1 multi index tc=",tc)
+        #    print("len <=1 multi index tc=",tc)
            # mask=(mask_str not in tc)
             mask=[(mask_str not in tc[elem])  for elem in range(0,len(tc))]
 
     #        table=table.T
     else:    
         tc=list(table.columns.values) 
-        print("single index tc=",tc)
+      #  print("single index tc=",tc)
         mask=[(mask_str not in tc[elem])  for elem in range(0,len(tc))]
       #  mask=(mask_str not in tc)
    #     table=table.T
@@ -475,9 +475,9 @@ def graph_a_series(series_table,dates,column_names):
     series_table=series_table.T  
    #  print("series_table.columns",series_table.columns)
    # # dates=pd.to_timestamp(series_table.index,freq="d",how="S").to_list()
-    ndates=series_table.index.astype(str).tolist()
-    print("ndates=",ndates,"dates=",dates)
-    print("series_table.shape",series_table.shape,len(ndates))
+  #  ndates=series_table.index.astype(str).tolist()
+  #  print("ndates=",ndates,"dates=",dates)
+  #  print("series_table.shape",series_table.shape,len(ndates))
  #   series_table=series_table.T
     series_table['period'] = pd.to_datetime(dates,infer_datetime_format=True)
  #   print("\ngraph a series, table.T=\n",series_table,series_table.shape)
@@ -595,13 +595,13 @@ def main():
     predict_ahead_steps=1000
 
  #   epochs_cnn=1
-    epochs_wavenet=6
+    epochs_wavenet=120
     no_of_batches=50000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
     batch_length=16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
 #    y_length=1
     neurons=1400
     start_point=150
-    pred_error_sample_size=20
+    pred_error_sample_size=50
     
     # series_dict=dict({"mt":"blue",
     #                   "mt_":"blue",
@@ -623,15 +623,19 @@ def main():
     filename="NAT-raw310120_no_shop_WW_Coles.xlsx"
        #     filename="allsalestrans020218-190320.xlsx"   
     
-     #  index_code=['product']  
+    
+    index_code=['code','productgroup'] 
+
+   # index_code=['product']  
+   # index_code=['productgroup'] 
   #  index_code=['code','product']
-    index_code=['code','productgroup','product']
+   # index_code=['code','productgroup','product']
 
   
     
     
     
-    mats=[7,30,90,365]   #omving average window periods for each data column to add to series table
+    mats=[14,30,365]   #omving average window periods for each data column to add to series table
     
 
 
@@ -749,14 +753,14 @@ def main():
         series_table= pd.read_pickle("series_table.pkl")
         extended_series_table= pd.read_pickle("extended_series_table.pkl")
 
-        actual_days_in_series_table=actual_days(series_table)
+       # actual_days_in_series_table=actual_days(series_table)
         
         
         product_names=list(series_table.index) 
         print("\nProduct names, length=",product_names,len(product_names))
 
-        periods_len=actual_days_in_series_table+predict_ahead_steps+1
-        print("PERIODS=",periods_len)
+      #  periods_len=actual_days_in_series_table+predict_ahead_steps+1
+      #  print("PERIODS=",periods_len)
 
    
 
