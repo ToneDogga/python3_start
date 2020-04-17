@@ -189,7 +189,7 @@ def load_data(mats,filename,index_code):    #,col_name_list,window_size):   #,ma
   #  index_code=['code','product']
  #   index_code=['code','productgroup','product']
 
-   # mask=(df['product']=='SJ300')
+  #  mask=(df['product']=='SJ300')
    # mask=((df['code']=='FLPAS') & (df['product']=='SJ300'))
   #  mask=((df['code']=='FLPAS') & (df['productgroup']==10) & (df['product']=='SJ300'))
   #  mask=((df['productgroup']>=10) & (df['productgroup']<=11))
@@ -198,14 +198,14 @@ def load_data(mats,filename,index_code):    #,col_name_list,window_size):   #,ma
  #   mask=(df['code']=='FLPAS')
   #  mask=((df['code']=='FLPAS') & (df['product']=="SJ300") & (df['glset']=="NAT"))
 #    df['productgroup'] = df['productgroup'].astype('category')
- #   mask=((df['productgroup']>=10) & (df['productgroup']<=14))
+    mask=((df['productgroup']>=10) & (df['productgroup']<=14))
  #   mask=bool(mask_str)   #((df['productgroup']>=10) & (df['productgroup']<=14))"
 
  #   mask=(df['productgroup']==13)
  #   mask=((df['code']=='FLPAS') & (df['product']=="SJ300"))
   
  #   mask=((df['code']=='FLPAS') & ((df['product']=="CAR280") | (df['product']=="SJ300")))
-    mask=((df['code']=='FLPAS') & ((df['productgroup']>=10) & (df['product']]<=15))) 
+  #  mask=((df['code']=='FLPAS') & ((df['productgroup']>=10) & (df['productgroup']<=15))) 
  #   mask=((df['code']=='FLPAS') & ((df['product']=='SJ300') | (df['product']=='AJ300') | (df['product']=='TS300')))
 
    # print("mask=",str(mask))
@@ -599,7 +599,7 @@ def main():
     no_of_batches=50000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
     batch_length=16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
 #    y_length=1
-    neurons=1400
+    neurons=2000
     start_point=150
     pred_error_sample_size=50
     
@@ -624,10 +624,10 @@ def main():
        #     filename="allsalestrans020218-190320.xlsx"   
     
     
-    index_code=['code','productgroup'] 
+    #index_code=['code','productgroup'] 
 
    # index_code=['product']  
-   # index_code=['productgroup'] 
+    index_code=['productgroup'] 
   #  index_code=['code','product']
    # index_code=['code','productgroup','product']
 
@@ -635,7 +635,13 @@ def main():
     
     
     
-    mats=[14,30,365]   #omving average window periods for each data column to add to series table
+    mats=[30]   #omving average window periods for each data column to add to series table
+    
+    
+    print("\nexcel input data filename=",filename)
+    print("excel query fields=",index_code)
+    print("moving averages",mats)
+    print("predict ahead steps=",predict_ahead_steps)
     
 
 
