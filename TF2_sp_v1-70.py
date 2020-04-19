@@ -54,6 +54,7 @@ print("========================================================================"
 
 print("Python version:",sys.version)
 print("\ntensorflow:",tf.__version__)
+print("keras:",keras.__version__)
 print("sklearn:",sklearn.__version__)
 
 # Common imports
@@ -137,6 +138,70 @@ tf.random.set_seed(42)
 
 # To plot pretty figures
 #%matplotlib inline
+
+
+###########################################################
+
+# print("tensorboard")
+
+# root_logdir = os.path.join(os.curdir, "my_logs")
+
+# def get_run_logdir():
+#     import time
+#     run_id = time.strftime("run_%Y_%m_%d-%H_%M_%S")
+#     return os.path.join(root_logdir, run_id)
+
+# run_logdir = get_run_logdir()
+# print("run log dir",run_logdir)
+
+# keras.backend.clear_session()
+# np.random.seed(42)
+# tf.random.set_seed(42)
+
+
+# model = keras.models.Sequential([
+#     keras.layers.Dense(30, activation="relu", input_shape=[8]),
+#     keras.layers.Dense(30, activation="relu"),
+#     keras.layers.Dense(1)
+# ])    
+# model.compile(loss="mse", optimizer=keras.optimizers.SGD(lr=1e-3))
+
+
+
+# tensorboard_cb = keras.callbacks.TensorBoard(run_logdir)
+# history = model.fit(X_train, y_train, epochs=30,
+#                     validation_data=(X_valid, y_valid),
+#                     callbacks=[checkpoint_cb, tensorboard_cb])
+
+
+# run_logdir2 = get_run_logdir()
+# print("rd2",run_logdir2)
+
+# keras.backend.clear_session()
+# np.random.seed(42)
+# tf.random.set_seed(42)
+
+
+# model = keras.models.Sequential([
+#     keras.layers.Dense(30, activation="relu", input_shape=[8]),
+#     keras.layers.Dense(30, activation="relu"),
+#     keras.layers.Dense(1)
+# ])    
+# model.compile(loss="mse", optimizer=keras.optimizers.SGD(lr=0.05))
+
+# tensorboard_cb = keras.callbacks.TensorBoard(run_logdir2)
+# history = model.fit(X_train, y_train, epochs=30,
+#                     validation_data=(X_valid, y_valid),
+#                     callbacks=[checkpoint_cb, tensorboard_cb])
+
+
+# help(keras.callbacks.TensorBoard.__init__)
+
+
+
+
+
+##############################################################3
 
     
 def load_data(filename,index_code):    #,col_name_list,window_size):   #,mask_text):   #,batch_size,n_steps,n_inputs):   
@@ -291,7 +356,7 @@ def add_all_mats(series_table,mats,pivot_len):
  #   print("it series_table=\n",series_table,series_table.shape)
     if len(mats)>0:
      #   table=remove_series_without_str(table,"@1#")
-        print("remove @1#, mats=",mats)     
+    #    print("remove @1#, mats=",mats)     
         series_table=remove_a_series_subset(series_table,"@1#")   #if other mats, delete original series
   #  print("1final all mats series table=\n",series_table,series_table.shape) 
    
@@ -351,14 +416,14 @@ def remove_a_series_subset(table,mask_str):   #,col_name_list,window_size):
     #        table=table.T
     else:    
         tc=list(table.columns.values) 
-        print("single index tc=",tc)
+      #  print("single index tc=",tc)
         mask=[(mask_str not in tc[elem])  for elem in range(0,len(tc))]
       #  mask=(mask_str not in tc)
    #     table=table.T
 
     table=table.T
     table=table[mask]
-    print("final table=\n",table,table.shape)
+  #  print("final table=\n",table,table.shape)
     #mask=[(mask_str not in tc[elem])  for elem in range(0,len(tc))]
  #   table=table.T
     #table=table[mask]
@@ -458,13 +523,14 @@ def extend_pivot_table(series_table,dates,periods_len):
   #  print(" 2extend table ->extended_table=\n",extended_table,extended_table.shape)  #[:4,:4].to_string())
 
     exdates=extended_table.index.astype(str).tolist()  #.astype(str)) #strftime("%Y-%m-%d"))
-#    print(" 3extend table ->extended_table=\n",extended_table,extended_table.shape)  #[:4,:4].to_string())
+  #  print(" 3extend table ->extended_table=\n",extended_table,extended_table.shape)  #[:4,:4].to_string())
 
     return extended_table.T,exdates
  
     
     
 def actual_days(series_table):
+  #  print("ad=",series_table.index[0])
     first_date=series_table.index[0].to_timestamp(freq="D",how="S")
     last_date=series_table.index[-1].to_timestamp(freq="D",how="S")
     return (last_date - first_date).days    #.timedelta_series.dt.days    
@@ -472,13 +538,19 @@ def actual_days(series_table):
     
   
 def add_a_new_series(table,arr_names,arr,start_series_len,predict_ahead_steps,periods_len):
+  #  table=table.T
+ #   print("ans input table shape",table,table.shape)
+  #  print("add a new series first date=",table.index[0])
+
     first_date=table.T.index[0].strftime('%Y-%m-%d')
     pidx = pd.period_range(first_date, periods=periods_len)   # 2000 days  
-    new_cols=pd.DataFrame(arr[0],columns=arr_names,index=pidx)
-    table=table.T 
-    table2=pd.concat((table,new_cols),join='outer',axis=1)   
-    new_product_names=table2.columns
-    table2=table2.T
+    new_cols=pd.DataFrame(arr[0],columns=arr_names,index=pidx).T
+ #   print("ans input new cols",new_cols,new_cols.shape)
+    
+ #   table=table.T 
+    table2=pd.concat((table,new_cols),join='outer',axis=0)   
+    new_product_names=table2.T.columns
+ #   print("ans output table2 shape",table2,table2.shape)
     return table2,new_product_names
     
      
@@ -492,32 +564,36 @@ def find_series_type(series_name):
 def graph_a_series(series_table,dates,column_names): 
 
  #   series_dict_elem=series_dict_elem.astype(str)  
-    series_table = series_table.reindex(natsorted(series_table.columns), axis=1)
     series_table=series_table.T  
-   #  print("series_table.columns",series_table.columns)
+ #   print("series table shaper",series_table,series_table.shape)
+    series_table = series_table.reindex(natsorted(series_table.columns), axis=1)
+ #   print("series_table.columns",series_table.columns)
    # # dates=pd.to_timestamp(series_table.index,freq="d",how="S").to_list()
   #  ndates=series_table.index.astype(str).tolist()
-  #  print("ndates=",ndates,"dates=",dates)
-  #  print("series_table.shape",series_table.shape,len(ndates))
- #   series_table=series_table.T
+#    print("dates=",dates)
+  #  print("series_table.shape",series_table.shape,len(dates))
+  #  series_table=series_table.T
     series_table['period'] = pd.to_datetime(dates,infer_datetime_format=True)
  #   print("\ngraph a series, table.T=\n",series_table,series_table.shape)
  
 #    series_table=np.num_to_nan(series_table,0)
  #   series_table[column_names] = series_table[column_names].replace({0:np.nan})
  #   print("graph a series - series_table",series_table)
+#    series_table=series_table.T 
+ 
     ax = plt.gca()
     cols=list(series_table.columns)
     del cols[-1]  # delete reference to period column
+#    print("cols=",cols,len(cols))
     col_count=0
     for col in cols:
-        
+ #       print("col=",col)
         series_table[col] = series_table[col].replace({0:np.nan})
   #      print("\ngraph a series - series_table",col,"\n",series_table[col])
   
       #  print("find series type",col,"=",find_series_type(col))  
         series_suffix= str(find_series_type(col)) 
-     #   print("series suffix=",series_suffix)
+ #       print("series suffix=",series_suffix)
       #  series_type=str(series_dict[series_suffix])   # name, type of plot, colour
    #     print("series type=\n",series_type,">",series_type)   # name, type of plot, colour
         if (series_suffix=="mt_pred_mc"): # | (series_suffix=="mt_yerr_mc")):
@@ -537,8 +613,8 @@ def graph_a_series(series_table,dates,column_names):
                 elif series_suffix=="mt_pred_mc":        
                     plt.plot(series_table['period'],series_table[col],"g.",markersize=3,label=col) 
                 else: 
-                   # pass
-                    plt.plot(series_table['period'],series_table[col],"r.",markersize=3,label=col) 
+                    pass
+                 #   plt.plot(series_table['period'],series_table[col],"r.",markersize=3,label=col) 
              #   series_table.plot(kind='scatter',x='period',y=col,color=series_type,ax=ax,fontsize=8,s=2,legend=False)
               #      series_table.plot(kind='line',x='period',y=col,color=series_type,ax=ax,fontsize=8)
 
@@ -613,16 +689,16 @@ class MCDropout(keras.layers.AlphaDropout):
 
 def main():
 
-    predict_ahead_steps=600
+    predict_ahead_steps=60
 
  #   epochs_cnn=1
-    epochs_wavenet=16
-    no_of_batches=50000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
+    epochs_wavenet=10
+    no_of_batches=20000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
     batch_length=16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
 #    y_length=1
     neurons=1000
     start_point=150
-    pred_error_sample_size=50
+    pred_error_sample_size=12
     
     # series_dict=dict({"mt":"blue",
     #                   "mt_":"blue",
@@ -651,12 +727,12 @@ def main():
     index_code=['productgroup'] 
   #  index_code=['code','product']
    # index_code=['code','productgroup','product']
-
-  
+###############################################33
+  #  you also need to change the mask itself which is in the load data function
+#################################################    
     
     
-    
-    mats=[30]   #omving average window periods for each data column to add to series table
+    mats=[14,30]   #omving average window periods for each data column to add to series table
     
     
     print("\nexcel input data filename='",filename,"'\n")
@@ -701,15 +777,15 @@ def main():
      #   series_table=series_table.T
         
      
-        print("series table=\n",series_table,series_table.shape)
+    #    print("series table=\n",series_table,series_table.shape)
         actual_days_in_series_table=actual_days(series_table)
         
         
-        print("actual days in series table=",actual_days_in_series_table)
+    #    print("actual days in series table=",actual_days_in_series_table)
         
         
         periods_len=actual_days_in_series_table+predict_ahead_steps+1
-        print("PERIODS=",periods_len)
+        print("total periods=",periods_len)
 
    
         
@@ -719,9 +795,9 @@ def main():
         series_table,extended_dates=extend_pivot_table(series_table,dates,periods_len)
         
         series_table=add_all_mats(series_table,mats,actual_days_in_series_table)
-        print("series table with mats=\n",series_table,series_table.shape)
-       
-        graph_whole_pivot_table(series_table,dates)
+    #    print("series table with mats=\n",series_table,series_table.shape)
+    #    print("len extended dates=",len(extended_dates))
+        graph_whole_pivot_table(series_table.iloc[:,:actual_days_in_series_table],extended_dates[:actual_days_in_series_table])
         
         
       #  graph_whole_pivot_table(extended_series_table,extended_dates)
@@ -729,15 +805,21 @@ def main():
         print("\nProduct names, length=",product_names,len(product_names))
 
      
-        print("Saving pickled table - series_table.pkl")
+        print("Saving pickled table - series_table.pkl",series_table.shape)
+
+    #    series_table=series_table.T       
         pd.to_pickle(series_table,"series_table.pkl")
       #  print("Saving pickled extended_series_table - extended_series_table.pkl")
       #  pd.to_pickle(extended_series_table,"extended_series_table.pkl")
 
-        series_table.to_csv("series_table.csv")     
-
-        print("Saving product names")
-        np.save("product_names.npy",np.asarray(product_names))
+        series_table.T.to_csv("series_table.csv")    
+        
+    #    series_table=series_table.T
+ 
+        print("Saving product names",product_names)
+        with open("product_names.pkl","wb") as f:
+            pickle.dump(product_names,f)
+     #   np.save("product_names.npy",np.asarray(product_names))
         
         print("Saving dates",len(extended_dates))
         with open('dates.pkl', 'wb') as f:
@@ -777,24 +859,30 @@ def main():
         X=np.load("batch_train_X.npy")
         y=np.load("batch_train_y.npy")
        #  series2=np.load("series2.npy")   
-        print("loading product_names")
-        product_names=list(np.load("product_names.npy"))
+        print("loading product_names")  #,product_names)
+        with open('product_names.pkl', 'rb') as f:
+             product_names = pickle.load(f)   
+    #    print("product names=",product_names)     
+    #    product_names=list(np.load("product_names.npy"))
        # # dates=list(np.load("periods.npy",allow_pickle=True))
         print("loading dates")
         with open('dates.pkl', 'rb') as f:
              dates = pickle.load(f)   
         with open('extended_dates.pkl', 'rb') as f:
              extended_dates = pickle.load(f)   
-           
-        print("Loading pivot table")        
+   #     print("len dates",len(dates))
+   #     print("\nlen extended dates",len(extended_dates),"\n")
+         
         series_table= pd.read_pickle("series_table.pkl")
+        print("Loading pivot table",series_table.shape) 
+      #  series_table=series_table.T
    #     extended_series_table= pd.read_pickle("extended_series_table.pkl")
 
        # actual_days_in_series_table=actual_days(series_table)
         
-        
-        product_names=list(series_table.index) 
-        print("\nProduct names, length=",product_names,len(product_names))
+  #      print("loaded series_table=\n",series_table,series_table.shape)
+      #  product_names=list(series_table.index) 
+     #   print("\nProduct names, length=",product_names,len(product_names))
 
       #  periods_len=actual_days_in_series_table+predict_ahead_steps+1
       #  print("PERIODS=",periods_len)
@@ -805,20 +893,21 @@ def main():
         print("Loading mat_sales_x")
         mat_sales_x=np.load("mat_sales_x.npy")
         
-        actual_days_in_series_table=actual_days(series_table)
+        actual_days_in_series_table=actual_days(series_table.T)
+        
                
 #        product_names=list(series_table.index) 
 #        print("\nProduct names, length=",product_names,len(product_names))
 
-        periods_len=actual_days_in_series_table+predict_ahead_steps+1
-        print("PERIODS=",periods_len)
+        periods_len=actual_days_in_series_table
+ #       print("PERIODS=",periods_len)
 
    
     
            
-    
-    print("\n\nseries table loaded shape=",series_table.shape,"\n")  
-    print("product names=\n",product_names)
+  #  series_table=series_table.T
+#    print("\n\nseries table loaded shape=",series_table.shape,"\n")  
+#    print("product names=\n",product_names)
   #  print("series table with date=\n",series_table_with_date)
   #  print("dates array=\n",len(dates))
     n_query_rows=X.shape[2]
@@ -1131,6 +1220,7 @@ def main():
     mc_ys = np.concatenate((mc_ys,pad_after_arr),axis=1) 
   #  print("mc_ys after end  padding=\n",mc_ys,mc_ys.shape)
 
+  #  series_table=series_table.T
     series_table,product_names=add_a_new_series(series_table,pred_product_names,mc_ys,start_point,predict_ahead_steps,periods_len)
 
 #############################################################
@@ -1156,13 +1246,14 @@ def main():
     mc_yerr = np.concatenate((mc_yerr,pad_after_arr),axis=1) 
   #  print("mc_yerr after end  padding=\n",mc_yerr,mc_yerr.shape)
     
-    
+
+ #   series_table=series_table.T    
     series_table,product_names=add_a_new_series(series_table,pred_product_names,mc_yerr,start_point,predict_ahead_steps,periods_len)
 
 
 ##############################################################
 
-
+ #   series_table=series_table.T
     for p in range(0,series_table.shape[0]):
         plt.figure(figsize=(11,4))
         plt.subplot(121)
@@ -1177,7 +1268,8 @@ def main():
       
         plt.ylabel("Units or $",fontsize=9)
         plt.xlabel("Date",fontsize=9) 
-        graph_a_series(series_table,extended_dates,product_names[p])
+        graph_a_series(series_table,extended_dates,str(product_names[p]))
+        #,series_table.columns)
         
         plt.legend(loc="best",fontsize=8)
         plt.show()
@@ -1214,13 +1306,13 @@ def main():
     
     print("\nwrite predictions to sales_prediction.CSV file....")
 #    dates.sort()
-    series_table=series_table.T
+  
    # print("extended series table=\n",extended_series_table)
     
-    print("\nseries table shape=",series_table.shape)
+  #  print("\nseries table shape=",series_table.shape)
 
-    print("First date=",extended_dates[0])
-    print("last date=",extended_dates[-1])
+  #  print("First date=",extended_dates[0])
+  #  print("last date=",extended_dates[-1])
     with open("sales_prediction_"+str(product_names[0])+".csv", 'w') as f:  #csvfile:
         series_table.to_csv(f)  #,line_terminator='rn')
     
