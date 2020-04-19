@@ -204,7 +204,10 @@ def load_data(filename,index_code):    #,col_name_list,window_size):   #,mask_te
 
   #  mask=(df['product']=='SJ300')
   #  mask=((df['code']=='FLPAS') & (df['product']=='SJ300'))
-    mask=((df['code']=='FLPAS') & (df['productgroup']==10) & (df['product']=='SJ300'))
+  #  mask=((df['code']=='FLPAS') & (df['productgroup']==10) & (df['product']=='SJ300'))
+    
+    mask=((df['code']=='FLPAS') & (df['productgroup']==10) & ((df['product']=='SJ300') | (df['product']=='OM300')))
+
   #  mask=((df['productgroup']>=10) & (df['productgroup']<=11))
   #  mask=((df['code']=='FLPAS') & ((df['product']=='SJ300') | (df['product']=='TS300')))
   #  mask=(df['cat']=='77')
@@ -426,19 +429,19 @@ def build_mini_batch_input(series,no_of_batches,no_of_steps):
 def flatten_multi_index_column_names(table):
     table=table.T
 
-    print("1flatten col names table=\n",table)
+ #   print("1flatten col names table=\n",table)
  
     table.columns=table.columns.to_flat_index()
 
     flat_column_names = [''.join(col).strip() for col in table.columns] 
-    print("2flatten col names table=\n",flat_column_names)
+ #   print("2flatten col names table=\n",flat_column_names)
     table_col=list(table.columns)
     
     rename_dict=dict(zip(table_col, flat_column_names))
-    print("rename dict=",rename_dict)
+  #  print("rename dict=",rename_dict)
     #print("table_col=\n",table_col)
     table.rename(rename_dict, axis='columns',inplace=True)
-    print("table=\n",table)
+  #  print("table=\n",table)
     return table.T,flat_column_names
 #     del cols[-1]  # delete reference to period column at end of list
 #    # print("2cols=",cols)
@@ -702,10 +705,10 @@ class MCDropout(keras.layers.AlphaDropout):
 
 def main():
 
-    predict_ahead_steps=36
+    predict_ahead_steps=360
 
  #   epochs_cnn=1
-    epochs_wavenet=5
+    epochs_wavenet=20
     no_of_batches=50000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
     batch_length=16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
 #    y_length=1
@@ -747,7 +750,7 @@ def main():
 #################################################    
     
     
-    mats=[14,30]   #omving average window periods for each data column to add to series table
+    mats=[14,30,365]   #omving average window periods for each data column to add to series table
     
     
     print("\nexcel input data filename='",filename,"'\n")
