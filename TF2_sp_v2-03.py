@@ -212,7 +212,7 @@ def load_data(filename,index_code,mat_type_dict):    #,col_name_list,window_size
   #  mask=((df['productgroup']>=10) & (df['productgroup']<=11))
   #  mask=((df['code']=='FLPAS') & ((df['product']=='SJ300') | (df['product']=='TS300')))
   #  mask=(df['cat']=='77')
-    mask=(df['code']=='FLPAS')
+    mask=((df['code']=='FLPAS') | (df['code']=='FLFUL') |(df['code']=='FONTANA'))
   #  mask=((df['code']=='FLPAS') & (df['product']=="SJ300") & (df['glset']=="NAT"))
 #    df['productgroup'] = df['productgroup'].astype('category')
  #   mask=((df['productgroup']>=10) & (df['productgroup']<=14))
@@ -618,6 +618,12 @@ def graph_a_series(series_table,dates,column_names):
   #  print("2series_tsable=",series_table.shape)
  
     series_table['period'] = pd.to_datetime(dates,infer_datetime_format=True)
+    
+    print("series table before sorting=\n",series_table,series_table.shape)
+    series_table = series_table.reindex(natsorted(series_table.columns), axis=1)
+    print("series table after sorting=\n",series_table,series_table.shape)
+
+    
  #   print("\ngraph a series, table.T=\n",series_table,series_table.shape)
  #   print("3series_table.shape",series_table.shape,len(dates))
 #    series_table=np.num_to_nan(series_table,0)
@@ -671,7 +677,7 @@ def graph_a_series(series_table,dates,column_names):
     
                     else: 
                       #  pass
-                        plt.plot(series_table['period'],series_table[col],"c.",markersize=3,label=col) 
+                        plt.plot(series_table['period'],series_table[col],"k.",markersize=3,label=col) 
                  #   series_table.plot(kind='scatter',x='period',y=col,color=series_type,ax=ax,fontsize=8,s=2,legend=False)
                   #      series_table.plot(kind='line',x='period',y=col,color=series_type,ax=ax,fontsize=8)
     
@@ -747,18 +753,18 @@ class MCDropout(keras.layers.AlphaDropout):
 
 def main():
 
-    predict_ahead_steps=430
+    predict_ahead_steps=550
 
  #   epochs_cnn=1
-    epochs_wavenet=16
+    epochs_wavenet=200
     no_of_batches=50000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
-    batch_length=32   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
+    batch_length=16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
 #    y_length=1
-    neurons=1600
+    neurons=800
  
-    pred_error_sample_size=50
+    pred_error_sample_size=20
     
-    patience=16
+    patience=30
     
     # dictionary mat type code :   aggsum field, name, color
     mat_type_dict=dict({"u":["qty","units","b-"]
@@ -767,7 +773,7 @@ def main():
                        })
    
     mats=[90]   #omving average window periods for each data column to add to series table
-    start_point=batch_length+1   #np.max(mats) #+1
+    start_point=np.max(mats)  #batch_length+1   #np.max(mats) #+1
     mat_types=["d"]  #,"d","m"]
    
    
@@ -1068,7 +1074,7 @@ def main():
         model = keras.models.Sequential()
         model.add(keras.layers.InputLayer(input_shape=[None,n_query_rows]))
         model.add(keras.layers.BatchNormalization())
-        for rate in (1,2,4,8,16) *2:
+        for rate in (1,2,4,8) *2:
             
             model.add(keras.layers.Conv1D(filters=neurons, kernel_size=2,padding='causal',activation='relu',dilation_rate=rate))
  
@@ -1200,6 +1206,9 @@ def main():
 
 
     series_table,product_name,extended_dates=add_a_new_series(series_table,pred_product_names,ys,start_point,predict_ahead_steps,periods_len)
+ 
+    print("\n 1series table=\n",series_table.T.columns,series_table.shape)
+   
  #  print("est after=",series_table,series_table.shape,product_names)  
 
   #  print("est dates=",extended_dates,len(extended_dates))
@@ -1314,7 +1323,9 @@ def main():
      
                #  series_table=series_table.T
     series_table,product_names,extended_dates=add_a_new_series(series_table,pred_product_names,mc_ys,start_point,predict_ahead_steps,periods_len)
-     
+    
+    print("\n 2series table=\n",series_table.columns,series_table.shape)
+   
      #############################################################
      
     pred_product_names=[s + "yerr_mc" for s in original_product_names]  
@@ -1344,8 +1355,12 @@ def main():
      
               #   series_table=series_table.T    
     series_table,product_names,extended_dates=add_a_new_series(series_table,pred_product_names,mc_yerr,start_point,predict_ahead_steps,periods_len)
-     
-
+    
+    
+    print("MC dropout predict finished\n")
+    
+    
+    print("\n 3series table=\n",series_table.columns,series_table.shape)
 ##############################################################
   #  print("product names=",product_names)
  #   series_table=series_table.T
@@ -1392,7 +1407,7 @@ def main():
  
 
      
-    print("MC dropout predict finished\n")
+
 
 
 
