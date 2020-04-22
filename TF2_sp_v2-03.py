@@ -204,7 +204,7 @@ def load_data(filename,index_code,mat_type_dict):    #,col_name_list,window_size
  #   index_code=['code','productgroup','product']
 
   #  mask=(df['product']=='SJ300')
-  #  mask=((df['code']=='FLPAS') & (df['product']=='SJ300'))
+    mask=((df['code']=='FLPAS') & (df['productgroup']==10))
   #  mask=((df['code']=='FLPAS') & (df['productgroup']==10) & (df['product']=='SJ300'))
     
   #  mask=((df['code']=='FLPAS') & (df['productgroup']==10) & ((df['product']=='SJ300') | (df['product']=='OM300')))
@@ -212,7 +212,7 @@ def load_data(filename,index_code,mat_type_dict):    #,col_name_list,window_size
   #  mask=((df['productgroup']>=10) & (df['productgroup']<=11))
   #  mask=((df['code']=='FLPAS') & ((df['product']=='SJ300') | (df['product']=='TS300')))
   #  mask=(df['cat']=='77')
-    mask=((df['code']=='FLPAS') | (df['code']=='FLFUL') |(df['code']=='FONTANA'))
+  #  mask=((df['code']=='FLPAS'))   # | (df['code']=='FLFUL') |(df['code']=='FONTANA'))
   #  mask=((df['code']=='FLPAS') & (df['product']=="SJ300") & (df['glset']=="NAT"))
 #    df['productgroup'] = df['productgroup'].astype('category')
  #   mask=((df['productgroup']>=10) & (df['productgroup']<=14))
@@ -247,12 +247,12 @@ def load_data(filename,index_code,mat_type_dict):    #,col_name_list,window_size
     
     
     
- #   print("Making pivot table on unit sales...")
-    print("Making pivot table on dollar sales...")
+    print("Making pivot table on unit sales...")
+  #  print("Making pivot table on dollar sales...")
 
   #  mat_type="u"
  
-    table = pd.pivot_table(df[mask], values='salesval', index=index_code,columns=['period'], aggfunc=np.sum, margins=False,dropna=False,observed=False, fill_value=0).T  #observed=True
+    table = pd.pivot_table(df[mask], values='qty', index=index_code,columns=['period'], aggfunc=np.sum, margins=False,dropna=False,observed=False, fill_value=0).T  #observed=True
 
    #     colnames=list(table_m.columns)
     #   #  print("colnames_d=\n",colnames)
@@ -661,14 +661,14 @@ def graph_a_series(series_table,dates,column_names):
                  #    plt.errorbar('period', series_table[col], yerr=series_table.iloc[col_count+1], data=series_table)
                 if series_suffix=="mt_yerr_mc":
            #         print("\nplotting error bar\n")
-                    plt.errorbar('period', pred_plot, yerr=col, fmt="r-",ms=2,data=series_table,ecolor="magenta",errorevery=2)
+                    plt.errorbar('period', pred_plot, yerr=col, fmt="r.",ms=2,data=series_table,ecolor="magenta",errorevery=2)
                    # plt.errorbar(series_table['period'], pred_plot, yerr=col, fmt="k.",ms=2,data=series_table,ecolor="magenta",errorevery=2)
                #     plt.errorbar(series_table.iloc[start_point:, series_table.columns.get_loc('period')], pred_plot, yerr=col, fmt="k.",ms=2,data=series_table,ecolor="magenta",errorevery=2)
 
       
                 else:   
                     if series_suffix=="mt_":
-                         plt.plot(series_table['period'],series_table[col],"b-",markersize=3,label=col)    #,range(start_point,original_steps), ys[0,:(original_steps-start_point),p],"g.", markersize=5, label="validation")
+                         plt.plot(series_table['period'],series_table[col],"b.",markersize=3,label=col)    #,range(start_point,original_steps), ys[0,:(original_steps-start_point),p],"g.", markersize=5, label="validation")
                     #     plt.plot(series_table['period'],series_table[col],"b-",markersize=3,label=col)    #,range(start_point,original_steps), ys[0,:(original_steps-start_point),p],"g.", markersize=5, label="validation")
     
                     elif series_suffix=="mt_pred_mc":        
@@ -753,18 +753,18 @@ class MCDropout(keras.layers.AlphaDropout):
 
 def main():
 
-    predict_ahead_steps=550
+    predict_ahead_steps=731
 
  #   epochs_cnn=1
-    epochs_wavenet=200
+    epochs_wavenet=5
     no_of_batches=50000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
     batch_length=16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
 #    y_length=1
-    neurons=800
+    neurons=1500
  
     pred_error_sample_size=20
     
-    patience=30
+    patience=60
     
     # dictionary mat type code :   aggsum field, name, color
     mat_type_dict=dict({"u":["qty","units","b-"]
@@ -772,7 +772,7 @@ def main():
                       #  "m":["margin","margin","m."]
                        })
    
-    mats=[90]   #omving average window periods for each data column to add to series table
+    mats=[14]   #omving average window periods for each data column to add to series table
     start_point=np.max(mats)  #batch_length+1   #np.max(mats) #+1
     mat_types=["d"]  #,"d","m"]
    
@@ -788,11 +788,11 @@ def main():
     
     
     #index_code=['code','productgroup'] 
-    index_code=['code']
+   # index_code=['code']
    # index_code=['product']  
    # index_code=['productgroup'] 
    # index_code=['code','product']
-  #  index_code=['code','productgroup','product']
+    index_code=['code','productgroup','product']
 ###############################################33
   #  you also need to change the mask itself which is in the load data function
 #################################################    
@@ -1201,13 +1201,13 @@ def main():
 #     #    print("periods len <= ys.shape. ys=\n",ys,ys.shape)
 #     #    ys=ys[:,:(periods_len+start_point),:]
         
-    print("ys after end  padding=\n",ys.shape)
+ #   print("ys after end  padding=\n",ys.shape)
 
 
 
     series_table,product_name,extended_dates=add_a_new_series(series_table,pred_product_names,ys,start_point,predict_ahead_steps,periods_len)
  
-    print("\n 1series table=\n",series_table.T.columns,series_table.shape)
+  #  print("\n 1series table=\n",series_table.T.columns,series_table.shape)
    
  #  print("est after=",series_table,series_table.shape,product_names)  
 
@@ -1324,7 +1324,7 @@ def main():
                #  series_table=series_table.T
     series_table,product_names,extended_dates=add_a_new_series(series_table,pred_product_names,mc_ys,start_point,predict_ahead_steps,periods_len)
     
-    print("\n 2series table=\n",series_table.columns,series_table.shape)
+  #  print("\n 2series table=\n",series_table.columns,series_table.shape)
    
      #############################################################
      
@@ -1360,7 +1360,7 @@ def main():
     print("MC dropout predict finished\n")
     
     
-    print("\n 3series table=\n",series_table.columns,series_table.shape)
+ #   print("\n 3series table=\n",series_table.columns,series_table.shape)
 ##############################################################
   #  print("product names=",product_names)
  #   series_table=series_table.T
