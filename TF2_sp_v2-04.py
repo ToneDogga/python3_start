@@ -193,10 +193,10 @@ def load_data(filename,index_code,mat_type_dict):    #,col_name_list,window_size
  #   mask = mask.replace('"','').strip()    
  #   print("mask=",mask)
        # mask=(df['product']=='SJ300')
-    mask=((df['code']=='FLPAS') & (df['product']=='SJ300'))
+   # mask=((df['code']=='FLPAS') & (df['product']=='SJ300'))
 #    mask=((df['code']=='FLPAS') & (df['productgroup']==10) & (df['product']=='SJ300'))   #mask=bool(mask_str)
   #  mask=((df['productgroup']>=10) & (df['productgroup']<=11))
-  #  mask=((df['code']=='FLPAS') & ((df['product']=='SJ300') | (df['product']=='TS300')))
+    mask=((df['code']=='FLPAS') & ((df['product']=='SJ300') | (df['product']=='TS300')))
   #  mask=(df['cat']=='77')
 
   #  index_code=['product']  
@@ -753,7 +753,7 @@ class MCDropout(keras.layers.AlphaDropout):
 
 def main():
 
-    predict_ahead_steps=70
+    predict_ahead_steps=700
 
  #   epochs_cnn=1
     epochs_wavenet=3
@@ -792,8 +792,8 @@ def main():
    # index_code=['code']
    # index_code=['product']  
    # index_code=['productgroup'] 
-   # index_code=['code','product']
-    index_code=['code','productgroup','product']
+    index_code=['code','product']
+   # index_code=['code','productgroup','product']
 ###############################################33
   #  you also need to change the mask itself which is in the load data function
 #################################################    
@@ -1366,7 +1366,9 @@ def main():
   #  print("product names=",product_names)
  #   series_table=series_table.T
     for p in range(0,series_table.shape[0]):
-        plt.figure(figsize=(11,4))
+    #    plt.figure(figsize=(11,4))
+        plt.figure(figsize=(15,6))
+ 
         plt.subplot(121)
         
         ax = plt.gca()
@@ -1435,39 +1437,69 @@ def main():
 
     #    series_table=series_table.T       
     pd.to_pickle(series_table,"final_series_table.pkl")
-     
+   
+    with open("calc_sales_prediction_"+str(product_names[0])+".csv", 'w') as f:  #csvfile:
+        series_table.to_csv(f)  #,line_terminator='rn')
     
-    print("series_table=\n",series_table)    
+    
+  #  print("series_table=\n",series_table)    
   ### Only interested in mc_pred columns
   
  #   print("-10:",series_table.columns.iloc[:,-10:])   #,"mt_pred_mc") 
     st=series_table.filter(like='mt_pred_mc', axis=0).T
-  #  new_st=st.columns[st.find('@'):]
+    
+  #  print("pred_mc only=\n",st)
+    
+    #st_columns=list(st.columns)
+  #  print("sbefore t columns",st_columns)
+    #for col in st_columns:
+    #   st_columns=st_columns[col.find('@'):]
  
-    test3=st.columns.split("@") 
-    print("test3=",test3)
+   # print("after st columns",st_columns)
+    
+   # test3=list(st.columns).split("@") 
+  #  print("test3=",st_columns)
 #  print("new st=\n",new_st,new_st.columns)
     
   # series table format is unit sales per day
   #we want to group by and sum by week
     
-    forecast_table = st.resample('W', label='left', loffset=pd.DateOffset(days=1)).sum().div(units_per_ctn).round(1)
+  # forecast_table = st.resample('W', label='left', loffset=pd.DateOffset(days=1)).sum().div(units_per_ctn).round(1)
+    forecast_table = st.resample('W', label='left', loffset=pd.DateOffset(days=1)).sum().round(0)
     
-    print("forecast table",forecast_table,forecast_table.shape)
+  #  print("forecast table",forecast_table,forecast_table.shape)
+    col_names=list(forecast_table.columns)
+  #  print("col names=",col_names)
+    new_col_names=[x[:x.find("@")] for x in col_names]
+    print("new col names=",new_col_names)
+  #  new_col_names_dict=dict(new_col_names)
+ #   forecast_table.filter(like=mask_str,axis=0)
 
-    forecast_table.filter(like=mask_str,axis=0)
+#    # cols_dict=dict(cols)  
+  #  print("new cols name dict",new_col_names_dict)
+#   #  print("index shape=",np.shape(cols))
+#     flat_column_names = [''.join(col).strip() for col in cols] 
 
+#   #  fcn_dict=dict(flat_column_names)    
+#   #  print("fcn dict",fcn_dict)
 
+    rename_dict=dict(zip(col_names, new_col_names))
+ #   print("rename dict",rename_dict)
+# #   print("tc=",tc)
+#  #   flat_column_names = [a_tuple[0][level] for a_tuple in np.shape(cols[level])[1] for level in np.shape(cols)[0]]
+#   #  print("fcn=",flat_column_names)
+    forecast_table.rename(rename_dict, axis='columns',inplace=True)
+    
 
-    forecast_table.columns = pd.MultiIndex.from_product([forecast_table.columns, ['C']])
+   # forecast_table.columns = pd.MultiIndex.from_product([forecast_table.columns, ['C']])
     #teste=pd.MultiIndex.from_frame(forecast_table.T)  #, names=['state', 'observation'])
-    print("teste=\n",forecast_table)
+    print("forecast_table=\n",forecast_table)
     #test=teste.set_levels([['a', 'b'], [1, 2]],  level=[0, 1])
   #  print("test",test,test.shape)
   
     
-    with open("calc_sales_prediction_"+str(product_names[0])+".csv", 'w') as f:  #csvfile:
-        forecast_table.to_csv(f)  #,line_terminator='rn')
+    # with open("calc_sales_prediction_"+str(product_names[0])+".csv", 'w') as f:  #csvfile:
+    #     forecast_table.to_csv(f)  #,line_terminator='rn')
  
     
     
@@ -1528,10 +1560,13 @@ def main():
 #     table8 = pd.pivot_table(dbd2, values='predict_qty_ctnsof8', index=['predict_date',"product"],columns=['code'], aggfunc=np.sum, margins=True, fill_value=0)
 #   #  print("\ntable8=\n",table8.head(5))
 #     f.write("\n\n"+table8.to_string())
+    s=str(new_col_names[0])
+    s = s.replace(',', '_')
+    s = s.replace("'", "")
+    s = s.replace(" ", "")
 
-
-#     with pd.ExcelWriter(cfg.outxlsfile) as writer:  # mode="a" for append
-#         table.to_excel(writer,sheet_name="Units1")
+    with pd.ExcelWriter("SCB_"+s+".xls") as writer:  # mode="a" for append
+        forecast_table.to_excel(writer,sheet_name="Units1")
 #         table2.to_excel(writer,sheet_name="Units2")
 #         table3.to_excel(writer,sheet_name="Units3")
 #         table4.to_excel(writer,sheet_name="Units4")
