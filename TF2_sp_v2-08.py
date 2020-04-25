@@ -446,7 +446,7 @@ def build_mini_batch_input2(series,no_of_batches,no_of_steps):
 
 def build_mini_batch_input(series,no_of_batches,batch_length):
     print("build",no_of_batches,"mini batches")
-    batch_length+=1  # add an extra step which is the target (y)
+  #  batch_length+=1  # add an extra step which is the target (y)
     np.random.seed(45)
     # series_table= pd.read_pickle("series_table.pkl")
     # #print("series table=\n",series_table,series_table.shape)
@@ -454,15 +454,15 @@ def build_mini_batch_input(series,no_of_batches,batch_length):
     # input_length=series_table.shape[0]
     no_of_steps=series.shape[1]
     
-    # print("batch_length=",batch_length)
+    print("batch_length=",batch_length)
     # print("input length",input_length)
-  #  print("no of stepsh=",no_of_steps)
+    print("no of steps=",no_of_steps)
     
     # number_of_batches=50000
-    repeats_needed=round(no_of_batches/(no_of_steps-batch_length+1),0)
+    repeats_needed=round(no_of_batches/(no_of_steps-batch_length),0)
     #print("rn=",repeats_needed)
     
-    gridtest=np.meshgrid(np.arange(0,batch_length),np.arange(0,no_of_steps-batch_length+1))
+    gridtest=np.meshgrid(np.arange(0,batch_length+1),np.arange(0,no_of_steps-(batch_length+1)))
     #start_index=gridtest[0]+gridtest[1]
     #start_index=np.repeat(start_index,repeats_needed,axis=0)   #[:,:,np.newaxis]
     start_index=np.repeat(gridtest[0]+gridtest[1],repeats_needed,axis=0)   #[:,:,np.newaxis]
@@ -487,7 +487,7 @@ def build_mini_batch_input(series,no_of_batches,batch_length):
    # new_batches=np.swapaxes(new_batches,0,1)
    # new_batches=np.swapaxes(new_batches,1,2)
     print("batches complete. batches shape:",new_batches.shape)
-    return new_batches[:,:no_of_steps,:],new_batches[:,1:no_of_steps+1,:]
+    return new_batches[:,:batch_length,:],new_batches[:,1:batch_length+1,:]
 
 
 
@@ -816,8 +816,8 @@ def main():
     predict_ahead_steps=830
 
  #   epochs_cnn=1
-    epochs_wavenet=12
-    no_of_batches=50000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
+    epochs_wavenet=8
+    no_of_batches=100000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
     batch_length=16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
 #    y_length=1
     neurons=1000  #2000
