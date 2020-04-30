@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import pickle
 from collections import defaultdict
-
+import SCBS0 as c
 
 filename="tables_dict.pkl"
 
@@ -484,12 +484,12 @@ def find_series_type(series_name):
 
 
 
-predict_ahead_steps=830
+predict_ahead_steps=c.predict_ahead_steps
 
  #   epochs_cnn=1
 #epochs_wavenet=36
-no_of_batches=100000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
-batch_length=16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
+no_of_batches=c.no_of_batches   #100000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
+batch_length=c.batch_length #16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
 #    y_length=1
 #neurons=1600  #1000-2000
  
@@ -503,16 +503,16 @@ batch_length=16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years 
                   #  "m":["margin","margin","m."]
 #                   })
    
-mats=[14]   #omving average window periods for each data column to add to series table
-start_point=np.max(mats)+15  # we need to have exactly a multiple of 365 days on the start point to get the zseasonality right  #batch_length+1   #np.max(mats) #+1
-mat_types=["u"]  #,"d","m"]
+mats=c.mats   #[14]   #omving average window periods for each data column to add to series table
+start_point=c.start_point  #np.max(mats)+15  # we need to have exactly a multiple of 365 days on the start point to get the zseasonality right  #batch_length+1   #np.max(mats) #+1
+mat_types=c.mat_types    #["u"]  #,"d","m"]
    
-units_per_ctn=8
+units_per_ctn=c.units_per_ctn  #8
    
 # train validate test split 
-train_percent=0.7
-validate_percent=0.2
-test_percent=0.1
+train_percent=c.train_percent   #0.7
+validate_percent=c.validate_percent  #0.2
+test_percent=c.test_percent  #0.1
  
 
 print("moving average days",mats)
@@ -604,12 +604,12 @@ for table_number in all_tables.keys():
      X,y=build_mini_batch_input(mat_sales_x,no_of_batches,batch_length)
     
     
-     print("\n\nSave batches")
-     np.save("batch_train_X.npy",X)
-     np.save("batch_train_y.npy",y)
+     # print("\n\nSave batches")
+     # np.save("batch_train_X.npy",X)
+     # np.save("batch_train_y.npy",y)
      
-     print("Saving mat_sales_x")
-     np.save("mat_sales_x.npy",mat_sales_x)
+     # print("Saving mat_sales_x")
+     # np.save("mat_sales_x.npy",mat_sales_x)
      
 
         
@@ -689,6 +689,8 @@ for table_number in all_tables.keys():
      batch_list[table_number].append(X_test)
      batch_list[table_number].append(y_test)
      batch_list[table_number].append(mat_sales_x)
+     batch_list[table_number].append(product_names)
+     batch_list[table_number].append(series_table)
 
  
  

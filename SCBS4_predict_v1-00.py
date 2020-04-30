@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import pickle
 from collections import defaultdict
-
+import SCBS0 as c
 
 filename="tables_dict.pkl"
 
@@ -31,7 +31,7 @@ tf.config.experimental.set_memory_growth(gpus[0], True)
 from tensorflow import keras
 assert tf.__version__ >= "2.0"
 
-print("\n\nTurn a list of tables into a list of batches - By Anthony Paech 25/2/20")
+print("\n\nUse pretrained models to make predictions - By Anthony Paech 30/4/20")
 print("========================================================================")       
 
 print("Python version:",sys.version)
@@ -287,7 +287,49 @@ def graph_a_series(series_table,dates,column_names):
         
     return 
     
+     
   
+def add_a_new_series(table,arr_names,arr,start_point,predict_ahead_steps,periods_len):
+  
+  #  print("ans input table shape",table,table.shape)
+  #  print("add a new series first date=",table.index[0])
+ #   print("ans arr_names",arr_names)
+ #   print("ans arr[0]",arr[0].shape)
+    first_date=(table.T.index[0]+timedelta(days=int(start_point+1))).strftime('%Y-%m-%d')
+  #  print("ans first_date",first_date)
+    pidx = pd.period_range(table.T.index[0]+timedelta(days=int(start_point+1)), periods=periods_len-1-start_point)   # 2000 days  
+  #  print("befofre dates=pidx",pidx,periods_len)
+    
+    pad_before_arr = np.empty((1,start_point,arr.shape[2]))
+    pad_before_arr[:] = np.NaN
+  #  print("pad befor arr=\n",pad_before_arr.shape,"arr[0]=\n",arr[:,start_point:,:].shape)
+    y_values= np.concatenate((pad_before_arr,arr[:,start_point:,:]),axis=1)
+   # print("aaseries y_values.shapoe",y_values[0].shape)
+  #  print("pidx=",len(pidx))
+#    new_cols=pd.DataFrame(arr[0,start_point:,:],columns=arr_names,index=pidx[start_point:]).T
+ #   new_cols=pd.DataFrame(y_values,columns=arr_names,index=pidx[start_point:]).T
+    new_cols=pd.DataFrame(y_values[0],columns=arr_names,index=pidx).T
+
+  #  print("ans input new cols",new_cols,new_cols.shape)
+  #  print("Table=\n",table,table.shape)
+ #   table=table.T 
+    table2=pd.concat((table,new_cols),join='outer',axis=0)   
+    new_product_names=list(table2.T.columns)
+  #  print("ans output table2 shape",table2,table2.shape)
+#    print("extended dates",list(series_table.index))
+    extended_dates=list(table2.columns.to_timestamp(freq="D",how="S"))
+  #  print("extended dates=",extended_dates)
+    return table2,new_product_names,extended_dates
+    
+     
+ 
+    
+    
+def actual_days(series_table):
+  #  print("ad=",series_table.index[0])
+    first_date=series_table.index[0].to_timestamp(freq="D",how="S")
+    last_date=series_table.index[-1].to_timestamp(freq="D",how="S")
+    return (last_date - first_date).days +1    #.timedelta_series.dt.days    
 
 
 
@@ -304,13 +346,15 @@ def graph_a_series(series_table,dates,column_names):
 
 
 
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
 
-predict_ahead_steps=830
+
+predict_ahead_steps=c.predict_ahead_steps  #130
 
  #   epochs_cnn=1
 #epochs_wavenet=1
 #no_of_batches=10000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
-#batch_length=16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
+batch_length=c.batch_length #16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
 #    y_length=1
 #neurons=1600  #1000-2000
  
@@ -324,9 +368,9 @@ predict_ahead_steps=830
                   #  "m":["margin","margin","m."]
 #                   })
    
-mats=[14]   #omving average window periods for each data column to add to series table
-start_point=np.max(mats)+15  # we need to have exactly a multiple of 365 days on the start point to get the zseasonality right  #batch_length+1   #np.max(mats) #+1
-mat_types=["u"]  #,"d","m"]
+mats=c.mats   #[14]   #omving average window periods for each data column to add to series table
+start_point=c.start_point   #np.max(mats)+15  # we need to have exactly a multiple of 365 days on the start point to get the zseasonality right  #batch_length+1   #np.max(mats) #+1
+mat_types=c.mat_types # ["u"]  #,"d","m"]
    
 
 
@@ -336,7 +380,7 @@ print("\n\nPredict from models")
 
 
 
-print("\n\ntest unpickling")  
+print("\n\nunpickling model filenames")  
 with open("model_filenames.pkl", "rb") as f:
      model_filenames_list = pickle.load(f)
 #   #  testout2 = pickle.load(f)
@@ -350,8 +394,9 @@ with open(filename, "rb") as f:
     all_tables = pickle.load(f)
   #  testout2 = pickle.load(f)
 qnames=[all_tables[k][0] for k in all_tables.keys()]    
-#print("unpickled",len(all_tables),"tables (",qnames,")")
+print("unpickled",len(all_tables),"tables (",qnames,")")
    
+
 ########################################
 
 model_number=0
@@ -359,20 +404,37 @@ for model_name in model_filenames_list:
     model=keras.models.load_model(model_name,custom_objects={"last_time_step_mse": last_time_step_mse})
 
     print("\nmodel=",model_name,"loaded.\n\n")
-    print(model.summary)
+    model.summary
    
+    with open("product_names_"+str(qnames[model_number])+".pkl","rb") as g:
+         original_product_names=pickle.load(g)
+ 
+    required_starting_length=731+np.max(mats)+batch_length   # 2 years plus the MAT data lost at the start + batchlength
+
     
     print("\nSingle Series Predicting",predict_ahead_steps,"steps ahead.")
-    print("series=\n",list(series_table.index),"\n")
+ #   print("series=\n",list(series_table.index),"\n")
     print("Loading mat_sales_x")
   #  mat_sales_x=np.load("mat_sales_x.npy")
   #  with open("batch_dict.pkl", "rb") as f:
   #      batches = pickle.load(f)
-    mat_sales_x =batches[model_number][6]
-
+    mat_sales_x =batches[model_number][7]
+    product_names=batches[model_number][8]
+    series_table=batches[model_number][9]
 
     print("mat_sales_x shape",mat_sales_x.shape)
-   
+    print("series table shape",series_table.shape)
+
+    actual_days_in_series_table=actual_days(series_table.T)
+        
+        
+    print("actual days in series table=",actual_days_in_series_table)
+    print("required minimum starting days for 2 year series analysis:",required_starting_length)
+
+
+    periods_len=actual_days_in_series_table+predict_ahead_steps # np.max(mats)
+    print("total periods=",periods_len)
+
 
     original_steps=mat_sales_x.shape[1]
     ys= model.predict(mat_sales_x[:,start_point:,:])    #[:, np.newaxis,:]
@@ -579,8 +641,9 @@ for model_name in model_filenames_list:
   #we want to group by and sum by week
     
   # forecast_table = st.resample('W', label='left', loffset=pd.DateOffset(days=1)).sum().div(units_per_ctn).round(1)
-    forecast_table = st.resample('W', label='left', loffset=pd.DateOffset(days=1)).sum().round(0)
-    
+    #forecast_table = st.resample('W', label='left', loffset=pd.DateOffset(days=1)).sum().round(0)
+    forecast_table = st.resample('M', label='left', loffset=pd.DateOffset(days=1)).sum().round(0)
+   
   #  print("forecast table",forecast_table,forecast_table.shape)
     col_names=list(forecast_table.columns)
   #  print("col names=",col_names)
@@ -612,13 +675,13 @@ for model_name in model_filenames_list:
     forecast_table.index=forecast_table.index.strftime("%Y-%m-%d")
 
     print("forecast_table=\n",forecast_table)
-     s=str(new_col_names[0])
+    s=str(new_col_names[0])
     s = s.replace(',', '_')
     s = s.replace("'", "")
     s = s.replace(" ", "")
 
     # to get over the 256 column limit in excel
-    forecast_table.to_csv("SCB_"+s++"_"+str(qnames[model_number])".csv") 
+    forecast_table.to_csv("SCBS_"+str(qnames[model_number])+"_"+s+".csv") 
 
     model_number+=1
     #with pd.ExcelWriter("SCB_"+s+".xls") as writer:  # mode="a" for append
@@ -642,13 +705,8 @@ for model_name in model_filenames_list:
 #############################################################################  
     
   
-    print("\n\nFinished.")
+print("\n\nFinished.")
   
-    return
-
-
-if __name__ == '__main__':
-    main()
 
 
     

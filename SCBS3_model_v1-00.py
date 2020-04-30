@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import pickle
 from collections import defaultdict
-
+import SCBS0 as c
 
 filename="tables_dict.pkl"
 
@@ -305,18 +305,18 @@ def graph_a_series(series_table,dates,column_names):
 
 
 
-predict_ahead_steps=830
+predict_ahead_steps=c.predict_ahead_steps  #130
 
  #   epochs_cnn=1
-epochs_wavenet=4
-no_of_batches=10000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
-batch_length=16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
+epochs_wavenet=c.epochs_wavenet   #4
+no_of_batches=c.no_of_batches   #10000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
+batch_length=c.batch_length  #16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
 #    y_length=1
-neurons=1600  #1000-2000
+neurons=c.neurons  #1600  #1000-2000
  
 #pred_error_sample_size=40
 
-patience=6   #5
+patience=c.patience #6   #5
 
 # dictionary mat type code :   aggsum field, name, color
    # mat_type_dict=dict({"u":["qty","units","b-"]
@@ -324,9 +324,9 @@ patience=6   #5
                   #  "m":["margin","margin","m."]
 #                   })
    
-mats=[14]   #omving average window periods for each data column to add to series table
-start_point=np.max(mats)+15  # we need to have exactly a multiple of 365 days on the start point to get the zseasonality right  #batch_length+1   #np.max(mats) #+1
-mat_types=["u"]  #,"d","m"]
+mats=c.mats #[14]   #omving average window periods for each data column to add to series table
+start_point=c.start_point   #np.max(mats)+15  # we need to have exactly a multiple of 365 days on the start point to get the zseasonality right  #batch_length+1   #np.max(mats) #+1
+mat_types=c.mat_types  #["u"]  #,"d","m"]
    
 # units_per_ctn=8
    
@@ -345,7 +345,8 @@ mat_types=["u"]  #,"d","m"]
 
 
 #print(batch_dict)
-print("\n\nlearn from the batches")  
+print("\n\nLearn from the batches")  
+print("======================\n")
 with open("batch_dict.pkl", "rb") as f:
     batches = pickle.load(f)
   #  testout2 = pickle.load(f)
@@ -374,17 +375,18 @@ for b in batches.keys():
      y_valid =batches[b][4]
      X_test=batches[b][5]
      y_test =batches[b][6]
-
-    
+     mat_sales_x=batches[b][7]
+     product_names=batches[b][8]
+     series_table=batches[b][9]
     
      print("\n processing query:",queryname,"....\n")
      
      
  
-     print("loading product_names")  #,product_names)
-     with open('product_names.pkl', 'rb') as f:
-          product_names = pickle.load(f)   
-     print("product names=",product_names)     
+   #  print("loading product_names")  #,product_names)
+   #  with open('product_names.pkl', 'rb') as f:
+   #       product_names = pickle.load(f)   
+   #  print("product names=",product_names)     
 #    product_names=list(np.load("product_names.npy"))
    # # dates=list(np.load("periods.npy",allow_pickle=True))
      print("loading dates")
@@ -399,8 +401,8 @@ for b in batches.keys():
      print("Loading pivot table",series_table.shape) 
 
 
-     print("Loading mat_sales_x")
-     mat_sales_x=np.load("mat_sales_x.npy")
+  #   print("Loading mat_sales_x")
+  #   mat_sales_x=np.load("mat_sales_x.npy")
     
      actual_days_in_series_table=mat_sales_x.shape[1]
     
@@ -555,7 +557,7 @@ with open("model_filenames.pkl", "rb") as f:
      testout1 = pickle.load(f)
 #   #  testout2 = pickle.load(f)
 # qnames=[testout1[k][0] for k in testout1.keys()]    
-print("unpickled model filenme list",testout1)
+print("unpickled model filename list",testout1)
 
 # #query_dict2=testout1['query_dict']
 # #print("table dict two unpickled=",testout1)

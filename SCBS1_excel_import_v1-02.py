@@ -9,13 +9,13 @@ import pandas as pd
 import numpy as np
 import pickle
 from collections import defaultdict
-
+import SCBS0 as c
 
 
 #filenames=["NAT-raw240420_no_shop_WW_Coles.xlsx"]
-filenames=["allsalestrans2020.xlsx","allsalestrans2018.xlsx"]
-
-queryfilename="queryfile.xlsx"
+#filenames=["allsalestrans2020.xlsx","allsalestrans2018.xlsx"]
+filenames=c.filenames
+queryfilename=c.queryfilename
 
  
 
