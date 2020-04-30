@@ -483,247 +483,262 @@ def find_series_type(series_name):
 
 
 
-
-predict_ahead_steps=c.predict_ahead_steps
-
- #   epochs_cnn=1
-#epochs_wavenet=36
-no_of_batches=c.no_of_batches   #100000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
-batch_length=c.batch_length #16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
-#    y_length=1
-#neurons=1600  #1000-2000
- 
-#pred_error_sample_size=40
-
-#patience=6   #5
-
-# dictionary mat type code :   aggsum field, name, color
-   # mat_type_dict=dict({"u":["qty","units","b-"]
-                  #  "d":["salesval","dollars","r-"],
-                  #  "m":["margin","margin","m."]
-#                   })
-   
-mats=c.mats   #[14]   #omving average window periods for each data column to add to series table
-start_point=c.start_point  #np.max(mats)+15  # we need to have exactly a multiple of 365 days on the start point to get the zseasonality right  #batch_length+1   #np.max(mats) #+1
-mat_types=c.mat_types    #["u"]  #,"d","m"]
-   
-units_per_ctn=c.units_per_ctn  #8
-   
-# train validate test split 
-train_percent=c.train_percent   #0.7
-validate_percent=c.validate_percent  #0.2
-test_percent=c.test_percent  #0.1
- 
-
-print("moving average days",mats)
-print("start point",start_point)
-print("predict ahead steps=",predict_ahead_steps,"\n")
-required_starting_length=731+np.max(mats)+batch_length   # 2 years plus the MAT data lost at the start + batchlength
-
-
-print("\nBatch creator\n\n")
-print("unpickling '",filename,"'")  
-with open(filename, "rb") as f:
-    all_tables = pickle.load(f)
-  #  testout2 = pickle.load(f)
-qnames=[all_tables[k][0] for k in all_tables.keys()]    
-print("unpickled",len(all_tables),"tables (",qnames,")")
-
-
-########################################
-
-
-
-batch_list = defaultdict(list)
-
-  
-
-
-table_number=0
-for table_number in all_tables.keys():
-     print("\n processing table:",qnames[table_number],"....\n")
-     series_table=all_tables[table_number][1]
-
-
-
-     actual_days_in_series_table=actual_days(series_table)
-     
-     
-     print("actual days in series table=",actual_days_in_series_table)
-     print("required minimum starting days for 2 year series analysis:",required_starting_length)
-     
-     
-     periods_len=actual_days_in_series_table+predict_ahead_steps # np.max(mats)
-     print("total periods=",periods_len)
+def main():    
+    predict_ahead_steps=c.predict_ahead_steps
     
-
+     #   epochs_cnn=1
+    #epochs_wavenet=36
+    no_of_batches=c.no_of_batches   #100000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
+    batch_length=c.batch_length #16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
+    #    y_length=1
+    #neurons=1600  #1000-2000
      
-     series_table,extended_dates,actual_days_in_series,start_point=extend_pivot_table(series_table,periods_len,actual_days_in_series_table,required_starting_length,predict_ahead_steps,start_point)
+    #pred_error_sample_size=40
+    
+    #patience=6   #5
+    
+    # dictionary mat type code :   aggsum field, name, color
+       # mat_type_dict=dict({"u":["qty","units","b-"]
+                      #  "d":["salesval","dollars","r-"],
+                      #  "m":["margin","margin","m."]
+    #                   })
        
-     series_table=add_all_mats(series_table,mats,actual_days_in_series_table,mat_types)
-     
-     series_table,product_names=flatten_multi_index_column_names(series_table)
-      
-     graph_whole_pivot_table(series_table.iloc[:,:actual_days_in_series_table],extended_dates[:actual_days_in_series_table],qnames[table_number])
-   
-     series_table.T.to_csv("series_table_"+str(qnames[table_number])+".csv")    
-     
-     #    series_table=series_table.T
-     
-     #    print("Saving product names",product_names)
-     with open("product_names_"+str(qnames[table_number])+".pkl","wb") as f:
-         pickle.dump(product_names,f)
-      #   np.save("product_names.npy",np.asarray(product_names))
-     
-     print("Saving dates",len(extended_dates))
-     #with open('dates.pkl', 'wb') as f:
-     #    pickle.dump(dates,f,protocol=4)   
-     with open("extended_dates_"+str(qnames[table_number])+".pkl", 'wb') as f:
-         pickle.dump(extended_dates,f)   
-     
-      #   scaled_series=series_table.to_numpy()
-     scaled_series=series_table.to_numpy()
-     #scaled_series=scaled_series[:,start_point:actual_days_in_series_table]
-     scaled_series=scaled_series[:,:actual_days_in_series_table]
-    
-     #    print("1scaled series=\n",scaled_series[:20],scaled_series.shape)
-     scaled_series=np.nan_to_num(scaled_series,0)
-      #   print("2scaled series=\n",scaled_series[:20],scaled_series.shape)
-      
+    mats=c.mats   #[14]   #omving average window periods for each data column to add to series table
+    start_point=c.start_point  #np.max(mats)+15  # we need to have exactly a multiple of 365 days on the start point to get the zseasonality right  #batch_length+1   #np.max(mats) #+1
+    mat_types=c.mat_types    #["u"]  #,"d","m"]
        
-      #   print("scaled series=",scaled_series,scaled_series.shape)
-     mat_sales_x=np.swapaxes(scaled_series,0,1)
-    # mat_sales_x=np.swapaxes(scaled_series,0,1)
+    units_per_ctn=c.units_per_ctn  #8
+       
+    # train validate test split 
+    train_percent=c.train_percent   #0.7
+    validate_percent=c.validate_percent  #0.2
+    test_percent=c.test_percent  #0.1
      
-     mat_sales_x=mat_sales_x[np.newaxis] 
-     
-     print("Build batches")
-     print("mat sales_x.shape=\n",mat_sales_x.shape)
+    
+    print("moving average days",mats)
+    print("start point",start_point)
+    print("predict ahead steps=",predict_ahead_steps,"\n")
+    required_starting_length=c.required_starting_length    #=731+np.max(mats)+batch_length   # 2 years plus the MAT data lost at the start + batchlength
     
     
-     X,y=build_mini_batch_input(mat_sales_x,no_of_batches,batch_length)
+    print("\nBatch creator\n\n")
+    print("unpickling '",filename,"'")  
+    with open(filename, "rb") as f:
+        all_tables = pickle.load(f)
+      #  testout2 = pickle.load(f)
+    qnames=[all_tables[k][0] for k in all_tables.keys()]    
+    print("unpickled",len(all_tables),"tables (",qnames,")")
     
     
-     # print("\n\nSave batches")
-     # np.save("batch_train_X.npy",X)
-     # np.save("batch_train_y.npy",y)
-     
-     # print("Saving mat_sales_x")
-     # np.save("mat_sales_x.npy",mat_sales_x)
-     
-
+    ########################################
+    
+    
+    
+    batch_list = defaultdict(list)
+    
+      
+    
+    
+    table_number=0
+    for table_number in all_tables.keys():
+         print("\n processing table:",qnames[table_number],"....\n")
+         series_table=all_tables[table_number][1]
+    
+    
+    
+         actual_days_in_series_table=actual_days(series_table)
+         
+         
+         print("actual days in series table=",actual_days_in_series_table)
+         print("required minimum starting days for 2 year series analysis:",required_starting_length)
+         
+         
+         periods_len=actual_days_in_series_table+predict_ahead_steps # np.max(mats)
+         print("total periods=",periods_len)
         
     
-     n_query_rows=X.shape[2]
-     n_steps=X.shape[1]-1
-     n_inputs=X.shape[2]
-     max_y=np.max(X)
-      
-     original_product_names=product_names
+         
+         series_table,extended_dates,actual_days_in_series,start_point=extend_pivot_table(series_table,periods_len,actual_days_in_series_table,required_starting_length,predict_ahead_steps,start_point)
+           
+         series_table=add_all_mats(series_table,mats,actual_days_in_series_table,mat_types)
+         
+         series_table,product_names=flatten_multi_index_column_names(series_table)
+          
+         saved_series_table=series_table.copy(deep=True)
+         print("saved series table shape=",saved_series_table.shape)
+            
+         graph_whole_pivot_table(series_table.iloc[:,:actual_days_in_series_table],extended_dates[:actual_days_in_series_table],qnames[table_number])
+       
+         series_table.T.to_csv("series_table_"+str(qnames[table_number])+".csv")    
+         
+         #    series_table=series_table.T
+         
     
-    # for p in range(0,series_table.shape[0]):
-    #     plt.figure(figsize=(11,4))
-    #     plt.subplot(121)
-    #     plt.title("A unit sales series: "+str(original_product_names[p]),fontsize=14)
-      
-    #     plt.ylabel("Units")
-    #     plt.xlabel("Period") 
-    #     graph_a_series(series_table,dates,original_product_names[p],series_dict)
+         
+         #    print("Saving product names",product_names)
+         with open("product_names_"+str(qnames[table_number])+".pkl","wb") as f:
+             pickle.dump(product_names,f)
+          #   np.save("product_names.npy",np.asarray(product_names))
+         
+         print("Saving dates",len(extended_dates))
+         #with open('dates.pkl', 'wb') as f:
+         #    pickle.dump(dates,f,protocol=4)   
+         with open("extended_dates_"+str(qnames[table_number])+".pkl", 'wb') as f:
+             pickle.dump(extended_dates,f)   
+         
+          #   scaled_series=series_table.to_numpy()
+         scaled_series=series_table.to_numpy()
+         #scaled_series=scaled_series[:,start_point:actual_days_in_series_table]
+         scaled_series=scaled_series[:,:actual_days_in_series_table]
         
-    #     plt.legend(loc="best")
-    #     plt.show()
+         #    print("1scaled series=\n",scaled_series[:20],scaled_series.shape)
+         scaled_series=np.nan_to_num(scaled_series,0)
+          #   print("2scaled series=\n",scaled_series[:20],scaled_series.shape)
+          
+           
+          #   print("scaled series=",scaled_series,scaled_series.shape)
+         mat_sales_x=np.swapaxes(scaled_series,0,1)
+        # mat_sales_x=np.swapaxes(scaled_series,0,1)
+         
+         mat_sales_x=mat_sales_x[np.newaxis] 
+         
+         print("Build batches")
+         print("mat sales_x.shape=\n",mat_sales_x.shape)
         
+        
+         X,y=build_mini_batch_input(mat_sales_x,no_of_batches,batch_length)
+        
+        
+         # print("\n\nSave batches")
+         # np.save("batch_train_X.npy",X)
+         # np.save("batch_train_y.npy",y)
+         
+         # print("Saving mat_sales_x")
+         # np.save("mat_sales_x.npy",mat_sales_x)
+         
     
-       # print("epochs_cnn=",epochs_cnn)
-     #print("epochs_wavenet=",epochs_wavenet)
-       # print("dates=",dates)
+            
+        
+         n_query_rows=X.shape[2]
+         n_steps=X.shape[1]-1
+         n_inputs=X.shape[2]
+         max_y=np.max(X)
+          
+         original_product_names=product_names
+        
+        # for p in range(0,series_table.shape[0]):
+        #     plt.figure(figsize=(11,4))
+        #     plt.subplot(121)
+        #     plt.title("A unit sales series: "+str(original_product_names[p]),fontsize=14)
+          
+        #     plt.ylabel("Units")
+        #     plt.xlabel("Period") 
+        #     graph_a_series(series_table,dates,original_product_names[p],series_dict)
+            
+        #     plt.legend(loc="best")
+        #     plt.show()
+            
+        
+           # print("epochs_cnn=",epochs_cnn)
+         #print("epochs_wavenet=",epochs_wavenet)
+           # print("dates=",dates)
+        
+         print("n_query_rows=",n_query_rows)    
+         print("batch_length=",batch_length)
+         print("n_inputs=",n_inputs)
+         print("predict_ahead_steps=",predict_ahead_steps)
+         print("full prediction day length=",periods_len)
+        
+         print("max y=",max_y)
+        
+        
+        
+         #   print("mini_batches X shape=",X[0],X.shape)  
+         #   print("mini_batches y shape=",y[0],y.shape)  
+           
+         batch_size=X.shape[0]
+         print("Batch size=",batch_size)
+        
+          #  np.save("batch_train_X.npy",X)
+          #  np.save("batch_train_y.npy",y)
+           
+           
+         train_size=int(round(batch_size*train_percent,0))
+         validate_size=int(round(batch_size*validate_percent,0))
+         test_size=int(round(batch_size*test_percent,0))
+          
+         #  print("train_size=",train_size)
+         #  print("validate_size=",validate_size)
+         #  print("test_size=",test_size)
+           
+         X_train, y_train = X[:train_size, :,:], y[:train_size,-1:,:]
+         X_valid, y_valid = X[train_size:train_size+validate_size, :,:], y[train_size:train_size+validate_size,-1:,:]
+         X_test, y_test = X[train_size+validate_size:, :,:], y[train_size+validate_size:,-1:,:]
+           # X_all, y_all = series2,series2[-1]
+           #       #  normalise
+        #    print("Normalising (L2)...")
+        #    norm_X_train=tf.keras.utils.normalize(X_train, axis=-1, order=2)
+        #    norm_y_train=tf.keras.utils.normalize(y_train, axis=-1, order=2)
+        
+        
+          # print("\npredict series shape",series.shape)
+         print("X_train shape, y_train",X_train.shape, y_train.shape)
+         print("X_valid shape, y_valid",X_valid.shape, y_valid.shape)
+         print("X_test shape, y_test",X_test.shape, y_test.shape)
+           
+         batch_list[table_number].append(qnames[table_number])
+         batch_list[table_number].append(X_train)
+         batch_list[table_number].append(y_train)
+         batch_list[table_number].append(X_valid)
+         batch_list[table_number].append(y_valid)
+         batch_list[table_number].append(X_test)
+         batch_list[table_number].append(y_test)
+         batch_list[table_number].append(mat_sales_x)
+         batch_list[table_number].append(product_names)
+         batch_list[table_number].append(saved_series_table)
+     
+         print("mat_sales_x shape2=",mat_sales_x.shape)
+         
+         print("saved series table shape2=",saved_series_table.shape)
+     
+     
+     
+         table_number+=1
+         #########################################################
+     
+    print("final batch list len=",len(batch_list))    
     
-     print("n_query_rows=",n_query_rows)    
-     print("batch_length=",batch_length)
-     print("n_inputs=",n_inputs)
-     print("predict_ahead_steps=",predict_ahead_steps)
-     print("full prediction day length=",periods_len)
-    
-     print("max y=",max_y)
-    
-    
-    
-     #   print("mini_batches X shape=",X[0],X.shape)  
-     #   print("mini_batches y shape=",y[0],y.shape)  
-       
-     batch_size=X.shape[0]
-     print("Batch size=",batch_size)
-    
-      #  np.save("batch_train_X.npy",X)
-      #  np.save("batch_train_y.npy",y)
-       
-       
-     train_size=int(round(batch_size*train_percent,0))
-     validate_size=int(round(batch_size*validate_percent,0))
-     test_size=int(round(batch_size*test_percent,0))
       
-     #  print("train_size=",train_size)
-     #  print("validate_size=",validate_size)
-     #  print("test_size=",test_size)
-       
-     X_train, y_train = X[:train_size, :,:], y[:train_size,-1:,:]
-     X_valid, y_valid = X[train_size:train_size+validate_size, :,:], y[train_size:train_size+validate_size,-1:,:]
-     X_test, y_test = X[train_size+validate_size:, :,:], y[train_size+validate_size:,-1:,:]
-       # X_all, y_all = series2,series2[-1]
-       #       #  normalise
-    #    print("Normalising (L2)...")
-    #    norm_X_train=tf.keras.utils.normalize(X_train, axis=-1, order=2)
-    #    norm_y_train=tf.keras.utils.normalize(y_train, axis=-1, order=2)
+    batch_dict = dict((k, tuple(v)) for k, v in batch_list.items())  #.iteritems())
     
     
-      # print("\npredict series shape",series.shape)
-     print("X_train shape, y_train",X_train.shape, y_train.shape)
-     print("X_valid shape, y_valid",X_valid.shape, y_valid.shape)
-     print("X_test shape, y_test",X_test.shape, y_test.shape)
-       
-     batch_list[table_number].append(qnames[table_number])
-     batch_list[table_number].append(X_train)
-     batch_list[table_number].append(y_train)
-     batch_list[table_number].append(X_valid)
-     batch_list[table_number].append(y_valid)
-     batch_list[table_number].append(X_test)
-     batch_list[table_number].append(y_test)
-     batch_list[table_number].append(mat_sales_x)
-     batch_list[table_number].append(product_names)
-     batch_list[table_number].append(series_table)
-
- 
- 
-     table_number+=1
-     #########################################################
- 
-print("final batch list len=",len(batch_list))    
-
-  
-batch_dict = dict((k, tuple(v)) for k, v in batch_list.items())  #.iteritems())
-
-
-#print("\n table dict=\n",table_dict)
-
-with open("batch_dict.pkl","wb") as f:
-    pickle.dump(batch_dict, f,protocol=-1)
+    #print("\n table dict=\n",table_dict)
     
-#querynames=[table_dict[k][0] for k in table_dict.keys()]    
-print("pickling",len(batch_dict))   #," (",[table_dict[k][0] for k in table_dict.keys()],")")
+    with open("batch_dict.pkl","wb") as f:
+        pickle.dump(batch_dict, f,protocol=-1)
+        
+    #querynames=[table_dict[k][0] for k in table_dict.keys()]    
+    print("pickling",len(batch_dict))   #," (",[table_dict[k][0] for k in table_dict.keys()],")")
+    
+    
+    #######################################################
+    
+    
+    
+    # #print(batch_dict)
+    # print("\n\ntest unpickling")  
+    # with open("batch_dict.pkl", "rb") as f:
+    #     testout1 = pickle.load(f)
+    #   #  testout2 = pickle.load(f)
+    # qnames=[testout1[k][0] for k in testout1.keys()]    
+    # print("unpickled",len(testout1),"tables (",qnames,")")
+    
+    # for n in range(len(qnames)):    
+    #     print(testout1[n][0],"=\n",testout1[n][1:7]) 
+    
+    return
 
 
-#######################################################
-
-
-
-# #print(batch_dict)
-# print("\n\ntest unpickling")  
-# with open("batch_dict.pkl", "rb") as f:
-#     testout1 = pickle.load(f)
-#   #  testout2 = pickle.load(f)
-# qnames=[testout1[k][0] for k in testout1.keys()]    
-# print("unpickled",len(testout1),"tables (",qnames,")")
-
-# for n in range(len(qnames)):    
-#     print(testout1[n][0],"=\n",testout1[n][1:7]) 
+if __name__ == '__main__':
+    main()
 

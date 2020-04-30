@@ -291,10 +291,10 @@ def graph_a_series(series_table,dates,column_names):
   
 def add_a_new_series(table,arr_names,arr,start_point,predict_ahead_steps,periods_len):
   
-  #  print("ans input table shape",table,table.shape)
-  #  print("add a new series first date=",table.index[0])
- #   print("ans arr_names",arr_names)
- #   print("ans arr[0]",arr[0].shape)
+    print("ans input table shape",table,table.shape)
+    print("add a new series first date=",table.index[0])
+    print("ans arr_names",arr_names)
+    print("ans arr[0]",arr[0].shape)
     first_date=(table.T.index[0]+timedelta(days=int(start_point+1))).strftime('%Y-%m-%d')
   #  print("ans first_date",first_date)
     pidx = pd.period_range(table.T.index[0]+timedelta(days=int(start_point+1)), periods=periods_len-1-start_point)   # 2000 days  
@@ -326,390 +326,401 @@ def add_a_new_series(table,arr_names,arr,start_point,predict_ahead_steps,periods
     
     
 def actual_days(series_table):
-  #  print("ad=",series_table.index[0])
+ #   print("ad=",series_table.index[0])
     first_date=series_table.index[0].to_timestamp(freq="D",how="S")
     last_date=series_table.index[-1].to_timestamp(freq="D",how="S")
     return (last_date - first_date).days +1    #.timedelta_series.dt.days    
 
 
 
+       
+
+def find_series_type(series_name):
+    return series_name[series_name.find(':')+1:]
 
 
 
 
 
-
-
-
-
-
-
-
-
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
-
-
-predict_ahead_steps=c.predict_ahead_steps  #130
-
- #   epochs_cnn=1
-#epochs_wavenet=1
-#no_of_batches=10000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
-batch_length=c.batch_length #16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
-#    y_length=1
-#neurons=1600  #1000-2000
- 
-#pred_error_sample_size=40
-
-#patience=6   #5
-
-# dictionary mat type code :   aggsum field, name, color
-   # mat_type_dict=dict({"u":["qty","units","b-"]
-                  #  "d":["salesval","dollars","r-"],
-                  #  "m":["margin","margin","m."]
-#                   })
-   
-mats=c.mats   #[14]   #omving average window periods for each data column to add to series table
-start_point=c.start_point   #np.max(mats)+15  # we need to have exactly a multiple of 365 days on the start point to get the zseasonality right  #batch_length+1   #np.max(mats) #+1
-mat_types=c.mat_types # ["u"]  #,"d","m"]
-   
-
-
-
-#print(batch_dict)
-print("\n\nPredict from models")  
-
-
-
-print("\n\nunpickling model filenames")  
-with open("model_filenames.pkl", "rb") as f:
-     model_filenames_list = pickle.load(f)
-#   #  testout2 = pickle.load(f)
-# qnames=[testout1[k][0] for k in testout1.keys()]    
-print("unpickled model filenames list",model_filenames_list)
-
-with open("batch_dict.pkl", "rb") as f:
-    batches = pickle.load(f)
-
-with open(filename, "rb") as f:
-    all_tables = pickle.load(f)
-  #  testout2 = pickle.load(f)
-qnames=[all_tables[k][0] for k in all_tables.keys()]    
-print("unpickled",len(all_tables),"tables (",qnames,")")
-   
-
-########################################
-
-model_number=0
-for model_name in model_filenames_list:
-    model=keras.models.load_model(model_name,custom_objects={"last_time_step_mse": last_time_step_mse})
-
-    print("\nmodel=",model_name,"loaded.\n\n")
-    model.summary
-   
-    with open("product_names_"+str(qnames[model_number])+".pkl","rb") as g:
-         original_product_names=pickle.load(g)
- 
-    required_starting_length=731+np.max(mats)+batch_length   # 2 years plus the MAT data lost at the start + batchlength
-
+def main():
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
     
-    print("\nSingle Series Predicting",predict_ahead_steps,"steps ahead.")
- #   print("series=\n",list(series_table.index),"\n")
-    print("Loading mat_sales_x")
-  #  mat_sales_x=np.load("mat_sales_x.npy")
-  #  with open("batch_dict.pkl", "rb") as f:
-  #      batches = pickle.load(f)
-    mat_sales_x =batches[model_number][7]
-    product_names=batches[model_number][8]
-    series_table=batches[model_number][9]
-
-    print("mat_sales_x shape",mat_sales_x.shape)
-    print("series table shape",series_table.shape)
-
-    actual_days_in_series_table=actual_days(series_table.T)
-        
-        
-    print("actual days in series table=",actual_days_in_series_table)
-    print("required minimum starting days for 2 year series analysis:",required_starting_length)
-
-
-    periods_len=actual_days_in_series_table+predict_ahead_steps # np.max(mats)
-    print("total periods=",periods_len)
-
-
-    original_steps=mat_sales_x.shape[1]
-    ys= model.predict(mat_sales_x[:,start_point:,:])    #[:, np.newaxis,:]
-    print("ys shape",ys.shape)
-
-  #  pas=predict_ahead_steps   #,dtype=tf.none)
     
-    for step_ahead in range(1,predict_ahead_steps):
-          print("\rstep:",step_ahead,"/",predict_ahead_steps,"ys shape",ys.shape,end='\r',flush=True)
-          y_pred_one = model.predict(ys[:,:(start_point+step_ahead),:])[:, np.newaxis,:]  #[:,step_ahead:,:])   #X[:, new_step:])    #[:, np.newaxis,:]
-          ys = np.concatenate((ys,y_pred_one[:,:,-1,:]),axis=1)    #[:, np.newaxis,:]), axis=1)
-     #     print("ys",ys,"ys shape",ys.shape,step_ahead)
+    predict_ahead_steps=c.predict_ahead_steps  #130
+    
+     #   epochs_cnn=1
+    #epochs_wavenet=1
+    #no_of_batches=10000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
+    batch_length=c.batch_length #16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
+    #    y_length=1
+    #neurons=1600  #1000-2000
+     
+    pred_error_sample_size=c.pred_error_sample_size  #40
+    
+    #patience=6   #5
+    
+    # dictionary mat type code :   aggsum field, name, color
+       # mat_type_dict=dict({"u":["qty","units","b-"]
+                      #  "d":["salesval","dollars","r-"],
+                      #  "m":["margin","margin","m."]
+    #                   })
+       
+    mats=c.mats   #[14]   #omving average window periods for each data column to add to series table
+    start_point=c.start_point   #np.max(mats)+15  # we need to have exactly a multiple of 365 days on the start point to get the zseasonality right  #batch_length+1   #np.max(mats) #+1
+    mat_types=c.mat_types # ["u"]  #,"d","m"]
+       
+    
+    
+    
+    #print(batch_dict)
+    print("\n\nPredict from models")  
+    
+    
+    
+    print("\n\nunpickling model filenames")  
+    with open("model_filenames.pkl", "rb") as f:
+         model_filenames_list = pickle.load(f)
+    #   #  testout2 = pickle.load(f)
+    # qnames=[testout1[k][0] for k in testout1.keys()]    
+    print("unpickled model filenames list",model_filenames_list)
+    
+    with open("batch_dict.pkl", "rb") as f:
+        batches = pickle.load(f)
+    
+    with open("tables_dict.pkl", "rb") as f:
+        all_tables = pickle.load(f)
+      #  testout2 = pickle.load(f)
+    qnames=[all_tables[k][0] for k in all_tables.keys()]    
+    print("unpickled",len(all_tables),"tables (",qnames,")")
+      
+    
+    required_starting_length=c.required_starting_length  #731+np.max(mats)+batch_length   # 2 years plus the MAT data lost at the start + batchlength
+    
+     
+    
+    ########################################
+    
+    model_number=0
+    for model_name in model_filenames_list:
+        model=keras.models.load_model(model_name,custom_objects={"last_time_step_mse": last_time_step_mse})
+    
+        print("\nmodel=",model_name,"loaded.\n\n")
+        model.summary
+       
+        with open("product_names_"+str(qnames[model_number])+".pkl","rb") as g:
+             original_product_names=pickle.load(g)
+     
+     
+        
+        print("\nSingle Series Predicting",predict_ahead_steps,"steps ahead.")
+     #   print("series=\n",list(series_table.index),"\n")
+        print("Loading mat_sales_x")
+      #  mat_sales_x=np.load("mat_sales_x.npy")
+      #  with open("batch_dict.pkl", "rb") as f:
+      #      batches = pickle.load(f)
+        mat_sales_x =batches[model_number][7]
+        product_names=batches[model_number][8]
+        #series_table=all_tables[model_number][1]
+        series_table=batches[model_number][9]
+    
+        print("unpickled series table shape",series_table.shape)
+    
+        print("mat_sales_x shape",mat_sales_x.shape)
+        print("series table shape",series_table.shape)
+    
+        actual_days_in_series_table=actual_days(series_table.T)
+            
+        #series_table=series_table.T    
+        print("actual days in series table=",actual_days_in_series_table)
+        print("required minimum starting days for 2 year series analysis:",required_starting_length)
+    
+    
+        periods_len=actual_days_in_series_table  #+predict_ahead_steps # np.max(mats)
+        print("total periods=",periods_len)
+    
+    
+        original_steps=mat_sales_x.shape[1]
+        ys= model.predict(mat_sales_x[:,start_point:,:])    #[:, np.newaxis,:]
+        print("ys shape",ys.shape)
+    
+      #  pas=predict_ahead_steps   #,dtype=tf.none)
+        
+        for step_ahead in range(1,predict_ahead_steps):
+              print("\rstep:",step_ahead,"/",predict_ahead_steps,"ys shape",ys.shape,end='\r',flush=True)
+              y_pred_one = model.predict(ys[:,:(start_point+step_ahead),:])[:, np.newaxis,:]  #[:,step_ahead:,:])   #X[:, new_step:])    #[:, np.newaxis,:]
+              ys = np.concatenate((ys,y_pred_one[:,:,-1,:]),axis=1)    #[:, np.newaxis,:]), axis=1)
+         #     print("ys",ys,"ys shape",ys.shape,step_ahead)
+             
+    
+        print("\rstep:",step_ahead+1,"/",predict_ahead_steps,end='\n\n',flush=True)
+        pred_product_names=[s + "pred" for s in original_product_names]    #original_product_names
+    
+        print("len pred pn=",pred_product_names)
+        print("seresi table=\n",series_table.shape)    
+        print("ys=",ys.shape)
+    
+        series_table,product_name,extended_dates=add_a_new_series(series_table,pred_product_names,ys,start_point,predict_ahead_steps,periods_len)
+     
+    
+    
+    ##########################################################################33
+    
+        #print("mat_sales_x shape",mat_sales_x.shape,"n_steps=",n_steps)
+          
+        print("\npredict with MC dropout.  sample_size=",pred_error_sample_size)
          
-
-    print("\rstep:",step_ahead+1,"/",predict_ahead_steps,end='\n\n',flush=True)
-    pred_product_names=[s + "pred" for s in original_product_names]    #original_product_names
-
-
-
-    series_table,product_name,extended_dates=add_a_new_series(series_table,pred_product_names,ys,start_point,predict_ahead_steps,periods_len)
- 
-
-
-##########################################################################33
-
-    #print("mat_sales_x shape",mat_sales_x.shape,"n_steps=",n_steps)
+     #   print("Loading mat_sales_x")
+     #   mat_sales_x=np.load("mat_sales_x.npy")
+         
+       # model=keras.models.load_model("wavenet_sales_predict_model.h5",custom_objects={"last_time_step_mse": last_time_step_mse})
+         
+                  #   print("mat_sales_x shape",mat_sales_x.shape,"n_steps=",n_steps)
+          
+         
+         
+        original_steps=mat_sales_x.shape[1]
+                 # ys= model.predict(mat_sales_x[:,start_point:,:])    #[:, np.newaxis,:]
+                             # print("ys shape",ys.shape)
+         
+        mc_ys= model.predict(mat_sales_x[:,start_point:,:])    #[:, np.newaxis,:]
+                 #  mc_yerr=[0]
+        mc_yerr=mc_ys/1000   # to get the stddev started with the correct shape
+                 # print("mc_ys shape",mc_ys.shape)
+                             # print("mc_yerr=\n",mc_yerr,mc_yerr.shape)
+         
+         
+       # pas=predict_ahead_steps   #,dtype=tf.none)
+         
+        for step_ahead in range(1,predict_ahead_steps):
+           print("\rstep:",step_ahead,"/",predict_ahead_steps,"mc_ys shape",mc_ys.shape,end='\r',flush=True)
+                   #   y_pred_one = model.predict(ys[:,:(start_point+step_ahead),:])[:, np.newaxis,:]  #[:,step_ahead:,:])   #X[:, new_step:])    #[:, np.newaxis,:]
+          
+           
+           y_probas=np.stack([model(mc_ys[:,:(start_point+step_ahead),:],training=True) for sample in range(pred_error_sample_size)])[:, np.newaxis,:]
+                       #     print("y_probas shpae=\n",y_probas.shape)
+           y_mean=y_probas.mean(axis=0)
+           y_stddev=y_probas.std(axis=0)
+         
+         
+                              #     print("ys",ys,"ys shape",ys.shape,step_ahead)
+                      #     print("y_mean=\n",y_mean,y_mean.shape)
+           
+           
+                   #   ys = np.concatenate((ys,y_pred_one[:,:,-1,:]),axis=1)    #[:, np.newaxis,:]), axis=1)
+           mc_ys = np.concatenate((mc_ys,y_mean[:,:,-1,:]),axis=1)    #[:, np.newaxis,:]), axis=1)
+           mc_yerr = np.concatenate((mc_yerr,y_stddev[:,:,-1,:]),axis=1)    #[:, np.newaxis,:]), axis=1)
+         
+         
+        print("\rstep:",step_ahead+1,"/",predict_ahead_steps,end='\n\n',flush=True)
+        
+        
+        #########################################33 
+           
+        pred_product_names=[s + "pred_mc" for s in original_product_names]
+         
+         
+                   #  series_table=series_table.T
+        series_table,product_names,extended_dates=add_a_new_series(series_table,pred_product_names,mc_ys,start_point,predict_ahead_steps,periods_len)
+        
+      #  print("\n 2series table=\n",series_table.columns,series_table.shape)
+       
+         #############################################################
+         
+        pred_product_names=[s + "yerr_mc" for s in original_product_names]  
+         
+         
+       
+         
+                  #   series_table=series_table.T    
+        series_table,product_names,extended_dates=add_a_new_series(series_table,pred_product_names,mc_yerr,start_point,predict_ahead_steps,periods_len)
+        
+        
+        print("MC dropout predict finished\n")
+        
+        
+     #   print("\n 3series table=\n",series_table.columns,series_table.shape)
+    ##############################################################
+      #  print("product names=",product_names)
+     #   series_table=series_table.T
+        for p in range(0,series_table.shape[0]):
+        #    plt.figure(figsize=(11,4))
+            plt.figure(figsize=(14,5))
+     
+            plt.subplot(121)
+            
+            ax = plt.gca()
+        #    ax.tick_params(axis = 'both', which = 'major',rotation=90, labelsize = 6)
+            ax.tick_params(axis = 'x', which = 'major',rotation=45, labelsize = 8)
+    
+        #       ax.tick_params(axis = 'both', which = 'minor', rotation=90, labelsize = 6)
+    
+            plt.title("Sales/day:Actual+Pred: "+str(product_names[p]+"_"+str(qnames[model_number])),fontsize=10)
+          
+            plt.ylabel("Units or $ / day",fontsize=9)
+            plt.xlabel("Date",fontsize=9) 
+            graph_a_series(series_table,extended_dates,str(product_names[p]))
+            #,series_table.columns)
+            
+            plt.legend(loc="best",fontsize=8)
+            save_fig("sales_pred_"+str(product_names[p]))
+            plt.show()
+         
+            
+         
+       # print("Save graph")
+       # save_fig("sales_pred")
+    
+    
+    #     for p in range(0,n_query_rows):
+    #      #   ax = plt.gca()
+    #         plt.plot(range(0,len(extended_dates)), extended_dates,ax=x, markersize=5, label="period")
+            
+    #         plt.title("Series Pred: Actual vs 95% Prediction: "+str(product_names[p]),fontsize=14)
+    #         plt.plot(range(0,mat_sales_x.shape[1]), mat_sales_x[0,:,p], "b-", markersize=5, label="actual")
+    #         plt.plot(range(start_point,original_steps), ys[0,:(original_steps-start_point),p],"g.", markersize=5, label="validation")
+    #    #     plt.plot(range(start_point,original_steps), mc_ys[0,:(original_steps-start_point),p],"y-", markersize=5, label="mc validation")
+    # #        plt.plot(range(mat_sales_x.shape[1]-1,mat_sales_x.shape[1]+predict_ahead_steps-1), mc_ys[0,-(predict_ahead_steps):,p], "m-", markersize=5, label="mc prediction")
+    #         plt.errorbar(range(mat_sales_x.shape[1]-1,mat_sales_x.shape[1]+predict_ahead_steps-1), mc_ys[0,-(predict_ahead_steps):,p], yerr=mc_yerr[0,-(predict_ahead_steps):,p]*2,errorevery=20,ecolor='magenta',color='red',linestyle='dotted', label="dropout mean pred 95% conf")
+    
+    
+    #      #   plt.plot(range(mat_sales_x.shape[1]-1,mat_sales_x.shape[1]+predict_ahead_steps-1), ys[0,-(predict_ahead_steps):,p], "r-", markersize=5, label="single prediction")
+    #         plt.legend(loc="best")
+    #         plt.xlabel("Period")
+            
+    #         plt.show()
+     
+    
+         
+    
+    
+    
+    
+           
+    #######################################################################################    
+        
+        print("\nwrite predictions to sales_prediction(.....).CSV file....")
+    #    dates.sort()
       
-    print("\npredict with MC dropout.  sample_size=",pred_error_sample_size)
-     
- #   print("Loading mat_sales_x")
- #   mat_sales_x=np.load("mat_sales_x.npy")
-     
-   # model=keras.models.load_model("wavenet_sales_predict_model.h5",custom_objects={"last_time_step_mse": last_time_step_mse})
-     
-              #   print("mat_sales_x shape",mat_sales_x.shape,"n_steps=",n_steps)
+       # print("extended series table=\n",extended_series_table)
+        
+      #  print("\nseries table shape=",series_table.shape)
+    
+      #  print("First date=",extended_dates[0])
+      #  print("last date=",extended_dates[-1])
+        with open("sales_prediction_"+str(qnames[model_number])+"_"+str(product_names[0])+".csv", 'w') as f:  #csvfile:
+            series_table.T.to_csv(f)  #,line_terminator='rn')
+        
+    
       
-     
-     
-    original_steps=mat_sales_x.shape[1]
-             # ys= model.predict(mat_sales_x[:,start_point:,:])    #[:, np.newaxis,:]
-                         # print("ys shape",ys.shape)
-     
-    mc_ys= model.predict(mat_sales_x[:,start_point:,:])    #[:, np.newaxis,:]
-             #  mc_yerr=[0]
-    mc_yerr=mc_ys/1000   # to get the stddev started with the correct shape
-             # print("mc_ys shape",mc_ys.shape)
-                         # print("mc_yerr=\n",mc_yerr,mc_yerr.shape)
-     
-     
-   # pas=predict_ahead_steps   #,dtype=tf.none)
-     
-    for step_ahead in range(1,predict_ahead_steps):
-       print("\rstep:",step_ahead,"/",predict_ahead_steps,"mc_ys shape",mc_ys.shape,end='\r',flush=True)
-               #   y_pred_one = model.predict(ys[:,:(start_point+step_ahead),:])[:, np.newaxis,:]  #[:,step_ahead:,:])   #X[:, new_step:])    #[:, np.newaxis,:]
+    ###############################################################
+    
+        print("Saving pickled final table - final_series_table.pkl",series_table.shape)
+    
+        #    series_table=series_table.T       
+        pd.to_pickle(series_table,"final_series_table_"+str(qnames[model_number])+".pkl")
+       
+        with open("calc_sales_prediction_"+str(qnames[model_number])+"_"+str(product_names[0])+".csv", 'w') as f:  #csvfile:
+            series_table.to_csv(f)  #,line_terminator='rn')
+        
+        
+      #  print("series_table=\n",series_table)    
+      ### Only interested in mc_pred columns
       
-       
-       y_probas=np.stack([model(mc_ys[:,:(start_point+step_ahead),:],training=True) for sample in range(pred_error_sample_size)])[:, np.newaxis,:]
-                   #     print("y_probas shpae=\n",y_probas.shape)
-       y_mean=y_probas.mean(axis=0)
-       y_stddev=y_probas.std(axis=0)
-     
-     
-                          #     print("ys",ys,"ys shape",ys.shape,step_ahead)
-                  #     print("y_mean=\n",y_mean,y_mean.shape)
-       
-       
-               #   ys = np.concatenate((ys,y_pred_one[:,:,-1,:]),axis=1)    #[:, np.newaxis,:]), axis=1)
-       mc_ys = np.concatenate((mc_ys,y_mean[:,:,-1,:]),axis=1)    #[:, np.newaxis,:]), axis=1)
-       mc_yerr = np.concatenate((mc_yerr,y_stddev[:,:,-1,:]),axis=1)    #[:, np.newaxis,:]), axis=1)
-     
-     
-    print("\rstep:",step_ahead+1,"/",predict_ahead_steps,end='\n\n',flush=True)
-    
-    
-    #########################################33 
-       
-    pred_product_names=[s + "pred_mc" for s in original_product_names]
-     
-     
-               #  series_table=series_table.T
-    series_table,product_names,extended_dates=add_a_new_series(series_table,pred_product_names,mc_ys,start_point,predict_ahead_steps,periods_len)
-    
-  #  print("\n 2series table=\n",series_table.columns,series_table.shape)
-   
-     #############################################################
-     
-    pred_product_names=[s + "yerr_mc" for s in original_product_names]  
-     
-     
-   
-     
-              #   series_table=series_table.T    
-    series_table,product_names,extended_dates=add_a_new_series(series_table,pred_product_names,mc_yerr,start_point,predict_ahead_steps,periods_len)
-    
-    
-    print("MC dropout predict finished\n")
-    
-    
- #   print("\n 3series table=\n",series_table.columns,series_table.shape)
-##############################################################
-  #  print("product names=",product_names)
- #   series_table=series_table.T
-    for p in range(0,series_table.shape[0]):
-    #    plt.figure(figsize=(11,4))
-        plt.figure(figsize=(14,5))
- 
-        plt.subplot(121)
+     #   print("-10:",series_table.columns.iloc[:,-10:])   #,"mt_pred_mc") 
+        st=series_table.filter(like='mt_pred_mc', axis=0).T
         
-        ax = plt.gca()
-    #    ax.tick_params(axis = 'both', which = 'major',rotation=90, labelsize = 6)
-        ax.tick_params(axis = 'x', which = 'major',rotation=45, labelsize = 8)
-
-    #       ax.tick_params(axis = 'both', which = 'minor', rotation=90, labelsize = 6)
-
-        plt.title("Sales/day:Actual+Pred: "+str(product_names[p]+"_"+str(qnames[model_number])),fontsize=10)
+      #  print("pred_mc only=\n",st)
+        
+        #st_columns=list(st.columns)
+      #  print("sbefore t columns",st_columns)
+        #for col in st_columns:
+        #   st_columns=st_columns[col.find('@'):]
+     
+       # print("after st columns",st_columns)
+        
+       # test3=list(st.columns).split("@") 
+      #  print("test3=",st_columns)
+    #  print("new st=\n",new_st,new_st.columns)
+        
+      # series table format is unit sales per day
+      #we want to group by and sum by week
+        
+      # forecast_table = st.resample('W', label='left', loffset=pd.DateOffset(days=1)).sum().div(units_per_ctn).round(1)
+        #forecast_table = st.resample('W', label='left', loffset=pd.DateOffset(days=1)).sum().round(0)
+        forecast_table = st.resample('M', label='left', loffset=pd.DateOffset(days=1)).sum().round(0)
+       
+      #  print("forecast table",forecast_table,forecast_table.shape)
+        col_names=list(forecast_table.columns)
+      #  print("col names=",col_names)
+        new_col_names=[x[:x.find("@")] for x in col_names]
+        print("new col names=",new_col_names)
+      #  new_col_names_dict=dict(new_col_names)
+     #   forecast_table.filter(like=mask_str,axis=0)
+    
+    #    # cols_dict=dict(cols)  
+      #  print("new cols name dict",new_col_names_dict)
+    #   #  print("index shape=",np.shape(cols))
+    #     flat_column_names = [''.join(col).strip() for col in cols] 
+    
+    #   #  fcn_dict=dict(flat_column_names)    
+    #   #  print("fcn dict",fcn_dict)
+    
+        rename_dict=dict(zip(col_names, new_col_names))
+     #   print("rename dict",rename_dict)
+    # #   print("tc=",tc)
+    #  #   flat_column_names = [a_tuple[0][level] for a_tuple in np.shape(cols[level])[1] for level in np.shape(cols)[0]]
+    #   #  print("fcn=",flat_column_names)
+        forecast_table.rename(rename_dict, axis='columns',inplace=True)
+        
+    
+       # forecast_table.columns = pd.MultiIndex.from_product([forecast_table.columns, ['C']])
+        #teste=pd.MultiIndex.from_frame(forecast_table.T)  #, names=['state', 'observation'])
+     
+       # forecast_table.index=forecast_table.index.to_timestamp(freq="D",how="S").dt.strftime("%Y-%m-%d")
+        forecast_table.index=forecast_table.index.strftime("%Y-%m-%d")
+    
+        print("forecast_table=\n",forecast_table)
+        s=str(new_col_names[0])
+        s = s.replace(',', '_')
+        s = s.replace("'", "")
+        s = s.replace(" ", "")
+    
+        # to get over the 256 column limit in excel
+        forecast_table.to_csv("SCBS_"+str(qnames[model_number])+"_"+s+".csv") 
+    
+        model_number+=1
+        #with pd.ExcelWriter("SCB_"+s+".xls") as writer:  # mode="a" for append
+        #    forecast_table.to_excel(writer,sheet_name="Units1")
+    #         table2.to_excel(writer,sheet_name="Units2")
+    #         table3.to_excel(writer,sheet_name="Units3")
+    #         table4.to_excel(writer,sheet_name="Units4")
+    #         table5.to_excel(writer,sheet_name="CtnsOfEight5")
+    #         table6.to_excel(writer,sheet_name="CtnsOfEight6")
+    #         table7.to_excel(writer,sheet_name="CtnsOfEight7")
+    #         table8.to_excel(writer,sheet_name="CtnsOfEight8")
+    
+    #     print("\n\nSales Prediction results from",start_d,"written to spreadsheet",cfg.outxlsfile,"\n\n")
+    #     f.write("\n\nSales Prediction results from "+str(start_d)+" written to spreadsheet:"+str(cfg.outxlsfile)+"\n\n")
+        
+       
+    ##############################################################################
+    
+     
+        
+    #############################################################################  
+        
       
-        plt.ylabel("Units or $ / day",fontsize=9)
-        plt.xlabel("Date",fontsize=9) 
-        graph_a_series(series_table,extended_dates,str(product_names[p]))
-        #,series_table.columns)
+    print("\n\nFinished.")
+      
+    
+    
+    return
+
+
+if __name__ == '__main__':
+    main()
+
         
-        plt.legend(loc="best",fontsize=8)
-        save_fig("sales_pred_"+str(product_names[p]))
-        plt.show()
-     
-        
-     
-   # print("Save graph")
-   # save_fig("sales_pred")
-
-
-#     for p in range(0,n_query_rows):
-#      #   ax = plt.gca()
-#         plt.plot(range(0,len(extended_dates)), extended_dates,ax=x, markersize=5, label="period")
-        
-#         plt.title("Series Pred: Actual vs 95% Prediction: "+str(product_names[p]),fontsize=14)
-#         plt.plot(range(0,mat_sales_x.shape[1]), mat_sales_x[0,:,p], "b-", markersize=5, label="actual")
-#         plt.plot(range(start_point,original_steps), ys[0,:(original_steps-start_point),p],"g.", markersize=5, label="validation")
-#    #     plt.plot(range(start_point,original_steps), mc_ys[0,:(original_steps-start_point),p],"y-", markersize=5, label="mc validation")
-# #        plt.plot(range(mat_sales_x.shape[1]-1,mat_sales_x.shape[1]+predict_ahead_steps-1), mc_ys[0,-(predict_ahead_steps):,p], "m-", markersize=5, label="mc prediction")
-#         plt.errorbar(range(mat_sales_x.shape[1]-1,mat_sales_x.shape[1]+predict_ahead_steps-1), mc_ys[0,-(predict_ahead_steps):,p], yerr=mc_yerr[0,-(predict_ahead_steps):,p]*2,errorevery=20,ecolor='magenta',color='red',linestyle='dotted', label="dropout mean pred 95% conf")
-
-
-#      #   plt.plot(range(mat_sales_x.shape[1]-1,mat_sales_x.shape[1]+predict_ahead_steps-1), ys[0,-(predict_ahead_steps):,p], "r-", markersize=5, label="single prediction")
-#         plt.legend(loc="best")
-#         plt.xlabel("Period")
-        
-#         plt.show()
- 
-
-     
-
-
-
-
-       
-#######################################################################################    
-    
-    print("\nwrite predictions to sales_prediction(.....).CSV file....")
-#    dates.sort()
-  
-   # print("extended series table=\n",extended_series_table)
-    
-  #  print("\nseries table shape=",series_table.shape)
-
-  #  print("First date=",extended_dates[0])
-  #  print("last date=",extended_dates[-1])
-    with open("sales_prediction_"+str(qnames[model_number])+"_"+str(product_names[0])+".csv", 'w') as f:  #csvfile:
-        series_table.T.to_csv(f)  #,line_terminator='rn')
-    
-
-  
-###############################################################
-
-    print("Saving pickled final table - final_series_table.pkl",series_table.shape)
-
-    #    series_table=series_table.T       
-    pd.to_pickle(series_table,"final_series_table_"+str(qnames[model_number])+".pkl")
-   
-    with open("calc_sales_prediction_"+str(qnames[model_number])+"_"+str(product_names[0])+".csv", 'w') as f:  #csvfile:
-        series_table.to_csv(f)  #,line_terminator='rn')
-    
-    
-  #  print("series_table=\n",series_table)    
-  ### Only interested in mc_pred columns
-  
- #   print("-10:",series_table.columns.iloc[:,-10:])   #,"mt_pred_mc") 
-    st=series_table.filter(like='mt_pred_mc', axis=0).T
-    
-  #  print("pred_mc only=\n",st)
-    
-    #st_columns=list(st.columns)
-  #  print("sbefore t columns",st_columns)
-    #for col in st_columns:
-    #   st_columns=st_columns[col.find('@'):]
- 
-   # print("after st columns",st_columns)
-    
-   # test3=list(st.columns).split("@") 
-  #  print("test3=",st_columns)
-#  print("new st=\n",new_st,new_st.columns)
-    
-  # series table format is unit sales per day
-  #we want to group by and sum by week
-    
-  # forecast_table = st.resample('W', label='left', loffset=pd.DateOffset(days=1)).sum().div(units_per_ctn).round(1)
-    #forecast_table = st.resample('W', label='left', loffset=pd.DateOffset(days=1)).sum().round(0)
-    forecast_table = st.resample('M', label='left', loffset=pd.DateOffset(days=1)).sum().round(0)
-   
-  #  print("forecast table",forecast_table,forecast_table.shape)
-    col_names=list(forecast_table.columns)
-  #  print("col names=",col_names)
-    new_col_names=[x[:x.find("@")] for x in col_names]
-    print("new col names=",new_col_names)
-  #  new_col_names_dict=dict(new_col_names)
- #   forecast_table.filter(like=mask_str,axis=0)
-
-#    # cols_dict=dict(cols)  
-  #  print("new cols name dict",new_col_names_dict)
-#   #  print("index shape=",np.shape(cols))
-#     flat_column_names = [''.join(col).strip() for col in cols] 
-
-#   #  fcn_dict=dict(flat_column_names)    
-#   #  print("fcn dict",fcn_dict)
-
-    rename_dict=dict(zip(col_names, new_col_names))
- #   print("rename dict",rename_dict)
-# #   print("tc=",tc)
-#  #   flat_column_names = [a_tuple[0][level] for a_tuple in np.shape(cols[level])[1] for level in np.shape(cols)[0]]
-#   #  print("fcn=",flat_column_names)
-    forecast_table.rename(rename_dict, axis='columns',inplace=True)
-    
-
-   # forecast_table.columns = pd.MultiIndex.from_product([forecast_table.columns, ['C']])
-    #teste=pd.MultiIndex.from_frame(forecast_table.T)  #, names=['state', 'observation'])
- 
-   # forecast_table.index=forecast_table.index.to_timestamp(freq="D",how="S").dt.strftime("%Y-%m-%d")
-    forecast_table.index=forecast_table.index.strftime("%Y-%m-%d")
-
-    print("forecast_table=\n",forecast_table)
-    s=str(new_col_names[0])
-    s = s.replace(',', '_')
-    s = s.replace("'", "")
-    s = s.replace(" ", "")
-
-    # to get over the 256 column limit in excel
-    forecast_table.to_csv("SCBS_"+str(qnames[model_number])+"_"+s+".csv") 
-
-    model_number+=1
-    #with pd.ExcelWriter("SCB_"+s+".xls") as writer:  # mode="a" for append
-    #    forecast_table.to_excel(writer,sheet_name="Units1")
-#         table2.to_excel(writer,sheet_name="Units2")
-#         table3.to_excel(writer,sheet_name="Units3")
-#         table4.to_excel(writer,sheet_name="Units4")
-#         table5.to_excel(writer,sheet_name="CtnsOfEight5")
-#         table6.to_excel(writer,sheet_name="CtnsOfEight6")
-#         table7.to_excel(writer,sheet_name="CtnsOfEight7")
-#         table8.to_excel(writer,sheet_name="CtnsOfEight8")
-
-#     print("\n\nSales Prediction results from",start_d,"written to spreadsheet",cfg.outxlsfile,"\n\n")
-#     f.write("\n\nSales Prediction results from "+str(start_d)+" written to spreadsheet:"+str(cfg.outxlsfile)+"\n\n")
-    
-   
-##############################################################################
-
- 
-    
-#############################################################################  
-    
-  
-print("\n\nFinished.")
-  
-
-
-    
           
           
           

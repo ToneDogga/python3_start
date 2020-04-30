@@ -287,286 +287,280 @@ def graph_a_series(series_table,dates,column_names):
         
     return 
     
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-predict_ahead_steps=c.predict_ahead_steps  #130
-
- #   epochs_cnn=1
-epochs_wavenet=c.epochs_wavenet   #4
-no_of_batches=c.no_of_batches   #10000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
-batch_length=c.batch_length  #16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
-#    y_length=1
-neurons=c.neurons  #1600  #1000-2000
- 
-#pred_error_sample_size=40
-
-patience=c.patience #6   #5
-
-# dictionary mat type code :   aggsum field, name, color
-   # mat_type_dict=dict({"u":["qty","units","b-"]
-                  #  "d":["salesval","dollars","r-"],
-                  #  "m":["margin","margin","m."]
-#                   })
    
-mats=c.mats #[14]   #omving average window periods for each data column to add to series table
-start_point=c.start_point   #np.max(mats)+15  # we need to have exactly a multiple of 365 days on the start point to get the zseasonality right  #batch_length+1   #np.max(mats) #+1
-mat_types=c.mat_types  #["u"]  #,"d","m"]
-   
-# units_per_ctn=8
-   
-# # train validate test split 
-# train_percent=0.7
-# validate_percent=0.2
-# test_percent=0.1
-
-  
-
-# print("moving average days",mats)
-# print("start point",start_point)
-# print("predict ahead steps=",predict_ahead_steps,"\n")
-# required_starting_length=731+np.max(mats)+batch_length   # 2 years plus the MAT data lost at the start + batchlength
-
-
-
-#print(batch_dict)
-print("\n\nLearn from the batches")  
-print("======================\n")
-with open("batch_dict.pkl", "rb") as f:
-    batches = pickle.load(f)
-  #  testout2 = pickle.load(f)
-qnames=[batches[k][0] for k in batches.keys()]    
-print("unpickled",len(batches),"tables (",qnames,")")
-
-#for n in range(len(qnames)):    
-#    print(batches[n][0],"=\n",batches[n][1:7]) 
-
-
-
-
-
-   
-########################################
-model_list = defaultdict(list)
-model_filename_list=[]
-
-query_number=0
-for b in batches.keys():
     
-     queryname=batches[b][0]   
-     X_train=batches[b][1] 
-     y_train =batches[b][2]
-     X_valid=batches[b][3]
-     y_valid =batches[b][4]
-     X_test=batches[b][5]
-     y_test =batches[b][6]
-     mat_sales_x=batches[b][7]
-     product_names=batches[b][8]
-     series_table=batches[b][9]
     
-     print("\n processing query:",queryname,"....\n")
+    
+def main():
+    
+    predict_ahead_steps=c.predict_ahead_steps  #130
+    
+     #   epochs_cnn=1
+    epochs_wavenet=c.epochs_wavenet   #4
+    no_of_batches=c.no_of_batches   #10000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
+    batch_length=c.batch_length  #16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
+    #    y_length=1
+    neurons=c.neurons  #1600  #1000-2000
      
-     
- 
-   #  print("loading product_names")  #,product_names)
-   #  with open('product_names.pkl', 'rb') as f:
-   #       product_names = pickle.load(f)   
-   #  print("product names=",product_names)     
-#    product_names=list(np.load("product_names.npy"))
-   # # dates=list(np.load("periods.npy",allow_pickle=True))
-     print("loading dates")
-    # with open('dates.pkl', 'rb') as f:
-    #     dates = pickle.load(f)   
-     with open('extended_dates.pkl', 'rb') as f:
-          extended_dates = pickle.load(f)   
-   #     print("len dates",len(dates))
-   #     print("\nlen extended dates",len(extended_dates),"\n")
-     
-     series_table= pd.read_pickle("series_table.pkl")
-     print("Loading pivot table",series_table.shape) 
-
-
-  #   print("Loading mat_sales_x")
-  #   mat_sales_x=np.load("mat_sales_x.npy")
+    #pred_error_sample_size=40
     
-     actual_days_in_series_table=mat_sales_x.shape[1]
+    patience=c.patience #6   #5
     
-           
-#        product_names=list(series_table.index) 
-#        print("\nProduct names, length=",product_names,len(product_names))
-
-     periods_len=actual_days_in_series_table
- #       print("PERIODS=",periods_len)
-
-     n_query_rows=X_train.shape[2]
-     n_steps=X_train.shape[1]-1
-     n_inputs=X_train.shape[2]
-     max_y=np.max(mat_sales_x)
+    # dictionary mat type code :   aggsum field, name, color
+       # mat_type_dict=dict({"u":["qty","units","b-"]
+                      #  "d":["salesval","dollars","r-"],
+                      #  "m":["margin","margin","m."]
+    #                   })
+       
+    mats=c.mats #[14]   #omving average window periods for each data column to add to series table
+    start_point=c.start_point   #np.max(mats)+15  # we need to have exactly a multiple of 365 days on the start point to get the zseasonality right  #batch_length+1   #np.max(mats) #+1
+    mat_types=c.mat_types  #["u"]  #,"d","m"]
+       
+    # units_per_ctn=8
+       
+    # # train validate test split 
+    # train_percent=0.7
+    # validate_percent=0.2
+    # test_percent=0.1
+    
       
-     original_product_names=product_names
+    
+    # print("moving average days",mats)
+    # print("start point",start_point)
+    # print("predict ahead steps=",predict_ahead_steps,"\n")
+    # required_starting_length=731+np.max(mats)+batch_length   # 2 years plus the MAT data lost at the start + batchlength
+    
+    
+    
+    #print(batch_dict)
+    print("\n\nLearn from the batches")  
+    print("======================\n")
+    with open("batch_dict.pkl", "rb") as f:
+        batches = pickle.load(f)
+      #  testout2 = pickle.load(f)
+    qnames=[batches[k][0] for k in batches.keys()]    
+    print("unpickled",len(batches),"tables (",qnames,")")
+    
+    #for n in range(len(qnames)):    
+    #    print(batches[n][0],"=\n",batches[n][1:7]) 
+    
+    
+    
+    
+    
+       
+    ########################################
+    model_list = defaultdict(list)
+    model_filename_list=[]
+    
+    query_number=0
+    for b in batches.keys():
         
-
-   # print("epochs_cnn=",epochs_cnn)
-     print("epochs_wavenet=",epochs_wavenet)
-   # print("dates=",dates)
-    
-  #   print("n_query_rows=",n_query_rows)    
-     print("batch_length=",batch_length)
-     print("n_inputs=",n_inputs)
-     print("predict_ahead_steps=",predict_ahead_steps)
-     print("full prediction day length=",periods_len)
-
-     print("max y=",max_y)
-
-
-
- #   print("mini_batches X shape=",X[0],X.shape)  
- #   print("mini_batches y shape=",y[0],y.shape)  
-   
-  #  batch_size=X.shape[0]
-  #  print("Batch size=",batch_size)
-
-
-  # print("\npredict series shape",series.shape)
-     print("X_train shape, y_train",X_train.shape, y_train.shape)
-     print("X_valid shape, y_valid",X_valid.shape, y_valid.shape)
-     print("X_test shape, y_test",X_test.shape, y_test.shape)
-   
- #########################################################
-    
-  #  answer=input("Retrain model(s)?")
-  #  if answer=="y":
+         queryname=batches[b][0]   
+         X_train=batches[b][1] 
+         y_train =batches[b][2]
+         X_valid=batches[b][3]
+         y_valid =batches[b][4]
+         X_test=batches[b][5]
+         y_test =batches[b][6]
+         mat_sales_x=batches[b][7]
+         product_names=batches[b][8]
+         series_table=batches[b][9]
         
-     print("\n Neurons=",neurons,"[wavenet]. Building and compiling model\n")
+         print("\n processing query:",queryname,"....\n")
+         
+         
+     
+       #  print("loading product_names")  #,product_names)
+       #  with open('product_names.pkl', 'rb') as f:
+       #       product_names = pickle.load(f)   
+       #  print("product names=",product_names)     
+    #    product_names=list(np.load("product_names.npy"))
+       # # dates=list(np.load("periods.npy",allow_pickle=True))
+         print("loading dates")
+        # with open('dates.pkl', 'rb') as f:
+        #     dates = pickle.load(f)   
+         with open('extended_dates.pkl', 'rb') as f:
+              extended_dates = pickle.load(f)   
+       #     print("len dates",len(dates))
+       #     print("\nlen extended dates",len(extended_dates),"\n")
+         
+         series_table= pd.read_pickle("series_table.pkl")
+         print("Loading pivot table",series_table.shape) 
     
-     np.random.seed(42)
-     tf.random.set_seed(42)
-     layer_count=1    
-
-     model = keras.models.Sequential()
-     model.add(keras.layers.InputLayer(input_shape=[None,n_query_rows]))
-    #if (n_inputs>=8):
-     model.add(keras.layers.AlphaDropout(rate=0.2))
-     model.add(keras.layers.BatchNormalization())
-     for rate in (1,2,4,8) *2:      
-        model.add(keras.layers.Conv1D(filters=neurons, kernel_size=2,padding='causal',activation='relu',dilation_rate=rate)) 
-        layer_count+=1    
-     model.add(keras.layers.Conv1D(filters=n_query_rows, kernel_size=1))    
- #   optimizer=keras.optimizers.adam(lr=0.01,decay=1e-4)    
-   # model.compile(loss="mse", optimizer="adam", metrics=[last_time_step_mse])
-     model.compile(loss="mse", optimizer="adam", metrics=[last_time_step_mse])
-   
     
-   #     tensorboard_cb = keras.callbacks.TensorBoard(run_logdir)
-#    callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10),MyCustomCallback()]
-#        callbacks = [tf.keras.callbacks.EarlyStopping(monitor='loss', patience=patience),MyCustomCallback(),tensorboard_cb]
-     callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=patience),MyCustomCallback()]
-
-#    callbacks=[] 
+      #   print("Loading mat_sales_x")
+      #   mat_sales_x=np.load("mat_sales_x.npy")
+        
+         actual_days_in_series_table=mat_sales_x.shape[1]
+        
+               
+    #        product_names=list(series_table.index) 
+    #        print("\nProduct names, length=",product_names,len(product_names))
     
-     model.summary()
-
+         periods_len=actual_days_in_series_table
+     #       print("PERIODS=",periods_len)
     
-    # This callback will stop the training when there is no improvement in
-    # the validation loss for three consecutive epochs.
-
-               #   ,tf.keras.callbacks.ModelCheckpoint(
-               #       filepath='mymodel_{epoch}',
-               # # Path where to save the model
-               # # The two parameters below mean that we will overwrite
-               # # the current checkpoint if and only if
-               # # the `val_loss` score has improved.
-               #   save_best_only=True,
-               #   monitor='val_loss',
-               #   verbose=1)
-               #  ]
-
-   #     tensorboard_cb = keras.callbacks.TensorBoard(run_logdir)
-     history = model.fit(X_train, y_train, epochs=epochs_wavenet, callbacks=callbacks,
-                        validation_data=(X_valid, y_valid))
+         n_query_rows=X_train.shape[2]
+         n_steps=X_train.shape[1]-1
+         n_inputs=X_train.shape[2]
+         max_y=np.max(mat_sales_x)
+          
+         original_product_names=product_names
             
-        
-
-     model_filename="SCBS_model_"+str(qnames[query_number])+".h5"
-     print("\nsave model '",model_filename,"'")
-     model.save(model_filename, include_optimizer=True)
-  
-     model_filename_list.append(model_filename)   
-  
-   #  model_list[query_number].append(model)   
-#    model.summary()
-   #     model.evaluate(X_valid, Y_valid)
-
-
-    # Evaluate the model on the test data using `evaluate`
-     print('\n# Evaluate on test data')
-     results = model.evaluate(X_test, y_test, batch_size=5)
-     print('test loss, test acc:', results)
-
-      #  print('\nhistory dict:', history.history)
-
-     #   print("plot learning curve")
-     #   plot_learning_curves("learning curve",epochs_wavenet,history.history["loss"], history.history["val_loss"])
-     #   plt.show()
- 
-     print("plot log learning curve")       
-     plot_log_learning_curves("Log learning curve",epochs_wavenet,history.history["loss"], history.history["val_loss"],qnames[query_number])
-     plt.show()
-
-
-
- 
-     query_number+=1
-     #########################################################
- 
-print("final model filename list",model_filename_list)  
-
-  
-#model_dict = dict((k, tuple(v)) for k, v in model_list.items())  #.iteritems())
-
-
-#print("\n model dict=\n",model_dict)
-
-with open("model_filenames.pkl","wb") as f:
-    pickle.dump(model_filename_list, f,protocol=-1)
     
-#querynames=[table_dict[k][0] for k in table_dict.keys()]    
-#print("pickling",len(model_dict))   #," (",[table_dict[k][0] for k in table_dict.keys()],")")
+       # print("epochs_cnn=",epochs_cnn)
+         print("epochs_wavenet=",epochs_wavenet)
+       # print("dates=",dates)
+        
+      #   print("n_query_rows=",n_query_rows)    
+         print("batch_length=",batch_length)
+         print("n_inputs=",n_inputs)
+         print("predict_ahead_steps=",predict_ahead_steps)
+         print("full prediction day length=",periods_len)
+    
+         print("max y=",max_y)
+    
+    
+    
+     #   print("mini_batches X shape=",X[0],X.shape)  
+     #   print("mini_batches y shape=",y[0],y.shape)  
+       
+      #  batch_size=X.shape[0]
+      #  print("Batch size=",batch_size)
+    
+    
+      # print("\npredict series shape",series.shape)
+         print("X_train shape, y_train",X_train.shape, y_train.shape)
+         print("X_valid shape, y_valid",X_valid.shape, y_valid.shape)
+         print("X_test shape, y_test",X_test.shape, y_test.shape)
+       
+     #########################################################
+        
+      #  answer=input("Retrain model(s)?")
+      #  if answer=="y":
+            
+         print("\n Neurons=",neurons,"[wavenet]. Building and compiling model\n")
+        
+         np.random.seed(42)
+         tf.random.set_seed(42)
+         layer_count=1    
+    
+         model = keras.models.Sequential()
+         model.add(keras.layers.InputLayer(input_shape=[None,n_query_rows]))
+        #if (n_inputs>=8):
+         model.add(keras.layers.AlphaDropout(rate=0.2))
+         model.add(keras.layers.BatchNormalization())
+         for rate in (1,2,4,8) *2:      
+            model.add(keras.layers.Conv1D(filters=neurons, kernel_size=2,padding='causal',activation='relu',dilation_rate=rate)) 
+            layer_count+=1    
+         model.add(keras.layers.Conv1D(filters=n_query_rows, kernel_size=1))    
+     #   optimizer=keras.optimizers.adam(lr=0.01,decay=1e-4)    
+       # model.compile(loss="mse", optimizer="adam", metrics=[last_time_step_mse])
+         model.compile(loss="mse", optimizer="adam", metrics=[last_time_step_mse])
+       
+        
+       #     tensorboard_cb = keras.callbacks.TensorBoard(run_logdir)
+    #    callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10),MyCustomCallback()]
+    #        callbacks = [tf.keras.callbacks.EarlyStopping(monitor='loss', patience=patience),MyCustomCallback(),tensorboard_cb]
+         callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=patience),MyCustomCallback()]
+    
+    #    callbacks=[] 
+        
+         model.summary()
+    
+        
+        # This callback will stop the training when there is no improvement in
+        # the validation loss for three consecutive epochs.
+    
+                   #   ,tf.keras.callbacks.ModelCheckpoint(
+                   #       filepath='mymodel_{epoch}',
+                   # # Path where to save the model
+                   # # The two parameters below mean that we will overwrite
+                   # # the current checkpoint if and only if
+                   # # the `val_loss` score has improved.
+                   #   save_best_only=True,
+                   #   monitor='val_loss',
+                   #   verbose=1)
+                   #  ]
+    
+       #     tensorboard_cb = keras.callbacks.TensorBoard(run_logdir)
+         history = model.fit(X_train, y_train, epochs=epochs_wavenet, callbacks=callbacks,
+                            validation_data=(X_valid, y_valid))
+                
+            
+    
+         model_filename="SCBS_model_"+str(qnames[query_number])+".h5"
+         print("\nsave model '",model_filename,"'")
+         model.save(model_filename, include_optimizer=True)
+      
+         model_filename_list.append(model_filename)   
+      
+       #  model_list[query_number].append(model)   
+    #    model.summary()
+       #     model.evaluate(X_valid, Y_valid)
+    
+    
+        # Evaluate the model on the test data using `evaluate`
+         print('\n# Evaluate on test data')
+         results = model.evaluate(X_test, y_test, batch_size=5)
+         print('test loss, test acc:', results)
+    
+          #  print('\nhistory dict:', history.history)
+    
+         #   print("plot learning curve")
+         #   plot_learning_curves("learning curve",epochs_wavenet,history.history["loss"], history.history["val_loss"])
+         #   plt.show()
+     
+         print("plot log learning curve")       
+         plot_log_learning_curves("Log learning curve - "+str(qnames[query_number]),epochs_wavenet,history.history["loss"], history.history["val_loss"],qnames[query_number])
+         plt.show()
+    
+    
+    
+     
+         query_number+=1
+         #########################################################
+     
+    print("final model filename list",model_filename_list)  
+    
+      
+    #model_dict = dict((k, tuple(v)) for k, v in model_list.items())  #.iteritems())
+    
+    
+    #print("\n model dict=\n",model_dict)
+    
+    with open("model_filenames.pkl","wb") as f:
+        pickle.dump(model_filename_list, f,protocol=-1)
+        
+    #querynames=[table_dict[k][0] for k in table_dict.keys()]    
+    #print("pickling",len(model_dict))   #," (",[table_dict[k][0] for k in table_dict.keys()],")")
+    
+    
+    #######################################################
+    
+    
+    print("\n\ntest unpickling")  
+    with open("model_filenames.pkl", "rb") as f:
+         testout1 = pickle.load(f)
+    #   #  testout2 = pickle.load(f)
+    # qnames=[testout1[k][0] for k in testout1.keys()]    
+    print("unpickled model filename list",testout1)
+    
+    # #query_dict2=testout1['query_dict']
+    # #print("table dict two unpickled=",testout1)
+    
+    # #df2=testout1.keys()
+    # #print(testout1.keys())
+    # #print(testout1.values())
+    # #print(testout1[1])  
+    # print(testout1[0][1]) 
+    # print(testout1[1][1])
+    
+    return
 
 
-#######################################################
+if __name__ == '__main__':
+    main()
 
-
-print("\n\ntest unpickling")  
-with open("model_filenames.pkl", "rb") as f:
-     testout1 = pickle.load(f)
-#   #  testout2 = pickle.load(f)
-# qnames=[testout1[k][0] for k in testout1.keys()]    
-print("unpickled model filename list",testout1)
-
-# #query_dict2=testout1['query_dict']
-# #print("table dict two unpickled=",testout1)
-
-# #df2=testout1.keys()
-# #print(testout1.keys())
-# #print(testout1.values())
-# #print(testout1[1])  
-# print(testout1[0][1]) 
-# print(testout1[1][1])
-
-
+   
