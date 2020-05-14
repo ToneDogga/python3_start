@@ -8,6 +8,7 @@ Created on Thu Apr 30 13:58:04 2020
 
 
 import numpy as np
+import pandas as pd
 from datetime import datetime
 import os
 
@@ -26,22 +27,45 @@ def log_dir(prefix=""):
 class c(object):
     pass
   
-c.predict_ahead_steps=44
+#c.predict_ahead_steps=440
 
  #   epochs_cnn=1
-c.epochs_wavenet=5
-c.no_of_batches=80000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
-c.batch_length=16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
+c.epochs=8
+c.no_of_batches=10000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
+#c.batch_length=16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
 #    y_length=1
-c.neurons=1000  #1000-2000
-c.dropout_rate=0.4
+c.neurons=800  #1000-2000
+c.dropout_rate=0.2  
+# patience=10
+# epochs=10                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+c.start_point=32
+# no_of_batches=8000
+c.end_point=800
+# # predict aherad length is inside batch_length
+c.predict_ahead_length=365
+c.batch_length=365    #20+c.predict_ahead_length
+# #batch_length=(end_point-start_point)+predict_ahead_length
+c.X_window_length=c.batch_length-c.predict_ahead_length
 
-c.pred_error_sample_size=100
+    
+c.date_len=1300
+   
+c.dates = pd.period_range("02/02/18", periods=c.date_len)   # 2000 days
+
+# #future_steps=400
+# #blank_future_days=365
+# # batch_total=100000
+# train_percent=0.7
+# validate_percent=0.2
+# test_percent=0.1
+
+#
+c.pred_error_sample_size=10
 
 c.patience=5   #5
    
 c.mats=[28]   #omving average window periods for each data column to add to series table
-c.start_point=np.max(c.mats)+c.batch_length  # we need to have exactly a multiple of 365 days on the start point to get the zseasonality right  #batch_length+1   #np.max(mats) #+1
+#c.start_point=np.max(c.mats)+c.batch_length  # we need to have exactly a multiple of 365 days on the start point to get the zseasonality right  #batch_length+1   #np.max(mats) #+1
 c.mat_types=["u"]  #,"d","m"]
    
 c.units_per_ctn=8
@@ -95,15 +119,16 @@ os.makedirs(c.images_path, exist_ok=True)
 # pipeline
 
 
-import SCBS1_excel_import_v1_02 as scbs1 
-import SCBS2_batches_v1_00 as scbs2 
-import SCBS3_model_v1_00 as scbs3 
-import SCBS4_predict_v1_00 as scbs4 
+import SCBS1_excel_import_v2_00 as excelimport 
+import SCBS2_batches_v2_00 as batchup
+import SCBS3_model_v3_00 as trainmodel
+#import SCBS4_predict_v1_00 as predict 
+import SCBS4_predict_v4_00 as predict 
 
-scbs1.main(c)
-scbs2.main(c)
-scbs3.main(c)
-scbs4.main(c)
+excelimport.main(c)
+batchup.main(c)
+trainmodel.main(c)
+predict.main(c)
 
 
 
