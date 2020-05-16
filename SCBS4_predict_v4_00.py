@@ -1266,7 +1266,7 @@ def main(c):
         print("total periods=",periods_len)
     
     
-        original_steps=mat_sales_x.shape[1]
+    #    original_steps=series_table.shape[1]
         
 #####################################################################3        
 
@@ -1325,6 +1325,9 @@ def main(c):
         print("Y_mean=",Y_mean.shape)
         print("Y_stddev=",Y_stddev.shape)
         print("pal=",predict_ahead_length)
+        print("start point + pereiods len=",start_point+periods_len)
+        print("mat sales x len=",mat_sales_x.shape[1])
+        print("end poinbt=",end_point)
         
         #predict_values=np.concatenate([predict_values,Y_diag],axis=1) 
         
@@ -1335,7 +1338,7 @@ def main(c):
         #                    (2,1,"Actual_data") : predict_values[0,:,0],
                         (2,1,"Actual:"+str(qnames[model_number])) : mat_sales_x[0,:,0],
         
-                        (1,2,"MC_predict_mean_start") : end_point-start_point,
+                        (1,2,"MC_predict_mean_start") : mat_sales_x.shape[1],
                         (2,2,"Predicted:"+str(qnames[model_number])) : Y_mean,
                   #      (1,3,"MC_predict_stddev_start") : end_point,
                   #      (2,3,"MC_predict_stddev_data") : Y_stddev,
@@ -1350,10 +1353,10 @@ def main(c):
                
         #print("plot_dict=",plot_dict) 
         plot_df=create_plot_df(plot_dict,dates)
-        plot_df.plot()
+     #   plot_df.plot()
         
-        plt.errorbar(range(end_point,end_point+Y_mean.shape[0]), Y_mean, yerr=Y_stddev*2,errorevery=1,ecolor='red',color='red',linestyle='dotted')   #, label="dropout mean pred 95% conf")
-
+    #    plt.errorbar(range(end_point-start_point-7,end_point-start_point-7+Y_mean.shape[0]), Y_mean, yerr=Y_stddev*2,errorevery=1,ecolor='magenta',color='red',linestyle='dotted')   #, label="dropout mean pred 95% conf")
+        plot_df.plot()
 
         
         plt.legend(fontsize=10)
@@ -1471,7 +1474,9 @@ def main(c):
         s = s.replace(" ", "")
     
         # to get over the 256 column limit in excel
-        forecast_table.to_csv(c.output_dir+"SCBS_"+s+".csv") 
+     #   forecast_table.to_csv(c.output_dir+"SCBS_"+s+".csv") 
+        forecast_table.to_excel(c.output_dir+"SCBS_"+s+".xlsx") 
+
     #  +str(qnames[model_number])+
         model_number+=1
         #with pd.ExcelWriter("SCB_"+s+".xls") as writer:  # mode="a" for append

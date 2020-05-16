@@ -880,7 +880,7 @@ def main(c):
          model.summary()
     
          plot_learning_curves(history.history["loss"], history.history["val_loss"],epochs,str(qnames[query_number])+":GRU and dropout")
-         save_fig(str(qnames[query_number])+":GRU and dropout",images_path)
+         save_fig(str(qnames[query_number])+":GRU and dropout learning curve",images_path)
 
          plt.show()
 
