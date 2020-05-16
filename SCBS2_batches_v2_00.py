@@ -9,6 +9,8 @@ import pandas as pd
 import numpy as np
 import pickle
 from collections import defaultdict
+import gc
+
 #import SCBS0 as c
 
 filename="tables_dict.pkl"
@@ -28,7 +30,7 @@ assert sys.version_info >= (3, 5)
 import sklearn
 assert sklearn.__version__ >= "0.20"
 
-import tensorflow as tf
+#import tensorflow as tf
 
 # gpus = tf.config.list_physical_devices('GPU')
 # tf.config.experimental.set_memory_growth(gpus[0], True)
@@ -441,18 +443,20 @@ def find_series_type(series_name):
 
 
 def main(c):    
-    gpus = tf.config.list_physical_devices('GPU')
-    tf.config.experimental.set_memory_growth(gpus[0], True)
+    # gpus = tf.config.list_physical_devices('GPU')
+    # tf.config.experimental.set_memory_growth(gpus[0], True)
     
-    from tensorflow import keras
-    assert tf.__version__ >= "2.0"
+    # from tensorflow import keras
+    # assert tf.__version__ >= "2.0"
+    
+    print("\n\nbatches module start\n\n")
     
     print("\n\nTurn a list of tables into a list of batches - By Anthony Paech 25/2/20")
     print("========================================================================")       
     
     print("Python version:",sys.version)
-    print("\ntensorflow:",tf.__version__)
-    print("keras:",keras.__version__)
+ #   print("\ntensorflow:",tf.__version__)
+ #   print("keras:",keras.__version__)
     print("sklearn:",sklearn.__version__)
     
     
@@ -468,9 +472,9 @@ def main(c):
     print("\nnumber of cpus : ", multiprocessing.cpu_count())
     
     
-    visible_devices = tf.config.get_visible_devices('GPU') 
+ #   visible_devices = tf.config.get_visible_devices('GPU') 
     
-    print("tf.config.get_visible_devices('GPU'):",visible_devices)
+ #   print("tf.config.get_visible_devices('GPU'):",visible_devices)
     # answer=input("Use GPU?")
     # if answer =="n":
     
@@ -489,8 +493,8 @@ def main(c):
     #     print("GPUs disabled")
         
     # else:
-    tf.config.set_visible_devices(visible_devices, 'GPU') 
-    print("GPUs enabled")
+#    tf.config.set_visible_devices(visible_devices, 'GPU') 
+#    print("GPUs enabled")
        
         
     
@@ -503,12 +507,12 @@ def main(c):
     #     print("\nSales prediction - GPU detected.")
     
     
-    print("tf.config.get_visible_devices('GPU'):",tf.config.get_visible_devices('GPU'))
+ #   print("tf.config.get_visible_devices('GPU'):",tf.config.get_visible_devices('GPU'))
     
     
     # to make this notebook's output stable across runs
     np.random.seed(42)
-    tf.random.set_seed(42)
+  #  tf.random.set_seed(42)
     
     
     # To plot pretty figures
@@ -727,7 +731,9 @@ def main(c):
     
     # for n in range(len(qnames)):    
     #     print(testout1[n][0],"=\n",testout1[n][1:7]) 
-    
+    print("\n\nbatches module finish\n\n")
+ 
+    gc.collect()
     return
 
 

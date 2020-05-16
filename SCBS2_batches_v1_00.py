@@ -213,6 +213,30 @@ def convert_pivot_table_to_numpy_series(series_table):
 
 
 
+def create_Y(X,predict_ahead_length):   #,start_point,end_point):
+   # print("Y total_existing_steps",total_existing_steps)
+    batch_length=X.shape[1]
+    print("X batch length=",batch_length)
+  #  print("start point=",start_point)
+  #  print("end point",end_point)
+  #  pred_length=end_point-start_point
+    print("predict ahead length",predict_ahead_length)
+ #   Y_window_length=(end_point-start_point)-pred_length
+ #   print("Y window length=",Y_window_length)
+    Y = np.empty((X.shape[0], batch_length-predict_ahead_length, predict_ahead_length),dtype=np.int32)
+  #  Y = np.empty((X.shape[0], batch_length, pred_length))
+ 
+    print("new Y shape",Y.shape)
+    for step_ahead in range(1, predict_ahead_length + 1):
+        Y[...,step_ahead - 1] = X[..., step_ahead:step_ahead+batch_length-predict_ahead_length, 0]  #+1
+   #     Y[...,step_ahead - 1] = X[..., step_ahead:step_ahead+batch_length+1, 0]  #+1
+
+    print("final create Y.shape=",Y.shape)
+
+    return Y
+
+
+
 
 
 def build_mini_batch_input(series,no_of_batches,batch_length):
@@ -234,6 +258,36 @@ def build_mini_batch_input(series,no_of_batches,batch_length):
     print("batches complete. batches shape:",new_batches.shape)
     return new_batches[:,:batch_length,:],new_batches[:,1:batch_length+1,:]
 
+
+
+def build_mini_batches(mat_sales_orig,no_of_batches,batch_length,start_point,end_point):
+    if batch_length>(end_point-start_point):
+     #   print("\nonly one \n")
+        repeats_needed=1
+#        gridtest=np.meshgrid(np.arange(start_point,start_point+batch_length),np.random.randint(0,end_point-start_point-start_point-batch_length+1))
+     #  gridtest=np.meshgrid(np.arange(start_point,start_point+batch_length),np.random.randint(0,int(((end_point-start_point)/batch_length)+1)))
+
+        gridtest=np.meshgrid(np.arange(start_point,start_point+batch_length),np.random.randint(0,int(((end_point-start_point)/batch_length)+1)))
+   #     print("raandom",gridtest)
+    else:    
+        repeats_needed=no_of_batches/int(((end_point-start_point)/batch_length)+1)  #      repeats_needed=int(no_of_batches/(end_point-start_point-start_point-batch_length))
+
+        gridtest=np.meshgrid(np.arange(start_point,start_point+batch_length),np.arange(0,int(((end_point-start_point)/batch_length)+1)))   #int((end_point-start_point)/batch_length)+1))
+  #  print("repeats needed=",repeats_needed)
+    #gridtest=np.meshgrid(np.arange(np.random.random_integers(0,total_steps,n_steps))), np.arange(0,n_steps))
+  #  print(gridtest,len(gridtest) ) #.shape)
+    start_index=np.repeat(gridtest[0]+gridtest[1],repeats_needed,axis=0)   #[:,:,np.newaxis]
+  #  print("start index.shape",start_index,start_index.shape)
+    np.random.shuffle(start_index)
+   # print("start index",start_index,start_index.shape)
+ 
+    new_batches=mat_sales_orig[0,start_index]
+    np.random.shuffle(new_batches)
+  #  print("new batches",new_batches)
+    #if repeats_needed==1:
+      #  print(" one only - batches complete. batches shape:",new_batches.shape)
+    
+    return new_batches   #,new_batches[:,1:batch_length+1,:]
 
 
 
@@ -501,12 +555,13 @@ def main(c):
     
     
 
-    predict_ahead_steps=c.predict_ahead_steps
+    predict_ahead_length=c.predict_ahead_length
     
      #   epochs_cnn=1
     #epochs_wavenet=36
     no_of_batches=c.no_of_batches   #100000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
     batch_length=c.batch_length #16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
+    X_window_length=c.X_window_length
     #    y_length=1
     #neurons=1600  #1000-2000
      
@@ -523,7 +578,8 @@ def main(c):
     mats=c.mats   #[14]   #omving average window periods for each data column to add to series table
     start_point=c.start_point  #np.max(mats)+15  # we need to have exactly a multiple of 365 days on the start point to get the zseasonality right  #batch_length+1   #np.max(mats) #+1
     mat_types=c.mat_types    #["u"]  #,"d","m"]
-       
+    end_point=c.end_point   
+    
     units_per_ctn=c.units_per_ctn  #8
        
     # train validate test split 
@@ -532,9 +588,14 @@ def main(c):
     test_percent=c.test_percent  #0.1
      
     
+    train_size=int(round((no_of_batches*train_percent),0))
+    validate_size=int(round((no_of_batches*validate_percent),0))
+    test_size=int(round((no_of_batches*test_percent),0))
+
+
     print("moving average days",mats)
     print("start point",start_point)
-    print("predict ahead steps=",predict_ahead_steps,"\n")
+    print("predict ahead length=",predict_ahead_length,"\n")
     required_starting_length=c.required_starting_length    #=731+np.max(mats)+batch_length   # 2 years plus the MAT data lost at the start + batchlength
     
     
@@ -570,12 +631,12 @@ def main(c):
          print("required minimum starting days for 2 year series analysis:",required_starting_length)
          
          
-         periods_len=actual_days_in_series_table+predict_ahead_steps # np.max(mats)
+         periods_len=actual_days_in_series_table+predict_ahead_length # np.max(mats)
          print("total periods=",periods_len)
         
     
          
-         series_table,extended_dates,actual_days_in_series,start_point=extend_pivot_table(series_table,periods_len,actual_days_in_series_table,required_starting_length,predict_ahead_steps,start_point)
+         series_table,extended_dates,actual_days_in_series,start_point=extend_pivot_table(series_table,periods_len,actual_days_in_series_table,required_starting_length,predict_ahead_length,start_point)
            
          series_table=add_all_mats(series_table,mats,actual_days_in_series_table,mat_types)
          
@@ -604,28 +665,64 @@ def main(c):
              pickle.dump(extended_dates,f)   
          
           #   scaled_series=series_table.to_numpy()
-         scaled_series=series_table.to_numpy()
+         scaled_series=series_table.to_numpy(dtype=np.int32)
          #scaled_series=scaled_series[:,start_point:actual_days_in_series_table]
          scaled_series=scaled_series[:,:actual_days_in_series_table]
         
          #    print("1scaled series=\n",scaled_series[:20],scaled_series.shape)
-         scaled_series=np.nan_to_num(scaled_series,0)
+         mat_sales_x=np.nan_to_num(scaled_series,0)
           #   print("2scaled series=\n",scaled_series[:20],scaled_series.shape)
-          
+      #   print("scaled_series.shape",scaled_series.shape)
+
            
           #   print("scaled series=",scaled_series,scaled_series.shape)
-         mat_sales_x=np.swapaxes(scaled_series,0,1)
+   #      mat_sales_x=np.swapaxes(scaled_series,0,1)
         # mat_sales_x=np.swapaxes(scaled_series,0,1)
          
-         mat_sales_x=mat_sales_x[np.newaxis] 
-         
+       #  mat_sales_x=scaled_series.to_numpy(dtype=np.int32) 
+         print("mat_sales_x size=",mat_sales_x.nbytes,type(mat_sales_x))
+         mat_sales_x=mat_sales_x[...,np.newaxis].astype(np.int32)
+  #  mat_sales_x=np.expand_dims(mat_sales_x,np.zeros(shape=[mat_sales_x.shape[1]]),axis=3)
+  #  ai=np.argsort(mat_sales_x,axis=2)
+  #  print("ai=",ai)
+  #  np.put_along_axis(mat_sales_x,np.arange(0,mat_sales_x.shape[3]),np.zeros(shape=[mat_sales_x.shape[2]]),axis=3)
+         print("mat sales x.shape",mat_sales_x.shape)
+         print("mat_sales_x size=",mat_sales_x.nbytes,type(mat_sales_x))
+
+         print("loaded mat_sales x shape",mat_sales_x.shape)
+         print("start point=",start_point)
+         print("end_point=",end_point)
+    
+         mat_sales_trunc=mat_sales_x=mat_sales_x[:,start_point:end_point+1,:]
+         print("trimmed mat_sales x shape",mat_sales_trunc.shape)
+         print("batch len=",batch_length)
+         print("predict_ahead_length=",predict_ahead_length)
+         print("x_window_length=",X_window_length)
+    #at_steps=mat_sales_x.shape[1]
+    #f
          print("Build batches")
          print("mat sales_x.shape=\n",mat_sales_x.shape)
         
+          #  np.put_along_axis(mat_sales_x,np.arange(0,mat_sales_x.shape[3]),np.zeros(shape=[mat_sales_x.shape[2]]),axis=3)
+         print("mat sales x.shape",mat_sales_x.shape)
+         print("mat_sales_x size=",mat_sales_x.nbytes,type(mat_sales_x))
+    
+         print("loaded mat_sales x shape",mat_sales_x.shape)
+         print("start point=",start_point)
+         print("end_point=",end_point)
         
-         X,y=build_mini_batch_input(mat_sales_x,no_of_batches,batch_length)
-        
-        
+         mat_sales_trunc=mat_sales_x[:,start_point:end_point+1,:]
+         print("trimmed mat_sales x shape",mat_sales_trunc.shape)
+         print("batch len=",batch_length)
+#         X=build_mini_batches(mat_sales_x,no_of_batches,batch_length,start_point,end_point)  #,mat_sales_x.shape[2]) 
+         X=build_mini_batches(mat_sales_x,no_of_batches,batch_length,start_point,end_point)  #,mat_sales_x.shape[2]) 
+
+         print("X.shape",X.shape)
+
+         #    X,y=build_mini_batch_input(mat_sales_x,no_of_batches,batch_length)
+            
+         X=X.astype(np.int32)
+         #y=y.astype(np.int32)
          # print("\n\nSave batches")
          # np.save("batch_train_X.npy",X)
          # np.save("batch_train_y.npy",y)
@@ -634,6 +731,33 @@ def main(c):
          # np.save("mat_sales_x.npy",mat_sales_x)
          
     
+ 
+         Y=create_Y(X,predict_ahead_length)    #,start_point,end_point)
+         #print("Y size=",Y.nbytes,type(Y))
+         #Y=Y.astype(np.int32)
+         print("Y size=",Y.nbytes,type(Y))
+        
+        # Y = np.empty((batched_series.shape[0], n_steps, predict_ahead))
+        # for step_ahead in range(1, predict_ahead + 1):
+        #     Y[..., step_ahead - 1] = batched_series[..., step_ahead:step_ahead + n_steps, 0]
+         print("create Y.shape=",Y.shape)
+         
+         # train_size=int(round(batch_size*train_percent,0))
+         # validate_size=int(round(batch_size*validate_percent,0))
+         # test_size=int(round(batch_size*test_percent,0))
+   
+         
+         Y_train = Y[:train_size]
+         Y_valid = Y[train_size:train_size+validate_size]
+         Y_test = Y[train_size+validate_size:]
+        
+        
+         print("Y shape",Y.shape)
+        
+ 
+    
+    
+   
             
         
          n_query_rows=X.shape[2]
@@ -663,7 +787,7 @@ def main(c):
          print("n_query_rows=",n_query_rows)    
          print("batch_length=",batch_length)
          print("n_inputs=",n_inputs)
-         print("predict_ahead_steps=",predict_ahead_steps)
+         print("predict_ahead_length=",predict_ahead_length)
          print("full prediction day length=",periods_len)
         
          print("max y=",max_y)
@@ -673,25 +797,37 @@ def main(c):
          #   print("mini_batches X shape=",X[0],X.shape)  
          #   print("mini_batches y shape=",y[0],y.shape)  
            
-         batch_size=X.shape[0]
-         print("Batch size=",batch_size)
+       #  batch_size=X.shape[0]
+       #  print("Batch size=",batch_size)
         
           #  np.save("batch_train_X.npy",X)
           #  np.save("batch_train_y.npy",y)
            
            
-         train_size=int(round(batch_size*train_percent,0))
-         validate_size=int(round(batch_size*validate_percent,0))
-         test_size=int(round(batch_size*test_percent,0))
           
          #  print("train_size=",train_size)
          #  print("validate_size=",validate_size)
          #  print("test_size=",test_size)
            
-         X_train, y_train = X[:train_size, :,:], y[:train_size,-1:,:]
-         X_valid, y_valid = X[train_size:train_size+validate_size, :,:], y[train_size:train_size+validate_size,-1:,:]
-         X_test, y_test = X[train_size+validate_size:, :,:], y[train_size+validate_size:,-1:,:]
-           # X_all, y_all = series2,series2[-1]
+   #      X_train, y_train = X[:train_size, :,:], y[:train_size,-1:,:]
+   #      X_valid, y_valid = X[train_size:train_size+validate_size, :,:], y[train_size:train_size+validate_size,-1:,:]
+   #      X_test, y_test = X[train_size+validate_size:, :,:], y[train_size+validate_size:,-1:,:]
+ 
+         X_train= X[:train_size, :batch_length-predict_ahead_length,:]
+         X_valid= X[train_size:train_size+validate_size, :batch_length-predict_ahead_length,:]
+         X_test= X[train_size+validate_size:, :batch_length-predict_ahead_length,:]
+ 
+         print("X_train",X_train.shape)
+         print("Y_train",Y_train.shape)
+         print("X_valid",X_valid.shape)
+         print("Y_valid",Y_valid.shape)
+         print("X_test",X_test.shape)
+         print("Y_test",Y_test.shape)
+        
+
+
+
+          # X_all, y_all = series2,series2[-1]
            #       #  normalise
         #    print("Normalising (L2)...")
         #    norm_X_train=tf.keras.utils.normalize(X_train, axis=-1, order=2)
@@ -699,21 +835,28 @@ def main(c):
         
         
           # print("\npredict series shape",series.shape)
-         print("X_train shape, y_train",X_train.shape, y_train.shape)
-         print("X_valid shape, y_valid",X_valid.shape, y_valid.shape)
-         print("X_test shape, y_test",X_test.shape, y_test.shape)
-           
+ #        print("X_train shape, y_train",X_train.shape, y_train.shape)
+ #        print("X_valid shape, y_valid",X_valid.shape, y_valid.shape)
+ #        print("X_test shape, y_test",X_test.shape, y_test.shape)
+    
+         # print("X_train shape",X_train.shape)
+         # print("X_valid shape",X_valid.shape)
+         # print("X_test shape",X_test.shape)
+      
+    
+    
          batch_list[table_number].append(qnames[table_number])
          batch_list[table_number].append(X_train)
-         batch_list[table_number].append(y_train)
+         batch_list[table_number].append(Y_train)
          batch_list[table_number].append(X_valid)
-         batch_list[table_number].append(y_valid)
+         batch_list[table_number].append(Y_valid)
          batch_list[table_number].append(X_test)
-         batch_list[table_number].append(y_test)
+         batch_list[table_number].append(Y_test)
          batch_list[table_number].append(mat_sales_x)
          batch_list[table_number].append(product_names)
          batch_list[table_number].append(saved_series_table)
-     
+         batch_list[table_number].append(X)
+    
          print("mat_sales_x shape2=",mat_sales_x.shape)
          
          print("saved series table shape2=",saved_series_table.shape)

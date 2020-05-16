@@ -26,8 +26,8 @@ assert sklearn.__version__ >= "0.20"
 # TensorFlow ≥2.0 is required
 import tensorflow as tf
 
-gpus = tf.config.list_physical_devices('GPU')
-tf.config.experimental.set_memory_growth(gpus[0], True)
+# gpus = tf.config.list_physical_devices('GPU')
+# tf.config.experimental.set_memory_growth(gpus[0], True)
 
 
 
@@ -60,29 +60,29 @@ assert tf.__version__ >= "2.0"
 #import keras.backend as K
 
 
-# Common imports
+# # Common imports
 import numpy as np
 import os
 from pathlib import Path
 import pandas as pd
 import pickle
-#import random
+# #import random
 import datetime as dt
 import gc
 from numba import cuda
-""
+# ""
 
 from collections import defaultdict
-from datetime import datetime
-#import SCBS0 as c
+# from datetime import datetime
+# #import SCBS0 as c
 
 
-# to make this notebook's output stable across runs
+# # to make this notebook's output stable across runs
 np.random.seed(42)
 tf.random.set_seed(42)
 
-# To plot pretty figures
-#%matplotlib inline
+# # To plot pretty figures
+# #%matplotlib inline
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 mpl.rc('axes', labelsize=14)
@@ -90,126 +90,126 @@ mpl.rc('xtick', labelsize=12)
 mpl.rc('ytick', labelsize=12)
 
 
-print("Python version:",sys.version)
-print("\ntensorflow:",tf.__version__)
-print("keras:",keras.__version__)
-print("sklearn:",sklearn.__version__)
-#print("cuda:",numba.cuda.__version__)
+# print("Python version:",sys.version)
+# print("\ntensorflow:",tf.__version__)
+# print("keras:",keras.__version__)
+# print("sklearn:",sklearn.__version__)
+# #print("cuda:",numba.cuda.__version__)
 
 
 
 
-visible_devices = tf.config.get_visible_devices('GPU') 
-print("tf.config.get_visible_devices('GPU'):",visible_devices)
+# visible_devices = tf.config.get_visible_devices('GPU') 
+# print("tf.config.get_visible_devices('GPU'):",visible_devices)
 
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
+# tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
 
 
 
-# Where to save the figures
-PROJECT_ROOT_DIR = "."
-CHAPTER_ID = "rnn"
-IMAGES_PATH = os.path.join(PROJECT_ROOT_DIR, "images", CHAPTER_ID)
-os.makedirs(IMAGES_PATH, exist_ok=True)
+# # Where to save the figures
+# PROJECT_ROOT_DIR = "."
+# CHAPTER_ID = "rnn"
+# IMAGES_PATH = os.path.join(PROJECT_ROOT_DIR, "images", CHAPTER_ID)
+# os.makedirs(IMAGES_PATH, exist_ok=True)
     
  
 
-#filename="tables_dict.pkl"
+# #filename="tables_dict.pkl"
 
 
-import tensorflow as tf
+# import tensorflow as tf
 
-gpus = tf.config.list_physical_devices('GPU')
-tf.config.experimental.set_memory_growth(gpus[0], True)
+# gpus = tf.config.list_physical_devices('GPU')
+# tf.config.experimental.set_memory_growth(gpus[0], True)
 
-from tensorflow import keras
-assert tf.__version__ >= "2.0"
+# from tensorflow import keras
+# assert tf.__version__ >= "2.0"
 
-print("\n\nUse pretrained models to make predictions - By Anthony Paech 30/4/20")
-print("========================================================================\n")       
+# print("\n\nUse pretrained models to make predictions - By Anthony Paech 30/4/20")
+# print("========================================================================\n")       
 
-print("Python version:",sys.version)
-print("\ntensorflow:",tf.__version__)
-print("keras:",keras.__version__)
-print("sklearn:",sklearn.__version__)
-
-
-import os
-import random
-import csv
-import joblib
-import pickle
-from natsort import natsorted
-from pickle import dump,load
-import datetime as dt
-from datetime import date
-from datetime import timedelta
-import gc
-
-#from sklearn.preprocessing import StandardScaler,MinMaxScaler
-
-#import itertools
-#from natsort import natsorted
-#import import_constants as ic
-
-print("numpy:",np.__version__)
-print("pandas:",pd.__version__)
-
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-
-print("matplotlib:",mpl.__version__)
-
-mpl.rc('axes', labelsize=14)
-mpl.rc('xtick', labelsize=12)
-mpl.rc('ytick', labelsize=12)
-
-import multiprocessing
-print("\nnumber of cpus : ", multiprocessing.cpu_count())
+# print("Python version:",sys.version)
+# print("\ntensorflow:",tf.__version__)
+# print("keras:",keras.__version__)
+# print("sklearn:",sklearn.__version__)
 
 
-visible_devices = tf.config.get_visible_devices('GPU') 
+# import os
+# import random
+# import csv
+# import joblib
+# import pickle
+# from natsort import natsorted
+# from pickle import dump,load
+# import datetime as dt
+# from datetime import date
+# from datetime import timedelta
+# import gc
 
-print("tf.config.get_visible_devices('GPU'):",visible_devices)
-# answer=input("Use GPU?")
-# if answer =="n":
+# #from sklearn.preprocessing import StandardScaler,MinMaxScaler
 
-#     try: 
-#       # Disable all GPUS 
-#       tf.config.set_visible_devices([], 'GPU') 
-#       visible_devices = tf.config.get_visible_devices() 
-#       for device in visible_devices: 
-#         assert device.device_type != 'GPU' 
-#     except: 
-#       # Invalid device or cannot modify virtual devices once initialized. 
-#       pass 
+# #import itertools
+# #from natsort import natsorted
+# #import import_constants as ic
+
+# print("numpy:",np.__version__)
+# print("pandas:",pd.__version__)
+
+# import matplotlib as mpl
+# import matplotlib.pyplot as plt
+# import matplotlib.cm as cm
+
+# print("matplotlib:",mpl.__version__)
+
+# mpl.rc('axes', labelsize=14)
+# mpl.rc('xtick', labelsize=12)
+# mpl.rc('ytick', labelsize=12)
+
+# import multiprocessing
+# print("\nnumber of cpus : ", multiprocessing.cpu_count())
+
+
+# visible_devices = tf.config.get_visible_devices('GPU') 
+
+# print("tf.config.get_visible_devices('GPU'):",visible_devices)
+# # answer=input("Use GPU?")
+# # if answer =="n":
+
+# #     try: 
+# #       # Disable all GPUS 
+# #       tf.config.set_visible_devices([], 'GPU') 
+# #       visible_devices = tf.config.get_visible_devices() 
+# #       for device in visible_devices: 
+# #         assert device.device_type != 'GPU' 
+# #     except: 
+# #       # Invalid device or cannot modify virtual devices once initialized. 
+# #       pass 
     
-#     #tf.config.set_visible_devices([], 'GPU') 
+# #     #tf.config.set_visible_devices([], 'GPU') 
     
-#     print("GPUs disabled")
+# #     print("GPUs disabled")
     
-# else:
-tf.config.set_visible_devices(visible_devices, 'GPU') 
-print("GPUs enabled")
+# # else:
+# tf.config.set_visible_devices(visible_devices, 'GPU') 
+# print("GPUs enabled")
    
     
 
-# if not tf.config.get_visible_devices('GPU'):
-# #if not tf.test.is_gpu_available():
-#     print("\nNo GPU was detected. LSTMs and CNNs can be very slow without a GPU.")
-#   #  if IS_COLAB:
-#   #      print("Go to Runtime > Change runtime and select a GPU hardware accelerator.")
-# else:
-#     print("\nSales prediction - GPU detected.")
+# # if not tf.config.get_visible_devices('GPU'):
+# # #if not tf.test.is_gpu_available():
+# #     print("\nNo GPU was detected. LSTMs and CNNs can be very slow without a GPU.")
+# #   #  if IS_COLAB:
+# #   #      print("Go to Runtime > Change runtime and select a GPU hardware accelerator.")
+# # else:
+# #     print("\nSales prediction - GPU detected.")
 
 
-print("tf.config.get_visible_devices('GPU'):",tf.config.get_visible_devices('GPU'))
+# print("tf.config.get_visible_devices('GPU'):",tf.config.get_visible_devices('GPU'))
 
 
-# to make this notebook's output stable across runs
-np.random.seed(42)
-tf.random.set_seed(42)
+# # to make this notebook's output stable across runs
+# np.random.seed(42)
+# tf.random.set_seed(42)
 
 
 # To plot pretty figures
@@ -1155,6 +1155,10 @@ class MCAlphaDropout(keras.layers.AlphaDropout):
 
 
 def main(c):
+    print("\n\npredict module start\n\n")
+    
+    
+    
     tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
 
     print("\noutput dir=",c.output_dir)
@@ -1275,53 +1279,63 @@ def main(c):
 
  
 ###################################3
-        gc.collect()
+      #  gc.collect()
          
         print("\nPredicting....")
         #predict = np.empty((X.shape[0], batch_length, pred_length),dtype=np.int32)
         mat_sales_x=mat_sales_x.astype(np.float32)   #[0,:,0]     #]
         
-        Y_probas = np.empty((1,batch_length))  #predict_ahead_steps))
+       # Y_probas = np.empty((1,batch_length),dtype=np.int32)  #predict_ahead_steps))
         
         
         #for batch_ahead in range(0,1): #predict_ahead_steps*batch_ahead_steps,predict_ahead_steps):
            
         # single prediction
-          #  Y_pred=model.predict(predict_values[:,predict_ahead_steps:])    #[:,batch_ahead:])    
-          #  Y_diag=Y_pred[0,:,-1][np.newaxis,...]
-          #  Y_diag=Y_diag[...,np.newaxis]
-             
+     #   Y_pred=model.predict(mat_sales_x[:,predict_ahead_length:])    #[:,batch_ahead:])    
+     #   Y_mean=Y_pred[0,:,-1]
+        
+       # Y_diag=Y_pred[0,:,-1][np.newaxis,...]
+       # Y_diag=Y_diag[...,np.newaxis]
+      #  print("Y_mean=\n",Y_mean)
+        
+           
+        
         # multiple more accurate prediction
-        for sample in range(pred_error_sample_size):                  
-            Y_probs=model(mat_sales_x[:,predict_ahead_length:],training=True)[np.newaxis,...]          
-           # tf.keras.backend.clear_session()
-           # gc.collect()
-            new_probs=Y_probs[0,:,-1]
-            Y_probas=np.concatenate((Y_probas,new_probs),axis=0)  #[np.newaxis,...]
-        
-        
-        #tf.keras.backend.clear_session()
-        #cuda.select_device(0)
-        #cuda.close()
-        
-        #from sklearn.impute import SimpleImputer
-        #Y_probas=np.nan_to_num(Y_probas, posinf=np.nan, neginf=np.nan)
-        
-        #imp = SimpleImputer(missing_values=np.nan, strategy='mean')
-        #imp.fit(Y_probas)
-        #Y_probas=np.nan_to_num(Y_probas,nan=0, posinf=np.nan, neginf=np.nan)
-        Y_mean=Y_probas.mean(axis=0)##[np.newaxis]
-        #Y_stddev=Y_probas.std(axis=0)#[np.newaxis]
+                           
+        Y_probs=np.stack([model(mat_sales_x[:,-predict_ahead_length:],training=True)[0,:,-1] for sample in range(pred_error_sample_size)])         
+               # tf.keras.backend.clear_session()
+               # gc.collect()
+              #  new_probs=Y_probs[0,:,-1]   #.astype(np.int32)
+              #  Y_probas=np.concatenate((Y_probas,new_probs),axis=0)  #[np.newaxis,...]
+            
+        print("Y_probs=\n",Y_probs.shape)
+            #tf.keras.backend.clear_session()
+            #cuda.select_device(0)
+            #cuda.close()
+            
+            #from sklearn.impute import SimpleImputer
+            #Y_probas=np.nan_to_num(Y_probas, posinf=np.nan, neginf=np.nan)
+            
+            #imp = SimpleImputer(missing_values=np.nan, strategy='mean')
+            #imp.fit(Y_probas)
+            #Y_probas=np.nan_to_num(Y_probas,nan=0, posinf=np.nan, neginf=np.nan)
+        Y_mean=Y_probs.mean(axis=0)##[np.newaxis]
+        Y_stddev=Y_probs.std(axis=0)#[np.newaxis]
           
+        print("Y_mean=",Y_mean.shape)
+        print("Y_stddev=",Y_stddev.shape)
+        print("pal=",predict_ahead_length)
+        
         #predict_values=np.concatenate([predict_values,Y_diag],axis=1) 
-         
+        
+       # Y_mean=Y_diag
               
         
         plot_dict=dict({(1,1,"Actual_start") : start_point,
         #                    (2,1,"Actual_data") : predict_values[0,:,0],
                         (2,1,"Actual:"+str(qnames[model_number])) : mat_sales_x[0,:,0],
         
-                        (1,2,"MC_predict_mean_start") : end_point,
+                        (1,2,"MC_predict_mean_start") : end_point-start_point,
                         (2,2,"Predicted:"+str(qnames[model_number])) : Y_mean,
                   #      (1,3,"MC_predict_stddev_start") : end_point,
                   #      (2,3,"MC_predict_stddev_data") : Y_stddev,
@@ -1337,8 +1351,13 @@ def main(c):
         #print("plot_dict=",plot_dict) 
         plot_df=create_plot_df(plot_dict,dates)
         plot_df.plot()
-        plt.legend(fontsize=14)
-        plt.title(str(qnames[model_number])+":Unit sales prediction")
+        
+        plt.errorbar(range(end_point,end_point+Y_mean.shape[0]), Y_mean, yerr=Y_stddev*2,errorevery=1,ecolor='red',color='red',linestyle='dotted')   #, label="dropout mean pred 95% conf")
+
+
+        
+        plt.legend(fontsize=10)
+        plt.title(str(qnames[model_number])+":Unit sales/day prediction")
          #   plt.xlabel("Days")
         plt.ylabel("units")
         plt.grid(True)
@@ -1413,10 +1432,10 @@ def main(c):
         forecast_table = plot_df.resample('M', label='left', loffset=pd.DateOffset(days=1)).sum().round(0)
            
           #  print("forecast table",forecast_table,forecast_table.shape)
-        col_names=list(forecast_table.columns)
+      #  col_names=list(forecast_table.columns)
           #  print("col names=",col_names)
-        new_col_names=[x[:x.find("@")+1] for x in col_names]
-        print("new col names=",new_col_names)
+      #  new_col_names=[x[:x.find("@")] for x in col_names]
+      #  print("new col names=",new_col_names)
           #  new_col_names_dict=dict(new_col_names)
          #   forecast_table.filter(like=mask_str,axis=0)
         
@@ -1428,12 +1447,12 @@ def main(c):
         #   #  fcn_dict=dict(flat_column_names)    
         #   #  print("fcn dict",fcn_dict)
         
-        rename_dict=dict(zip(col_names, new_col_names))
+      #  rename_dict=dict(zip(col_names, new_col_names))
          #   print("rename dict",rename_dict)
         # #   print("tc=",tc)
         #  #   flat_column_names = [a_tuple[0][level] for a_tuple in np.shape(cols[level])[1] for level in np.shape(cols)[0]]
         #   #  print("fcn=",flat_column_names)
-        forecast_table.rename(rename_dict, axis='columns',inplace=True)
+     #   forecast_table.rename(rename_dict, axis='columns',inplace=True)
             
         
            # forecast_table.columns = pd.MultiIndex.from_product([forecast_table.columns, ['C']])
@@ -1443,14 +1462,17 @@ def main(c):
         forecast_table.index=forecast_table.index.strftime("%Y-%m-%d")
     
         print("forecast_table=\n",forecast_table)
-        s=str(new_col_names[0])
+    #    s=str(new_col_names[0])
+    #    print("s=",s)
+     #   print("qname=",str(qnames[model_number]))
+        s=str(qnames[model_number])
         s = s.replace(',', '_')
         s = s.replace("'", "")
         s = s.replace(" ", "")
     
         # to get over the 256 column limit in excel
         forecast_table.to_csv(c.output_dir+"SCBS_"+s+".csv") 
-    
+    #  +str(qnames[model_number])+
         model_number+=1
         #with pd.ExcelWriter("SCB_"+s+".xls") as writer:  # mode="a" for append
         #    forecast_table.to_excel(writer,sheet_name="Units1")
@@ -1472,9 +1494,10 @@ def main(c):
             
         #############################################################################  
             
-          
-        print("\n\nFinished.")
-          
+    print("\n\npredict module finish\n\n")
+ 
+ #   print("\n\nFinished.")
+    gc.collect()      
         
         
     return

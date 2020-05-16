@@ -25,8 +25,8 @@ assert sklearn.__version__ >= "0.20"
 # TensorFlow ≥2.0 is required
 import tensorflow as tf
 
-# gpus = tf.config.list_physical_devices('GPU')
-# tf.config.experimental.set_memory_growth(gpus[0], True)
+gpus = tf.config.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(gpus[0], True)
 
 
 
@@ -34,14 +34,14 @@ import tensorflow as tf
 from tensorflow import keras
 assert tf.__version__ >= "2.0"
 
-# #if not tf.config.list_physical_devices('GPU'):
-# #    print("No GPU was detected. LSTMs and CNNs can be very slow without a GPU.")
-# #    if IS_COLAB:
-# #        print("Go to Runtime > Change runtime and select a GPU hardware accelerator.")
+#if not tf.config.list_physical_devices('GPU'):
+#    print("No GPU was detected. LSTMs and CNNs can be very slow without a GPU.")
+#    if IS_COLAB:
+#        print("Go to Runtime > Change runtime and select a GPU hardware accelerator.")
 
 
-# # Disable all GPUS 
-# #tf.config.set_visible_devices([], 'GPU') 
+# Disable all GPUS 
+#tf.config.set_visible_devices([], 'GPU') 
 
 
 
@@ -63,7 +63,6 @@ import pickle
 #import random
 import datetime as dt
 from collections import defaultdict
-import gc
 
 # to make this notebook's output stable across runs
 np.random.seed(42)
@@ -78,10 +77,10 @@ mpl.rc('xtick', labelsize=12)
 mpl.rc('ytick', labelsize=12)
 
 
-# visible_devices = tf.config.get_visible_devices('GPU') 
-# print("tf.config.get_visible_devices('GPU'):",visible_devices)
+visible_devices = tf.config.get_visible_devices('GPU') 
+print("tf.config.get_visible_devices('GPU'):",visible_devices)
 
-# tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
 
 
 
@@ -147,34 +146,6 @@ def load_series(no_of_batches,batch_length,start_point,end_point):
   
 
   
-def create_batches(no_of_batches,batch_length,mat_sales_x,start_point,end_point):    
- #   print("mat_sales_x=\n",mat_sales_x[0])
- #   print("nob=",no_of_batches)
-    if no_of_batches==1:
-     #   print("\nonly one \n")
-        repeats_needed=1
-#        gridtest=np.meshgrid(np.arange(start_point,start_point+batch_length),np.random.randint(0,end_point-start_point-start_point-batch_length+1))
-     #  gridtest=np.meshgrid(np.arange(start_point,start_point+batch_length),np.random.randint(0,int(((end_point-start_point)/batch_length)+1)))
-
-        gridtest=np.meshgrid(np.arange(0,batch_length),np.random.randint(0,end_point-start_point-batch_length+1))
-   #     print("raandom",gridtest)
-    else:    
-        repeats_needed=int(no_of_batches/(end_point-batch_length-start_point)+1)  #      repeats_needed=int(no_of_batches/(end_point-start_point-start_point-batch_length))
-
-        gridtest=np.meshgrid(np.arange(0,batch_length),np.arange(0,end_point-start_point-batch_length+1))  #int((end_point-start_point)/batch_length)+1))
- #   print("gi=\n",gridtest)
-    start_index=np.repeat(gridtest[0]+gridtest[1],repeats_needed,axis=0)   #[:,:,np.newaxis]
- #   print("start index=",start_index,start_index.shape)
-    np.random.shuffle(start_index)
-#    print("start index min/max=",np.min(start_index),np.max(start_index),start_index.shape) 
-
-    X=mat_sales_x[0,start_index,:]
-    np.random.shuffle(X)
- #   print("X.shape=\n",X.shape)
-    gc.collect()
-    return X   #,new_batches[:,1:batch_length+1,:]
-
-
     
 # def load_series2(no_of_batches, n_steps):    
 #     with open("batch_dict.pkl", "rb") as f:
@@ -326,8 +297,8 @@ def last_time_step_mse(Y_true, Y_pred):
     return keras.metrics.mean_squared_error(Y_true[:, -1], Y_pred[:, -1])
 
 
-def save_fig(fig_id, images_path, tight_layout=True, fig_extension="png", resolution=300):
-    path = os.path.join(images_path, fig_id + "." + fig_extension)
+def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
+    path = os.path.join(IMAGES_PATH, fig_id + "." + fig_extension)
     print("Saving figure", fig_id)
     if tight_layout:
         plt.tight_layout()
@@ -370,13 +341,103 @@ class MyCustomCallback(tf.keras.callbacks.Callback):
 
 
 class MCDropout(keras.layers.Dropout):
-      def call(self,inputs):
-         return super().call(inputs,training=True)
+     def call(self,inputs):
+        return super().call(inputs,training=True)
 
 
 class MCAlphaDropout(keras.layers.AlphaDropout):
     def call(self,inputs):
         return super().call(inputs,training=True)
+
+
+
+# def predict_ahead(title,model,mat_sales_orig,mat_sales_pred,mat_sales_x,X,batch_length,X_window_length,predict_ahead_length,start_point,end_point):
+#     first_start_point=start_point
+#     first_end_point=end_point
+    
+#     starting_batch_length=batch_length
+    
+#     starting_mat_sales_orig=mat_sales_orig
+#     predict_count=first_start_point
+#  #   print("X.shape",X.shape)
+#  #   print("X_window_length",X_window_length)
+#     for days in range(X_window_length,X_window_length+predict_ahead_length+1):
+#      #   print("days=",days)
+#         #print("predict X_new",model.predict(X_new).shape)
+#         X_new, Y_new = X[:, :days, :], X[:,days:, :]
+#       #  print("new X_new.shape",X_new.shape)
+#       #  print("new Y_new.shape",Y_new.shape)
+#         pred=model.predict(X_new).astype(np.int32)
+    
+#         Y_pred_build = pred[:,:,-1][..., np.newaxis]
+#         Y_pred_build=Y_pred_build[:,-1][..., np.newaxis]
+#         Y_pred_build=Y_pred_build[0,:][np.newaxis,...]
+#      #   print("Y_pred_build.shape",Y_pred_build.shape)
+#     #    plot_multiple_forecasts3(mat_sales_pred,"finish Deep RNN with batch norm and dropout, days:"+str(days))
+#     #    plt.show()
+ 
+
+
+    
+#        # print("before X.shape",X.shape)
+#      #   print("X_new=",X_new.shape)
+#      #   print("Y_new=",Y_new.shape)
+    
+#         #print(" before X.shape",X.shape)
+#       #  X_new=np.concatenate([X_new,Y_pred_build],axis=1)
+#      #   print("mat sales pred.shape before",mat_sales_pred.shape)
+#         mat_sales_pred=np.concatenate([mat_sales_pred,Y_pred_build],axis=1)
+#    #     plot_series(mat_sales_pred[0,:,0],X_new[0,0,0])
+#     #    plot_multiple_forecasts(X_new,mat_sales_pred,Y_pred_build,"final Deep RNN with batch norm and dropout, days:"+str(days))
+
+#         mat_sales_orig[:,predict_count]=Y_pred_build
+
+#         print("prediction step:",pred.shape[1],"/",batch_length,"=",Y_pred_build)
+
+#     #    plot_multiple_forecasts2(mat_sales_orig,mat_sales_pred,mat_sales_x,title+" days:"+str(days),first_start_point,first_end_point)
+#       #  plt.show()
+   
+#       #  plt.show()
+#       #  print("mat sales pred.shape after",mat_sales_pred.shape)
+#        # batch_length+=1
+#         end_point+=1
+#         start_point+=1
+       
+#         # replace actual in mat_sales_orig with mat_sales_pred
+        
+#         # print("before mat_sales_orig.shape",mat_sales_orig.shape)  
+#         # print("slice:", mat_sales_orig[:,predict_count,:])
+#         # print("before mat_sales_pred.shape",mat_sales_pred.shape)        
+#         # print("before y pred build",Y_pred_build,Y_pred_build.shape)
+        
+  
+
+#         # print("after mat_sales_orig.shape",mat_sales_orig.shape)  
+#         # print("after mat_sales_pred.shape",mat_sales_pred.shape)        
+
+#         # #print("afgter X.shape",X.shape)
+#       #  print("after X_new.shape",X_new.shape)
+#       #  X=build_mini_batches(mat_sales_orig,no_of_batches,batch_length,start_point,end_point)  #,mat_sales_x.shape[2]) 
+#         X=build_mini_batches(mat_sales_orig,no_of_batches,batch_length,start_point,end_point)  #,mat_sales_x.shape[2]) 
+
+#         #  print("X.shape",X.shape)
+#     #    X=build_mini_batches(mat_sales_x,no_of_batches,batch_length)  #,mat_sales_x.shape[2]) 
+#     #    print("X.shape",X.shape)
+#         #print("afgter X.shape",X.shape)
+#         predict_count+=1
+    
+#     plot_multiple_forecasts2(starting_mat_sales_orig,mat_sales_pred,mat_sales_x,title+" days:"+str(days),first_start_point,first_end_point)
+#     plt.show()     
+# #   Y_pred = model.predict(X_new)[:,-1][..., np.newaxis]
+#     plot_multiple_forecasts2(mat_sales_orig,mat_sales_pred,mat_sales_x,title+" days:"+str(days),first_start_point,first_end_point)
+#     plt.show()
+    
+#  #   plot_series(mat_sales_x[0,:,0],Y_valid[0,0,0])
+#    # plt.show()
+#  #   plot_series(mat_sales_pred[0,:,0],Y_valid[0,0,0])
+#  #   plt.show()
+#     return
+
 
 
 
@@ -472,8 +533,6 @@ def graph_a_series(series_table,dates,column_names):
     
     
 def main(c):
-    print("\n\nmodel module start\n\n")
-    
   #  images_path = os.path.join(c.output_dir, "images/")
     print("\noutput dir=",c.output_dir)
     print("images path=",c.images_path)
@@ -507,11 +566,7 @@ def main(c):
     mats=c.mats #[14]   #omving average window periods for each data column to add to series table
    # start_point=c.start_point   #np.max(mats)+15  # we need to have exactly a multiple of 365 days on the start point to get the zseasonality right  #batch_length+1   #np.max(mats) #+1
     mat_types=c.mat_types  #["u"]  #,"d","m"]
-    units_per_ctn=c.units_per_ctn  #8
- 
-    dates=c.dates    
- 
-    dropout_rate=c.dropout_rate
+       
     # units_per_ctn=8
        
     # # train validate test split 
@@ -523,7 +578,7 @@ def main(c):
     validate_percent=c.validate_percent
     test_percent=c.test_percent
  
-    images_path=c.images_path
+    
     # print("moving average days",mats)
     # print("start point",start_point)
     # print("predict ahead steps=",predict_ahead_steps,"\n")
@@ -542,49 +597,11 @@ def main(c):
     
     #for n in range(len(qnames)):    
     #    print(batches[n][0],"=\n",batches[n][1:7]) 
-         
-   
-       
-    # # train validate test split 
-    # train_percent=c.train_percent   #0.7
-    # validate_percent=c.validate_percent  #0.2
-    # test_percent=c.test_percent  #0.1
-     
-    
-    # train_size=int(round((no_of_batches*train_percent),0))
-    # validate_size=int(round((no_of_batches*validate_percent),0))
-    # test_size=int(round((no_of_batches*test_percent),0))
-
-
-    print("moving average days",mats)
-    print("start point",start_point)
-    print("predict ahead length=",predict_ahead_length,"\n")
-    required_starting_length=c.required_starting_length    #=731+np.max(mats)+batch_length   # 2 years plus the MAT data lost at the start + batchlength
-    
-    
-    print("\nBatch creator\n\n")
-    print("unpickling '","tables_dict.pkl","'")  
-    with open("tables_dict.pkl", "rb") as f:
-        all_tables = pickle.load(f)
-      #  testout2 = pickle.load(f)
-    qnames=[all_tables[k][0] for k in all_tables.keys()]    
-    print("unpickled",len(all_tables),"tables (",qnames,")")
     
     
     
     
-    #n_steps = 50
-  #  shortened_series,mat_sales_x,dates = load_series(start_point,end_point)
-  #  print("shoerened series.shape=",shortened_series.shape)
-    print("len dates=",len(dates))
-    #print("mat_sales_x [:,2:]=",mat_sales_x[:,1:].shape)
-    #print("mat_sales_x[:,:-1]=",mat_sales_x[:,:-1].shape)
     
-    np.random.seed(42)
-    tf.random.set_seed(42)
-     
-        
-        
        
     ########################################
     model_list = defaultdict(list)
@@ -594,106 +611,21 @@ def main(c):
     for b in batches.keys():
         
          queryname=batches[b][0]   
-         # X_train=batches[b][1] 
-         # Y_train =batches[b][2]
-         # X_valid=batches[b][3]
-         # Y_valid =batches[b][4]
-         # X_test=batches[b][5]
-         # Y_test =batches[b][6]
-         mat_sales_x=batches[b][1]
-         product_names=batches[b][2]
-         series_table=batches[b][3]
-  #       X=batches[b][10]
+         X_train=batches[b][1] 
+         Y_train =batches[b][2]
+         X_valid=batches[b][3]
+         Y_valid =batches[b][4]
+         X_test=batches[b][5]
+         Y_test =batches[b][6]
+         mat_sales_x=batches[b][7]
+         product_names=batches[b][8]
+         series_table=batches[b][9]
+         X=batches[b][10]
         
          print("\n processing query:",queryname,"....\n")
-         mat_sales_x=mat_sales_x.astype(np.int32)
-         
-         
          mat_sales_orig=mat_sales_x
          mat_sales_pred=mat_sales_x
         # #n_steps = 50
-        
-            
-         print("series table shape=",series_table.shape)     
-         X=create_batches(no_of_batches,batch_length,mat_sales_x[:,:-1],start_point,end_point)
-        #print("X.shape",X[0],X.shape)
-         print("X size=",X.nbytes,"bytes")
-        
-         n_query_rows=X.shape[2]
-         n_steps=X.shape[1]-1
-         n_inputs=X.shape[2]
-         max_y=np.max(X)
- 
-    
-         print("n_query_rows=",n_query_rows)    
-         print("batch_length=",batch_length)
-         print("n_inputs=",n_inputs)
-         print("predict_ahead_length=",predict_ahead_length)
-    #     print("full prediction day length=",periods_len)
-        
-         print("max y=",max_y)
-        
-    
-            
-         
-         n_train=int(round((no_of_batches*train_percent),0))
-         n_validate=int(round((no_of_batches*validate_percent),0))
-         n_test=int(round((no_of_batches*test_percent),0))
-         
-        
-            
- 
-    
- 
-         X_train = X[:n_train]
-         X_valid = X[n_train:n_train+n_validate]
-         X_test = X[n_train+n_validate:]
-        
-        
-        
-        #Y=create_batches(no_of_batches,batch_length,mat_sales_x[:,1:],start_point,end_point)
-        #print("start_Y.shape",start_Y[0],start_Y.shape)#
-        
-         Y = np.empty((no_of_batches, batch_length,predict_ahead_length))
-         
-         print("new Y shape",Y.shape)
-         for step_ahead in range(1, predict_ahead_length + 1):
-        #    Y[:,:,step_ahead - 1] = shortened_series[:, step_ahead:step_ahead+batch_length,0]  #,n_inputs-1]  #+1
-             Y[:,:,step_ahead - 1] = mat_sales_x[:, step_ahead:step_ahead+batch_length,0]  #,n_inputs-1]  #+1
-         
-        #   #      print("step a=",step_ahead,"X=",X[..., step_ahead:step_ahead+batch_length,0],"ss=",shortened_series[..., step_ahead:step_ahead+batch_length+1, 0])  #+1
-        
-        
-        #Y=create_Y(shortened_series,X,sample_length,predict_ahead_steps)    #,start_point,end_point)
-         print("Y.shape",Y.shape)
-         print("Y size=",Y.nbytes,"bytes")
-         Y_train = Y[:n_train]
-         Y_valid = Y[n_train:n_train+n_validate]
-         Y_test = Y[n_train+n_validate:]
-        
-         no_of_batches=X.shape[0]
-         batch_lemgth=X.shape[1]
-         n_inputs=X.shape[2]
-        
-         print("start point",start_point)
-         print("end point",end_point)
-        
-         print("no of batches=",no_of_batches)
-         print("batch length",batch_length)
-         print("n_inputs",n_inputs)
-    #     print("sample length",sample_length)
-        
-         print("X_train",X_train.shape)
-         print("Y_train",Y_train.shape)
-         print("X_valid",X_valid.shape)
-         print("Y_valid",Y_valid.shape)
-         print("X_test",X_test.shape)
-         print("Y_test",Y_test.shape)
-        
- 
-        
-        
-        
         
  #           mat_sales_x =seriesbatches[0][7]
          print("mat_sales_x size=",mat_sales_x.nbytes,type(mat_sales_x))
@@ -816,56 +748,28 @@ def main(c):
       #  answer=input("Retrain model(s)?")
       #  if answer=="y":
             
-         print("\n Neurons=",neurons,". Building and compiling model\n")
+         print("\n Neurons=",neurons,"[wavenet]. Building and compiling model\n")
         
+        
+                
+                
          print("GRU with batch norm and dropout")
         
-                ##############################################################
-  #       gc.collect()
-# =============================================================================
-#          answer=input("load saved model?")
-#          if answer=="y":
-#             print("\n\nloading model...")  
-#             model=keras.models.load_model("GRU_Dropout_sales_predict_model.h5",custom_objects={"last_time_step_mse": last_time_step_mse})
-#          else:
-# 
-#  Now let's create an RNN that predicts the next 10 steps at each time step. 
-# That is, instead of just forecasting time steps 50 to 59 based on time steps 0 to 49,
-#  it will forecast time steps 1 to 10 at time step 0, then time steps 2 to 11 at time 
-# step 1, and so on, and finally it will forecast time steps 50 to 59 at the last time step.
-#  Notice that the model is causal: when it makes predictions at any time step, 
-# it can only see past time steps.
-
-#print("cretae an RNN that predicts the next 10 steps at each time step")
-
-            
-# =============================================================================
-        
-       #  print("GRU with dropout")
         
          np.random.seed(42)
          tf.random.set_seed(42)
         
          model = keras.models.Sequential([
-            keras.layers.GRU(neurons, return_sequences=True, input_shape=[None, n_inputs]),
-      #      keras.layers.LSTM(neurons, return_sequences=True, input_shape=[None, n_inputs]),
-            keras.layers.Dropout(rate=dropout_rate),
-
-         #   keras.layers.AlphaDropout(rate=dropout_rate),
+            keras.layers.GRU(400, return_sequences=True, input_shape=[None, n_query_rows]),
+        #    keras.layers.Dropout(rate=0.2),
             keras.layers.BatchNormalization(),
-            keras.layers.GRU(600, return_sequences=True),
-      #      keras.layers.LSTM(neurons, return_sequences=True),
-            keras.layers.Dropout(rate=dropout_rate),
-
-         #   keras.layers.AlphaDropout(rate=dropout_rate),
+            keras.layers.GRU(400, return_sequences=True),
+          #   keras.layers.Dropout(rate=0.2),
             keras.layers.BatchNormalization(),
             keras.layers.TimeDistributed(keras.layers.Dense(predict_ahead_length))
          ])
         
-        
-     #    opt = keras.optimizers.Adam(learning_rate=0.005)    #0.03
-     #    model.compile(loss="mse", optimizer=opt, metrics=[last_time_step_mse])
-
+         optimizer=keras.optimizers.Adam(lr=0.01)        
          model.compile(loss="mse", optimizer="adam", metrics=[last_time_step_mse])
         
          callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=patience),MyCustomCallback()]
@@ -874,19 +778,14 @@ def main(c):
                             validation_data=(X_valid, Y_valid))
         
         
-         print("\nsave model\n")
-         model.save("GRU_Dropout_sales_predict_model.h5", include_optimizer=True)
+      #   print("\nsave model\n")
+      #   model.save("GRU_Dropout_sales_predict_model.h5", include_optimizer=True)
            
          model.summary()
-    
-         plot_learning_curves(history.history["loss"], history.history["val_loss"],epochs,str(qnames[query_number])+":GRU and dropout")
-         save_fig(str(qnames[query_number])+":GRU and dropout",images_path)
-
+        
+         plot_learning_curves(history.history["loss"], history.history["val_loss"],epochs,"GRU batch norm and dropout")
          plt.show()
-
-
-###################################3
-     
+        
         
                 
         
@@ -951,9 +850,9 @@ def main(c):
     
     
         # Evaluate the model on the test data using `evaluate`
-    #     print('\n# Evaluate on test data')
-    #     results = model.evaluate(X_test, Y_test, batch_size=5)
-    #     print('test loss, test acc:', results)
+         print('\n# Evaluate on test data')
+         results = model.evaluate(X_test, Y_test, batch_size=5)
+         print('test loss, test acc:', results)
     
           #  print('\nhistory dict:', history.history)
     
@@ -989,25 +888,23 @@ def main(c):
     #######################################################
     
     
-    # print("\n\ntest unpickling")  
-    # with open("model_filenames.pkl", "rb") as f:
-    #      testout1 = pickle.load(f)
-    # #   #  testout2 = pickle.load(f)
-    # # qnames=[testout1[k][0] for k in testout1.keys()]    
-    # print("unpickled model filename list",testout1)
+    print("\n\ntest unpickling")  
+    with open("model_filenames.pkl", "rb") as f:
+         testout1 = pickle.load(f)
+    #   #  testout2 = pickle.load(f)
+    # qnames=[testout1[k][0] for k in testout1.keys()]    
+    print("unpickled model filename list",testout1)
     
-    # # #query_dict2=testout1['query_dict']
-    # # #print("table dict two unpickled=",testout1)
+    # #query_dict2=testout1['query_dict']
+    # #print("table dict two unpickled=",testout1)
     
-    # # #df2=testout1.keys()
+    # #df2=testout1.keys()
     # #print(testout1.keys())
     # #print(testout1.values())
     # #print(testout1[1])  
     # print(testout1[0][1]) 
     # print(testout1[1][1])
-    print("\n\nmodel module finish\n\n")
- 
-    gc.collect()
+    
     return
 
 

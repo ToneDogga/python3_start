@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import pickle
 from collections import defaultdict
+import gc
 #import SCBS0 as c
 
 
@@ -51,6 +52,7 @@ def main(c):
     filenames=c.filenames
     queryfilename=c.queryfilename
 
+    print("\n\nExcel import module start\n\n")
 
 
 
@@ -131,8 +133,13 @@ def main(c):
     
 # ########################################
 
+    print("\n\nExcel import module finish\n\n")
 
-
+    gc.collect()
+  #  tf.keras.backend.clear_session()
+            #cuda.select_device(0)
+            #cuda.close()
+   
     return
 
 
