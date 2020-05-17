@@ -245,7 +245,7 @@ def main():
     #c.predict_ahead_steps=440
     
      #   epochs_cnn=1
-    c.epochs=20
+    c.epochs=12
     c.no_of_batches=15000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
     #c.batch_length=16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
     #    y_length=1
