@@ -655,10 +655,11 @@ def main(c):
         #Y=create_batches(no_of_batches,batch_length,mat_sales_x[:,1:],start_point,end_point)
         #print("start_Y.shape",start_Y[0],start_Y.shape)#
         
-         Y = np.empty((no_of_batches, batch_length,predict_ahead_length))
-         
+     #    Y = np.empty((no_of_batches, batch_length,predict_ahead_length))
+         Y = np.empty((no_of_batches, batch_length,batch_length))
+        
          print("new Y shape",Y.shape)
-         for step_ahead in range(1, predict_ahead_length + 1):
+         for step_ahead in range(1,batch_length + 1):
         #    Y[:,:,step_ahead - 1] = shortened_series[:, step_ahead:step_ahead+batch_length,0]  #,n_inputs-1]  #+1
              Y[:,:,step_ahead - 1] = mat_sales_x[:, step_ahead:step_ahead+batch_length,0]  #,n_inputs-1]  #+1
          
@@ -860,7 +861,7 @@ def main(c):
 
          #   keras.layers.AlphaDropout(rate=dropout_rate),
             keras.layers.BatchNormalization(),
-            keras.layers.TimeDistributed(keras.layers.Dense(predict_ahead_length))
+            keras.layers.TimeDistributed(keras.layers.Dense(batch_length))
          ])
         
         

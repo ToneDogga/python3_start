@@ -1284,49 +1284,36 @@ def main(c):
         print("\nPredicting....")
         #predict = np.empty((X.shape[0], batch_length, pred_length),dtype=np.int32)
         mat_sales_x=mat_sales_x.astype(np.float32)   #[0,:,0]     #]
-        
+        series_length=mat_sales_x.shape[1]
+        predict_ahead=mat_sales_x[:,start_point:end_point,:]   #.astype(np.float32)   #[0,:,0]     #]
+      #  predict_ahead_end_point=end_point-start_point
        # Y_probas = np.empty((1,batch_length),dtype=np.int32)  #predict_ahead_steps))
-        
-        
-        #for batch_ahead in range(0,1): #predict_ahead_steps*batch_ahead_steps,predict_ahead_steps):
-           
-        # single prediction
-     #   Y_pred=model.predict(mat_sales_x[:,predict_ahead_length:])    #[:,batch_ahead:])    
-     #   Y_mean=Y_pred[0,:,-1]
-        
-       # Y_diag=Y_pred[0,:,-1][np.newaxis,...]
-       # Y_diag=Y_diag[...,np.newaxis]
-      #  print("Y_mean=\n",Y_mean)
-        
-           
-        
-        # multiple more accurate prediction
+    #    predict_ahead=model(predict_ahead[:,-batch_length:predict_ahead.shape[1],:],training=True)[0,:,-1]
+     
+        new_prediction=np.empty((1,0,1))
+        for batch_ahead in range(0,int(round(predict_ahead_length/batch_length,0)+1)):        
+            # multiple more accurate prediction
                            
-        Y_probs=np.stack([model(mat_sales_x[:,-predict_ahead_length:],training=True)[0,:,-1] for sample in range(pred_error_sample_size)])         
-               # tf.keras.backend.clear_session()
-               # gc.collect()
-              #  new_probs=Y_probs[0,:,-1]   #.astype(np.int32)
-              #  Y_probas=np.concatenate((Y_probas,new_probs),axis=0)  #[np.newaxis,...]
-            
-        print("Y_probs=\n",Y_probs.shape)
-            #tf.keras.backend.clear_session()
-            #cuda.select_device(0)
-            #cuda.close()
-            
-            #from sklearn.impute import SimpleImputer
-            #Y_probas=np.nan_to_num(Y_probas, posinf=np.nan, neginf=np.nan)
-            
-            #imp = SimpleImputer(missing_values=np.nan, strategy='mean')
-            #imp.fit(Y_probas)
-            #Y_probas=np.nan_to_num(Y_probas,nan=0, posinf=np.nan, neginf=np.nan)
-        Y_mean=Y_probs.mean(axis=0)##[np.newaxis]
-        Y_stddev=Y_probs.std(axis=0)#[np.newaxis]
+            Y_probs=np.stack([model(predict_ahead[:,-batch_length:,:],training=True)[0,:,-1] for sample in range(pred_error_sample_size)])         
+            print("Y_probs=\n",Y_probs.shape)
+            Y_mean=Y_probs.mean(axis=0)[np.newaxis,...]
+            Y_mean=Y_mean[...,np.newaxis]
+            Y_mean=Y_mean[:,:batch_length,:]
+      #  Y_stddev=Y_probs.std(axis=0)#[np.newaxis]
           
-        print("Y_mean=",Y_mean.shape)
-        print("Y_stddev=",Y_stddev.shape)
+            print("Y_mean=",Y_mean.shape)
+            print("before new prediction=",new_prediction.shape)
+            print("before predict ahead=",predict_ahead.shape)
+
+            new_prediction=np.concatenate((new_prediction,Y_mean),axis=1) 
+            predict_ahead=np.concatenate((predict_ahead,Y_mean),axis=1)
+            print("mafter new prediction=",new_prediction.shape)
+            print("mafter predict ahead=",predict_ahead.shape)
+
+       # print("Y_stddev=",Y_stddev.shape)
         print("pal=",predict_ahead_length)
         print("start point + pereiods len=",start_point+periods_len)
-        print("mat sales x len=",mat_sales_x.shape[1])
+        print("new prediction shape=",new_prediction.shape)
         print("end poinbt=",end_point)
         
         #predict_values=np.concatenate([predict_values,Y_diag],axis=1) 
@@ -1336,10 +1323,10 @@ def main(c):
         
         plot_dict=dict({(1,1,"Actual_start") : start_point,
         #                    (2,1,"Actual_data") : predict_values[0,:,0],
-                        (2,1,"Actual:"+str(qnames[model_number])) : mat_sales_x[0,:,0],
+                        (2,1,"Actual:"+str(qnames[model_number])) : mat_sales_orig[0,:,0],
         
-                        (1,2,"MC_predict_mean_start") : mat_sales_x.shape[1],
-                        (2,2,"Predicted:"+str(qnames[model_number])) : Y_mean,
+                        (1,2,"MC_predict_mean_start") : end_point-start_point,     #+mat_sales_orig.shape[1],
+                        (2,2,"Predicted:"+str(qnames[model_number])) : new_prediction[0,:,0],
                   #      (1,3,"MC_predict_stddev_start") : end_point,
                   #      (2,3,"MC_predict_stddev_data") : Y_stddev,
                     #    (1,4,"Full_actual_start") : start_point,
