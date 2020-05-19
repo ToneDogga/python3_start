@@ -527,7 +527,7 @@ def main(c):
     #epochs_wavenet=36
     no_of_batches=c.no_of_batches   #100000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
     batch_length=c.batch_length #16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
-    X_window_length=c.X_window_length
+   # X_window_length=c.X_window_length
     #    y_length=1
     #neurons=1600  #1000-2000
      
@@ -663,7 +663,7 @@ def main(c):
          print("trimmed mat_sales x shape",mat_sales_trunc.shape)
          print("batch len=",batch_length)
          print("predict_ahead_length=",predict_ahead_length)
-         print("x_window_length=",X_window_length)
+      #   print("x_window_length=",X_window_length)
     #at_steps=mat_sales_x.shape[1]
     #f
          print("Build batches")

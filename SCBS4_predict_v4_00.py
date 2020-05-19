@@ -703,12 +703,12 @@ def plot_learning_curves(loss, val_loss,title):
 
 
 
-def create_plot_df(plot_dict,dates):
+def create_plot_df(plot_dict,dates,date_len):
 # pass the plot dictionary to a pandas dataframe and return
  #   print("plot_dict=\n",plot_dict)
     
  #   date_len=len(plot_dict[(0,0,"dates")])
-    date_len=1300
+  #  date_len=1300
  #   print("date len",date_len)
   #  first_date="02/02/18".strftime('%Y-%m-%d')
  #   last_date=series_table.index[-1].strftime('%Y-%m-%d')
@@ -721,10 +721,10 @@ def create_plot_df(plot_dict,dates):
  #   print("xtend series table",product_names)
  #   len_product_names=len(product_names)
  #   print("len pn=",len_product_names)
-    dates = pd.period_range("02/02/18", periods=date_len)   # 2000 days
+ #   dates = pd.period_range("02/02/18", periods=date_len)   # 2000 days
  #   print("series_table=\n",series_table,series_table.index)
  #   new_table = pd.DataFrame(np.nan, index=product_names,columns=pidx)   #,dtype='category')  #series_table.columns)
-    date_len=len(dates)
+  #  date_len=len(dates)
 #    print("date len",date_len)
    # series_names=["dates"]
     start_points=[]
@@ -1166,7 +1166,7 @@ def main(c):
 
     
     predict_ahead_length=c.predict_ahead_length  #130
-    X_window_length=c.X_window_length
+  #  X_window_length=c.X_window_length
     start_point=c.start_point
     end_point=c.end_point
      #   epochs_cnn=1
@@ -1191,6 +1191,7 @@ def main(c):
     mat_types=c.mat_types # ["u"]  #,"d","m"]
        
     dates=c.dates
+    date_len=c.date_len
     
     images_path=c.images_path
     #print(batch_dict)
@@ -1339,7 +1340,7 @@ def main(c):
         
                
         #print("plot_dict=",plot_dict) 
-        plot_df=create_plot_df(plot_dict,dates)
+        plot_df=create_plot_df(plot_dict,dates,date_len)
      #   plot_df.plot()
         
     #    plt.errorbar(range(end_point-start_point-7,end_point-start_point-7+Y_mean.shape[0]), Y_mean, yerr=Y_stddev*2,errorevery=1,ecolor='magenta',color='red',linestyle='dotted')   #, label="dropout mean pred 95% conf")

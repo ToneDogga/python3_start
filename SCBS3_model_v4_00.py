@@ -492,7 +492,7 @@ def main(c):
     end_point=c.end_point
     start_point=c.start_point
     
-    X_window_length =c.X_window_length   #=c.batch_length-c.predict_ahead_length
+   # X_window_length =c.X_window_length   #=c.batch_length-c.predict_ahead_length
 
     #pred_error_sample_size=40
     
