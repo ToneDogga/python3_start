@@ -343,8 +343,8 @@ def main():
     import SCBS3_model_v4_01 as trainmodel
     import SCBS4_predict_v4_01 as predict 
     
-  #  excelimport.main(c)
-  #  batchup.main(c)
+    excelimport.main(c)
+    batchup.main(c)
     trainmodel.main(c)
     predict.main(c)
     
