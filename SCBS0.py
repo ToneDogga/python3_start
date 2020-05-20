@@ -290,7 +290,11 @@ def main():
     c.validate_percent=0.2
     c.test_percent=0.1
     
-    c.filenames=["allsalestrans2020.xlsx","allsalestrans2018.xlsx"]
+  #  c.filenames=["allsalestrans2020.xlsx","allsalestrans2018.xlsx"]
+    c.filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx"]
+    
+ 
+
     
     c.queryfilename="queryfile.xlsx"
     
@@ -336,11 +340,11 @@ def main():
     
     import SCBS1_excel_import_v2_00 as excelimport 
     import SCBS2_batches_v2_00 as batchup
-    import SCBS3_model_v4_00 as trainmodel
-    import SCBS4_predict_v4_00 as predict 
+    import SCBS3_model_v4_01 as trainmodel
+    import SCBS4_predict_v4_01 as predict 
     
-    excelimport.main(c)
-    batchup.main(c)
+  #  excelimport.main(c)
+  #  batchup.main(c)
     trainmodel.main(c)
     predict.main(c)
     
