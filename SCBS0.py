@@ -339,7 +339,7 @@ def main():
     
     
     import SCBS1_excel_import_v2_00 as excelimport 
-    import SCBS2_batches_v2_00 as batchup
+    import SCBS2_batches_v2_01 as batchup
     import SCBS3_model_v4_02 as trainmodel
     import SCBS4_predict_v4_01 as predict 
     
