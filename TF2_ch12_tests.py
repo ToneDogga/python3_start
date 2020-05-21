@@ -16,6 +16,7 @@ import pickle
 import os
 import sys
 import multiprocessing
+import gc
 
 #os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 #tf.compat.v1.enable_eager_execution()
@@ -71,10 +72,14 @@ series_table=all_tables[0][1].swapaxes(0,1).to_numpy()
 print("series table=",series_table.shape,type(series_table))
   
 
-batches=tf_build_mini_batches(tf.constant(series_table),1000000,34)
+batches=tf_build_mini_batches(tf.constant(series_table),1000000,64)
 
 #print("2batches shape",batches2.shape)
-
-print(batches[999845:,:,0])
+print(batches[999845:,:,0],type(batches))
+print("bytes=",tf.size(batches))
+print("\n\n")
+batches=batches.numpy().astype(np.int32)
+print(batches[999845:,:,0],type(batches),"bytes=",batches.nbytes)
+gc.collect()
 
 
