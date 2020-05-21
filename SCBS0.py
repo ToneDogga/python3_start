@@ -245,7 +245,7 @@ def main():
     #c.predict_ahead_steps=440
     
      #   epochs_cnn=1
-    c.epochs=12
+    c.epochs=25
     c.no_of_batches=15000   #1       # rotate the weeks forward in the batch by one week each time to maintain the integrity of the series, just change its starting point
     #c.batch_length=16   #16 # 16  # one week=5 days   #4   #731   #731  #365  3 years of days  1096
     #    y_length=1
@@ -340,7 +340,7 @@ def main():
     
     import SCBS1_excel_import_v2_00 as excelimport 
     import SCBS2_batches_v2_00 as batchup
-    import SCBS3_model_v4_01 as trainmodel
+    import SCBS3_model_v4_02 as trainmodel
     import SCBS4_predict_v4_01 as predict 
     
     excelimport.main(c)
