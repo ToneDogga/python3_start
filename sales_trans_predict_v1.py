@@ -45,6 +45,7 @@ import tensorflow as tf
 gpus = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(gpus[0], True)
 
+tf.config.experimental_run_functions_eagerly(True)   # false
 
 # gpus = tf.config.list_physical_devices('GPU')
 # tf.config.experimental.set_memory_growth(gpus[0], True)
@@ -562,6 +563,8 @@ def main():
     
     print("Python version:",sys.version)
     print("\ntensorflow:",tf.__version__)
+    print("eager exec:",tf.executing_eagerly())
+
     print("keras:",keras.__version__)
     print("numpy:",np.__version__)
     print("pandas:",pd.__version__)
@@ -579,14 +582,20 @@ def main():
     print("\n==================================================\n")       
 
 
+       
+    np.random.seed(42)
+    tf.random.set_seed(42)
+           
+ 
+
     answer="y"
     answer=input("Load salestrans?")
     if answer=="y":
         sales_df=st.load_sales(st.filenames)  # filenames is a list of xlsx files to load and sort by date
-        sales_df=st.preprocess_sales(sales_df)
+      #  sales_df=st.preprocess_sales(sales_df)
      
        # print("start sales dataframe=\n",sales_df)    # pandas dataframe
-       
+
     # =============================================================================
     #  
     # 
@@ -594,13 +603,14 @@ def main():
     # # it has a 3-tuple for a key
     # 
     # first is query name
-    # second is 0 = don't plot, 1 = plot actual, 2 = plot prediction, 3 = plot prediction with error bar
+    # second is 0= originsal data, 1 = actual query don't predict or  plot, 2 = plot actual mat, 3 = plot prediction, 4 = plot prediction with error bar
     # third is the start point
     #
     # the value is a 1D Tensor except at the start where sales_df is a pandas dataframe
     #     
     # =============================================================================
-    
+          
+
     
     
         plot_dict=dict({('loaded_dataframe',0,0) : sales_df})
@@ -609,243 +619,124 @@ def main():
     else:
         
         plot_dict=st.load_plot_dict(st.plot_dict_filename)
-        sales_df=[plot_dict[k] for k in plot_dict.keys()][0] 
+        sales_df=plot_dict[('loaded_dataframe',0,0)] 
+        for key in plot_dict.copy():
+            if key[1]==2 | key[1]==3:
+              del plot_dict[key]
+
 
 
     plot_dict=st.query_sales(sales_df,st.queryfilename,plot_dict)  
     
+    del sales_df
+    gc.collect()
+    
     st.save_plot_dict(plot_dict,st.plot_dict_filename)
-    plot_dict=st.remove_key_from_dict(plot_dict,('loaded_dataframe',0,0))   # to save memory  
+#    plot_dict=st.remove_key_from_dict(plot_dict,('loaded_dataframe',0,0))   # to save memory  
+
+    print("\nplot_dict=\n",plot_dict.keys())
+#    start_dict_keys=plot_dict.keys().copy()
+#    print("start dict keys",start_dict_keys)
 
 
-    for key in plot_dict.keys():
-        print("plot_dict key=",key)
-    #    print("plot dict values",plot_dict[key])
-        X=st.build_mini_batches(plot_dict[key],st.no_of_batches,st.batch_length)
-        print("X",X.shape)
-        Y=st.create_Y(plot_dict[key],X.shape[0],X.shape[1])
-        print("Y",Y.shape)
+    for key in plot_dict.copy():
+        if key[1]==2:  # series type 1 means actual to predict non 
+            query_name=key[0]
+
+        #    print("query name=",query_name)
+            series=plot_dict[key]
+            print("plot_dict key=",key)
+       #     print("key + series=",key,series)
+         #   print("series shape=",series.shape)
+          #  seriesx=np.swapaxes(plot_dict[key],0,1)
+            X=st.build_mini_batches(series,st.no_of_batches,st.batch_length).numpy()
+            print("X",X.shape)
+            Y=st.create_Y(X,series,st.batch_length)
+            print("Y",Y.shape)
+                
+            X_train,X_valid,X_test = st.train_test_split(X)
+            Y_train,Y_valid,Y_test = st.train_test_split(Y)
             
-        X_train,X_valid,X_test = st.train_test_split(X)
-        Y_train,Y_valid,Y_test = st.train_test_split(Y)
-        
-        print("X train, valid & test",X_train.shape,X_valid.shape,X_test.shape)
-        print("Y train, valid & test",Y_train.shape,Y_valid.shape,Y_test.shape)
-
+            print("X train, valid & test",X_train.shape,X_valid.shape,X_test.shape)
+            print("Y train, valid & test",Y_train.shape,Y_valid.shape,Y_test.shape)
     
- #####################################3
- # model goes here
- #
- 
+            del X
+            del Y
+            gc.collect()
+        
+     #####################################3
+     # model goes here
+     #
      
-        np.random.seed(42)
-        tf.random.set_seed(42)
-       
-        model = keras.models.Sequential([
-           keras.layers.GRU(st.neurons, return_sequences=True, input_shape=[None, 1]),
-           keras.layers.BatchNormalization(),
-           keras.layers.GRU(st.neurons, return_sequences=True),
-           keras.layers.AlphaDropout(rate=st.dropout_rate),
-           keras.layers.BatchNormalization(),
-           keras.layers.TimeDistributed(keras.layers.Dense(st.batch_length))
-        ])
-    
-        model.compile(loss="mse", optimizer="adam", metrics=[last_time_step_mse])
-       
-        callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=st.patience),MyCustomCallback()]
-       
-        history = model.fit(X_train, Y_train, epochs=st.epochs,
-                           validation_data=(X_valid, Y_valid))
-       
-       
-        print("\nsave model\n")
-        model.save("GRU_Dropout_sales_predict_model.h5", include_optimizer=True)
-          
-        model.summary()
-       
-        plot_learning_curves(history.history["loss"], history.history["val_loss"],st.epochs,"GRU and dropout")
-        save_fig("GRU and dropout learning curve",st.images_path)
-    
-        plt.show()
-    
-    
+            model = keras.models.Sequential([
+               keras.layers.GRU(st.neurons, return_sequences=True, input_shape=[None, 1]),
+               keras.layers.BatchNormalization(),
+               keras.layers.GRU(st.neurons, return_sequences=True),
+               keras.layers.AlphaDropout(rate=st.dropout_rate),
+               keras.layers.BatchNormalization(),
+               keras.layers.TimeDistributed(keras.layers.Dense(st.batch_length))
+            ])
         
-     ###################################
-       
-    ########################################3
-    #  send predictions to plot_dict and then excel    
-        
-       
-        
-    # =============================================================================
-    #     
-    # 
-    #    #print(batch_dict)
-    #     print("\n\nPredict from models")  
-    #     
-    #     
-    #     
-    #     print("\n\nunpickling model filenames")  
-    #     with open("model_filenames.pkl", "rb") as f:
-    #          model_filenames_list = pickle.load(f)
-    #     #   #  testout2 = pickle.load(f)
-    #     # qnames=[testout1[k][0] for k in testout1.keys()]    
-    #     print("unpickled model filenames list",model_filenames_list)
-    #     
-    #     with open("batch_dict.pkl", "rb") as f:
-    #         batches = pickle.load(f)
-    #     
-    #     with open("tables_dict.pkl", "rb") as f:
-    #         all_tables = pickle.load(f)
-    #       #  testout2 = pickle.load(f)
-    #     qnames=[all_tables[k][0] for k in all_tables.keys()]    
-    #     print("unpickled",len(all_tables),"tables (",qnames,")")
-    #       
-    #     
-    # =============================================================================
-        #required_starting_length=c.required_starting_length  #731+np.max(mats)+batch_length   # 2 years plus the MAT data lost at the start + batchlength
-        
-         
-        
-        ########################################
-    # =============================================================================
-    #     
-    #     model_number=0
-    #     for model_name in model_filenames_list:
-    #         model=keras.models.load_model(model_name,custom_objects={"last_time_step_mse": last_time_step_mse})
-    #     
-    #         print("\nmodel=",model_name,"loaded.\n\n")
-    #         model.summary
-    #        
-    #         with open("product_names_"+str(qnames[model_number])+".pkl","rb") as g:
-    #              original_product_names=pickle.load(g)
-    #      
-    #      
-    #         
-    #         print("\nSingle Series Predicting",predict_ahead_length,"steps ahead.")
-    #      #   print("series=\n",list(series_table.index),"\n")
-    #         print("Loading mat_sales_x")
-    #       #  mat_sales_x=np.load("mat_sales_x.npy")
-    #       #  with open("batch_dict.pkl", "rb") as f:
-    #       #      batches = pickle.load(f)
-    #         mat_sales_x =batches[model_number][1]
-    #     #    X=batches[model_number][10]
-    #         
-    #         
-    #         mat_sales_orig=mat_sales_x
-    #         mat_sales_pred=mat_sales_x
-    #         
-    #         product_names=batches[model_number][1]
-    #         #series_table=all_tables[model_number][1]
-    #         series_table=batches[model_number][3]
-    #     
-    #         print("unpickled series table shape",series_table.shape)
-    #     
-    #         print("mat_sales_x shape",mat_sales_x.shape)
-    #         print("series table shape",series_table.shape)
-    #     
-    #         actual_days_in_series_table=actual_days(series_table.T)
-    #             
-    #         #series_table=series_table.T    
-    #         print("actual days in series table=",actual_days_in_series_table)
-    #         print("required minimum starting days for 2 year series analysis:",required_starting_length)
-    #     
-    #     
-    #         periods_len=actual_days_in_series_table  #+predict_ahead_steps # np.max(mats)
-    #         print("total periods=",periods_len)
-    #     
-    #     
-    # =============================================================================
-        #    original_steps=series_table.shape[1]
-            
-    #####################################################################3        
-    
-    # Now let's create an RNN that predicts the next 10 steps at each time step. That is, 
-    # instead of just forecasting time steps 50 to 59 based on time steps 0 to 49, 
-    # it will forecast time steps 1 to 10 at time step 0, then time steps 2 to 11 at time step 1, 
-    # and so on, and finally it will forecast time steps 50 to 59 at the last time step. 
-    # Notice that the model is causal: when it makes predictions at any time step, it can 
-    # only see past time steps.    
-    
-     
-    ###################################3
-          #  gc.collect()
-         
-        print("\nPredicting....")
-        #predict = np.empty((X.shape[0], batch_length, pred_length),dtype=np.int32)
-        mat_sales_x=mat_sales_x.astype(np.float32)   #[0,:,0]     #]
-        series_length=mat_sales_x.shape[1]
-        predict_ahead=mat_sales_x[:,start_point:end_point,:]   #.astype(np.float32)   #[0,:,0]     #]
-      #  predict_ahead_end_point=end_point-start_point
-       # Y_probas = np.empty((1,batch_length),dtype=np.int32)  #predict_ahead_steps))
-    #    predict_ahead=model(predict_ahead[:,-batch_length:predict_ahead.shape[1],:],training=True)[0,:,-1]
-     
-        new_prediction=np.empty((1,0,1))
-        for batch_ahead in range(0,int(round(predict_ahead_length/batch_length,0)+1)):        
-            # multiple more accurate prediction
-    
-    #            Y_probs=np.stack([model(predict_ahead[:,-batch_length:,:],training=True)[0,:,-1] for sample in range(pred_error_sample_size)])         
-                           
-            Y_probs=np.stack([model(predict_ahead[:,-batch_length:,:])[0,:,-1] for sample in range(pred_error_sample_size)])         
-            print("Y_probs=\n",Y_probs.shape)
-            Y_mean=Y_probs.mean(axis=0)[np.newaxis,...]
-            Y_mean=Y_mean[...,np.newaxis]
-            Y_mean=Y_mean[:,:batch_length,:]
-      #  Y_stddev=Y_probs.std(axis=0)#[np.newaxis]
-          
-            print("Y_mean=",Y_mean.shape)
-            print("before new prediction=",new_prediction.shape)
-            print("before predict ahead=",predict_ahead.shape)
-    
-            new_prediction=np.concatenate((new_prediction,Y_mean),axis=1) 
-            predict_ahead=np.concatenate((predict_ahead,Y_mean),axis=1)
-            print("mafter new prediction=",new_prediction.shape)
-            print("mafter predict ahead=",predict_ahead.shape)
-    
-       # print("Y_stddev=",Y_stddev.shape)
-        print("pal=",predict_ahead_length)
-        print("start point + pereiods len=",start_point+periods_len)
-        print("new prediction shape=",new_prediction.shape)
-        print("end poinbt=",end_point)
-        
-        #predict_values=np.concatenate([predict_values,Y_diag],axis=1) 
-        
-       # Y_mean=Y_diag
+            model.compile(loss="mse", optimizer="adam", metrics=[last_time_step_mse])
+           
+            callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=st.patience),MyCustomCallback()]
+           
+            history = model.fit(X_train, Y_train, epochs=st.epochs,
+                               validation_data=(X_valid, Y_valid))
+      #      history = model.fit_generator(X_train, Y_train, epochs=st.epochs,
+      #                         validation_data=(X_valid, Y_valid))
+           
+           
+            print("\nsave model\n")
+            model.save("GRU_Dropout_sales_predict_model.h5", include_optimizer=True)
               
+            model.summary()
+           
+            plot_learning_curves(history.history["loss"], history.history["val_loss"],st.epochs,"GRU and dropout")
+            save_fig("GRU and dropout learning curve",st.images_path)
         
-        plot_dict=dict({(1,1,"Actual_start") : start_point,
-        #                    (2,1,"Actual_data") : predict_values[0,:,0],
-                        (2,1,"Actual:"+str(qnames[model_number])) : mat_sales_orig[0,:,0],
+            plt.show()
         
-                        (1,2,"MC_predict_mean_start") : end_point-start_point,     #+mat_sales_orig.shape[1],
-                        (2,2,"Predicted:"+str(qnames[model_number])) : new_prediction[0,:,0],
-                  #      (1,3,"MC_predict_stddev_start") : end_point,
-                  #      (2,3,"MC_predict_stddev_data") : Y_stddev,
-                    #    (1,4,"Full_actual_start") : start_point,
-                    #    (2,4,"Full_actual") : shortened_series[0,:,0],
         
-                    #    (0,0,"dates") : dates
-                        })
-         
+           
+        ########################################3
+        #  send predictions to plot_dict and then excel    
+            
+        #    tf.keras.backend.clear_session()
+            del X_train,X_valid,X_test
+            del Y_train,Y_valid,Y_test
+            gc.collect()
+             
+            print("\nPredicting....",query_name)
+         #   series=series[...,tf.newaxis]
+            new_prediction=st.predict_series(model,series[:,st.start_point:st.end_point][...,np.newaxis])
+        #    print("new predictopn=",new_prediction)
+      #      print("predict ahead=",predict_ahead)
+            
+            plot_dict=st.append_plot_dict(plot_dict,query_name,new_prediction)  
+        
+            st.save_plot_dict(plot_dict,st.plot_dict_filename)
+           
+        
         
         
                
-        #print("plot_dict=",plot_dict) 
-        plot_df=create_plot_df(plot_dict,dates,date_len)
-     #   plot_df.plot()
+    #     #print("plot_dict=",plot_dict) 
+    #     plot_df=create_plot_df(plot_dict,dates,date_len)
+    #  #   plot_df.plot()
         
-    #    plt.errorbar(range(end_point-start_point-7,end_point-start_point-7+Y_mean.shape[0]), Y_mean, yerr=Y_stddev*2,errorevery=1,ecolor='magenta',color='red',linestyle='dotted')   #, label="dropout mean pred 95% conf")
-        plot_df.plot()
+    # #    plt.errorbar(range(end_point-start_point-7,end_point-start_point-7+Y_mean.shape[0]), Y_mean, yerr=Y_stddev*2,errorevery=1,ecolor='magenta',color='red',linestyle='dotted')   #, label="dropout mean pred 95% conf")
+    #     plot_df.plot()
     
         
-        plt.legend(fontsize=10)
-        plt.title(str(qnames[model_number])+":Unit sales/day prediction")
-         #   plt.xlabel("Days")
-        plt.ylabel("units")
-        plt.grid(True)
+    #     plt.legend(fontsize=10)
+    #     plt.title(str(qnames[model_number])+":Unit sales/day prediction")
+    #      #   plt.xlabel("Days")
+    #     plt.ylabel("units")
+    #     plt.grid(True)
         
-        save_fig("actual_vs_predict_"+str(qnames[model_number]),images_path)
-        plt.show()     
+    #     save_fig("actual_vs_predict_"+str(qnames[model_number]),images_path)
+    #     plt.show()     
 
 
     
@@ -853,28 +744,47 @@ def main():
     tf.keras.backend.clear_session()
     #cuda.select_device(0)
 #cuda.close()
-
+    for key in plot_dict.copy():
+        if key[1]==1:
+              del plot_dict[key]
+    
+        
+    for key in plot_dict.keys():
+        print(key)
          
+    st.save_plot_dict(plot_dict,st.plot_dict_filename)
     
+  #  print("plot-dtct",plot_dict.items())
+
+    #plot_df=pd.DataFrame.from_dict(plot_dict,orient='index',dtype=np.int32)
+    plot_df=st.build_final_plot_df(plot_dict)
     
+    print("plot df=\n",plot_df,plot_df.columns,plot_df.shape)
        
     print("\nwrite predictions to sales_prediction(.....).CSV file....")
    
     print("Saving pickled final table - final_series_table.pkl",plot_df.shape)
     
         #    series_table=series_table.T       
-    pd.to_pickle(plot_df,"final_series_table.pkl")
+    pd.to_pickle(plot_df,"final_series_tables.pkl")
        
     forecast_table = plot_df.resample('M', label='left', loffset=pd.DateOffset(days=1)).sum().round(0)
     forecast_table.index=forecast_table.index.strftime("%Y-%m-%d")
 
-    print("forecast_table=\n",forecast_table)
- #    s=str(qnames[model_number])
-    s = s.replace(',', '_')
-    s = s.replace("'", "")
-    s = s.replace(" ", "")
-    s = "xx"
-    forecast_table.to_excel(c.output_dir+"SCBS_"+s+".xlsx") 
+    print("forecast_table=\n",forecast_table,forecast_table.columns)
+    
+    for col in forecast_table.columns:
+        newcol = col[0].replace(',', '_')
+        newcol = newcol.replace("'", "")
+        newcol = newcol.replace(" ", "")
+        forecast_table.rename(columns={col[0]:newcol}, inplace=True)
+
+
+    print("new forecast_table=\n",forecast_table,forecast_table.columns)
+
+
+ #   s = "xx"
+    forecast_table.to_excel(st.output_dir+"SCBS_forecast_table.xlsx") 
         
              
     print("\n\npredict module finish\n\n")
