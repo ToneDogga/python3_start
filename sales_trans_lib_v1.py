@@ -66,15 +66,18 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off trac
   
 
 class salestrans:
-    def __init__(self):   #, m=[["L","R","-","T"],["T","-","L","R"],["R","L","T","-"],["-","T","R","L"]]):
-        self.epochs=14
-        self.no_of_batches=1000      # as measured by gyro
-        self.neurons=365
+    def __init__(self):   
+        self.epochs=2
+        self.no_of_batches=100
+        self.no_of_repeats=2
+        
+
         self.dropout_rate=0.2
         self.start_point=32
         self.end_point=800
         self.predict_ahead_length=365
         self.batch_length=365
+        self.neurons=self.batch_length
         
         self.date_len=1300      
         self.dates = pd.period_range("02/02/18", periods=self.date_len)   # 2000 days
@@ -100,7 +103,7 @@ class salestrans:
         self.images_path = os.path.join(self.output_dir, "images/")
         os.makedirs(self.images_path, exist_ok=True)
      
-        self.__version__="0.1.1"
+        self.__version__="0.1.2"
         return
     
 
@@ -131,28 +134,6 @@ class salestrans:
         df['period'] = df['period'].astype('category')
         return df    
                 
-    #     sales_dataset = (
-    #         tf.data.Dataset.from_tensor_slices(
-        
-        
-    #              (
-    #                  tf.cast(df[qty].values, tf.float32),
-    #                  tf.cast(df['period'].values, tf.int32)
-    #              )
-    #          )
-    #       )
-    #     return sales_dataset # if a TF dataset of all xlsx files sorted by date 
-    # #   and should be a TFRecord
-    
-    
-    
-    # def preprocess_sales(self,sales_dataset):
-    #     print("preprocess sales")
-    #  #   df["period"]=df.date.dt.to_period('D')
-    #  #   df['period'] = df['period'].astype('category')
-            
-  
-    #     return sales_dataset
  
     
     
@@ -178,7 +159,7 @@ class salestrans:
     
     
     def query_sales(self,sales_df,queryfilename,plot_dict):  
-        print("query sales")
+        print("query sales:",queryfilename)
         
         #        sales_df=[plot_dict[k] for k in plot_dict.keys()][0] 
      #   print("loading query list '",queryfilename,"'")
@@ -224,20 +205,21 @@ class salestrans:
         del table_dict     
         return plot_dict
  
-        
-    @tf.function 
+     
+    
+ #   @tf.function
     def mat_add_1d(self,series,mat_days):
-        print("series.shape",series.shape)
-        weight_1d = np.ones(mat_days)
-        strides_1d = 1
+        weight_1d = tf.ones(mat_days,tf.int32)
+        strides_1d = 1   #tf.constant(1,dtype=tf.int32)
         
-        in_1d = series  #tf.constant(series, dtype=tf.int32)
+     #   print("mat add 1 d series shape",series.shape)
+        in_1d = series #tf.constant(series, dtype=tf.int32)
         
         #in_1d = tf.constant(ones_1d, dtype=tf.float32)
         filter_1d = tf.constant(weight_1d, dtype=tf.int32)
         
-        in_width = int(in_1d.shape[1])
-        filter_width = int(filter_1d.shape[0])
+        in_width = in_1d.shape[1]
+        filter_width = filter_1d.shape[0]
         
         input_1d   = tf.reshape(in_1d, [1, in_width, 1])
         kernel_1d = tf.reshape(filter_1d, [filter_width, 1, 1])
@@ -245,11 +227,13 @@ class salestrans:
         return output_1d[tf.newaxis,...]
     
     
+  
     
-    @tf.function
+    
+    
+ #   @tf.function
     def mat_add_2d(self,series,mat_days):
-        print("series.shape",series.shape)
-
+        
         weight_2d = np.ones((1,mat_days))
         strides_2d = [1, 1, 1, 1]
         
@@ -265,58 +249,86 @@ class salestrans:
         input_2d   = tf.reshape(in_2d, [1, in_height, in_width, 1])
         kernel_2d = tf.reshape(filter_2d, [filter_height, filter_width, 1, 1])
     
-        output_2d = tf.cast(tf.divide(tf.squeeze(tf.nn.conv2d(input_2d, kernel_2d, strides=strides_2d, padding='SAME')),mat_days),dtype=tf.int32)
-        return output_2d
+        output_2d = tf.cast(tf.divide(tf.squeeze(tf.nn.conv2d(input_2d, kernel_2d, strides=strides_2d, padding='SAME')),mat_days),dtype=tf.float32)
+        return output_2d[tf.newaxis,...]
     
-    
+
+
+
      
-        
+    
+    
     @tf.function
-    def build_mini_batches(self,data_input,no_of_batches,batch_length):   #,start_point,end_point):
-    #    print("bmb",data_input.shape,"nob=",no_of_batches,"batch_length",batch_length)
-        repeats_needed=int(round((no_of_batches/((data_input.shape[1])-batch_length)),0))  #      repeats_needed=int(no_of_batches/(end_point-start_point-start_point-batch_length))
-   #     print("repeats needed=",repeats_needed)
- #       gridtest=(tf.meshgrid(tf.range(0,batch_length,dtype=tf.int32),tf.range(0,int(((data_input.shape[0])/batch_length)+1),dtype=tf.int32)))   #int((end_point-start_point)/batch_length)+1))
-        gridtest=(tf.meshgrid(tf.range(0,batch_length,dtype=tf.int32),tf.range(0,int(((data_input.shape[1])-batch_length)+1),dtype=tf.int32)))   #int((end_point-start_point)/batch_length)+1))
- 
-   #     print("gridtest=",gridtest)
- #       start_index=tf.random.shuffle(tf.convert_to_tensor(tf.repeat(tf.add(gridtest[0],gridtest[1]),repeats_needed,axis=0)))   #[:,:,np.newaxis
-        start_index=tf.random.shuffle(tf.convert_to_tensor(tf.repeat(tf.add(gridtest[0],gridtest[1]),repeats_needed,axis=0)))   #[:,:,np.newaxis
-
-   #     print("start index=",start_index)
-        new_batches= tf.random.shuffle(tf.cast(tf.gather(data_input[0],start_index,axis=0),dtype=tf.int32))
-    #    print("new batches shape",new_batches.shape)
-        return new_batches[...,tf.newaxis]
-
-
-    
-    
-         
-    #  @tf.function
-    def create_Y(self,X,series,batch_length):
-         Y = np.empty((X.shape[0], batch_length, batch_length),dtype=np.int32)
-      #   print("Y dhape",Y.shape)
-         for step_ahead in range(1, batch_length + 1):
-             Y[..., step_ahead - 1] = series[..., step_ahead:step_ahead + batch_length]
-    
-         return Y   #tf.convert_to_tensor(Y,tf.int32) 
- 
+    def build_all_possible_batches_from_series(self,series,batch_length):   #,start_point,end_point):
      
-    # Tf function too slow  stuck with numpy function above    
-  # #  @tf.function
-  #   def create_Y(self,data_input,no_of_batches,batch_length):
-  #      Y = tf.Variable(np.empty((no_of_batches, batch_length,batch_length)),dtype=tf.int32)
-  #    #  print("new Y shape",Y.shape)
-  #      for step_ahead in tf.range(1,batch_length + 1):
-  #            indicies=data_input[step_ahead:step_ahead+batch_length]
-  #          #  Y[:,step_ahead - 1] = data_input[step_ahead:step_ahead+batch_length]  #,n_inputs-1]  #+1
-  #            Y[:,step_ahead - 1] = tf.cast(tf.gather(data_input,indicies,axis=0),dtype=tf.int32)  #,n_inputs-1]  #+1
-   
-  #      return Y 
-
-    #  Y=[tf.stack(tf.broadcast_to(series[0,step_ahead:step_ahead + batch_length],[no_of_batches,batch_length]),axis=-1) for step_ahead in tf.range(1, batch_length + 1)]
-        
-        
+    #  we want to create an X from series of batch_length
+    # for every combination
+    # so series indexes are [[0,1,2,3,4,....,x]]
+    # X combinations are [[0,1,2,..., batch_length]
+    #        [1,2,3,....batch_length+1]
+    #              ................
+    #        [800,801,802,....,x]]
+    #
+    # this assumes x is 800+batch_length!
+    #
+    # so one batch of X is in the shape [1,batch_length,1]
+    # and is randomly selected
+    #
+    # but the Y has to be in the shape
+    #  [1,batch_length,batch_length]
+    # but one step ahead of the X
+    # so if X batch indicies of series are [[23,24,25,.....,39]]   (say batch length is 16)
+    # Y is [[24,25,26..., 40]
+    #       [25,26,27...., 41]
+    #              ................
+    #        [40,41,42,....,56]]
+    #
+    #
+    # and the X and Y shape have to match in this setup
+    # so X is also in shape [1,batch_length,batch_length]
+    #
+    # one X batch would have to be  
+    # X is [[23,24,25..., 39]
+    #       [24,25,26...., 40]
+    #              ................
+    #        [39,41,42,....,55]]
+    #
+    # to match the Y batch
+    
+    
+        start_points=tf.range(0,self.batch_length,dtype=tf.int32)  
+        grid_indices=(tf.meshgrid(start_points,tf.range(0,int((series.shape[1]-batch_length)+1),dtype=tf.int32)))   #int((end_point-start_point)/batch_length)+1))
+        start_index=tf.convert_to_tensor(tf.add(grid_indices[0],grid_indices[1]))   #[:,:,np.newaxis
+        return tf.gather(series[0],start_index,axis=0)  #[tf.newaxis,...]
+    
+    
+    @tf.function
+    def sequential_indices(self,start_points,length_of_indices): 
+        grid_indices=tf.meshgrid(tf.range(0,length_of_indices),start_points)   #int((end_point-start_point)/batch_length)+1)) #   print("gt=",gridtest)
+     #   return tf.convert_to_tensor(tf.add(gridtest[0],gridtest[1]))   #[:,:,np.newaxis
+        return tf.add(grid_indices[0],grid_indices[1])   #[:,:,np.newaxis
+       
+    
+    
+    
+    
+    
+    @tf.function
+    def create_X_and_Y_batches(self,batches,batch_length,no_of_batches):
+        start_points=tf.random.uniform(shape=[no_of_batches],minval=0,maxval=batches.shape[0]-batch_length-1,dtype=tf.int32)
+     #   tf.print("start point=",start_point,"nob",no_of_batches,"batch len=",batch_length)
+        X_indices=self.sequential_indices(start_points,batch_length)
+        X=tf.gather(batches,X_indices,axis=0)
+    
+     #   tf.print("X=",X,X.shape)
+         
+        Y_indices=self.sequential_indices(start_points+1,batch_length)
+        Y=tf.gather(batches,Y_indices,axis=0)
+    
+     #   tf.print("Y=",Y,Y.shape)
+        return X,Y
+    
+            
         
      
     def quotes(self,test2):
@@ -360,18 +372,18 @@ class salestrans:
   
     
   
-    @tf.function
-    def train_test_split(self,X):
-        X=tf.random.shuffle(X)
-        batch_length=X.shape[0]
-        n_train=int(tf.round(batch_length*self.train_percent,0))
-        n_valid=int(tf.round(batch_length*self.valid_percent,0))
+    # @tf.function
+    # def train_test_split(self,X):
+    #     X=tf.random.shuffle(X)
+    #     batch_length=X.shape[0]
+    #     n_train=int(tf.round(batch_length*self.train_percent,0))
+    #     n_valid=int(tf.round(batch_length*self.valid_percent,0))
         
-        X_train=X[:n_train]
-        X_valid=X[n_train:n_train+n_valid]
-        X_test=X[n_train+n_valid:]
+    #     X_train=X[:n_train]
+    #     X_valid=X[n_train:n_train+n_valid]
+    #     X_test=X[n_train+n_valid:]
 
-        return X_train,X_valid,X_test
+    #     return X_train,X_valid,X_test
 
     
 # @tf.function
