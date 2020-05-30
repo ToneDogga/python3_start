@@ -113,32 +113,6 @@ mpl.rc('ytick', labelsize=12)
 
 
 
-# def plot_multiple_forecasts2(X_orig,X_pred, X_actual,title_name,first_start_point,first_end_point):
-#     n_steps = X_pred.shape[1]
-#     ahead = X_actual.shape[1]
-#     n_orig=X_orig.shape[1]-first_start_point
-#  #   plt.plot(np.arange(0, n_steps), X[0, :, 0], "r-", label="forecast", markersize=10)
- 
-#   #  plt.plot(np.arange(0, ahead), X_actual[0, :, 0], "g-", label="Actual", markersize=10)
-
-
-#     plt.plot(np.arange(0, n_orig), X_orig[0, first_start_point:, 0], "b-", label="Actual", markersize=10)
-
-#  #   plot_series(X[0, :, 0])
-#     if title_name:
-#         plt.title(title_name)
-#     plt.plot(np.arange(0,n_steps), X_pred[0, :, 0], "r.", label="Predict",markersize=4)
-# #    plt.plot(np.arange(n_steps, n_steps + ahead), Y_pred[0, :, 0], "b-", label="Forecast", markersize=10)
- 
-# #    plt.axis([0, n_steps + ahead, -1, 1])
-# #    plt.axis([0, n_steps + ahead, 0 , np.max(Y_actual)])
-#     plt.axis([0, n_steps+10, 0 , np.max(X_actual)])
-
-#     plt.legend(fontsize=14)
-
-
-
-
 
 # def plot_log_learning_curves(title,epochs,loss, val_loss,query_name):
 #     ax = plt.gca()
@@ -532,7 +506,7 @@ def plot_learning_curves(loss, val_loss,epochs,title):
     plt.plot(np.arange(len(val_loss)) + 1, val_loss, "r.-", label="Validation loss")
     plt.gca().xaxis.set_major_locator(mpl.ticker.MaxNLocator(integer=True))
 #    plt.axis([1, epochs+1, 0, np.max(loss[1:])])
-    plt.axis([1, epochs+1, 0, np.max(loss)])
+    plt.axis([1, epochs+1, np.min(loss), np.max(loss)])
 
     plt.legend(fontsize=14)
     plt.title(title)
@@ -605,6 +579,7 @@ def main():
     # first is query name
     # second is 0= originsal data, 1 = actual query don't predict or  plot, 2 = plot actual mat, 3 = plot prediction, 4 = plot prediction with error bar
     # third is the start point
+    # fourth is the plot number
     #
     # the value is a 1D Tensor except at the start where sales_df is a pandas dataframe
     #     
@@ -613,13 +588,13 @@ def main():
 
     
     
-        plot_dict=dict({('loaded_dataframe',0,0) : sales_df})
+        plot_dict=dict({('loaded_dataframe',0,0,0) : sales_df})
         st.save_plot_dict(plot_dict,st.plot_dict_filename)
     
     else:
         
         plot_dict=st.load_plot_dict(st.plot_dict_filename)
-        sales_df=plot_dict[('loaded_dataframe',0,0)] 
+        sales_df=plot_dict[('loaded_dataframe',0,0,0)] 
         for key in plot_dict.copy():
             if key[1]==2 | key[1]==3:
               del plot_dict[key]
@@ -640,6 +615,7 @@ def main():
     
     plot_dict=st.load_plot_dict(st.plot_dict_filename)
  #   for k in plot_dict.keys():
+    plot_number=1 
     for k in plot_dict.copy():
       #  series=plot_dict[k]
         query_name=k[0]
@@ -688,7 +664,7 @@ def main():
               
             model.summary()
            
-            plot_learning_curves(history.history["loss"], history.history["val_loss"],st.epochs,"GRU and dropout")
+            plot_learning_curves(history.history["loss"], history.history["val_loss"],st.epochs,"GRU and dropout:"+str(query_name))
             save_fig("GRU and dropout learning curve",st.images_path)
         
             plt.show()
@@ -707,10 +683,10 @@ def main():
         #    print("new predictopn=",new_prediction)
       #      print("predict ahead=",predict_ahead)
             
-            plot_dict=st.append_plot_dict(plot_dict,query_name,new_prediction)  
+            plot_dict=st.append_plot_dict(plot_dict,query_name,new_prediction,plot_number)  
         
             st.save_plot_dict(plot_dict,st.plot_dict_filename)
-           
+            plot_number+=1
         
         
         
@@ -738,17 +714,20 @@ def main():
  #   tf.keras.backend.clear_session()
     #cuda.select_device(0)
 #cuda.close()
+    print("purging plot_dict of non plottable data")
     for key in plot_dict.copy():
-        if key[1]==1:
+        if ((key[1]==1)):   # | (key[1]==0)):
               del plot_dict[key]
     
-        
+    print("plot dict purged")        
     for key in plot_dict.keys():
         print(key)
          
     st.save_plot_dict(plot_dict,st.plot_dict_filename)
     
   #  print("plot-dtct",plot_dict.items())
+    print("Plotting plot_dict...")
+    st.plot_final_dict(plot_dict)
 
     #plot_df=pd.DataFrame.from_dict(plot_dict,orient='index',dtype=np.int32)
     plot_df=st.build_final_plot_df(plot_dict)

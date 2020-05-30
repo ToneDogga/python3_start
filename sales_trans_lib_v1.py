@@ -179,9 +179,9 @@ class salestrans:
         del table_list
         
    #     print("\n ttable dict=\n",table_dict)
-            
+        plot_number=1    
         for k in table_dict.keys():
-              key=tuple([table_dict[k][0],1,self.start_point])
+              key=tuple([table_dict[k][0],1,self.start_point,plot_number])
          #     print("key=",key)
               nptd=table_dict[k][1].to_numpy().swapaxes(0,1)
         #      print("nptd=",nptd,nptd.shape)
@@ -194,14 +194,14 @@ class salestrans:
  
          # create mat   
            #   for elem in self.mats:   
-              mat_key=tuple([table_dict[k][0]+"@"+str(self.mats)+"u:mt",2,self.start_point])
+              mat_key=tuple([table_dict[k][0]+"@"+str(self.mats)+"u:mt",2,self.start_point,plot_number])
           #    mat_value=self.mat_add_1d(tf.transpose(tf_value, [1, 0]),self.mats) 
               mat_value=self.mat_add_1d(tf_value,self.mats) 
 
               plot_dict[mat_key]=mat_value.numpy()
            #   print("plot disyvc items",plot_dict[mat_key].items())
             # dataset=tf.data.Dataset.from_tensor_slices(tf_series).repeat(3)
-              
+              plot_number+=1
         del table_dict     
         return plot_dict
  
@@ -231,26 +231,26 @@ class salestrans:
     
     
     
- #   @tf.function
-    def mat_add_2d(self,series,mat_days):
+ # #   @tf.function
+ #    def mat_add_2d(self,series,mat_days):
         
-        weight_2d = np.ones((1,mat_days))
-        strides_2d = [1, 1, 1, 1]
+ #        weight_2d = np.ones((1,mat_days))
+ #        strides_2d = [1, 1, 1, 1]
         
-        in_2d = series #tf.constant(series, dtype=tf.float32)
-        filter_2d = tf.constant(weight_2d, dtype=tf.int32)
+ #        in_2d = series #tf.constant(series, dtype=tf.float32)
+ #        filter_2d = tf.constant(weight_2d, dtype=tf.int32)
         
-        in_width = int(in_2d.shape[1])
-        in_height = int(in_2d.shape[0])
+ #        in_width = int(in_2d.shape[1])
+ #        in_height = int(in_2d.shape[0])
         
-        filter_width = int(filter_2d.shape[1])
-        filter_height = int(filter_2d.shape[0])
+ #        filter_width = int(filter_2d.shape[1])
+ #        filter_height = int(filter_2d.shape[0])
         
-        input_2d   = tf.reshape(in_2d, [1, in_height, in_width, 1])
-        kernel_2d = tf.reshape(filter_2d, [filter_height, filter_width, 1, 1])
+ #        input_2d   = tf.reshape(in_2d, [1, in_height, in_width, 1])
+ #        kernel_2d = tf.reshape(filter_2d, [filter_height, filter_width, 1, 1])
     
-        output_2d = tf.cast(tf.divide(tf.squeeze(tf.nn.conv2d(input_2d, kernel_2d, strides=strides_2d, padding='SAME')),mat_days),dtype=tf.float32)
-        return output_2d[tf.newaxis,...]
+ #        output_2d = tf.cast(tf.divide(tf.squeeze(tf.nn.conv2d(input_2d, kernel_2d, strides=strides_2d, padding='SAME')),mat_days),dtype=tf.float32)
+ #        return output_2d[tf.newaxis,...]
     
 
 
@@ -429,11 +429,12 @@ class salestrans:
     #  
     # 
     # # the plot dictionary is the holding area of all data
-    # # it has a 3-tuple for a key
+    # # it has a 4-tuple for a key
     # 
     # first is query name
     # second is 0= originsal data, 1 = actual query don't predict or  plot, 2 = plot actual, 3 = plot prediction, 4 = plot prediction with error bar
     # third is the start point
+    # fourth is the plot number  
     #
     # the value is a 1D Tensor except at the start where sales_df is a pandas dataframe
     #     
@@ -442,10 +443,10 @@ class salestrans:
 
 
     #@tf.function
-    def append_plot_dict(self,plot_dict,query_name,new_prediction):
+    def append_plot_dict(self,plot_dict,query_name,new_prediction,plot_number):
         
    #     new_key="('"+str(query_name)+"_prediction', 2, "+str(self.end_point)+")"
-        new_key=tuple(["'"+str(query_name)+"_prediction'",3,self.end_point])
+        new_key=tuple(["'"+str(query_name)+"_prediction'",3,self.end_point,plot_number])
 
         print("append plot dict new key=",new_key)
         plot_dict[new_key]=new_prediction
@@ -457,6 +458,56 @@ class salestrans:
         print("fpdf=",final_plot_df)
  #        for key in plot_dict.keys():
         return final_plot_df    
+   
+     
+     
+    def plot_final_dict(self,plot_dict):
+        listoftuplekeys = sorted(plot_dict.keys() ,  key=lambda x: x[3] )
+        print("lotk=",listoftuplekeys)
+     #   old_key=listoftuplekeys[1][3]
+        for key in listoftuplekeys:   #plot_dict.keys():
+            print("key",key,"key[3]:",key[3])
+            if key[1]>1: 
+                for plot_series in range(1,2):
+            #    listofplotnumbers=list(listoftuplekeys[3])  #, k=lambda x: x[3] )
+            #    print("lopn",listofplotnumbers)
+             #   for plot_number_key in listofplotnumbers:      
+                #    print("plot numbeer key=",plot_number_key)
+                    plot_name=key[0]
+                    plot_type=key[1]   # actual
+                    plot_number=key[3]
+                    print("plot number=",plot_number)
+                    if plot_type==2:
+                        label="Actual:"  #+str(plot_number_key)
+                        colour="b-"
+                    elif plot_type==3:
+                        label="Prediction:"   #+str(plot_number_key)
+                        colour="r-"
+                    else:
+                        label="Unknown:"   #+str(plot_number_key)
+                        colour="y-"
+                    plot_start_point=key[2]  
+                    plot_data=plot_dict[key]
+                    print("plot data shape",plot_dict[key].shape,plot_number)
+                    plt.plot(np.arange(plot_start_point,plot_start_point+plot_data.shape[1] ), plot_data[0], colour, label=label, markersize=10)
+                   # plt.plot(np.arange(0,st.date_len),st.dates)
+           #     plt.xaxis(self.dates) 
+           #     plt.yaxis([0 , np.max(plot_data)])
+                plt.title(plot_name)
+                plt.legend(fontsize=14)
+                
+       #  ax=plt.gca()
+      #  ax.plt(self.dates)
+#     ax = plt.gca()
+   #     plt.xlabel("Epochs")
+                plt.ylabel("units/day sales")
+                plt.grid(True)
+
+                plt.show()
+            
         
-        
+            
+
+
+       
         
