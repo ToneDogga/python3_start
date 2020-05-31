@@ -679,7 +679,7 @@ def main():
              
             print("\nPredicting....",query_name)
          #   series=series[...,tf.newaxis]
-            new_prediction=st.predict_series(model,plot_dict[k][:,st.start_point:st.end_point][...,np.newaxis])
+            new_prediction=st.predict_series(model,plot_dict[k][:,st.start_point:st.end_point][...,tf.newaxis])
         #    print("new predictopn=",new_prediction)
       #      print("predict ahead=",predict_ahead)
             
@@ -714,53 +714,59 @@ def main():
  #   tf.keras.backend.clear_session()
     #cuda.select_device(0)
 #cuda.close()
+    st.save_plot_dict(plot_dict,st.plot_dict_filename)
+
     print("purging plot_dict of non plottable data")
     for key in plot_dict.copy():
-        if ((key[1]==1)):   # | (key[1]==0)):
+        if ((key[1]==1) | (key[1]==0)):
               del plot_dict[key]
     
     print("plot dict purged")        
     for key in plot_dict.keys():
-        print(key)
+        print(key,plot_dict[key].shape)
          
-    st.save_plot_dict(plot_dict,st.plot_dict_filename)
     
   #  print("plot-dtct",plot_dict.items())
+  
+    new_plot_df=st.build_final_plot_df(plot_dict)
+  
     print("Plotting plot_dict...")
-    st.plot_final_dict(plot_dict)
+    print("new_plot df=\n",new_plot_df.columns,new_plot_df.shape)
+
+    st.plot_new_plot_df(new_plot_df)
 
     #plot_df=pd.DataFrame.from_dict(plot_dict,orient='index',dtype=np.int32)
-    plot_df=st.build_final_plot_df(plot_dict)
+
     
-    print("plot df=\n",plot_df,plot_df.columns,plot_df.shape)
        
     print("\nwrite predictions to sales_prediction(.....).CSV file....")
    
-    print("Saving pickled final table - final_series_table.pkl",plot_df.shape)
+    print("Saving pickled final table - final_series_table.pkl",new_plot_df.shape)
     
         #    series_table=series_table.T       
-    pd.to_pickle(plot_df,"final_series_tables.pkl")
+    pd.to_pickle(new_plot_df,"final_series_tables.pkl")
        
-    forecast_table = plot_df.resample('M', label='left', loffset=pd.DateOffset(days=1)).sum().round(0)
+    forecast_table = new_plot_df.resample('M', label='left', loffset=pd.DateOffset(days=1)).sum().round(0)
     forecast_table.index=forecast_table.index.strftime("%Y-%m-%d")
 
-    print("forecast_table=\n",forecast_table,forecast_table.columns)
+#    print("forecast_table=\n",forecast_table,forecast_table.columns)
     
-    for col in forecast_table.columns:
-        newcol = col[0].replace(',', '_')
-        newcol = newcol.replace("'", "")
-        newcol = newcol.replace(" ", "")
-        forecast_table.rename(columns={col[0]:newcol}, inplace=True)
+    forecast_table=st.clean_up_col_names(forecast_table)
+    # for col in forecast_table.columns:
+    #     newcol = col[0].replace(',', '_')
+    #     newcol = newcol.replace("'", "")
+    #     newcol = newcol.replace(" ", "")
+    #     forecast_table.rename(columns={col[0]:newcol}, inplace=True)
 
 
-    print("new forecast_table=\n",forecast_table,forecast_table.columns)
+    print("new forecast_table columns=\n",forecast_table.columns)
 
 
  #   s = "xx"
     forecast_table.to_excel(st.output_dir+"SCBS_forecast_table.xlsx") 
         
              
-    print("\n\npredict module finish\n\n")
+  #  print("\n\npredict module finish\n\n")
  
  #   print("\n\nFinished.")
     gc.collect()      

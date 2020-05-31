@@ -68,8 +68,8 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off trac
 class salestrans:
     def __init__(self):   
         self.epochs=2
-        self.no_of_batches=100
-        self.no_of_repeats=2
+        self.no_of_batches=1000
+        self.no_of_repeats=1
         
 
         self.dropout_rate=0.2
@@ -189,8 +189,8 @@ class salestrans:
         #          nptd=nptd[...,tf.newaxis]
                   
               tf_value=tf.convert_to_tensor(nptd,tf.int32)
-        #      print("tf value=",tf_value)
-              plot_dict[key]=nptd   #tf_value  # 1D only tensor
+              tf.print("tf value.shape=",tf_value.shape)
+              plot_dict[key]=nptd  #tf_value  # 1D only tensor
  
          # create mat   
            #   for elem in self.mats:   
@@ -388,7 +388,9 @@ class salestrans:
     
 # @tf.function
     def predict_series(self,model,series):
-    
+        print("predict series series.shape",series.shape)
+     #   series=series[tf.newaxis,...]
+     #   series=series[...,tf.newaxis]
        # predict_ahead=series   #[:,start_point:end_point,:]   #.astype(np.float32)   #[0,:,0]     #]
       #  predict_ahead_end_point=end_point-start_point
        # Y_probas = np.empty((1,batch_length),dtype=np.int32)  #predict_ahead_steps))
@@ -419,8 +421,8 @@ class salestrans:
          #   predict_ahead=np.concatenate((predict_ahead,Y_mean),axis=1)
       #      print("mafter new prediction=",new_prediction.shape)
           #  print("mafter predict ahead=",predict_ahead.shape)
-            
-        return new_prediction  
+        print("pred shape",new_prediction.shape)    
+        return new_prediction 
   
 
 
@@ -449,63 +451,99 @@ class salestrans:
         new_key=tuple(["'"+str(query_name)+"_prediction'",3,self.end_point,plot_number])
 
         print("append plot dict new key=",new_key)
-        plot_dict[new_key]=new_prediction
+        new_prediction=self.add_start_point(new_prediction,self.end_point)
+        plot_dict[new_key]=new_prediction[:,:,0]
+        return plot_dict
+        
+    def tidy_up_plot_dict(self,plot_dict):
+        # al the arrays are in the shape of [1,len]
+        # they need to be 1D, shape [len] to plot directly
+        # all the arrays need to be the same length
+        # change keys in plot dict to be the name which is the first element in the key tuple
+        for key in plot_dict.copy():
+            
+            plot_dict[key]=self.add_trailing_blanks(plot_dict[key],self.date_len)
+            plot_dict[key]=plot_dict[key][0,:self.date_len]
+            key=key[0] # name only as key
         return plot_dict
         
         
     def build_final_plot_df(self,plot_dict):
-        final_plot_df=pd.DataFrame(columns=plot_dict.keys(),index=self.dates)
-        print("fpdf=",final_plot_df)
+      #  final_plot_df=pd.DataFrame(columns=plot_dict.keys(),index=self.dates)
+        plot_dict=self.tidy_up_plot_dict(plot_dict)  
+        for key in plot_dict.keys():
+            print("final series",key,plot_dict[key].shape)
+
+        final_plot_df=pd.DataFrame.from_dict(plot_dict,orient="columns")
+        final_plot_df.index=self.dates
+    #    print("fpdf=",final_plot_df)
  #        for key in plot_dict.keys():
         return final_plot_df    
+ 
+  
    
-     
-     
-    def plot_final_dict(self,plot_dict):
-        listoftuplekeys = sorted(plot_dict.keys() ,  key=lambda x: x[3] )
-        print("lotk=",listoftuplekeys)
-     #   old_key=listoftuplekeys[1][3]
-        for key in listoftuplekeys:   #plot_dict.keys():
-            print("key",key,"key[3]:",key[3])
-            if key[1]>1: 
-                for plot_series in range(1,2):
-            #    listofplotnumbers=list(listoftuplekeys[3])  #, k=lambda x: x[3] )
-            #    print("lopn",listofplotnumbers)
-             #   for plot_number_key in listofplotnumbers:      
-                #    print("plot numbeer key=",plot_number_key)
-                    plot_name=key[0]
-                    plot_type=key[1]   # actual
-                    plot_number=key[3]
-                    print("plot number=",plot_number)
-                    if plot_type==2:
-                        label="Actual:"  #+str(plot_number_key)
-                        colour="b-"
-                    elif plot_type==3:
-                        label="Prediction:"   #+str(plot_number_key)
-                        colour="r-"
-                    else:
-                        label="Unknown:"   #+str(plot_number_key)
-                        colour="y-"
-                    plot_start_point=key[2]  
-                    plot_data=plot_dict[key]
-                    print("plot data shape",plot_dict[key].shape,plot_number)
-                    plt.plot(np.arange(plot_start_point,plot_start_point+plot_data.shape[1] ), plot_data[0], colour, label=label, markersize=10)
-                   # plt.plot(np.arange(0,st.date_len),st.dates)
-           #     plt.xaxis(self.dates) 
-           #     plt.yaxis([0 , np.max(plot_data)])
-                plt.title(plot_name)
-                plt.legend(fontsize=14)
-                
-       #  ax=plt.gca()
-      #  ax.plt(self.dates)
-#     ax = plt.gca()
-   #     plt.xlabel("Epochs")
-                plt.ylabel("units/day sales")
-                plt.grid(True)
-
-                plt.show()
-            
+    def add_start_point(self,series,start_point):
+       # print("add offset series 3.shape=",series.shape)
+      #  offset=total_len-series.shape[1]
+        a = np.empty((1,start_point,1))
+        a[:] = np.nan
+        return np.concatenate((a,series),axis=1) 
+     #                    new_plot_df[plot_name]=pred_plot_data
+  
+    
+    def add_trailing_blanks(self,series,total_len):
+       # print("add offset 2 series.shape=",series.shape)
+        offset=total_len-series.shape[1]
+        a = np.empty((1,offset))
+        a[:] = np.nan
+        return np.concatenate((series,a),axis=1) 
+  
+    
+    
+    
+    def return_plot_number_df(self,plot_df,plot_number):
+        plot_df=plot_df.T
+        return plot_df.xs(plot_number, level=3).T
         
+
+    def clean_up_col_names(self,df):
+        for col in df.columns:
+            newcol = col[0].replace(',', '_')
+            newcol = newcol.replace("'", "")
+            newcol = newcol.replace(" ", "")
+        df=df.rename(columns={col[0]:newcol})   #, inplace=True)
+        return df
+
+
+
+    
+ 
+    def plot_new_plot_df(self,new_plot_df):
+    #    new_plot_df=self.build_final_plot_df(plot_dict)
+
+    #    new_plot_df=pd.DataFrame(plot_dict,index=self.dates)
+     #   print("newplot df=",new_plot_df)
+        
+        #  multiindex try querying
+  #      print("0",new_plot_df.columns.get_level_values(0))
+  #      print("1",new_plot_df.columns.get_level_values(1))
+  #      print("2",new_plot_df.columns.get_level_values(2))
+  #      print("level 3 multiindex ",new_plot_df.columns.get_level_values(3))
+    
+    
+    
+        for plot_number in range(1,1+max(new_plot_df.columns.get_level_values(3))):
+            plot_number_df=self.return_plot_number_df(new_plot_df,plot_number)
+         
+            plot_number_df.plot()
+            plt.title("Unit sales")   #str(new_plot_df.columns.get_level_values(0)))
+            plt.legend(fontsize=14)
+            plt.ylabel("units/day sales")
+            plt.grid(True)
+
+            plt.show()
+         
+
             
 
 
