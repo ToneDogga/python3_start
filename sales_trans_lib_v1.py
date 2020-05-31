@@ -67,9 +67,9 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off trac
 
 class salestrans:
     def __init__(self):   
-        self.epochs=2
+        self.epochs=8
         self.no_of_batches=1000
-        self.no_of_repeats=1
+        self.no_of_repeats=5
         
 
         self.dropout_rate=0.2
@@ -83,7 +83,7 @@ class salestrans:
         self.dates = pd.period_range("02/02/18", periods=self.date_len)   # 2000 days
 
 
-        self.pred_error_sample_size=5
+        self.pred_error_sample_size=25
         self.patience=5
 
         self.mats=28   #tf.constant([28],dtype=tf.int32)
@@ -148,16 +148,7 @@ class salestrans:
         with open(loadname,"rb") as f:
             return pickle.load(f)
   
-            
-    def remove_key_from_dict(self,plot_dict,key):
-      #  print("1plot_dict len",len(plot_dict))
-     #   plot_dict.pop(key, None)
-        del plot_dict[key]
-        print("2plot_dict len",len(plot_dict))
-
-        return plot_dict
-    
-    
+   
     def query_sales(self,sales_df,queryfilename,plot_dict):  
         print("query sales:",queryfilename)
         
@@ -309,7 +300,11 @@ class salestrans:
         return tf.add(grid_indices[0],grid_indices[1])   #[:,:,np.newaxis
        
     
-    
+  
+    # print("new Y shape",Y.shape)
+    # for step_ahead in range(1, predict_ahead_length + 1):
+    #     Y[...,step_ahead - 1] = X[..., step_ahead:step_ahead+batch_length-predict_ahead_length, 0]  #+1
+   
     
     
     
@@ -388,7 +383,7 @@ class salestrans:
     
 # @tf.function
     def predict_series(self,model,series):
-        print("predict series series.shape",series.shape)
+  #      print("predict series series.shape",series.shape)
      #   series=series[tf.newaxis,...]
      #   series=series[...,tf.newaxis]
        # predict_ahead=series   #[:,start_point:end_point,:]   #.astype(np.float32)   #[0,:,0]     #]
@@ -421,7 +416,7 @@ class salestrans:
          #   predict_ahead=np.concatenate((predict_ahead,Y_mean),axis=1)
       #      print("mafter new prediction=",new_prediction.shape)
           #  print("mafter predict ahead=",predict_ahead.shape)
-        print("pred shape",new_prediction.shape)    
+     #   print("pred shape",new_prediction.shape)    
         return new_prediction 
   
 
@@ -443,6 +438,18 @@ class salestrans:
     # =============================================================================
           
 
+          
+    def remove_key_from_dict(self,plot_dict,key):
+      #  print("1plot_dict len",len(plot_dict))
+     #   plot_dict.pop(key, None)
+        del plot_dict[key]
+   #     print("2plot_dict len",len(plot_dict))
+
+        return plot_dict
+    
+   
+
+
 
     #@tf.function
     def append_plot_dict(self,plot_dict,query_name,new_prediction,plot_number):
@@ -450,7 +457,7 @@ class salestrans:
    #     new_key="('"+str(query_name)+"_prediction', 2, "+str(self.end_point)+")"
         new_key=tuple(["'"+str(query_name)+"_prediction'",3,self.end_point,plot_number])
 
-        print("append plot dict new key=",new_key)
+   #     print("append plot dict new key=",new_key)
         new_prediction=self.add_start_point(new_prediction,self.end_point)
         plot_dict[new_key]=new_prediction[:,:,0]
         return plot_dict
@@ -464,22 +471,42 @@ class salestrans:
             
             plot_dict[key]=self.add_trailing_blanks(plot_dict[key],self.date_len)
             plot_dict[key]=plot_dict[key][0,:self.date_len]
-            key=key[0] # name only as key
+            #key=key[0] # name only as key
+         #   plot_dict[key[0]] = plot_dict.pop(key)
         return plot_dict
         
         
     def build_final_plot_df(self,plot_dict):
       #  final_plot_df=pd.DataFrame(columns=plot_dict.keys(),index=self.dates)
         plot_dict=self.tidy_up_plot_dict(plot_dict)  
-        for key in plot_dict.keys():
-            print("final series",key,plot_dict[key].shape)
-
+     #   no_of_plots=0
+        new_column_names=[]
+        for key in plot_dict.copy():
+    #        print("final series",key,plot_dict[key].shape)
+           #      for key in plot_dict.copy():
+            
+           # plot_dict[key]=self.add_trailing_blanks(plot_dict[key],self.date_len)
+           # plot_dict[key]=plot_dict[key][0,:self.date_len]
+            new_column_names.append(key[0]) # name only as key
+ 
+    
+      #      no_of_plots+=1
         final_plot_df=pd.DataFrame.from_dict(plot_dict,orient="columns")
         final_plot_df.index=self.dates
     #    print("fpdf=",final_plot_df)
  #        for key in plot_dict.keys():
-        return final_plot_df    
+        return final_plot_df,new_column_names   #,no_of_plots  
  
+    
+    def simplify_col_names(self,plot_df,new_column_names): 
+        col_names=plot_df.columns
+        rename_dict=dict(zip(col_names, new_column_names))
+     #   print("rename dict",rename_dict)
+        
+        #  #   flat_column_names = [a_tuple[0][level] for a_tuple in np.shape(cols[level])[1] for level in np.shape(cols)[0]]
+        #   #  print("fcn=",flat_column_names)
+        plot_df=plot_df.rename(rename_dict, axis='columns')  #,inplace=True)
+        return plot_df
   
    
     def add_start_point(self,series,start_point):
@@ -492,13 +519,14 @@ class salestrans:
   
     
     def add_trailing_blanks(self,series,total_len):
-       # print("add offset 2 series.shape=",series.shape)
+    #    print("add offset 2 series.shape=",series.shape)
         offset=total_len-series.shape[1]
-        a = np.empty((1,offset))
-        a[:] = np.nan
-        return np.concatenate((series,a),axis=1) 
-  
-    
+        if offset>=1:
+            a = np.empty((1,offset))
+            a[:] = np.nan
+            return np.concatenate((series,a),axis=1) 
+        else:
+            return series[:,:total_len]
     
     
     def return_plot_number_df(self,plot_df,plot_number):
@@ -510,7 +538,7 @@ class salestrans:
         for col in df.columns:
             newcol = col[0].replace(',', '_')
             newcol = newcol.replace("'", "")
-            newcol = newcol.replace(" ", "")
+  #          newcol = newcol.replace(" ", "")
         df=df.rename(columns={col[0]:newcol})   #, inplace=True)
         return df
 
@@ -543,8 +571,7 @@ class salestrans:
 
             plt.show()
          
-
-            
+           
 
 
        
