@@ -67,10 +67,10 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off trac
 
 class salestrans:
     def __init__(self):   
-        self.epochs=4
+        self.epochs=3
     #    self.steps_per_epoch=100 
         self.no_of_batches=1000
-        self.no_of_repeats=1
+        self.no_of_repeats=4
         
 
         self.dropout_rate=0.2
@@ -84,7 +84,7 @@ class salestrans:
         self.dates = pd.period_range("02/02/18", periods=self.date_len)   # 2000 days
 
 
-        self.pred_error_sample_size=25
+        self.pred_error_sample_size=60
         self.no_of_stddevs_on_error_bars=1
         self.patience=5
 
@@ -111,8 +111,16 @@ class salestrans:
         return
     
 
-  
-
+      
+    
+    def save_fig(self,fig_id, images_path, tight_layout=True, fig_extension="png", resolution=300):
+        path = os.path.join(images_path, fig_id + "." + fig_extension)
+        print("Saving figure", fig_id)
+        if tight_layout:
+            plt.tight_layout()
+        plt.savefig(path, format=fig_extension, dpi=resolution)
+    
+      
 
 
     def load_sales(self,filenames):  # filenames is a list of xlsx files to load and sort by date
@@ -187,7 +195,10 @@ class salestrans:
                   
                 
          #     tf.print("tf value.shape=",tf_value.shape)
-                plot_dict[key]=nptd  #tf_value  # 1D only tensor
+              #  print("query sales -before length of new series",nptd.shape)
+ 
+                plot_dict[key]=nptd   #[:,self.start_point:self.end_point+1]  #tf_value  # 2D only tensor shape [1,series]
+             #   print("query sales -after length of new series",plot_dict[key].shape)
                 plot_number+=10
 
                 
@@ -325,7 +336,7 @@ class salestrans:
   
     # print("new Y shape",Y.shape)
     # for step_ahead in range(1, predict_ahead_length + 1):
-    #     Y[...,step_ahead - 1] = X[..., step_ahead:step_ahead+batch_length-predict_ahead_length, 0]  #+1
+    #     Y[...,step_ahead - 1] = series[..., step_ahead:step_ahead+batch_length-predict_ahead_length, 0]  #+1
    
     
     
@@ -335,15 +346,31 @@ class salestrans:
     #    print("batch shape",batches.shape,"batch length",batch_length,"no of batches",no_of_batches)
         start_points=tf.random.uniform(shape=[no_of_batches],minval=0,maxval=batches.shape[0]-batch_length-1,dtype=tf.int32)
      #   tf.print("start point=",start_point,"nob",no_of_batches,"batch len=",batch_length)
-        X_indices=self.sequential_indices(start_points,batch_length)
-        X=tf.gather(batches,X_indices,axis=0)[:,:,:1]
+        X_indices=self.sequential_indices(start_points,batch_length+1)
+    #    tf.print("X indices",X_indices,X_indices.shape)
+        X=tf.gather(batches,X_indices,axis=0)
+      #  X=tf.transpose(X[:,:1,:],[0,2,1])
+      #  X=X[:,1:]
+       # tf.print("1X[0]=",X[0],X.shape)
+ 
+
+        Y=X[:,1:]         
+        X=X[:,:-1]
+     #   Y=tf.transpose(Y,[0,2,1])
+
+      #  Y=Y[:,:,-1:]
+
+      #  tf.print("2X[0]=",X,X.shape,"\n")
+      #  tf.print("2Y[0]=",Y[0],Y.shape,"\n")
+
+        #   tf.print("X[0,:1,:][tf.newaxis,...]=",X.shape)
+     #   tf.print("create Y Y[...,0,:]=X[...,1:366,0]")
+     #   Y_indices=self.sequential_indices(start_points+1,batch_length)
+   #     tf.print("Y indices",Y_indices,Y_indices.shape)
+
+     #   Y=tf.gather(batches,Y_indices,axis=0)
     
-       # tf.print("X=",X,X.shape)
-         
-        Y_indices=self.sequential_indices(start_points+1,batch_length)
-        Y=tf.gather(batches,Y_indices,axis=0)
-    
-       # tf.print("Y=",Y,Y.shape)
+        tf.print("\nX.shape , Y.shape=\n",X.shape,Y.shape,"\n")
         return X,Y
     
             
@@ -618,6 +645,8 @@ class salestrans:
  
       #  print("plot new plot df",new_plot_df)
         plot_nums=list(set(new_plot_df.columns.get_level_values(3)))
+        query_name=list(set(new_plot_df.columns.get_level_values(0)))[0]
+
        # print("plot new plot_df plot nums",plot_nums)
         new_plot_df=new_plot_df.reindex(new_plot_df.columns, axis=1,level=1)
        # print("1new plot df sorted=\n",new_plot_df)
@@ -632,9 +661,10 @@ class salestrans:
             #    plot_number_df.plot(yerr = "double_std")
          #       plot_number_df.plot()
 
-
-# df.mean1.plot()
-#df.mean2.plot(yerr=df.stddev)
+                query_name=list(set(plot_number_df.columns.get_level_values(0)))[0]
+                
+                # df.mean1.plot()
+                #df.mean2.plot(yerr=df.stddev)
 
                 plot_number_df[plot_number_df.columns[0]].plot(style="b")   # actual
                 #prediction + error bars
@@ -643,10 +673,11 @@ class salestrans:
 
 
                 plt.title("Unit sales")   #str(new_plot_df.columns.get_level_values(0)))
-                plt.legend(fontsize=12)
+                plt.legend(fontsize=11)
                 plt.ylabel("units/day sales")
                 plt.grid(True)
-    
+                self.save_fig("actual_v_prediction_"+query_name,self.images_path)
+
                 plt.show()
              
            
