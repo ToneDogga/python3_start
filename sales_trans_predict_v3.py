@@ -305,9 +305,14 @@ def main():
     #  #   dataset=dataset.map(preprocess,num_parallel_calls=None)
         #    dataset=dataset.cache() 
             dataset=dataset.shuffle(buffer_size=st.no_of_batches+1,seed=42)
-            
-            train_set = dataset.padded_batch(1,padded_shapes=([st.batch_length,st.batch_length], [st.batch_length,st.batch_length]), padding_values=(0, 0), drop_remainder=True).prefetch(1)   #, padding_values=(None, None))
-            valid_set = dataset.padded_batch(1,padded_shapes=([st.batch_length,st.batch_length], [st.batch_length,st.batch_length]), padding_values=(0, 0), drop_remainder=True).prefetch(1)   #, padding_values=(None, None))
+            shapes = (tf.TensorShape([None,1]),tf.TensorShape([None,st.batch_length]))
+
+            train_set = dataset.padded_batch(1,padded_shapes=shapes, drop_remainder=True).prefetch(1)   #, padding_values=(None, None))
+            valid_set = dataset.padded_batch(1,padded_shapes=shapes, drop_remainder=True).prefetch(1)   #, padding_values=(None, None))
+
+
+        #    train_set = dataset.padded_batch(1,padded_shapes=([st.batch_length,st.batch_length], [st.batch_length,st.batch_length]), padding_values=(-1, 0), drop_remainder=True).prefetch(1)   #, padding_values=(None, None))
+        #    valid_set = dataset.padded_batch(1,padded_shapes=([st.batch_length,st.batch_length], [st.batch_length,st.batch_length]), padding_values=(-1, 0), drop_remainder=True).prefetch(1)   #, padding_values=(None, None))
 
         #    train_set=dataset.batch(1,drop_remainder=True).prefetch(1)
         #    valid_set=dataset.batch(1,drop_remainder=True).prefetch(1)
@@ -320,7 +325,7 @@ def main():
      # model goes here
      
             model = keras.models.Sequential([
-               keras.layers.GRU(st.neurons, return_sequences=True, input_shape=[None, st.batch_length]),
+               keras.layers.GRU(st.neurons, return_sequences=True, input_shape=[None, 1]),
                keras.layers.BatchNormalization(),
                keras.layers.GRU(st.neurons, return_sequences=True),
                keras.layers.AlphaDropout(rate=st.dropout_rate),
@@ -343,12 +348,12 @@ def main():
            
            
      #       print("\nsave model\n")
-            model.save("GRU_Dropout_sales_predict_model.h5", include_optimizer=True)
+            model.save(query_name+":GRU_Dropout_sales_predict_model.h5", include_optimizer=True)
               
          #   model.summary()
            
             plot_learning_curves(history.history["loss"], history.history["val_loss"],st.epochs,"GRU and dropout:"+str(query_name))
-            save_fig("GRU and dropout learning curve",st.images_path)
+            save_fig(query_name+":GRU and dropout learning curve",st.images_path)
         
             plt.show()
         
@@ -369,7 +374,8 @@ def main():
             plot_dict=st.append_plot_dict(plot_dict,query_name,new_prediction,new_stddev,plot_number)  
         
             st.save_plot_dict(plot_dict,st.plot_dict_filename)
-        
+            save_fig(query_name+":actual_v_prediction",st.images_path)
+
             
          
      #   gc.collect()
