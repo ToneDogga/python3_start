@@ -69,22 +69,24 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off trac
 
 class salestrans:
     def __init__(self):   
-        self.epochs=3
+        self.epochs=5
     #    self.steps_per_epoch=100 
         self.no_of_batches=1000
         self.no_of_repeats=1
         
         self.dropout_rate=0.2
         self.start_point=0
-        self.end_point=800
-        self.predict_ahead_length=740
+        self.end_point=750
+        self.predict_ahead_length=500
         self.batch_length=365
+        self.predict_length=365
         self.one_year=366
-        self.batch_jump=32  # predict ahead steps in days. This is different to the batch length  #int(round(self.batch_length/2,0))
+        self.batch_jump=self.batch_length  # predict ahead steps in days. This is different to the batch length  #int(round(self.batch_length/2,0))
         self.neurons=1000   #self.batch_length
         
+        self.data_start_date="02/02/18"
         self.date_len=1300      
-        self.dates = pd.period_range("02/02/18", periods=self.date_len)   # 2000 days
+        self.dates = pd.period_range(self.data_start_date, periods=self.date_len)   # 2000 days
 
 
         self.pred_error_sample_size=60
@@ -318,7 +320,161 @@ class salestrans:
     #    tf.print("2Y[1]=",Y[1],Y.shape,"\n")
 
         return X,Y
+  
+
     
+    @tf.autograph.experimental.do_not_convert
+    def model_training_GRU(self,train_set,valid_set,query_name):
+        print("\nTraining with GRU and dropout")
+        model = keras.models.Sequential([
+      #     keras.layers.Conv1D(filters=st.batch_length,kernel_size=4, strides=1, padding='same', input_shape=[None, 1]),  #st.batch_length]), 
+      #     keras.layers.BatchNormalization(),
+           keras.layers.GRU(self.neurons, return_sequences=True, input_shape=[None, 1]), #st.batch_length]),
+           keras.layers.BatchNormalization(),
+           keras.layers.GRU(self.neurons, return_sequences=True),
+           keras.layers.AlphaDropout(rate=self.dropout_rate),
+           keras.layers.BatchNormalization(),
+           keras.layers.TimeDistributed(keras.layers.Dense(self.batch_length))
+        ])
+    
+        model.compile(loss="mse", optimizer="adam", metrics=[self.last_time_step_mse])
+       
+        model.summary() 
+       
+        callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=self.patience),self.MyCustomCallback()]
+       
+        history = model.fit(train_set ,epochs=self.epochs,
+                           validation_data=(valid_set), callbacks=callbacks)
+            
+        print("\nsave model",query_name,":GRU_Dropout_sales_predict_model.h5\n")
+        model.save(self.output_dir+query_name+":GRU_Dropout_sales_predict_model.h5", include_optimizer=True)
+             
+        self.plot_learning_curves(history.history["loss"], history.history["val_loss"],self.epochs,"GRU and dropout:"+str(query_name))
+        self.save_fig("GRU and dropout learning curve_"+query_name,self.images_path)
+    
+        plt.show()
+        return model    
+        
+ 
+        
+ 
+    
+ 
+ 
+    
+  #  @tf.autograph.experimental.do_not_convert
+    def model_training_wavenet(self,train_set,valid_set,query_name):
+        print("\nTraining with Wavenet")
+      
+        model = keras.models.Sequential()
+        model.add(keras.layers.InputLayer(input_shape=[None, 1]))
+        for rate in (1, 2, 4, 8) * 2:
+            model.add(keras.layers.Conv1D(filters=2*self.batch_length, kernel_size=2, padding="causal",
+                                          activation="relu", dilation_rate=rate))
+            if rate==8:
+                model.add(keras.layers.AlphaDropout(rate=self.dropout_rate))
+        model.add(keras.layers.Conv1D(filters=self.batch_length, kernel_size=1))
+        model.compile(loss="mse", optimizer="adam", metrics=[self.last_time_step_mse])
+ 
+        model.summary()   
+ 
+        callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=self.patience),self.MyCustomCallback()]
+       
+        history = model.fit(train_set ,epochs=self.epochs,
+                           validation_data=(valid_set), callbacks=callbacks)
+            
+        model.compile(loss="mse", optimizer="adam", metrics=[self.last_time_step_mse])
+       
+
+#            history = model.fit(train_set,  steps_per_epoch=st.steps_per_epoch ,epochs=st.epochs,
+#                               validation_data=(valid_set))
+  
+    #      history = model.fit_generator(X_train, Y_train, epochs=st.epochs,
+  #                         validation_data=(X_valid, Y_valid))
+       
+       
+ #       print("\nsave model\n")
+        model.save(self.output_dir+query_name+":wavenet_sales_predict_model.h5", include_optimizer=True)
+          
+
+       
+        self.plot_learning_curves(history.history["loss"], history.history["val_loss"],self.epochs,"Wavenet:"+str(query_name))
+        self.save_fig("Wavenet learning curve_"+query_name,self.images_path)
+    
+        plt.show()
+        return model    
+ 
+    
+ 
+    
+ 
+    
+ 
+    
+ 
+    
+ 
+    
+ 
+    
+ 
+    class MyCustomCallback(tf.keras.callbacks.Callback):
+    
+      def on_train_begin(self, logs=None):
+        print('Training:  begins at {}'.format(dt.datetime.now().time()))
+    
+      def on_train_end(self, logs=None):
+        print('Training:  ends at {}'.format(dt.datetime.now().time()))
+    
+      def on_predict_begin(self, logs=None):
+        print('Predicting: begins at {}'.format(dt.datetime.now().time()))
+    
+      def on_predict_end(self, logs=None):
+        print('Predicting: ends at {}'.format(dt.datetime.now().time()))
+    
+    
+    
+    class MCDropout(keras.layers.Dropout):
+         def call(self,inputs):
+            return super().call(inputs,training=True)
+    
+    
+    class MCAlphaDropout(keras.layers.AlphaDropout):
+        def call(self,inputs):
+            return super().call(inputs,training=True)
+    
+    
+    def last_time_step_mse(self,Y_true, Y_pred):
+        return keras.metrics.mean_squared_error(Y_true[:, -1], Y_pred[:, -1])
+    
+    
+       
+     
+    def plot_learning_curves(self,loss, val_loss,epochs,title):
+        ax = plt.gca()
+        ax.set_yscale('log')
+        if np.min(loss)>10:
+            lift=10
+        else:
+            lift=1
+    
+        plt.plot(np.arange(len(loss)) + 0.5, loss, "b.-", label="Training loss")
+        plt.plot(np.arange(len(val_loss)) + 1, val_loss, "r.-", label="Validation loss")
+        plt.gca().xaxis.set_major_locator(mpl.ticker.MaxNLocator(integer=True))
+    #    plt.axis([1, epochs+1, 0, np.max(loss[1:])])
+      #  plt.axis([1, epochs+1, np.min(loss), np.max(loss)])
+        plt.axis([1, epochs+1, np.min(loss)-lift, np.max(loss)])
+    
+        plt.legend(fontsize=14)
+        plt.title(title)
+        plt.xlabel("Epochs")
+        plt.ylabel("Loss")
+        plt.grid(True)
+    
+
+
+    
+  
             
         
      
@@ -383,8 +539,15 @@ class salestrans:
         new_stddev=np.empty((1,0,1),dtype=np.float32)  #self.batch_length),dtype=np.float32)
  
         for r in range(0,self.predict_ahead_length,self.batch_jump):           
-            X_new=series[:,self.end_point-self.batch_length:self.end_point,:]
+            X_new=series[:,self.end_point-self.predict_length:self.end_point,:]
        #     print("\nsimple predict - X new",X_new,X_new.shape,"\n\n")
+       #     print("prediction line[0,-1]",model(X_new,training=False)[0,-1],model(X_new,training=False)[0,-1].shape)
+       #     print("prediction line[0,batch_length-1]",model(X_new,training=False)[0,self.batch_length-1],model(X_new,training=False)[0,self.batch_length-1].shape)
+
+       #     print("prediction line[0,:,-1]",model(X_new,training=False)[0,:,-1],model(X_new,training=False)[0,:,-1].shape)
+
+        #model(X_new,training=True)[0,-1]
+       
             Y_probs=np.stack([model(X_new,training=True)[0,-1].numpy() for sample in range(self.pred_error_sample_size)])         
     
             Y_mean=Y_probs.mean(axis=0)
@@ -633,15 +796,20 @@ class salestrans:
             #    plot_number_df.plot(yerr = "double_std")
          #       plot_number_df.plot()
 
-                query_name=list(set(plot_number_df.columns.get_level_values(0)))[0]
+                query_names=list(set(plot_number_df.columns.get_level_values(0)))[0]
                 
                 # df.mean1.plot()
                 #df.mean2.plot(yerr=df.stddev)
 
                 ax=plot_number_df[plot_number_df.columns[0]].plot(style="b")   # actual
+                
+                col_no=1
+           #     prediction_names=list(set(plot_number_df.columns.get_level_values(1)))
+           #     print("prediction namnes",prediction_names)
                 #prediction + error bars
-                plot_number_df[plot_number_df.columns[1]].plot(yerr=plot_number_df[plot_number_df.columns[2]],style='r', ecolor=['red'],errorevery=10)
-  
+            #    for p in prediction_names:
+                plot_number_df[plot_number_df.columns[col_no]].plot(yerr=plot_number_df[plot_number_df.columns[col_no+1]],style='r', ecolor=['red'],errorevery=10)
+             #       col_no+=2    
                 #           #      df[df.columns[2]].plot(yerr=df.stddev)
                 # xposition = [pd.to_datetime('2010-01-01'), pd.to_datetime('2015-12-31')]
                 # for xc in xposition:

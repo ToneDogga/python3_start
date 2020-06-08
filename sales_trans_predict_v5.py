@@ -115,61 +115,6 @@ mpl.rc('xtick', labelsize=12)
 mpl.rc('ytick', labelsize=12)
 
 
-class MyCustomCallback(tf.keras.callbacks.Callback):
-
-  def on_train_begin(self, logs=None):
-    print('Training:  begins at {}'.format(dt.datetime.now().time()))
-
-  def on_train_end(self, logs=None):
-    print('Training:  ends at {}'.format(dt.datetime.now().time()))
-
-  def on_predict_begin(self, logs=None):
-    print('Predicting: begins at {}'.format(dt.datetime.now().time()))
-
-  def on_predict_end(self, logs=None):
-    print('Predicting: ends at {}'.format(dt.datetime.now().time()))
-
-
-
-class MCDropout(keras.layers.Dropout):
-     def call(self,inputs):
-        return super().call(inputs,training=True)
-
-
-class MCAlphaDropout(keras.layers.AlphaDropout):
-    def call(self,inputs):
-        return super().call(inputs,training=True)
-
-
-def last_time_step_mse(Y_true, Y_pred):
-    return keras.metrics.mean_squared_error(Y_true[:, -1], Y_pred[:, -1])
-
-
-   
- 
-def plot_learning_curves(loss, val_loss,epochs,title):
-    ax = plt.gca()
-    ax.set_yscale('log')
-    if np.min(loss)>10:
-        lift=10
-    else:
-        lift=1
-
-    plt.plot(np.arange(len(loss)) + 0.5, loss, "b.-", label="Training loss")
-    plt.plot(np.arange(len(val_loss)) + 1, val_loss, "r.-", label="Validation loss")
-    plt.gca().xaxis.set_major_locator(mpl.ticker.MaxNLocator(integer=True))
-#    plt.axis([1, epochs+1, 0, np.max(loss[1:])])
-  #  plt.axis([1, epochs+1, np.min(loss), np.max(loss)])
-    plt.axis([1, epochs+1, np.min(loss)-lift, np.max(loss)])
-
-    plt.legend(fontsize=14)
-    plt.title(title)
-    plt.xlabel("Epochs")
-    plt.ylabel("Loss")
-    plt.grid(True)
-
-
-
 
 
 
@@ -205,8 +150,8 @@ def main():
     visible_devices = tf.config.get_visible_devices('GPU') 
 
     print("tf.config.get_visible_devices('GPU'):",visible_devices)
-
-
+    
+ 
     print("\n============================================================================\n")       
 
 
@@ -272,6 +217,25 @@ def main():
 
     plot_dict=st.query_sales(sales_df,st.queryfilename,plot_dict)  
     
+    
+    ###########################33
+    print("\n====================================================")       
+
+    first_date=sales_df['date'].iloc[-1]
+    last_date=sales_df['date'].iloc[0]
+    print("\nData available:",sales_df.shape[0],"records.\nfirst date:",first_date,"\nlast date:",last_date,"\n")
+    
+    start_date = pd.to_datetime(st.data_start_date) + pd.DateOffset(days=st.start_point)
+    end_date = pd.to_datetime(st.data_start_date) + pd.DateOffset(days=st.end_point)
+        
+      #  end_date = pd.DateOffset("02/02/18", periods=self.end_point)   # 2000 days
+    print("Data training window:\nstart date:",start_date,"\nend date:",end_date,"\n")
+    print("====================================================\n")       
+
+    ##################################
+    
+    
+    
     del sales_df
     gc.collect()
     
@@ -308,7 +272,7 @@ def main():
         #    dataset=dataset.cache() 
             dataset=dataset.shuffle(buffer_size=st.no_of_batches+1,seed=42)
          #   shapes = (tf.TensorShape([None,1]),tf.TensorShape([None,st.batch_length]))
-            shapes = (tf.TensorShape([None,1]),tf.TensorShape([None,st.batch_length]))
+          #  shapes = (tf.TensorShape([None,1]),tf.TensorShape([None,st.batch_length]))
 
 #            train_set = dataset.padded_batch(1,padded_shapes=shapes, padding_values=(0,0), drop_remainder=True).prefetch(1)   #, padding_values=(None, None))
 #            valid_set = dataset.padded_batch(1,padded_shapes=shapes, padding_values=(0,0), drop_remainder=True).prefetch(1)   #, padding_values=(None, None))
@@ -328,69 +292,15 @@ def main():
             
             train_set=dataset.batch(1).prefetch(1)
             valid_set=dataset.batch(1).prefetch(1)
+       
         
-     #####################################3
-     # model goes here
-     
-            model = keras.models.Sequential([
-          #     keras.layers.Conv1D(filters=st.batch_length,kernel_size=4, strides=1, padding='same', input_shape=[None, 1]),  #st.batch_length]), 
-          #     keras.layers.BatchNormalization(),
-               keras.layers.GRU(st.neurons, return_sequences=True, input_shape=[None, 1]), #st.batch_length]),
-               keras.layers.BatchNormalization(),
-               keras.layers.GRU(st.neurons, return_sequences=True),
-               keras.layers.AlphaDropout(rate=st.dropout_rate),
-               keras.layers.BatchNormalization(),
-               keras.layers.TimeDistributed(keras.layers.Dense(st.batch_length))
-            ])
+######################################################################       
         
-            model.compile(loss="mse", optimizer="adam", metrics=[last_time_step_mse])
-           
-            callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=st.patience),MyCustomCallback()]
-           
-            history = model.fit(train_set ,epochs=st.epochs,
-                               validation_data=(valid_set), callbacks=callbacks)
-
-#            history = model.fit(train_set,  steps_per_epoch=st.steps_per_epoch ,epochs=st.epochs,
-#                               validation_data=(valid_set))
-      
-        #      history = model.fit_generator(X_train, Y_train, epochs=st.epochs,
-      #                         validation_data=(X_valid, Y_valid))
-           
-           
-     #       print("\nsave model\n")
-            model.save(st.output_dir+query_name+":GRU_Dropout_sales_predict_model.h5", include_optimizer=True)
-              
-         #   model.summary()
-           
-            plot_learning_curves(history.history["loss"], history.history["val_loss"],st.epochs,"GRU and dropout:"+str(query_name))
-            st.save_fig("GRU and dropout learning curve_"+query_name,st.images_path)
         
-            plt.show()
-     #############################################################
-# =============================================================================
-#             #  Wavenet     
-#            
-#             model = keras.models.Sequential()
-#             model.add(keras.layers.InputLayer(input_shape=[None, 1]))
-#             for rate in (1, 2, 4, 8) * 2:
-#                 model.add(keras.layers.Conv1D(filters=20, kernel_size=2, padding="causal",
-#                                               activation="relu", dilation_rate=rate))
-#             model.add(keras.layers.Conv1D(filters=10, kernel_size=1))
-#             model.compile(loss="mse", optimizer="adam", metrics=[last_time_step_mse])
-#             history = model.fit(train_set, epochs=st.epochs,
-#                                 validation_data=(valid_set))
-#                  
-#      
-#         
-#            
-#         ########################################3
-# =============================================================================
-        #  send predictions to plot_dict and then excel    
-            
-        #    tf.keras.backend.clear_session()
-            # gc.collect()
+            model=st.model_training_GRU(train_set,valid_set,query_name)
+            new_query_name=query_name+str(":GRU")
              
-            print("\nPredicting....",query_name)
+            print("\nGRU Predicting....",new_query_name)
          #   series=series[...,tf.newaxis]
  #           new_prediction,new_stddev=st.predict_series(model,plot_dict[k][:,st.start_point:st.end_point+1][...,tf.newaxis])
           #  new_prediction,new_stddev=st.predict_series(model,plot_dict[k][...,tf.newaxis])
@@ -399,12 +309,33 @@ def main():
         #    print("new predictopn=",new_prediction,new_prediction.shape)
       #      print("predict ahead=",predict_ahead)
             
-            plot_dict=st.append_plot_dict(plot_dict,query_name,new_prediction,new_stddev,plot_number)  
+            plot_dict=st.append_plot_dict(plot_dict,new_query_name,new_prediction,new_stddev,plot_number)  
      #       plot_dict=st.append_plot_dict(plot_dict,query_name,new_prediction,plot_number)  
         
             st.save_plot_dict(plot_dict,st.output_dir+st.plot_dict_filename)
+         #   plot_number+=1
+  
+# =============================================================================
+# ##################################################################3333
+#           
+#             model=st.model_training_wavenet(train_set,valid_set,query_name)
+#             new_query_name=query_name+str(":Wavenet")
+#                          
+#             print("\nWavenet Predicting....",new_query_name)
+#             new_prediction,new_stddev=st.simple_predict(model,plot_dict[k][...,tf.newaxis])
+#             
+#             plot_dict=st.append_plot_dict(plot_dict,new_query_name,new_prediction,new_stddev,plot_number)  
+#         
+#             st.save_plot_dict(plot_dict,st.output_dir+st.plot_dict_filename)
+#    
+#  ##########################################################
+# =============================================================================
+    
  
-            
+    
+ 
+    
+ 
          
      #   gc.collect()
      #   tf.keras.backend.clear_session()
