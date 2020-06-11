@@ -101,7 +101,7 @@ class salestrans:
         self.valid_percent=0.2
         self.test_percent=0.1
         
-        self.filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx"]
+        self.filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
         self.queryfilename="queryfile.xlsx"
         self.plot_dict_filename="plot_dict.pkl"
         
@@ -134,8 +134,10 @@ class salestrans:
         print("df size=",df.shape)
         for filename in filenames[1:]:
             print("load:",filename)
-            new_df=pd.read_excel(filename,-1)  # -1 means all rows   
-            print("new df size=",new_df.shape)
+            new_df=pd.read_excel(filename,-1)  # -1 means all rows  
+            new_df.date = pd.to_datetime(new_df.date)  #, format='%d%m%Y')
+            new_df=new_df.set_index('date')
+            print("appending",filename,":size=",new_df.shape)
             df=df.append(new_df)
             print("df size=",df.shape)
         
@@ -309,7 +311,7 @@ class salestrans:
         
         for step_ahead in range(1, batch_depth + 1):
             Y_indices[:,:, step_ahead-1] = full_indices[:, step_ahead:step_ahead + batch_length,0]
-
+     #   test_Y_indices=tf.gather(Y_indices[:,:, 0],full_indices[:, :batch_length,0],axis=1)
       #  print("X, X.shape",X_indices,X_indices.shape)  
       #  print("Y, Y.shape",Y_indices,Y_indices.shape)
                 
