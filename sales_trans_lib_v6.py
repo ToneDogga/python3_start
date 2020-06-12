@@ -69,9 +69,9 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off trac
 
 class salestrans:
     def __init__(self):   
-        self.epochs=1
+        self.epochs=5
     #    self.steps_per_epoch=100 
-        self.no_of_batches=10
+        self.no_of_batches=1000
         self.no_of_repeats=1
         
         self.dropout_rate=0.2
@@ -89,7 +89,7 @@ class salestrans:
         self.dates = pd.period_range(self.data_start_date, periods=self.date_len)   # 2000 days
 
 
-        self.pred_error_sample_size=60
+        self.pred_error_sample_size=12
         self.no_of_stddevs_on_error_bars=1
         self.patience=5
 
@@ -220,8 +220,10 @@ class salestrans:
                         plot_dict[key]=nptd   #[:,self.start_point:self.end_point+1]  #tf_value  # 2D only tensor shape [1,series]
                 else:         
                     key=tuple([table_dict[k][0],1,self.start_point,plot_number])   # actuals        
-                    nptd=table_dict[k][1].to_numpy()     #.swapaxes(0,1)
-                    plot_dict[key]=nptd   #[:,self.start_point:self.end_point+1]  #tf_value  # 2D only tensor shape [1,series]
+                    #nptd=table_dict[k][1].to_numpy()     #.swapaxes(0,1)
+                 
+                    print("query values=",query_values,query_values.shape)
+                    plot_dict[key]=query_values   #nptd   #[:,self.start_point:self.end_point+1]  #tf_value  # 2D only tensor shape [1,series]
    
                         
            #     print("query sales -after length of new series",plot_dict[key].shape)
@@ -374,8 +376,8 @@ class salestrans:
         history = model.fit(train_set ,epochs=self.epochs,
                            validation_data=(valid_set), callbacks=callbacks)
             
-        print("\nsave model",query_name,":GRU_Dropout_sales_predict_model.h5\n")
-        model.save(self.output_dir+query_name+":GRU_Dropout_sales_predict_model.h5", include_optimizer=True)
+     #   print("\nsave model",query_name,":GRU_Dropout_sales_predict_model.h5\n")
+     #   model.save(self.output_dir+query_name+":GRU_Dropout_sales_predict_model.h5", include_optimizer=True)
              
         self.plot_learning_curves(history.history["loss"], history.history["val_loss"],self.epochs,"GRU and dropout:"+str(query_name))
         self.save_fig("GRU and dropout learning curve_"+query_name,self.images_path)

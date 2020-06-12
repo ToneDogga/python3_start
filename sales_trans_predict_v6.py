@@ -317,7 +317,7 @@ def main():
             print("save plot for",new_query_name)
             st.save_plot_dict(plot_dict,st.output_dir+st.plot_dict_filename)
             print("Clear tensorflow session and garbage collect..")
-            tf.keras.backend.clear_session()
+         #   tf.keras.backend.clear_session()
             gc.collect()
           #  cuda.select_device(0)
           #  cuda.close()
@@ -347,16 +347,16 @@ def main():
     
  
          
-     #   gc.collect()
-     #   tf.keras.backend.clear_session()
+    gc.collect()
+    tf.keras.backend.clear_session()
         #cuda.select_device(0)
     #cuda.close()
     
     
-
+    print("save plot_dict")
     st.save_plot_dict(plot_dict,st.plot_dict_filename)
 
-  #  print("purging plot_dict of non plottable data")
+    print("purging plot_dict of non plottable data")
     for key in plot_dict.copy():
         if ((key[1]==1) | (key[1]==0)):
               del plot_dict[key]
