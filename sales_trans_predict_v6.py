@@ -314,9 +314,15 @@ def main():
             
             plot_dict=st.append_plot_dict(plot_dict,new_query_name,new_prediction,new_stddev,plot_number)  
      #       plot_dict=st.append_plot_dict(plot_dict,query_name,new_prediction,plot_number)  
-        
+            print("save plot for",new_query_name)
             st.save_plot_dict(plot_dict,st.output_dir+st.plot_dict_filename)
+            print("Clear tensorflow session and garbage collect..")
+            tf.keras.backend.clear_session()
             gc.collect()
+          #  cuda.select_device(0)
+          #  cuda.close()
+    
+  
          #   plot_number+=1
   
 # =============================================================================

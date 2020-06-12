@@ -71,7 +71,7 @@ class salestrans:
     def __init__(self):   
         self.epochs=1
     #    self.steps_per_epoch=100 
-        self.no_of_batches=100
+        self.no_of_batches=10
         self.no_of_repeats=1
         
         self.dropout_rate=0.2
