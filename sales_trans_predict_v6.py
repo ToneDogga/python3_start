@@ -316,6 +316,7 @@ def main():
      #       plot_dict=st.append_plot_dict(plot_dict,query_name,new_prediction,plot_number)  
         
             st.save_plot_dict(plot_dict,st.output_dir+st.plot_dict_filename)
+            gc.collect()
          #   plot_number+=1
   
 # =============================================================================
