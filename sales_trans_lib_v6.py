@@ -376,8 +376,8 @@ class salestrans:
         history = model.fit(train_set ,epochs=self.epochs,
                            validation_data=(valid_set), callbacks=callbacks)
             
-     #   print("\nsave model",query_name,":GRU_Dropout_sales_predict_model.h5\n")
-     #   model.save(self.output_dir+query_name+":GRU_Dropout_sales_predict_model.h5", include_optimizer=True)
+        print("\nsave model",query_name,":GRU_Dropout_sales_predict_model.h5\n")
+        model.save(self.output_dir+query_name+":GRU_Dropout_sales_predict_model.h5", include_optimizer=True)
              
         self.plot_learning_curves(history.history["loss"], history.history["val_loss"],self.epochs,"GRU and dropout:"+str(query_name))
         self.save_fig("GRU and dropout learning curve_"+query_name,self.images_path)
@@ -810,12 +810,12 @@ class salestrans:
  
       #  print("plot new plot df",new_plot_df)
         plot_nums=list(set(new_plot_df.columns.get_level_values(3)))
-        query_name=list(set(new_plot_df.columns.get_level_values(0)))[0]
+        query_names=list(set(new_plot_df.columns.get_level_values(0)))
 
-       # print("plot new plot_df plot nums",plot_nums)
+        print("plot new plot_df plot nums",plot_nums)
         new_plot_df=new_plot_df.reindex(new_plot_df.columns, axis=1,level=1)
        # print("1new plot df sorted=\n",new_plot_df)
-
+        query_number=0
         for plot_number in plot_nums:
             plot_number_df=self.return_plot_number_df(new_plot_df,plot_number)
        #     plot_number_df=plot_number_df.MultiIndex.sortlevel(level=1,ascending=True)
@@ -826,7 +826,7 @@ class salestrans:
             #    plot_number_df.plot(yerr = "double_std")
          #       plot_number_df.plot()
 
-                query_names=list(set(plot_number_df.columns.get_level_values(0)))[0]
+            #    query_names=list(set(plot_number_df.columns.get_level_values(0)))[0]
                 
                 # df.mean1.plot()
                 #df.mean2.plot(yerr=df.stddev)
@@ -853,11 +853,11 @@ class salestrans:
                 plt.legend(fontsize=11)
                 plt.ylabel("units/day sales")
                 plt.grid(True)
-                self.save_fig("actual_v_prediction_"+query_name,self.images_path)
+                self.save_fig("actual_v_prediction_"+query_names[query_number],self.images_path)
 
                 plt.show()
              
-           
+            query_number+=1    
 
 
        
