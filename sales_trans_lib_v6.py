@@ -863,7 +863,7 @@ class salestrans:
                 plt.show()
              
             query_number+=1    
-
+        plt.close("all")
 
        
         
