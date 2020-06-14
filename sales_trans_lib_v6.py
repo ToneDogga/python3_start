@@ -69,14 +69,14 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off trac
 
 class salestrans:
     def __init__(self):   
-        self.epochs=6
+        self.epochs=8
     #    self.steps_per_epoch=100 
         self.no_of_batches=1000
         self.no_of_repeats=2
         
         self.dropout_rate=0.2
         self.start_point=0
-        self.end_point=750
+        self.end_point=732
         self.predict_ahead_length=500
         self.batch_length=365
         self.predict_length=365
@@ -854,8 +854,8 @@ class salestrans:
                 ax.axvline(pd.to_datetime(start_date), color='k', linestyle='--')
                 ax.axvline(pd.to_datetime(end_date), color='k', linestyle='--')
 
-                plt.title("Unit sales")   #str(new_plot_df.columns.get_level_values(0)))
-                plt.legend(fontsize=11)
+                plt.title("Unit sales:"+str(plot_number_df.columns[0]),fontsize=10)   #str(new_plot_df.columns.get_level_values(0)))
+                plt.legend(fontsize=8)
                 plt.ylabel("units/day sales")
                 plt.grid(True)
                 self.save_fig("actual_v_prediction_"+str(plot_number_df.columns[0]),self.images_path)

@@ -252,16 +252,18 @@ def main():
     dct=sorted(plot_dict.items(), key=lambda x: x[0][3])
     plot_dict = collections.OrderedDict(dct)
     print("\nQueries created:\n",list(plot_dict.keys()))
-    print("No of queries created",len(plot_dict.keys()))
-
- #   for k in plot_dict.keys():
-    
+    total_queries=0
+    for k in plot_dict.keys():
+        if k[1]==2:
+            total_queries+=1
+    print("\nNo of plottable queries created",total_queries)
+    query_count=1
     for k in plot_dict.copy():
       #  series=plot_dict[k]
         query_name=k[0]
         plot_number=k[3]
         if k[1]==2:
-            print("\nQuery name:",query_name)  #," : ",plot_dict[k][0,-10:])
+            print("\nQuery name to train on:",query_name,": (",query_count,"/",total_queries,")\n")  #," : ",plot_dict[k][0,-10:])
         #    batches=st.build_all_possible_batches_from_series(plot_dict[k],st.batch_length*2+1)
          #   print("all batches shape=",batches.shape)
             X,Y=st.create_X_and_Y_batches(plot_dict[k],st.batch_length,st.no_of_batches)
@@ -317,6 +319,7 @@ def main():
             print("save plot for",new_query_name)
             st.save_plot_dict(plot_dict,st.output_dir+st.plot_dict_filename)
             print("Clear tensorflow session and garbage collect..")
+            query_count+=1
             tf.keras.backend.clear_session()
             gc.collect()
           #  cuda.select_device(0)
