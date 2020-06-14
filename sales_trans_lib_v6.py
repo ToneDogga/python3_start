@@ -69,10 +69,10 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off trac
 
 class salestrans:
     def __init__(self):   
-        self.epochs=5
+        self.epochs=6
     #    self.steps_per_epoch=100 
         self.no_of_batches=1000
-        self.no_of_repeats=1
+        self.no_of_repeats=2
         
         self.dropout_rate=0.2
         self.start_point=0
@@ -216,15 +216,15 @@ class salestrans:
                     for queryv in querysplit:             
                         key=tuple([table_dict[k][0]+str(table_dict[k][1].T.index.values[querycount]),1,self.start_point,plot_number+querycount])   # actuals
                         querycount+=1
-                        nptd=queryv[np.newaxis,...]    #.swapaxes(0,1)
-                        plot_dict[key]=nptd   #[:,self.start_point:self.end_point+1]  #tf_value  # 2D only tensor shape [1,series]
+                        plot_dict[key]=queryv[np.newaxis,...]    #.swapaxes(0,1)
+                     #   plot_dict[key]=nptd   #[:,self.start_point:self.end_point+1]  #tf_value  # 2D only tensor shape [1,series]
                 else:         
-                    key=tuple([table_dict[k][0],1,self.start_point,plot_number])   # actuals        
+                    key=tuple([table_dict[k][0],1,self.start_point,plot_number+querycount])   # actuals        
                     #nptd=table_dict[k][1].to_numpy()     #.swapaxes(0,1)
-                 
-                    print("query values=",query_values,query_values.shape)
+                    querycount+=1
+                  #  print("query values=",query_values,query_values.shape)
                     plot_dict[key]=query_values   #nptd   #[:,self.start_point:self.end_point+1]  #tf_value  # 2D only tensor shape [1,series]
-   
+                    
                         
            #     print("query sales -after length of new series",plot_dict[key].shape)
                 plot_number=plot_number+querycount+10
@@ -481,13 +481,17 @@ class salestrans:
        
      
     def plot_learning_curves(self,loss, val_loss,epochs,title):
-        ax = plt.gca()
-        ax.set_yscale('log')
+        if ((np.min(loss)<=0) or (np.max(loss)==np.inf)):
+            return
+        if ((np.min(val_loss)<=0) or (np.max(val_loss)==np.inf)):
+            return
         if np.min(loss)>10:
             lift=10
         else:
             lift=1
-    
+        ax = plt.gca()
+        ax.set_yscale('log')
+  
         plt.plot(np.arange(len(loss)) + 0.5, loss, "b.-", label="Training loss")
         plt.plot(np.arange(len(val_loss)) + 1, val_loss, "r.-", label="Validation loss")
         plt.gca().xaxis.set_major_locator(mpl.ticker.MaxNLocator(integer=True))
@@ -810,11 +814,12 @@ class salestrans:
  
       #  print("plot new plot df",new_plot_df)
         plot_nums=list(set(new_plot_df.columns.get_level_values(3)))
-        query_names=list(set(new_plot_df.columns.get_level_values(0)))
-
+ 
         print("plot new plot_df plot nums",plot_nums)
         new_plot_df=new_plot_df.reindex(new_plot_df.columns, axis=1,level=1)
-       # print("1new plot df sorted=\n",new_plot_df)
+        query_names=list(set(new_plot_df.columns.get_level_values(0)))
+        print("query names=",query_names)
+        # print("1new plot df sorted=\n",new_plot_df)
         query_number=0
         for plot_number in plot_nums:
             plot_number_df=self.return_plot_number_df(new_plot_df,plot_number)
@@ -853,7 +858,7 @@ class salestrans:
                 plt.legend(fontsize=11)
                 plt.ylabel("units/day sales")
                 plt.grid(True)
-                self.save_fig("actual_v_prediction_"+query_names[query_number],self.images_path)
+                self.save_fig("actual_v_prediction_"+str(plot_number_df.columns[0]),self.images_path)
 
                 plt.show()
              
