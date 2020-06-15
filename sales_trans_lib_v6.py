@@ -69,7 +69,7 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off trac
 
 class salestrans:
     def __init__(self):   
-        self.epochs=8
+        self.epochs=12
     #    self.steps_per_epoch=100 
         self.no_of_batches=1000
         self.no_of_repeats=2
