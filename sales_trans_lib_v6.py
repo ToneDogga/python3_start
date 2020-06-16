@@ -208,6 +208,7 @@ class salestrans:
         plot_number=100 
         
         for k in table_dict.keys():
+                self.plot_query(table_dict[k][1],table_dict[k][0])  # 1].copy(),table_dict[k][0].copy(deep=True))
                 query_values=table_dict[k][1].to_numpy().swapaxes(0,1)
             #    print("query values=",query_values.shape)
                 querycount=0
@@ -273,11 +274,72 @@ class salestrans:
   
     
   #  @tf.function
-    def mat_add_1d(self,series,mat_days):    
-        return(uniform_filter1d(series[0], size=mat_days)[np.newaxis,...])
+    def mat_add_1d(self,series,mat_days):  
+     #   print("mat add 1d series.shape",series.shape)
+        pds=pd.DataFrame(series[0])
+      #  print("pds=",pds,pds.shape)
+        nds=pds.rolling(mat_days).mean()
+        fill_val=nds.iloc[mat_days+1]  #.to_numpy()
+      #  print("fill val",fill_val)
+ 
+      #  print("nds=",nds.shape)
+      #  query_df=query_df.replace(np.nan,fill_val)
+        nds.fillna(fill_val,inplace=True)
+      #  print("nds",nds.head(40))
+        return nds.to_numpy().swapaxes(0,1)
+
+      #  print("new nds=",nds.shape)
+        
+      #  return nds
+
+        # mode : {‘reflect’, ‘constant’, ‘nearest’, ‘mirror’, ‘wrap’}, optional
+#    The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to ‘constant’. Default is ‘reflect’
+     #   return(uniform_filter1d(series[0], size=mat_days,mode='nearest')[np.newaxis,...])
   
   
-    
+  
+    def plot_query(self, query_df_from_dict,query_name):
+        query_df=query_df_from_dict.copy(deep=True)
+        query_details=str(query_df.columns[0])
+        query_df.columns = query_df.columns.get_level_values(0)
+    #    print("query df shae",query_df.shape)
+     #   query_df=self.mat_add_1d(query_df.to_numpy().swapaxes(0,1),self.mats[0])
+        query_df['qdate']=query_df.index.copy(deep=True)  #.to_timestamp(freq="D",how='s') #
+#        query_df['qdate']=pd.to_datetime(pd.Series(query_list).to_timestamp(freq="D",how='s'), format='%Y/%m/%d')
+       # print("query list",query_list)
+        query_df['qdate'].apply(lambda x : x.to_timestamp())
+    #    query_df['qdate']=query_list.to_timestamp(freq="D",how='s')
+        query_list=query_df['qdate'].tolist()
+      #  print("qudf=\n",query_df,query_df.columns[1][0])
+    #    print("f",query_list)
+        #   query_df['qdate'] = query_df.qdate.tolist()
+     #   print("query_df=",query_df)
+        query_df=query_df.rolling(self.mats[0]).mean()
+        fill_val=query_df.iloc[self.mats[0]+1,0]  #.to_numpy()
+    #    print("fill val",fill_val)
+
+        query_df=query_df.fillna(fill_val)
+       # query_df.reset_index()   #['qdate']).sort_index()
+     #   query_df.reset_index(level='specialpricecat')
+        query_df.reset_index(drop=True, inplace=True)
+        query_df['qdate']=query_list   #.set_index(['qdate',''])
+     #   print("query df=\n",query_df)
+      #  query_df=query_df.replace(0, np.nan)
+   #     ax=query_df.plot(y=query_df.columns[0],style="b-")   # actual
+     #   ax=query_df.plot(x=query_df.columns[1][0],style="b-")   #,use_index=False)   # actual
+        ax=query_df.plot(x='qdate',y=query_df.columns[0],style="b-")   #,use_index=False)   # actual
+
+      #  col_no=1
+     #   query.plot(style='b-')
+     #   ax.axvline(pd.to_datetime(start_date), color='k', linestyle='--')
+     #   ax.axvline(pd.to_datetime(end_date), color='k', linestyle='--')
+
+        plt.title("Unit sales:"+query_name+query_details,fontsize=10)   #str(new_plot_df.columns.get_level_values(0)))
+     #   plt.legend(fontsize=8)
+        plt.ylabel("units/day sales")
+        plt.grid(True)
+        self.save_fig("actual_"+query_name+query_details,self.images_path)
+        plt.show()
     
     
  # #   @tf.function
