@@ -1,4 +1,4 @@
-#  sales_trans predict v1 by Anthony Paech written 25/5/20
+# sales_trans predict v1 by Anthony Paech written 25/5/20
 # A simple, efficient sales analysis tool
 # uses only TF2 functions for speed
 # simple intended to test use of TFRecords, TF functions
