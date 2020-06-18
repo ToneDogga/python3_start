@@ -69,7 +69,7 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off trac
 
 class salestrans:
     def __init__(self):   
-        self.epochs=12
+        self.epochs=8
     #    self.steps_per_epoch=100 
         self.no_of_batches=1000
         self.no_of_repeats=2
@@ -104,6 +104,7 @@ class salestrans:
         self.filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
         self.queryfilename="queryfile.xlsx"
         self.plot_dict_filename="plot_dict.pkl"
+        self.sales_df_savename="sales_trans_df.pkl"
         
              
         self.output_dir = self.log_dir("SCBS2")
@@ -209,6 +210,11 @@ class salestrans:
         
         for k in table_dict.keys():
                 self.plot_query(table_dict[k][1],table_dict[k][0])  # 1].copy(),table_dict[k][0].copy(deep=True))
+  
+                print("Saving query dataframe:",table_dict[k][0])
+                pd.to_pickle(table_dict[k][1],self.output_dir+str(table_dict[k][0])+".pkl")
+                pd.to_pickle(table_dict[k][1],str(table_dict[k][0])+".pkl")
+                
                 query_values=table_dict[k][1].to_numpy().swapaxes(0,1)
             #    print("query values=",query_values.shape)
                 querycount=0

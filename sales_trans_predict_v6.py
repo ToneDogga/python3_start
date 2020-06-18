@@ -168,7 +168,11 @@ def main():
     if answer=="y":
         sales_df=st.load_sales(st.filenames)  # filenames is a list of xlsx files to load and sort by date
       #  sales_df=st.preprocess_sales(sales_df)
-     
+  
+        with open(st.sales_df_savename,"wb") as f:
+            pickle.dump(sales_df, f,protocol=-1)
+       
+  
        # print("start sales dataframe=\n",sales_df)    # pandas dataframe
 
     # =============================================================================
@@ -380,6 +384,10 @@ def main():
   #  print("new_plot df=\n",new_plot_df.columns,"->",new_column_names,new_plot_df.shape)
 
     st.plot_new_plot_df(new_plot_df)
+    
+    print("Saving ")
+    
+    
     new_plot_df=st.simplify_col_names(new_plot_df,new_column_names)
 #    new_plot_df=st.clean_up_col_names(new_plot_df)
        #    plot_dict[key[0]] = plot_dict.pop(key)
