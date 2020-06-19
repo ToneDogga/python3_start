@@ -692,11 +692,6 @@ def glset_GSV(dds,title):
 
 print("\n$GSV sales progress")
 glset_GSV(dds,"Beerenberg GSV Annual growth rate")
-print("\nCredits")
-credit_df=sales_df[(sales_df['salesval']<-100) | (sales_df['qty']<-10)]
-#print(credit_df.columns)
-print(credit_df.tail(20)[['date','code','glset','qty','salesval']])
-
 
 #########################################
 
@@ -837,6 +832,21 @@ print(unique_code_pivot_df[['product','total_units','total_dollars']].head(50))
 #pivot_df.sort_index(axis='columns', ascending=False, level=['month','year'])
 #print(pivot_df) 
 #pivot_df.to_excel("pivot_table_customers_ranking.xlsx") 
+
+
+
+
+print("\nTop 50 Credits in past 30 days")
+end_date=sales_df['date'].iloc[-1]- pd.Timedelta(30, unit='d')
+#print(end_date)
+#print("ysdf=",sales_df)
+month_sales_df=sales_df[sales_df['date']>end_date]
+#print("msdf=",month_sales_df)
+credit_df=month_sales_df[(month_sales_df['salesval']<-100) | (month_sales_df['qty']<-10)]
+#print(credit_df.columns)
+credit_df=credit_df.sort_values(by=["salesval"],ascending=[True])
+
+print(credit_df.tail(50)[['date','code','glset','qty','salesval']])
 
 
 
