@@ -629,6 +629,31 @@ def load_sales(filenames):  # filenames is a list of xlsx files to load and sort
  
 
 
+def plot_stacked_line_pivot(pivot_df,title,stacked=True,number=6):    
+    pivot_df[pivot_df < 0] = np.nan
+    
+
+    pivot_df.drop('All',axis=0,inplace=True)
+    pivot_df=pivot_df.sort_values(by=["All"],ascending=[True]).tail(number)
+        
+ #   print("before plot",pivot_df) 
+    pivot_df.drop('All',axis=1,inplace=True)
+        # remove last month as it will always be incomplete
+
+    pivot_df.drop(pivot_df.columns[-1],axis=1,inplace=True)
+    #dates=pivot_df.T.index.tolist()
+    dates=pivot_df.columns.tolist()
+    pivot_df=pivot_df.T
+    pivot_df['dates']=dates
+  #  print("plot pivot",pivot_df)
+    #plt.legend(loc='best', fontsize=8)   #prop={'size': 6})
+    return pivot_df.plot(rot=45,grid=True,logy=False,use_index=True,fontsize=8,kind='line',stacked=stacked,title=title+", stacked="+str(stacked))
+
+    
+
+
+
+
 pd.options.display.float_format = '{:.2f}'.format
 sales_df_savename="sales_trans_df.pkl"
 filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
@@ -767,28 +792,48 @@ pivot_df.to_excel("pivot_table_units.xlsx")
 pivot_df=pd.pivot_table(sales_df, values='salesval', index=['productgroup','product'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
 #pivot_df.sort_index(axis='columns', ascending=False, level=['month','year'])
 print(pivot_df) 
+#pivot_df.plot(kind='line',stacked=True,title="Unit sales per month by productgroup")
+
 pivot_df.to_excel("pivot_table_dollars.xlsx") 
+
+
+#jam_sales_df=sales_df[sales_df['productgroup']==10]
+#print("jsdf=\n",jam_sales_df)
+
+pivot_df=pd.pivot_table(sales_df[sales_df['productgroup']<"40"], values='qty', index=['productgroup'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
+#pivot_df.sort_index(axis='columns', ascending=False, level=['month','year'])
+
+ax=plot_stacked_line_pivot(pivot_df,"Unit sales per month by productgroup",False)   #,number=6)
+
+pivot_df.to_excel("pivot_table_dollars_product_group.xlsx") 
+
 
 
 pivot_df=pd.pivot_table(sales_df, values='salesval', index=['glset','specialpricecat','code'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
 #pivot_df.sort_index(axis='columns', ascending=False, level=['month','year'])
+
 print(pivot_df) 
 pivot_df.to_excel("pivot_table_customers_x_glset_x_spc.xlsx") 
 
 pivot_df=pd.pivot_table(sales_df, values='salesval', index=['glset'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
 #pivot_df.sort_index(axis='columns', ascending=False, level=['month','year'])
+
 print(pivot_df) 
 pivot_df.to_excel("pivot_table_customers_x_glset.xlsx") 
 
 
 pivot_df=pd.pivot_table(sales_df, values='salesval', index=['specialpricecat'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
 #pivot_df.sort_index(axis='columns', ascending=False, level=['month','year'])
+ax=plot_stacked_line_pivot(pivot_df,"Dollar sales per month by spc",False)   #,number=6)
+
 print(pivot_df) 
 pivot_df.to_excel("pivot_table_customers_spc_nocodes.xlsx") 
 
 
 pivot_df=pd.pivot_table(sales_df, values='salesval', index=['specialpricecat','code'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
 #pivot_df.sort_index(axis='columns', ascending=False, level=['month','year'])
+#ax=plot_stacked_line_pivot(pivot_df,"Unit sales per month by productgroup",False)   #,number=6)
+
 print(pivot_df) 
 pivot_df.to_excel("pivot_table_customers_x_spc.xlsx") 
 
@@ -801,7 +846,7 @@ pivot_df.to_excel("pivot_table_customers.xlsx")
 ##############################################################33
 # rank top customers and products
 #
-end_date=sales_df['date'].iloc[-1]- pd.Timedelta(365, unit='d')
+end_date=sales_df['date'].iloc[-1]- pd.Timedelta(30, unit='d')
 #print(end_date)
 #print("ysdf=",sales_df)
 year_sales_df=sales_df[sales_df['date']>end_date]
@@ -811,12 +856,25 @@ pivot_df=year_sales_df.sort_values(by=["total_dollars"],ascending=[False])
 #print("pv=",pivot_df)
 unique_code_pivot_df=pivot_df.drop_duplicates('code',keep='first')
 #unique_code_pivot_df=pd.unique(pivot_df['code'])
-print("\nTop 50 customers by $purchases in the last 365 days.")
+print("\nTop 50 customers by $purchases in the last 30 days.")
 print(unique_code_pivot_df[['code','total_dollars']].head(50))
 #pivot_df=pd.pivot_table(sales_df, values='tot3', index=['code'],columns=['year','month'], margins=True,dropna=True,observed=True)
 #pivot_df.sort_index(axis='columns', ascending=False, level=['month','year'])
 #print(pivot_df) 
 #pivot_df.to_excel("pivot_table_customers_ranking.xlsx") 
+
+year_sales_df["total_dollars"]=year_sales_df['salesval'].groupby(year_sales_df["specialpricecat"]).transform(sum)
+pivot_df=year_sales_df.sort_values(by=["total_dollars"],ascending=[False])
+#print("pv=",pivot_df)
+unique_code_pivot_df=pivot_df.drop_duplicates('specialpricecat',keep='first')
+#unique_code_pivot_df=pd.unique(pivot_df['code'])
+print("\nTop 50 customers special price category by $purchases in the last 30 days.")
+print(unique_code_pivot_df[['specialpricecat','total_dollars']].head(50))
+
+
+
+
+
 
 
 year_sales_df["total_dollars"]=year_sales_df['salesval'].groupby(year_sales_df["product"]).transform(sum)
@@ -825,14 +883,26 @@ year_sales_df["total_units"]=year_sales_df['qty'].groupby(year_sales_df["product
 pivot_df=year_sales_df.sort_values(by=["total_dollars"],ascending=[False])
 #print("pv=",pivot_df)
 unique_code_pivot_df=pivot_df.drop_duplicates('product',keep='first')
+
 #unique_code_pivot_df=pd.unique(pivot_df['code'])
-print("\nTop 50 products by $sales in the last 365 days.")
+print("\nTop 50 products by $sales in the last 30 days.")
 print(unique_code_pivot_df[['product','total_units','total_dollars']].head(50))
 #pivot_df=pd.pivot_table(sales_df, values='tot3', index=['code'],columns=['year','month'], margins=True,dropna=True,observed=True)
 #pivot_df.sort_index(axis='columns', ascending=False, level=['month','year'])
 #print(pivot_df) 
 #pivot_df.to_excel("pivot_table_customers_ranking.xlsx") 
 
+
+
+
+year_sales_df["total_dollars"]=year_sales_df['salesval'].groupby(year_sales_df["productgroup"]).transform(sum)
+year_sales_df["total_units"]=year_sales_df['qty'].groupby(year_sales_df["productgroup"]).transform(sum)
+pivot_df=year_sales_df.sort_values(by=["total_dollars"],ascending=[False])
+unique_pg_pivot_df=pivot_df.drop_duplicates('productgroup',keep='first')
+
+print("\nTop productgroups by $sales in the last 30 days.")
+print(unique_pg_pivot_df[['productgroup','total_units','total_dollars']].head(20))
+#pivot_df.to_excel("pivot_table_customers_ranking.xlsx") 
 
 
 
