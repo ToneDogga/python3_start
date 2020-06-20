@@ -716,7 +716,7 @@ def glset_GSV(dds,title):
 
 
 print("\n$GSV sales progress")
-glset_GSV(dds,"Beerenberg GSV Annual growth rate")
+glset_GSV(dds,"Beerenberg $ GSV Annual growth")
 
 #########################################
 
