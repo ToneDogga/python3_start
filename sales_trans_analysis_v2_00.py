@@ -653,7 +653,8 @@ def plot_stacked_line_pivot(pivot_df,title,stacked=True,number=6):
 
 
 
-
+import warnings
+warnings.filterwarnings('ignore')
 pd.options.display.float_format = '{:.2f}'.format
 sales_df_savename="sales_trans_df.pkl"
 filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
@@ -662,7 +663,7 @@ filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"
 with open(sales_df_savename,"rb") as f:
     sales_df=pickle.load(f)
 
-print("sales df=\n",sales_df,sales_df.shape)
+#print("sales shape df=\n",sales_df.shape)
 
 first_date=sales_df['date'].iloc[-1]
 last_date=sales_df['date'].iloc[0]
@@ -693,15 +694,57 @@ datelen=dds.shape[0]-365
 #daily_dollar_sales_df=sales_df['salesval'].groupby.index.sum()
 
 
+def annualise_growth_rate(days,rate):
+    return (((1+rate)**(365/days))-1.0)
+
+
+def calculate_first_derivative(s,cust,prod):
+    s.index =  pd.to_datetime(s['date'], format='%Y%m%d') 
+
+    s['mat']=s['qty'].rolling("90D",min_periods=1,axis=0).sum()
+    s['diff']=s.mat.diff(periods=1)
+    s['diff'].fillna(0,inplace=True)
+    s['90_day%']=round(s['diff']/s['mat']*100,2)
+    
+    y=s[['90_day%']].to_numpy()
+    X=np.arange(0,y.shape[0])[...,np.newaxis]
+    #print("X=",X,X.shape,"y=",y,y.shape)
+    
+    X=X[:,0]
+    y=y[:,0]
+    p = np.polyfit(X, y, 1)  # linear regression 1 degree
+  #  print("mb",p1)
+    s['yp'] = np.polyval(p, X)
+  #  print("p1",p1,"p1[0]",p1[0])
+    slope=round(-p[0],2)
+    title=cust+"_"+prod+"->"+str(slope)
+    if slope>5.0:
+        ax=s.tail(365)[['date','qty','90_day%','yp']].plot(x='date',grid=True,title=title)   #),'BB total scanned vs purchased Coles jam units per week')
+        plt.show()
+    return slope
+
+
+
 def glset_GSV(dds,title):
+#    dds.index =  pd.to_datetime(dds['date'], format='%Y%m%d') 
+
     dds['mat']=dds['salesval'].rolling(365,axis=0).sum()
-    dds['diff1']=dds.mat.diff(periods=1)
-    dds['diff7']=dds.mat.diff(periods=7)
-    dds['diff30']=dds.mat.diff(periods=30)
+    dds['mat7']=dds['salesval'].rolling(7,axis=0).sum()
+    dds['mat14']=dds['salesval'].rolling(14,axis=0).sum()
+    dds['mat30']=dds['salesval'].rolling(30,axis=0).sum()
+    dds['mat90']=dds['salesval'].rolling(90,axis=0).sum()
+
+  #  dds['diff1']=dds.mat.diff(periods=1)
+    dds['diff7']=dds.mat7.diff(periods=7)
+    dds['diff14']=dds.mat14.diff(periods=14)
+    dds['diff30']=dds.mat30.diff(periods=30)
+    dds['diff90']=dds.mat90.diff(periods=90)
     dds['diff365']=dds.mat.diff(periods=365)
     
-    dds['7_day%']=round(dds['diff7']/dds['mat']*100,2)
-    dds['30_day%']=round(dds['diff30']/dds['mat']*100,2)
+    dds['7_day%']=round(dds['diff7']/dds['mat7']*100,2)
+    dds['14_day%']=round(dds['diff14']/dds['mat14']*100,2)
+    dds['30_day%']=round(dds['diff30']/dds['mat30']*100,2)
+    dds['90_day%']=round(dds['diff90']/dds['mat90']*100,2)
     dds['365_day%']=round(dds['diff365']/dds['mat']*100,2)
     
     dds['date']=dds.index.tolist()
@@ -711,62 +754,62 @@ def glset_GSV(dds,title):
     #print(dds)
     #dds=dds.tail(365)
     dds.tail(365)[['date','mat']].plot(x='date',y='mat',grid=True,title=title)   #),'BB total scanned vs purchased Coles jam units per week')
-    print(dds[['date','salesval','diff7','30_day%','365_day%','mat']].tail(7)) 
-    dds.tail(dds.shape[0]-731)[['date','30_day%','365_day%']].plot(x='date',y=['30_day%','365_day%'],grid=True,title=title)   #),'BB total scanned vs purchased Coles jam units per week')
+    print(dds[['date','salesval','diff7','30_day%','90_day%','365_day%','mat']].tail(7)) 
+    dds.tail(dds.shape[0]-731)[['date','30_day%','90_day%','365_day%']].plot(x='date',y=['30_day%','90_day%','365_day%'],grid=True,title=title)   #),'BB total scanned vs purchased Coles jam units per week')
 
 
 print("\n$GSV sales progress")
-glset_GSV(dds,"Beerenberg $ GSV Annual growth")
+glset_GSV(dds,"Beerenberg $ GSV Annual growth rate")
 
 #########################################
 
-print("\nshop sales $")
+print("\nshop sales $ ")
 shop_df=sales_df[(sales_df['glset']=="SHP")]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
-glset_GSV(dds,"Shop GSV")
+glset_GSV(dds,"Shop GSV ")
 
 ############################################
 
-print("\nONL sales $")
+print("\nONL sales $ ")
 shop_df=sales_df[(sales_df['glset']=="ONL")]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
-glset_GSV(dds,"ONL GSV")
+glset_GSV(dds,"ONL GSV ")
 
 ############################################
 
-print("\nExport sales $")
+print("\nExport sales $ ")
 shop_df=sales_df[(sales_df['glset']=="EXS")]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
-glset_GSV(dds,"Export GSV")
+glset_GSV(dds,"Export GSV ")
 
 ############################################
 
-print("\nNAT sales $")
+print("\nNAT sales $ ")
 shop_df=sales_df[(sales_df['glset']=="NAT")]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
-glset_GSV(dds,"NAT GSV")
+glset_GSV(dds,"NAT GSV ")
 
 ############################################
 
-print("\nWW sales $")
+print("\nWW sales $ ")
 shop_df=sales_df[(sales_df['specialpricecat']==10)]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
 glset_GSV(dds,"WW (010) GSV")
 
 ############################################
 
-print("\nColes sales $")
+print("\nColes sales $ ")
 shop_df=sales_df[(sales_df['specialpricecat']==12)]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
-glset_GSV(dds,"Coles (012) GSV")
+glset_GSV(dds,"Coles (012) GSV ")
 
 ############################################
 
 
-print("\nDFS sales $")
+print("\nDFS sales $ ")
 shop_df=sales_df[(sales_df['glset']=="DFS")]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
-glset_GSV(dds,"DFS GSV")
+glset_GSV(dds,"DFS GSV ")
 
 plt.show()
 plt.close('all')
@@ -918,6 +961,91 @@ credit_df=credit_df.sort_values(by=["salesval"],ascending=[True])
 
 print(credit_df.tail(50)[['date','code','glset','qty','salesval']])
 
+# find all the good performing and poor performing outliers in retail sales
+#  limit product groups
+product_groups_only=["10","11","12","13","14","15","18"]
+spc_only=["088"]
+
+# for each spc
+# colect all the customer that have bought more than 3 products over $1000 in total over more them 3 trnsactions in the past year
+#
+# for each customer code, rank the sales growth of each product bought and the total sales
+# with the products belonging product_groups_only
+# append to a list
+# sort the whole list
+# highlight the top 20 growers and botom 20 losers
+#
+print("\nSales performace start=\n",sales_df)
+
+end_date=sales_df['date'].iloc[-1]- pd.Timedelta(365, unit='d')
+print(end_date)
+year_sales_df=sales_df[sales_df['date']>end_date]
+#print("ysdf1=",year_sales_df)
+year_sales_df=year_sales_df[year_sales_df['productgroup'].isin(product_groups_only) & year_sales_df['specialpricecat'].isin(spc_only)]   
+#print("ysdf2=",year_sales_df[['date','code','product']])
+  
+cust_list=year_sales_df.code.unique()
+cust_list.sort()
+prod_list=year_sales_df['product'].unique()
+prod_list.sort()
+
+#print("c=",cust_list,len(cust_list))
+#print("p=",prod_list,len(prod_list))
+
+print("unique customers=",len(cust_list))
+print("unique products=",len(prod_list))
+
+
+year_sales_df['counter']=0
+new_sales_df=year_sales_df.copy(deep=True)
+new_sales_df=new_sales_df.iloc[0:0]
+#print(new_sales_df)
+
+#figure_list=[]
+t=0
+total=len(cust_list)*len(prod_list)
+print("total combinations=",total,"\n")
+for cust in cust_list:
+    for prod in prod_list:
+        s=year_sales_df[(year_sales_df['code']==cust) & (year_sales_df['product']==prod) & (year_sales_df['salesval']>0.0) & (year_sales_df['qty']>0.0)].copy(deep=True)
+        s['counter']=s.shape[0]
+    #    print("s=\n",s[['code','product','counter']],s.shape)
+        s=s.sort_values('date',ascending=False)
+      #  s.index=s.date
+        t+=1
+        if t%10==0:
+            print("\r",cust,prod,"+",s.shape[0],"=",new_sales_df.shape[0],int(round(t/total*100,0)),"%        ",end='\r',flush=True)
+
+        if s.shape[0]>12: 
+            s['slope']=calculate_first_derivative(s,cust,prod)  
+           # s['figure']=figure
+          #  figure_list.append(figure)
+            new_sales_df=new_sales_df.append(s)
+ 
+print("\n\n")
+#print("\nysdf3=",new_sales_df[['date','code','product','counter','slope']],new_sales_df.shape)
+new_sales_df.drop_duplicates(['code','product'],keep='first',inplace=True)
+new_sales_df=new_sales_df[new_sales_df['slope']>5.0]
+new_sales_df.sort_values(['slope'],ascending=[False],inplace=True)
+
+print("\nbest growth=",new_sales_df[['code','product','slope']].head(500).to_string())
+#print("\nworst growth=",new_sales_df[['code','product','slope']].tail(100).to_string())
+print(new_sales_df.shape)
+
+
+#       with open(st.sales_df_savename,"wb") as f:
+#            pickle.dump(sales_df, f,protocol=-1)
+ # def save_plot_dict(self,plot_dict,savename):
+ #        with open(savename,"wb") as f:
+ #            pickle.dump(plot_dict, f,protocol=-1)
+ #   #     print("plot dict saved to",savename)    
+        
+        
+ 
+ #    def load_plot_dict(self,loadname):
+ #        with open(loadname,"rb") as f:
+ #            return pickle.load(f)
+   
 
 
 print("finished\n")
