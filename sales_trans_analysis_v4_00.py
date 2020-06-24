@@ -313,10 +313,11 @@ def plot_stacked_line_pivot(pivot_df,title,stacked=True,number=6):
     pivot_df['dates']=dates
   #  print("plot pivot",pivot_df)
     #plt.legend(loc='best', fontsize=8)   #prop={'size': 6})
-    figname=title+" stacked"
-    fig=pivot_df.plot(rot=45,grid=True,logy=False,use_index=True,fontsize=8,kind='line',stacked=stacked,title=figname)
-    plt.show()
+    figname="fig_3_"+title+".pkl"
+    fig=pivot_df.plot(rot=45,grid=True,logy=False,use_index=True,fontsize=8,kind='line',stacked=stacked,title=title)
+    
     pickle.dump(fig,open(figname, 'wb'))
+    plt.show()
     return figname
     
 
@@ -648,7 +649,7 @@ report_dict[report(name,5)]=name
 
 pivot_df=pd.pivot_table(sales_df, values='salesval', index=['specialpricecat'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
 #pivot_df.sort_index(axis='columns', ascending=False, level=['month','year'])
-name="Dollar sales per month by spc"
+name="Dollar sales per month by spc.xlsx"
 figname=plot_stacked_line_pivot(pivot_df,name,False)   #,number=6)
 report_dict[report(name,6)]=pivot_df
 report_dict[report(name,5)]=name
