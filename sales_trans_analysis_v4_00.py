@@ -71,6 +71,32 @@ latestscannedsalescoles="Coles_IRI_portal_scan_data_170620.xlsx"
 
 report_savename="sales_trans_report_dict.pkl"
 
+#root_dir="."
+#report_dir="sales_reports"
+#output_dir="{}/{}/".format(root_dir, report_dir)
+
+
+def log_dir(prefix=""):
+    now = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    root_logdir = "./sales_reports"
+    if prefix:
+        prefix += "-"
+    name = prefix + "run-" + now
+    return "{}/{}/".format(root_logdir, name)
+
+
+
+output_dir = log_dir()
+os.makedirs(output_dir, exist_ok=True)
+ 
+
+#     (Checking sales trends by customers and products.")
+
+# find all the good performing and poor performing outliers in retail sales
+#  limit product groups
+product_groups_only=["10","11","12","13","14","15","18"]
+spc_only=["088"]
+
 mats=7
 
 
@@ -117,23 +143,15 @@ tf.random.set_seed(42)
         
   
 
-def save_fig(fig_id, images_path, tight_layout=True, fig_extension="png", resolution=300):
-    path = os.path.join(images_path, fig_id + "." + fig_extension)
-    print("Saving figure", fig_id)
-    if tight_layout:
-        plt.tight_layout()
-    plt.savefig(path, format=fig_extension, dpi=resolution)
+# def save_fig(fig_id, images_path, tight_layout=True, fig_extension="png", resolution=300):
+#     path = os.path.join(images_path, fig_id + "." + fig_extension)
+#     print("Saving figure", fig_id)
+#     if tight_layout:
+#         plt.tight_layout()
+#     plt.savefig(path, format=fig_extension, dpi=resolution)
 
   
    
-
-def log_dir(prefix=""):
-    now = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-    root_logdir = "./SCBS2_outputs"
-    if prefix:
-        prefix += "-"
-    name = prefix + "run-" + now
-    return "{}/{}/".format(root_logdir, name)
 
    
 # class MCDropout(keras.layers.Dropout):
@@ -213,6 +231,19 @@ def log_dir(prefix=""):
 
 
      
+
+
+
+def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
+    path = os.path.join(output_dir, fig_id + "." + fig_extension)
+  #  print("Saving figure", fig_id)
+    if tight_layout:
+        plt.tight_layout()
+    plt.savefig(path, format=fig_extension, dpi=resolution)
+    return
+
+
+
 
 
 
@@ -313,42 +344,42 @@ def plot_stacked_line_pivot(pivot_df,title,stacked=True,number=6):
     pivot_df['dates']=dates
   #  print("plot pivot",pivot_df)
     #plt.legend(loc='best', fontsize=8)   #prop={'size': 6})
-    figname="fig_3_"+title+".pkl"
+    figname="fig_3_"+title
     fig=pivot_df.plot(rot=45,grid=True,logy=False,use_index=True,fontsize=8,kind='line',stacked=stacked,title=title)
-    
-    pickle.dump(fig,open(figname, 'wb'))
+    save_fig(figname)
+#    pickle.dump(fig,open(output_dir+figname+".pkl", 'wb'))
     plt.show()
     return figname
     
 
 
 
-def annualise_growth_rate(days,rate):
-    return (((1+rate)**(365/days))-1.0)
+#def annualise_growth_rate(days,rate):
+#    return (((1+rate)**(365/days))-1.0)
 
 
 
 
-def plot_trend(s,title):
+def plot_trend(s,title,slope):
    #  ax=s[['days_since_last_order','units']].iloc[-1].plot(x='days_since_last_order', linestyle='None', color="green", marker='.')
 
      fig=s[['days_since_last_order','units']].iloc[:-1].plot(x='days_since_last_order', linestyle='None', color="red", marker='o')
 
      s[['days_since_last_order','bestfit']].plot(x='days_since_last_order',kind="line",ax=fig)
 
-     plt.title(title)   #str(new_plot_df.columns.get_level_values(0)))
+     plt.title(title+" (slope="+str(round(slope,3))+")")  #str(new_plot_df.columns.get_level_values(0)))
      fig.legend(fontsize=8)
      plt.ylabel("unit sales")
      plt.grid(True)
 #     self.save_fig("actual_v_prediction_"+str(plot_number_df.columns[0]),self.images_path)
-     figname="fig_2_"+title+".pkl"
+     figname="fig_2_"+title
 
-     pickle.dump(fig,open(figname, 'wb'))
+     save_fig(figname)
 
 
+  #   pickle.dump(fig,open(output_dir+figname+".pkl", 'wb'))
      plt.show()
      return figname
-
 
 
 
@@ -389,8 +420,8 @@ def calculate_first_derivative(s,cust,prod):
     title=""
     slope=round(p[0],6)
     if ((slope>0.06) | (slope<-0.1)):
-        title=cust+"_"+prod+"="+str(slope)
-        figname= plot_trend(s,title)
+        title=cust+"_"+prod
+        figname= plot_trend(s,title,slope)
     return slope,figname,title
 
 
@@ -426,15 +457,15 @@ def glset_GSV(dds,title):
     dds.tail(365)[['date','mat']].plot(x='date',y='mat',grid=True,title=title)   #),'BB total scanned vs purchased Coles jam units per week')
     print(dds[['date','mat7','diff7','30_day%','90_day%','365_day%','mat']].tail(8)) 
     fig=dds.tail(dds.shape[0]-731)[['date','30_day%','90_day%','365_day%']].plot(x='date',y=['30_day%','90_day%','365_day%'],grid=True,title=title)   #),'BB total scanned vs purchased Coles jam units per week')
-    figname="fig_"+title+".pkl"
+    figname="Afig_"+title
+    save_fig(figname)
+ #   pickle.dump(fig,open(output_dir+figname+".pkl", 'wb'))
+    return dds[['date','mat7','diff7','30_day%','90_day%','365_day%','mat']].tail(18),figname
     
-    pickle.dump(fig,open(figname, 'wb'))
-    return dds,figname
-    
 
 
 
-
+ 
 
 
 
@@ -478,7 +509,7 @@ datelen=dds.shape[0]-365
 
 ################################################333
 
-report = namedtuple("report", ["name", "report_type"])
+report = namedtuple("report", ["name", "report_type","cust","prod"])
 
 report_type_dict=dict({0:"dictionary",
                        3:"dataframe",
@@ -490,15 +521,35 @@ report_type_dict=dict({0:"dictionary",
 #  Report_dict is a dictionary of all the reports created plus the report_type_dict to decode it
 # at the end it is picked so it can be loaded
 
-report_dict={report("report_type_dict",0):report_type_dict}
+report_dict={report("report_type_dict",0,"",""):report_type_dict}
 
 
 ################################################
-name="Beerenberg $ GSV Annual growth rate"
+name="Beerenberg GSV MAT"
 print("\n",name)
+title=name
+dds['mat']=dds['salesval'].rolling(365,axis=0).sum()
+dds['date']=dds.index.tolist()
+dds.reset_index(inplace=True)
+ #print(dds)
+#dds.drop(['period'],axis=1,inplace=True)
+ 
+fig=dds.tail(dds.shape[0]-731)[['date','mat']].plot(x='date',y=['mat'],grid=True,title=title)   #),'BB total scanned vs purchased Coles jam units per week')
+figname="Afig_"+title
+save_fig(figname)
+dds[['date','mat']].to_excel(output_dir+name+".xlsx") 
+
+#dds=sales_df.groupby(['period'])['salesval'].sum().to_frame() 
+
+name="Beerenberg GSV Annual growth rate"
+print("\n",name)
+
 result,figname=glset_GSV(dds,name)
-report_dict[report(name,3)]=result
-report_dict[report(name,8)]=figname
+report_dict[report(name,3,"*","*")]=result
+report_dict[report(name,8,"*","*")]=figname
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
+
+result.to_excel(output_dir+name+".xlsx") 
 
 
 #########################################
@@ -508,8 +559,11 @@ print("\n",name)
 shop_df=sales_df[(sales_df['glset']=="SHP")]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
 result,figname=glset_GSV(dds,name)
-report_dict[report(name,3)]=result
-report_dict[report(name,8)]=figname
+report_dict[report(name,3,"CASHSHOP","*")]=result
+report_dict[report(name,8,"CASHSHOP","*")]=figname
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
+
+result.to_excel(output_dir+name+".xlsx") 
 
 ############################################
 
@@ -518,8 +572,11 @@ print("\n",name)
 shop_df=sales_df[(sales_df['glset']=="ONL")]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
 result,figname=glset_GSV(dds,name)
-report_dict[report(name,3)]=result
-report_dict[report(name,8)]=figname
+report_dict[report(name,3,"*","*")]=result
+report_dict[report(name,8,"*","*")]=figname
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
+
+result.to_excel(output_dir+name+".xlsx") 
 
 ############################################
 name="Export GSV sales $"
@@ -527,8 +584,11 @@ print("\n",name)
 shop_df=sales_df[(sales_df['glset']=="EXS")]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
 result,figname=glset_GSV(dds,name)
-report_dict[report(name,3)]=result
-report_dict[report(name,8)]=figname
+report_dict[report(name,3,"*","*")]=result
+report_dict[report(name,8,"*","*")]=figname
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
+
+result.to_excel(output_dir+name+".xlsx") 
 
 ############################################
 name="NAT sales GSV$"
@@ -537,8 +597,9 @@ print("\n",name)
 shop_df=sales_df[(sales_df['glset']=="NAT")]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
 result,figname=glset_GSV(dds,name)
-report_dict[report(name,3)]=result
-report_dict[report(name,8)]=figname
+report_dict[report(name,3,"*","*")]=result
+report_dict[report(name,8,"*","*")]=figname
+result.to_excel(output_dir+name+".xlsx") 
 
 ############################################
 name="WW (010) GSV sales $"
@@ -547,18 +608,24 @@ print("\n",name)
 shop_df=sales_df[(sales_df['specialpricecat']==10)]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
 result,figname=glset_GSV(dds,name)
-report_dict[report(name,3)]=result
-report_dict[report(name,8)]=figname
+report_dict[report(name,3,"*","*")]=result
+report_dict[report(name,8,"*","*")]=figname
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
+
+result.to_excel(output_dir+name+".xlsx") 
 
 ############################################
-name="Coles GSV sales $"
+name="Coles (012) GSV sales $"
 
 print("\n",name)
 shop_df=sales_df[(sales_df['specialpricecat']==12)]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
 result,figname=glset_GSV(dds,name)
-report_dict[report(name,3)]=result
-report_dict[report(name,8)]=figname
+report_dict[report(name,3,"*","*")]=result
+report_dict[report(name,8,"*","*")]=figname
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
+
+result.to_excel(output_dir+name+".xlsx") 
 
 ############################################
 name="DFS GSV sales $"
@@ -567,8 +634,11 @@ print("\n",name)
 shop_df=sales_df[(sales_df['glset']=="DFS")]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
 result,figname=glset_GSV(dds,name)
-report_dict[report(name,3)]=result
-report_dict[report(name,8)]=figname
+report_dict[report(name,3,"*","*")]=result
+report_dict[report(name,8,"*","*")]=figname
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
+
+result.to_excel(output_dir+name+".xlsx") 
 
 plt.show()
 plt.close('all')
@@ -591,10 +661,12 @@ sales_df["year"] = pd.to_datetime(sales_df["date"]).dt.strftime('%Y')
 pivot_df=pd.pivot_table(sales_df, values='qty', index=['productgroup','product'],columns=['year','month'], aggfunc=np.sum, margins=False,dropna=True,observed=True)
 #pivot_df.sort_index(axis='columns', ascending=False, level=['month','year'])
 #print(pivot_df) 
-name="pivot_table_units.xlsx"
-pivot_df.to_excel(name) 
-report_dict[report(name,6)]=pivot_df
-report_dict[report(name,5)]=name
+name="pivot_table_units"
+pivot_df.to_excel(output_dir+name+".xlsx") 
+report_dict[report(name,6,"*","*")]=pivot_df
+#report_dict[report(name,5,"*","*")]=name+".xlsx"
+#pivot_df.to_excel(output_dir+name+".xlsx") 
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
 
 
 
@@ -603,10 +675,11 @@ pivot_df=pd.pivot_table(sales_df, values='salesval', index=['productgroup','prod
 #print(pivot_df) 
 #pivot_df.plot(kind='line',stacked=True,title="Unit sales per month by productgroup")
 
-name="pivot_table_dollars.xlsx"
-pivot_df.to_excel(name) 
-report_dict[report(name,6)]=pivot_df
-report_dict[report(name,5)]=name
+name="pivot_table_dollars"
+pivot_df.to_excel(output_dir+name+".xlsx") 
+report_dict[report(name,6,"*","*")]=pivot_df
+#report_dict[report(name,5,"*","*")]=name+".xlsx"
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
 
 
 
@@ -615,14 +688,15 @@ report_dict[report(name,5)]=name
 
 pivot_df=pd.pivot_table(sales_df[sales_df['productgroup']<"40"], values='qty', index=['productgroup'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
 #pivot_df.sort_index(axis='columns', ascending=False, level=['month','year'])
-name="pivot_table_units_product_group.xlsx"
+name="pivot_table_units_product_group"
 figname=plot_stacked_line_pivot(pivot_df,name,False)   #,number=6)
 
 
-pivot_df.to_excel(name) 
-report_dict[report(name,6)]=pivot_df
-report_dict[report(name,5)]=name
-report_dict[report(name,8)]=figname
+pivot_df.to_excel(output_dir+name+".xlsx") 
+report_dict[report(name,6,"*","*")]=pivot_df
+#report_dict[report(name,5,"*","*")]=name+".xlsx"
+report_dict[report(name,8,"*","*")]=figname
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
 
 
 
@@ -632,37 +706,44 @@ pivot_df=pd.pivot_table(sales_df, values='salesval', index=['glset','specialpric
 
 #print(pivot_df) 
 
-name="pivot_table_customers_x_glset_x_spc.xlsx"
-pivot_df.to_excel(name)
-report_dict[report(name,6)]=pivot_df
-report_dict[report(name,5)]=name
+name="pivot_table_customers_x_glset_x_spc"
+pivot_df.to_excel(output_dir+name+".xlsx")
+report_dict[report(name,6,"*","*")]=pivot_df
+#report_dict[report(name,5,"*","*")]=name+".xlsx"
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
+
 
 pivot_df=pd.pivot_table(sales_df, values='salesval', index=['glset'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
 #pivot_df.sort_index(axis='columns', ascending=False, level=['month','year'])
 
 #print(pivot_df)  
-name="pivot_table_customers_x_glset.xlsx"
-pivot_df.to_excel(name)
-report_dict[report(name,6)]=pivot_df
-report_dict[report(name,5)]=name
+name="pivot_table_customers_x_glset"
+pivot_df.to_excel(output_dir+name+".xlsx")
+report_dict[report(name,6,"*","*")]=pivot_df
+#report_dict[report(name,5,"*","*")]=name+".xlsx"
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
 
 
 pivot_df=pd.pivot_table(sales_df, values='salesval', index=['specialpricecat'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
 #pivot_df.sort_index(axis='columns', ascending=False, level=['month','year'])
-name="Dollar sales per month by spc.xlsx"
+name="Dollar sales per month by spc"
 figname=plot_stacked_line_pivot(pivot_df,name,False)   #,number=6)
-report_dict[report(name,6)]=pivot_df
-report_dict[report(name,5)]=name
-report_dict[report(name,8)]=figname
+report_dict[report(name,6,"*","*")]=pivot_df
+#report_dict[report(name,5,"*","*")]=name+".xlsx"
+report_dict[report(name,8,"*","*")]=figname
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
+
+pivot_df.to_excel(output_dir+name+".xlsx")
 
 
 #print(pivot_df) 
 pivot_df=pd.pivot_table(sales_df, values='salesval', index=['specialpricecat'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
-name="pivot_table_customers_spc_nocodes.xlsx"
-pivot_df.to_excel(name)
-report_dict[report(name,6)]=pivot_df
-report_dict[report(name,5)]=name
-report_dict[report(name,8)]=figname
+name="pivot_table_customers_spc_nocodes"
+pivot_df.to_excel(output_dir+name+".xlsx")
+report_dict[report(name,6,"*","*")]=pivot_df
+#report_dict[report(name,5,"*","*")]=name+".xlsx"
+report_dict[report(name,8,"*","*")]=figname
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
 
 
 pivot_df=pd.pivot_table(sales_df, values='salesval', index=['specialpricecat','code'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
@@ -670,19 +751,21 @@ pivot_df=pd.pivot_table(sales_df, values='salesval', index=['specialpricecat','c
 #ax=plot_stacked_line_pivot(pivot_df,"Unit sales per month by productgroup",False)   #,number=6)
 
 #print(pivot_df) 
-name="pivot_table_customers_x_spc.xlsx"
-pivot_df.to_excel(name) 
-report_dict[report(name,6)]=pivot_df
-report_dict[report(name,5)]=name
+name="pivot_table_customers_x_spc"
+pivot_df.to_excel(output_dir+name+".xlsx") 
+report_dict[report(name,6,"*","*")]=pivot_df
+#report_dict[report(name,5,"*","*")]=name+".xlsx"
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
 
 
 pivot_df=pd.pivot_table(sales_df, values='salesval', index=['cat','code'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
 #pivot_df.sort_index(axis='columns', ascending=False, level=['month','year'])
 #print(pivot_df) 
-name="pivot_table_customers.xlsx"
-pivot_df.to_excel(name) 
-report_dict[report(name,6)]=pivot_df
-report_dict[report(name,5)]=name
+name="pivot_table_customers"
+pivot_df.to_excel(output_dir+name+".xlsx") 
+report_dict[report(name,6,"*","*")]=pivot_df
+#report_dict[report(name,5,"*","*")]=name+".xlsx"
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
 
 ##############################################################33
 # rank top customers and products
@@ -697,9 +780,13 @@ pivot_df=year_sales_df.sort_values(by=["total_dollars"],ascending=[False])
 #print("pv=",pivot_df)
 unique_code_pivot_df=pivot_df.drop_duplicates('code',keep='first')
 #unique_code_pivot_df=pd.unique(pivot_df['code'])
-print("\nTop 50 customers by $purchases in the last 30 days.")
+name="Top 50 customers by $purchases in the last 30 days"
+print("\n",name)
 print(unique_code_pivot_df[['code','total_dollars']].head(50))
-report_dict[report("Top 50 customers by $purchases in the last 30 days",3)]=unique_code_pivot_df
+report_dict[report(name,3,"*","*")]=unique_code_pivot_df
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
+
+unique_code_pivot_df[['code','total_dollars']].head(50).to_excel(output_dir+name+".xlsx") 
 
 #pivot_df=pd.pivot_table(sales_df, values='tot3', index=['code'],columns=['year','month'], margins=True,dropna=True,observed=True)
 #pivot_df.sort_index(axis='columns', ascending=False, level=['month','year'])
@@ -709,11 +796,15 @@ report_dict[report("Top 50 customers by $purchases in the last 30 days",3)]=uniq
 year_sales_df["total_dollars"]=year_sales_df['salesval'].groupby(year_sales_df["specialpricecat"]).transform(sum)
 pivot_df=year_sales_df.sort_values(by=["total_dollars"],ascending=[False])
 #print("pv=",pivot_df)
+name="Top 50 customers special price category by $purchases in the last 30 days"
 unique_code_pivot_df=pivot_df.drop_duplicates('specialpricecat',keep='first')
 #unique_code_pivot_df=pd.unique(pivot_df['code'])
-print("\nTop 50 customers special price category by $purchases in the last 30 days.")
+print("\n",name)
 print(unique_code_pivot_df[['specialpricecat','total_dollars']].head(50))
-report_dict[report("Top 50 customers special price category by $purchases in the last 30 days",3)]=unique_code_pivot_df
+report_dict[report(name,3,"*","*")]=unique_code_pivot_df
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
+
+unique_code_pivot_df[['specialpricecat','total_dollars']].head(50).to_excel(output_dir+name+".xlsx") 
 
 
 
@@ -727,14 +818,18 @@ pivot_df=year_sales_df.sort_values(by=["total_dollars"],ascending=[False])
 #print("pv=",pivot_df)
 unique_code_pivot_df=pivot_df.drop_duplicates('product',keep='first')
 
+name="Top 50 products by $sales in the last 30 days"
 #unique_code_pivot_df=pd.unique(pivot_df['code'])
-print("\nTop 50 products by $sales in the last 30 days.")
+print("\n",name)
 print(unique_code_pivot_df[['product','total_units','total_dollars']].head(50))
 #pivot_df=pd.pivot_table(sales_df, values='tot3', index=['code'],columns=['year','month'], margins=True,dropna=True,observed=True)
 #pivot_df.sort_index(axis='columns', ascending=False, level=['month','year'])
 #print(pivot_df) 
 #pivot_df.to_excel("pivot_table_customers_ranking.xlsx") 
-report_dict[report("Top 50 products by $sales in the last 30 days",3)]=unique_code_pivot_df
+report_dict[report(name,3,"*","*")]=unique_code_pivot_df
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
+
+unique_code_pivot_df[['product','total_units','total_dollars']].head(50).to_excel(output_dir+name+".xlsx") 
 
 
 
@@ -744,14 +839,18 @@ year_sales_df["total_units"]=year_sales_df['qty'].groupby(year_sales_df["product
 pivot_df=year_sales_df.sort_values(by=["total_dollars"],ascending=[False])
 unique_pg_pivot_df=pivot_df.drop_duplicates('productgroup',keep='first')
 
-print("\nTop productgroups by $sales in the last 30 days.")
+name="Top productgroups by $sales in the last 30 days"
+print("\n",name)
 print(unique_pg_pivot_df[['productgroup','total_units','total_dollars']].head(20))
 #pivot_df.to_excel("pivot_table_customers_ranking.xlsx") 
-report_dict[report("Top productgroups by $sales in the last 30 days",3)]=unique_code_pivot_df
+report_dict[report(name,3,"*","*")]=unique_code_pivot_df
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
+
+unique_pg_pivot_df[['productgroup','total_units','total_dollars']].head(20).to_excel(output_dir+name+".xlsx") 
 
 
-
-print("\nTop 50 Credits in past 30 days")
+name="Top 50 Credits in past 30 days"
+print("\n",name)
 end_date=sales_df['date'].iloc[-1]- pd.Timedelta(30, unit='d')
 #print(end_date)
 #print("ysdf=",sales_df)
@@ -762,12 +861,24 @@ credit_df=month_sales_df[(month_sales_df['salesval']<-100) | (month_sales_df['qt
 credit_df=credit_df.sort_values(by=["salesval"],ascending=[True])
 
 print(credit_df.tail(50)[['date','code','glset','qty','salesval']])
-report_dict[report("Top 50 Credits in past 30 days",3)]=credit_df
+report_dict[report(name,3,"*","*")]=credit_df
+report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
+
+credit_df[['date','code','glset','qty','salesval']].tail(50).to_excel(output_dir+name+".xlsx") 
+
+
+
+
+
+
+#################################################################################################
+
+print("\nChecking sales trends by customers and products of past year.")
 
 # find all the good performing and poor performing outliers in retail sales
 #  limit product groups
-product_groups_only=["10","11","12","13","14","15","18"]
-spc_only=["088"]
+#product_groups_only=["10","11","12","13","14","15","18"]
+#spc_only=["088"]
 
 # for each spc
 # colect all the customer that have bought more than 3 products over $1000 in total over more them 3 trnsactions in the past year
@@ -827,21 +938,22 @@ for cust in cust_list:
           #  figure_list.append(figure)
             new_sales_df=new_sales_df.append(s)
             if (figname!="") & (name!=""):
-                report_dict[report(name,8)]=figname
+                report_dict[report(name,8,cust,prod)]=figname
  
 print("\n\n")
 #print("\nysdf3=",new_sales_df[['date','code','product','counter','slope']],new_sales_df.shape)
 new_sales_df.drop_duplicates(['code','product'],keep='first',inplace=True)
 #new_sales_df=new_sales_df[new_sales_df['slope']>0.02]
 new_sales_df.sort_values(['slope'],ascending=[False],inplace=True)
-
+name="growth rankings"
 print("\nbest growth=",new_sales_df[['code','product','slope']].head(100).to_string())
 print("\nworst growth=",new_sales_df[['code','product','slope']].tail(50).to_string())
 print(new_sales_df.shape)
-report_dict[report("growth rankings",3)]=new_sales_df
+report_dict[report(name,3,"*","*")]=new_sales_df
+new_sales_df[['code','product','slope']].to_excel(output_dir+name+".xlsx") 
 
 print("reports being pickled and saved to",report_savename)
-with open(report_savename,"wb") as f:
+with open(output_dir+report_savename,"wb") as f:
     pickle.dump(report_dict, f,protocol=-1)
   
    
