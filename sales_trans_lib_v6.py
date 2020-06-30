@@ -1,5 +1,6 @@
 #
 # Common imports
+
 import numpy as np
 import os
 from pathlib import Path
@@ -549,9 +550,9 @@ class salestrans:
        
      
     def plot_learning_curves(self,loss, val_loss,epochs,title):
-        if ((np.min(loss)<=0) or (np.max(loss)==np.inf) or (isnan(loss))):
+        if ((np.min(loss)<=0) or (np.max(loss)==np.inf) or (np.isnan(loss).any())):
             return
-        if ((np.min(val_loss)<=0) or (np.max(val_loss)==np.inf) or (isnan(val_loss))):
+        if ((np.min(val_loss)<=0) or (np.max(val_loss)==np.inf) or (np.isnan(val_loss).any())):
             return
         if np.min(loss)>10:
             lift=10
