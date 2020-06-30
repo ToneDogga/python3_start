@@ -549,9 +549,9 @@ class salestrans:
        
      
     def plot_learning_curves(self,loss, val_loss,epochs,title):
-        if ((np.min(loss)<=0) or (np.max(loss)==np.inf)):
+        if ((np.min(loss)<=0) or (np.max(loss)==np.inf) or (isnan(loss))):
             return
-        if ((np.min(val_loss)<=0) or (np.max(val_loss)==np.inf)):
+        if ((np.min(val_loss)<=0) or (np.max(val_loss)==np.inf) or (isnan(val_loss))):
             return
         if np.min(loss)>10:
             lift=10
