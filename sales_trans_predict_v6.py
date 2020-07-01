@@ -1,3 +1,6 @@
+ #!/usr/bin/env python
+
+
 # sales_trans predict v1 by Anthony Paech written 25/5/20
 # A simple, efficient sales analysis tool
 # uses only TF2 functions for speed
@@ -111,6 +114,8 @@ tf.random.set_seed(42)
 # # To plot pretty figures
 # #%matplotlib inline
 import matplotlib as mpl
+from matplotlib.pyplot import plot, draw, ion, show
+
 import matplotlib.pyplot as plt
 mpl.rc('axes', labelsize=14)
 mpl.rc('xtick', labelsize=12)

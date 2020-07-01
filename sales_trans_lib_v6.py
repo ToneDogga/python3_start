@@ -44,6 +44,8 @@ from tensorflow import keras
 
 
 import matplotlib as mpl
+from matplotlib.pyplot import plot, draw, ion, show
+
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
@@ -346,7 +348,7 @@ class salestrans:
         plt.ylabel("units/day sales")
         plt.grid(True)
         self.save_fig("actual_"+query_name+query_details,self.images_path)
-        plt.show()
+      #  plt.show(block=False)
     
     
  # #   @tf.function
@@ -500,7 +502,7 @@ class salestrans:
         self.plot_learning_curves(history.history["loss"], history.history["val_loss"],self.epochs,"Wavenet:"+str(query_name))
         self.save_fig("Wavenet learning curve_"+query_name,self.images_path)
     
-        plt.show()
+    #    plt.show(block=False)
         return model    
  
     
@@ -929,7 +931,7 @@ class salestrans:
                 plt.grid(True)
                 self.save_fig("actual_v_prediction_"+str(plot_number_df.columns[0]),self.images_path)
 
-                plt.show()
+            #    plt.show(block=False)
              
             query_number+=1    
         plt.close("all")
