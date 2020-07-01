@@ -453,7 +453,7 @@ class salestrans:
         self.plot_learning_curves(history.history["loss"], history.history["val_loss"],self.epochs,"GRU and dropout:"+str(query_name))
         self.save_fig("GRU and dropout learning curve_"+query_name,self.images_path)
     
-        plt.show()
+       # plt.show()
         return model    
         
  
