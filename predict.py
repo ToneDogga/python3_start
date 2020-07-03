@@ -390,6 +390,8 @@ def main():
 
     st.plot_new_plot_df(new_plot_df)
     
+    plt.show()
+    plt.close("all")
     print("Saving ")
     
     

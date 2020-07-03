@@ -72,10 +72,10 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off trac
 
 class salestrans:
     def __init__(self):   
-        self.epochs=8
+        self.epochs=1
     #    self.steps_per_epoch=100 
         self.no_of_batches=1000
-        self.no_of_repeats=2
+        self.no_of_repeats=1
         
         self.dropout_rate=0.2
         self.start_point=0
@@ -239,7 +239,9 @@ class salestrans:
            #     print("query sales -after length of new series",plot_dict[key].shape)
                 plot_number=plot_number+querycount+10
 
-                
+        plt.pause(0.001)
+        plt.show(block=False)
+        plt.close("all")                
              
     #    print("plot dict keys proit to mats",plot_dict.keys())        
          # create mat  s 
@@ -348,7 +350,9 @@ class salestrans:
         plt.ylabel("units/day sales")
         plt.grid(True)
         self.save_fig("actual_"+query_name+query_details,self.images_path)
-      #  plt.show(block=False)
+       # plt.draw()
+      #  plt.pause(0.001)
+       # plt.show()
     
     
  # #   @tf.function
@@ -452,8 +456,14 @@ class salestrans:
              
         self.plot_learning_curves(history.history["loss"], history.history["val_loss"],self.epochs,"GRU and dropout:"+str(query_name))
         self.save_fig("GRU and dropout learning curve_"+query_name,self.images_path)
-    
-       # plt.show()
+    #    plt.draw()
+        
+        
+       # plt.show(block=False)
+       # plt.pause(0.001)
+        plt.close()                
+
+     #   plt.show(block=False)
         return model    
         
  
@@ -463,47 +473,47 @@ class salestrans:
  
  
     
-  #  @tf.autograph.experimental.do_not_convert
-    def model_training_wavenet(self,train_set,valid_set,query_name):
-        print("\nTraining with Wavenet")
+#   #  @tf.autograph.experimental.do_not_convert
+#     def model_training_wavenet(self,train_set,valid_set,query_name):
+#         print("\nTraining with Wavenet")
       
-        model = keras.models.Sequential()
-        model.add(keras.layers.InputLayer(input_shape=[None, 1]))
-        for rate in (1, 2, 4, 8) * 2:
-            model.add(keras.layers.Conv1D(filters=2*self.batch_length, kernel_size=2, padding="causal",
-                                          activation="relu", dilation_rate=rate))
-            if rate==8:
-                model.add(keras.layers.AlphaDropout(rate=self.dropout_rate))
-        model.add(keras.layers.Conv1D(filters=self.batch_length, kernel_size=1))
-        model.compile(loss="mse", optimizer="adam", metrics=[self.last_time_step_mse])
+#         model = keras.models.Sequential()
+#         model.add(keras.layers.InputLayer(input_shape=[None, 1]))
+#         for rate in (1, 2, 4, 8) * 2:
+#             model.add(keras.layers.Conv1D(filters=2*self.batch_length, kernel_size=2, padding="causal",
+#                                           activation="relu", dilation_rate=rate))
+#             if rate==8:
+#                 model.add(keras.layers.AlphaDropout(rate=self.dropout_rate))
+#         model.add(keras.layers.Conv1D(filters=self.batch_length, kernel_size=1))
+#         model.compile(loss="mse", optimizer="adam", metrics=[self.last_time_step_mse])
  
-        model.summary()   
+#         model.summary()   
  
-        callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=self.patience),self.MyCustomCallback()]
+#         callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=self.patience),self.MyCustomCallback()]
        
-        history = model.fit(train_set ,epochs=self.epochs,
-                           validation_data=(valid_set), callbacks=callbacks)
+#         history = model.fit(train_set ,epochs=self.epochs,
+#                            validation_data=(valid_set), callbacks=callbacks)
             
-        model.compile(loss="mse", optimizer="adam", metrics=[self.last_time_step_mse])
+#         model.compile(loss="mse", optimizer="adam", metrics=[self.last_time_step_mse])
        
 
-#            history = model.fit(train_set,  steps_per_epoch=st.steps_per_epoch ,epochs=st.epochs,
-#                               validation_data=(valid_set))
+# #            history = model.fit(train_set,  steps_per_epoch=st.steps_per_epoch ,epochs=st.epochs,
+# #                               validation_data=(valid_set))
   
-    #      history = model.fit_generator(X_train, Y_train, epochs=st.epochs,
-  #                         validation_data=(X_valid, Y_valid))
+#     #      history = model.fit_generator(X_train, Y_train, epochs=st.epochs,
+#   #                         validation_data=(X_valid, Y_valid))
        
        
- #       print("\nsave model\n")
-        model.save(self.output_dir+query_name+":wavenet_sales_predict_model.h5", include_optimizer=True)
+#  #       print("\nsave model\n")
+#         model.save(self.output_dir+query_name+":wavenet_sales_predict_model.h5", include_optimizer=True)
           
 
        
-        self.plot_learning_curves(history.history["loss"], history.history["val_loss"],self.epochs,"Wavenet:"+str(query_name))
-        self.save_fig("Wavenet learning curve_"+query_name,self.images_path)
+#         self.plot_learning_curves(history.history["loss"], history.history["val_loss"],self.epochs,"Wavenet:"+str(query_name))
+#         self.save_fig("Wavenet learning curve_"+query_name,self.images_path)
     
-    #    plt.show(block=False)
-        return model    
+#     #    plt.show(block=False)
+#         return model    
  
     
  
@@ -930,10 +940,11 @@ class salestrans:
                 plt.ylabel("units/day sales")
                 plt.grid(True)
                 self.save_fig("actual_v_prediction_"+str(plot_number_df.columns[0]),self.images_path)
-
-            #    plt.show(block=False)
-             
+             #   plt.pause(0.001)
+             #   plt.show(block=False)
+                plt.close()             
             query_number+=1    
+    #    plt.show()
         plt.close("all")
 
        
