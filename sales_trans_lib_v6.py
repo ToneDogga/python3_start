@@ -350,6 +350,8 @@ class salestrans:
         plt.ylabel("units/day sales")
         plt.grid(True)
         self.save_fig("actual_"+query_name+query_details,self.images_path)
+        plt.pause(0.001)
+        plt.close()
        # plt.draw()
       #  plt.pause(0.001)
        # plt.show()
