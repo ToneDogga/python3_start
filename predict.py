@@ -312,7 +312,7 @@ def main():
         
         
             model=st.model_training_GRU(train_set,valid_set,query_name)
-            new_query_name=query_name+str(":GRU")
+            new_query_name=query_name+str("_GRU")
              
             print("\nGRU Predicting....",new_query_name)
          #   series=series[...,tf.newaxis]

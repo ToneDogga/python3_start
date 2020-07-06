@@ -249,7 +249,7 @@ class salestrans:
             if key[3]>0:
                 plot_number=key[3]
                 for elem in self.mats:   
-                    mat_key=tuple([key[0]+"@"+str(elem)+"u:mt",2,self.start_point,plot_number])
+                    mat_key=tuple([key[0]+"@"+str(elem)+"u_mt",2,self.start_point,plot_number])
             #    mat_value=self.mat_add_1d(tf.transpose(tf_value, [1, 0]),self.mats) 
                     tf_value=tf.convert_to_tensor(plot_dict[key],tf.int32)
                     mat_value=self.mat_add_1d(tf_value,elem) 
@@ -941,7 +941,7 @@ class salestrans:
                 plt.legend(fontsize=8)
                 plt.ylabel("units/day sales")
                 plt.grid(True)
-                self.save_fig("actual_v_prediction_"+str(plot_number_df.columns[0]),self.images_path)
+                self.save_fig("actual_v_prediction_"+str(plot_number_df.columns[0]).replace('"', "'"),self.images_path)
              #   plt.pause(0.001)
              #   plt.show(block=False)
                 plt.close()             
