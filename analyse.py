@@ -71,7 +71,9 @@ mpl.rc('ytick', labelsize=12)
 
 colesjamsxls="Coles_jams_scan_data_300520.xlsx"
 latestscannedsalescoles="Coles_IRI_portal_scan_data_170620.xlsx"
-
+stock_level_query="stock_level_query.xlsx"
+production_made_query="Production Schedule.xlsx"
+production_planned_query="B Stock & Schedule Forecast.xlsx"
 report_savename="sales_trans_report_dict.pkl"
 
 #root_dir="."
@@ -481,6 +483,84 @@ def glset_GSV(dds,title):
 
 warnings.filterwarnings('ignore')
 pd.options.display.float_format = '{:.4f}'.format
+
+try:
+    with open("stock_level_query.pkl","rb") as f:
+       stock_df=pickle.load(f)
+except:  
+    print("load:",stock_level_query)
+    stock_df=pd.read_excel(stock_level_query)    # -1 means all rows   
+    with open("stock_level_query.pkl","wb") as f:
+        pickle.dump(stock_df, f,protocol=-1)
+#print("stock df size=",stock_df.shape,stock_df.columns)
+#
+    
+stock_df['end_date']=stock_df['lastsalesdate']+ pd.Timedelta(90, unit='d')
+#print(end_date)
+#print("ysdf=",sales_df)
+stock_df['recent']=stock_df['end_date']>pd.Timestamp('today')
+
+
+
+#print("stock_df=\n",stock_df)
+stock_df=stock_df[(stock_df['qtyinstock']<=10) & (stock_df['recent']==True)]
+                
+stock_report_df=stock_df[['code','lastsalesdate','qtyinstock']].sort_values('lastsalesdate',ascending=True)
+
+
+print("Out of stock report\n",stock_report_df)
+
+#####################################
+
+try:
+    with open("production_made.pkl","rb") as f:
+       production_made_df=pickle.load(f)
+except:  
+    print("load:",production_made_query)
+    production_made_df=pd.read_excel(production_made_query)    # -1 means all rows   
+    with open("production_made.pkl","wb") as f:
+        pickle.dump(production_made_df, f,protocol=-1)
+#print("stock df size=",stock_df.shape,stock_df.columns)
+#
+    
+#stock_report_df=stock_df[['code','lastsalesdate','qtyinstock']].sort_values('lastsalesdate',ascending=True)
+#print(production_schedule_df.columns)
+production_made_df=production_made_df[['to_date','jobid','code','qtybatches','qtyunits']].sort_values('to_date',ascending=True)
+print("\nProduction recently made:\n",production_made_df.tail(30))
+
+
+
+
+
+###############################
+
+try:
+    with open("production_planned.pkl","rb") as f:
+       production_planned_df=pickle.load(f)
+except:  
+    print("load:",production_planned_query)
+    production_planned_df=pd.read_excel(production_planned_query)    # -1 means all rows   
+    with open("production_planned.pkl","wb") as f:
+        pickle.dump(production_planned_df, f,protocol=-1)
+#print("stock df size=",stock_df.shape,stock_df.columns)
+#
+production_planned_df['future']=production_planned_df['to_date']>=pd.Timestamp('today')
+production_planned_df=production_planned_df[(production_planned_df['future']==True)]
+                
+#stock_report_df=stock_df[['code','lastsalesdate','qtyinstock']].sort_values('lastsalesdate',ascending=True)
+  
+#stock_report_df=stock_df[['code','lastsalesdate','qtyinstock']].sort_values('lastsalesdate',ascending=True)
+#print(production_schedule_df.columns)
+production_planned_df=production_planned_df[['to_date','jobid','code','qtybatches','qtyunits']].sort_values('to_date',ascending=True)
+print("\nProduction planned:\n",production_planned_df.head(30))
+
+
+
+
+
+###############################
+
+
 sales_df_savename="sales_trans_df.pkl"
 filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
 
@@ -973,6 +1053,18 @@ with open(output_dir+report_savename,"wb") as f:
 #plt.pause(0.001) 
 #plt.show()
 plt.close("all")
+
+
+
+
+
+
+
+
+
+
+
+
 print("finished\n")
 
 
