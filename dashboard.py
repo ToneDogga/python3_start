@@ -643,20 +643,24 @@ report_type_dict=dict({0:"dictionary",
 
 
 
+# value is (brand,specialpricecat, productgroup, product,type,name)
+# type is 0 off promo. 1 is on promo, 2 is total of both, 3 is invoiced total
 
-pkl_dict={"all_coles_jams_invoiced.pkl":("12","10","*"),   # special price cat, productgroup,productcode
-          "coles_SJ300_invoiced.pkl":(12,10,"SJ300"),
-          "coles_AJ300_invoiced.pkl":(12,10,"AJ300"),
-          "coles_OM300_invoiced.pkl":(12,10,"OM300"),
-          "coles_RJ300_invoiced.pkl":(12,10,"RJ300"),
-          "coles_TS300_invoiced.pkl":(12,11,"TS300"),
-          "coles_CAR280_invoiced.pkl":(12,13,"CAR280"),
-          "coles_BBR280_invoiced.pkl":(12,13,"BBR280"),
-          "coles_TC260_invoiced.pkl":(12,13,"TC260"),
-          "coles_HTC260_invoiced.pkl":(12,13,"HTC260"),
-          "coles_PCD300_invoiced.pkl":(12,14,"PCD300"),
-          "coles_BLU300_invoiced.pkl":(12,14,"BLU300"),
-          "coles_RAN300_invoiced.pkl":(12,14,"RAN300")}
+product_type = namedtuple("product_type", ["brandno","customercat", "productgroup","product","type","name"])
+
+pkl_dict={"all_BB_coles_jams_invoiced.pkl":(1,12,10,"*",3,"all_BB_coles_jams_invoiced"),   # special price cat, productgroup,productcode,product, on_promo, name)
+          "coles_SJ300_invoiced.pkl":(1,12,10,"SJ300",3,"coles_SJ300_invoiced"),
+          "coles_AJ300_invoiced.pkl":(1,12,10,"AJ300",3,"coles_AJ300_invoiced"),
+          "coles_OM300_invoiced.pkl":(1,12,10,"OM300",3,"coles_OM300_invoiced"),
+          "coles_RJ300_invoiced.pkl":(1,12,10,"RJ300",3,"coles_RJ300_invoiced"),
+          "coles_TS300_invoiced.pkl":(1,12,11,"TS300",3,"coles_TS300_invoiced"),
+          "coles_CAR280_invoiced.pkl":(1,12,13,"CAR280",3,"coles_CAR280_invoiced"),
+          "coles_BBR280_invoiced.pkl":(1,12,13,"BBR280",3,"coles_BBR280_invoiced"),
+          "coles_TC260_invoiced.pkl":(1,12,13,"TC260",3,"coles_TC260_invoiced"),
+          "coles_HTC260_invoiced.pkl":(1,12,13,"HTC260",3,"coles_HTC260_invoiced"),
+          "coles_PCD300_invoiced.pkl":(1,12,14,"PCD300",3,"coles_PCD300_invoiced"),
+          "coles_BLU300_invoiced.pkl":(1,12,14,"BLU300",3,"coles_BLU300_invoiced"),
+          "coles_RAN300_invoiced.pkl":(1,12,14,"RAN300",3,"coles_RAN300_invoiced")}
           
 
 
@@ -933,10 +937,11 @@ print("\nUpdate and save the qty reports from the pkl_dict")
 
 
 for key in pkl_dict.keys():
-    spc=pkl_dict[key][0]
-    pg=pkl_dict[key][1]
-    pc=pkl_dict[key][2]
-    if pc=="*":
+    brand=pkl_dict[key][0]
+    spc=pkl_dict[key][1]
+    pg=pkl_dict[key][2]
+    pc=pkl_dict[key][3]
+    if (pc=="*") | (pc=="t") | (pc=="T"):
         v=sales_df.query('specialpricecat==@spc & productgroup==@pg')[['date','qty']]
     else: 
         v=sales_df.query('specialpricecat==@spc & product==@pc')[['date','qty']]
