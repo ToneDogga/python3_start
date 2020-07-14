@@ -44,6 +44,11 @@ import pandas as pd
 import datetime as dt
 from datetime import date
 from datetime import timedelta
+
+
+from pathlib import Path,WindowsPath
+
+
 import pickle
 import multiprocessing
 
@@ -69,11 +74,11 @@ mpl.rc('xtick', labelsize=12)
 mpl.rc('ytick', labelsize=12)
 
 
-colesjamsxls="Coles_jams_scan_data_300520.xlsx"
+colesjamsxls="Coles_scan_data_300620.xlsx"
 latestscannedsalescoles="Coles_IRI_portal_scan_data_170620.xlsx"
-stock_level_query="stock_level_query.xlsx"
-production_made_query="Production Schedule.xlsx"
-production_planned_query="B Stock & Schedule Forecast.xlsx"
+stock_level_query='stock_level_query.xlsx'
+production_made_query='Production Schedule.xlsx'
+production_planned_query='#B Stock & Schedule Forecast.xlsx'
 report_savename="sales_trans_report_dict.pkl"
 
 #root_dir="."
@@ -484,6 +489,34 @@ def glset_GSV(dds,title):
 warnings.filterwarnings('ignore')
 pd.options.display.float_format = '{:.4f}'.format
 
+#winfilename=Path('documents on 192.168.0.211/documents//Beerenberg Documents\Accounting\Sales\stock_level_query.xlsx')
+#winfilename=Path('192.168.0.211/documents/BBQ prizes.doc')
+
+#windir=os.listdir('\\\\192.168.0.211\\')
+#windir=os.listdir('\\\\192.168.0.211\\')
+
+#winfilename = WindowsPath("smb://BBAD01/Documents/Beerenberg Documents/Accounting/Sales/"+stock_level_query)
+
+#print(windir)  #.as_url())
+
+#print(winfilename.name)
+# prints "raw_data.txt"
+
+#print(winfilename.suffix)
+# prints "txt"
+
+#print(winfilename.stem)
+
+
+#if not windir.exists():
+#    print("Oops, file doesn't exist!")
+#else:
+#    print("Yay, the file exists!")
+
+
+
+
+
 try:
     with open("stock_level_query.pkl","rb") as f:
        stock_df=pickle.load(f)
@@ -492,6 +525,8 @@ except:
     stock_df=pd.read_excel(stock_level_query)    # -1 means all rows   
     with open("stock_level_query.pkl","wb") as f:
         pickle.dump(stock_df, f,protocol=-1)
+#except:
+#    pass        
 #print("stock df size=",stock_df.shape,stock_df.columns)
 #
     
@@ -605,6 +640,13 @@ report_type_dict=dict({0:"dictionary",
                        5:"spreadsheet",
                        6:"pivottable",
                        8:"chart_filename"})
+
+
+
+
+
+
+
 
 
 #  Report_dict is a dictionary of all the reports created plus the report_type_dict to decode it
@@ -860,6 +902,61 @@ pivot_df.to_excel(output_dir+name+".xlsx")
 report_dict[report(name,6,"*","*")]=pivot_df
 #report_dict[report(name,5,"*","*")]=name+".xlsx"
 report_dict[report(name,5,"*","*")]=output_dir+name+".xlsx"
+
+
+##################################################################3
+# update reports and save them as pickles for the brand_index.py program
+
+
+
+pkl_dict={"all_coles_jams.pkl":("12","10","*"),   # special price cat, productgroup,productcode
+          "coles_SJ300.pkl":(12,10,"SJ300"),
+          "coles_AJ300.pkl":(12,10,"AJ300"),
+          "coles_OM300.pkl":(12,10,"OM300"),
+          "coles_RJ300.pkl":(12,10,"RJ300"),
+          "coles_TS300.pkl":(12,11,"TS300"),
+          "coles_CAR280.pkl":(12,13,"CAR280"),
+          "coles_BBR280.pkl":(12,13,"BBR280"),
+          "coles_TC260.pkl":(12,13,"TC260"),
+          "coles_HTC260.pkl":(12,13,"HTC260"),
+          "coles_PCD300.pkl":(12,14,"PCD300"),
+          "coles_BLU300.pkl":(12,14,"BLU300"),
+          "coles_RAN300.pkl":(12,14,"RAN300")}
+          
+
+
+
+print("sales_df=",sales_df.columns)
+for key in pkl_dict.keys():
+    spc=pkl_dict[key][0]
+    pg=pkl_dict[key][1]
+    pc=pkl_dict[key][2]
+    if pc=="*":
+        v=sales_df.query((sales_df.specialpricecat==spc) & (sales_df.productgroup==pg))
+    else: 
+        v=sales_df.query((sales_df.specialpricecat==spc) & (sales_df.product==pc))
+    print("key,v=\n",key,v)    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ##############################################################33
 # rank top customers and products

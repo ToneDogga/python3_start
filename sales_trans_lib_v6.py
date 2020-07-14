@@ -72,7 +72,7 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off trac
 
 class salestrans:
     def __init__(self):   
-        self.epochs=8
+        self.epochs=2
     #    self.steps_per_epoch=100 
         self.no_of_batches=1000
         self.no_of_repeats=2
@@ -311,8 +311,12 @@ class salestrans:
   
     def plot_query(self, query_df_from_dict,query_name):
         query_df=query_df_from_dict.copy(deep=True)
-        query_details=str(query_df.columns[0])
-        query_df.columns = query_df.columns.get_level_values(0)
+    #    query_details=str(query_df.columns[0])
+    #    print("qdf\n",query_df)
+     #   query_df.columns = query_df.columns.get_level_values(1)
+     
+        queries=query_df.columns 
+    #    print("qdf\n",query_df.columns)
     #    print("query df shae",query_df.shape)
      #   query_df=self.mat_add_1d(query_df.to_numpy().swapaxes(0,1),self.mats[0])
         query_df['qdate']=query_df.index.copy(deep=True)  #.to_timestamp(freq="D",how='s') #
@@ -334,24 +338,27 @@ class salestrans:
      #   query_df.reset_index(level='specialpricecat')
         query_df.reset_index(drop=True, inplace=True)
         query_df['qdate']=query_list   #.set_index(['qdate',''])
-     #   print("query df=\n",query_df)
+     #   print("queries)=",queries)
       #  query_df=query_df.replace(0, np.nan)
    #     ax=query_df.plot(y=query_df.columns[0],style="b-")   # actual
      #   ax=query_df.plot(x=query_df.columns[1][0],style="b-")   #,use_index=False)   # actual
-        ax=query_df.plot(x='qdate',y=query_df.columns[0],style="b-")   #,use_index=False)   # actual
-
+        for q in queries:  
+         #     query_details=str(query_df.columns[0])
+            ax=query_df.plot(x='qdate',y=q,style="b-",legend=False)   #,use_index=False)   # actual
+            ax.xaxis.set_label_text('date')
+            ax.xaxis.label.set_visible(False)
       #  col_no=1
      #   query.plot(style='b-')
      #   ax.axvline(pd.to_datetime(start_date), color='k', linestyle='--')
      #   ax.axvline(pd.to_datetime(end_date), color='k', linestyle='--')
 
-        plt.title("Unit sales:"+query_name+query_details,fontsize=10)   #str(new_plot_df.columns.get_level_values(0)))
+            plt.title("Unit sales:"+str(q),fontsize=10)   #str(new_plot_df.columns.get_level_values(0)))
      #   plt.legend(fontsize=8)
-        plt.ylabel("units/day sales")
-        plt.grid(True)
-        self.save_fig("actual_"+query_name+query_details,self.images_path)
-        plt.pause(0.001)
-        plt.close()
+            plt.ylabel("units/day sales")
+            plt.grid(True)
+            self.save_fig("actual_"+str(q),self.images_path)
+            plt.pause(0.001)
+            plt.close()
        # plt.draw()
       #  plt.pause(0.001)
        # plt.show()
@@ -936,13 +943,16 @@ class salestrans:
              #   ax = plot_number_df.plot()
                 ax.axvline(pd.to_datetime(start_date), color='k', linestyle='--')
                 ax.axvline(pd.to_datetime(end_date), color='k', linestyle='--')
+                ax.xaxis.set_label_text('date')
+                ax.xaxis.label.set_visible(False)
+
 
                 plt.title("Unit sales:"+str(plot_number_df.columns[0]),fontsize=10)   #str(new_plot_df.columns.get_level_values(0)))
                 plt.legend(fontsize=8)
                 plt.ylabel("units/day sales")
                 plt.grid(True)
                 self.save_fig("actual_v_prediction_"+str(plot_number_df.columns[0]).replace('"', "'"),self.images_path)
-             #   plt.pause(0.001)
+                plt.pause(0.001)
              #   plt.show(block=False)
                 plt.close()             
             query_number+=1    
