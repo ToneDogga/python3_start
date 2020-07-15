@@ -313,7 +313,7 @@ def predict_order(hdf,title,model):
     linewidths = 1  # [2, 1, 4]
     print("df=\n",df,df.shape)
     df.iloc[-26:].plot(grid=True,title=title,style=styles1, lw=linewidths)
-    plt.pause(0.001)
+    #plt.pause(0.001)
     
     #df.iloc[-6:].plot(grid=True,title=title,style=styles1, lw=linewidths)
     #plt.pause(0.001)
@@ -925,12 +925,15 @@ for p in products:
         if count==0:
             results=predict_order(mdf,pfx+p,model).iloc[:,1]
         else:    
-            results=pd.concat((results,predict_order(mdf,pfx+p,model).iloc[:,1]))
+            results=pd.concat((results,predict_order(mdf,pfx+p,model).iloc[:,1]),axis=1)
+        print("results:",results,results.shape)    
         count+=1    
 
 
 print("results=\n",results)
 print("results.T=\n",results.T)
+results.to_pickle("results.pkl")
+results.to_excel("results.xlsx")
 
 ###############################
 # batches of X shape (no of batches,batch length, 1)
