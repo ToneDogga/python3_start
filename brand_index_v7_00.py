@@ -88,7 +88,7 @@ def save_fig(fig_id, images_path, tight_layout=True, fig_extension="png", resolu
 
 def log_dir(prefix=""):
     now = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-    root_logdir = "./SCBS2_outputs"
+    root_logdir = "./scandata_outputs"
     if prefix:
         prefix += "-"
     name = prefix + "run-" + now
@@ -274,6 +274,146 @@ def plot_query(query_df_passed,plot_col,query_name):
     plt.show()
 
   
+
+
+
+
+
+def predict_order(hdf,title,model):
+
+    
+    y_set=hdf.iloc[:,2].to_numpy().astype(np.int32)[7:-1]
+    scanned_sales=hdf.iloc[:,0].to_numpy().astype(np.int32)[7:-1]     #np.array([13400, 12132, 12846, 9522, 11858 ,13846 ,13492, 12310, 13584 ,13324, 15656 ,15878 ,13566, 10104 , 7704  ,7704])
+    scanned_sales=scanned_sales.reshape(-1,1)[np.newaxis,...]
+    
+    #print("scanned sales",scanned_sales,scanned_sales.shape,"#[:,-2:,:]",scanned_sales[:,-2:,:])
+    #for t in range(scanned_sales.shape[1]-1):
+    #    print("predict",t,scanned_sales[:,t,:],"=",model(scanned_sales[:,t,:]))
+    Y_pred=np.stack(model(scanned_sales[:,-1,:]).numpy(),axis=2) #for r in range(scanned_sales.shape[1])]
+    #print("Y_pred",Y_pred,Y_pred.shape)
+    Y_pred=np.concatenate((y_set,Y_pred[0,:,0]),axis=0)
+    #print("Y_pred=",Y_pred,Y_pred.shape)
+    #Y_pred=np.roll(Y_pred,-3)
+    #Y_pred[-3:]=0
+    #print("Y_pred=",Y_pred,Y_pred.shape)
+    
+    #########################################333
+    X_pred=hdf[title+'_total_scanned'].to_numpy().astype(np.int32)[7:]
+    #print("X_pred=\n",X_pred,X_pred.shape)
+    #dates=hdf.shift(1,freq="W").index.tolist()[7:]
+    dates=hdf.index.tolist()[7:]
+    #print("dates:",dates,len(dates))
+    df=pd.DataFrame({title+'_total_scanned':X_pred,title+'_ordered_prediction':Y_pred},index=dates)
+    #shifted_df=df.shift(1, freq='W')   #[:-3]   # 3 weeks
+    
+    #df=gdf[['coles_BB_jams_total_scanned','all_BB_coles_jams_predicted']].rolling(mat,axis=0).mean()
+    
+    styles1 = ['b-','r:']
+           # styles1 = ['bs-','ro:','y^-']
+    linewidths = 1  # [2, 1, 4]
+    #print("df=\n",df,df.shape)
+    df.iloc[-26:].plot(grid=True,title=title,style=styles1, lw=linewidths)
+    plt.pause(0.001)
+    
+    #df.iloc[-6:].plot(grid=True,title=title,style=styles1, lw=linewidths)
+    #plt.pause(0.001)
+    #ax.legend(title="")
+    #plt.ax.show()
+    
+    #df=df.rolling(mat,axis=0).mean()
+    #df=df[100:]
+    
+    #ax=df.plot(grid=True,title="Coles units moving total "+str(mat)+" weeks",style=styles1, lw=linewidths)
+    #ax.legend(title="")
+    #plt.show()
+    
+    
+    save_fig(title+"_order_predictions",images_path)
+      
+    plt.show()
+
+    #print(df)
+    plt.close("all")
+    return
+
+
+
+
+def train_model(name,X_set,y_set,batch_length,no_of_batches):
+   
+    X,y=create_X_and_y_batches(X_set,y_set,batch_length,no_of_batches)
+    
+    
+    
+    ##########################3
+    
+    dataset=tf.data.Dataset.from_tensor_slices((X,y)).cache().repeat(no_of_repeats)
+    dataset=dataset.shuffle(buffer_size=1000,seed=42)
+    
+    train_set=dataset.batch(1).prefetch(1)
+    valid_set=dataset.batch(1).prefetch(1)
+       
+     
+    
+    ##########################
+    print("\nTraining with GRU :",name)
+    model = keras.models.Sequential([
+    #     keras.layers.Conv1D(filters=st.batch_length,kernel_size=4, strides=1, padding='same', input_shape=[None, 1]),  #st.batch_length]), 
+      #   keras.layers.BatchNormalization(),
+         keras.layers.GRU(200, return_sequences=True, input_shape=[None, 1]), #st.batch_length]),
+        # keras.layers.BatchNormalization(),
+         keras.layers.GRU(200, return_sequences=True),
+       #  keras.layers.AlphaDropout(rate=0.2),
+       #  keras.layers.BatchNormalization(),
+         keras.layers.TimeDistributed(keras.layers.Dense(1))
+    ])
+      
+    model.compile(loss="mse", optimizer="adam", metrics=[last_time_step_mse])
+     
+    model.summary() 
+     
+    #callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=self.patience),self.MyCustomCallback()]
+     
+    history = model.fit(train_set ,epochs=epochs,
+                         validation_data=(valid_set))  #, callbacks=callbacks)
+          
+    print("\nsave model :"+name+"_predict_model.h5\n")
+    model.save(name+"_sales_predict_model.h5", include_optimizer=True)
+           
+    plot_learning_curves(history.history["loss"], history.history["val_loss"],epochs,"GRU and dropout:")
+    save_fig(name+"GRU and dropout learning curve",images_path)
+      
+    plt.show()
+    return model
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #############################
@@ -482,9 +622,21 @@ df[3,12,10,"_t",0,'coles_BM_jams_total_scanned']=df[3,12,10,"_*",0,'coles_BM_jam
 
 for col_count in range(0,len(df.columns),2):
     cc=list(df.iloc[:,col_count].name)
+    if cc[0]==1:
+        brand="BB"
+    else:
+        brand="other"
+    if cc[1]==10:
+        cust="WW"
+    elif cc[1]==12:
+        cust="coles"
+    else:
+        cust="other"
+    
+    #customer=cc[1]
     p=cc[3]    # product name
     cc[4]=2   # type is total                 
-    cc[5]=p+"_total_scan"
+    cc[5]=str(cust)+"_"+str(brand)+"_"+str(p)+"_total_scanned"
     cc=tuple(cc)
     df[cc]=df.T.xs(p,level=3).sum()
 
@@ -578,7 +730,7 @@ for key in pkl_dict.keys():
     shifted_key=list(pkl_dict[key])
     
     #  create another query with the invoiced sales shifted left 3 week to align with scanned sales
-    shifted_df=forecast_df.shift(3, freq='W')   # 3 weeks
+    shifted_df=forecast_df.shift(3, freq='W')[:-3]   # 3 weeks
   #  print("shufted key=",shifted_key)
     shifted_key[4]=4
     shifted_key[5]=shifted_key[5]+"_shifted_3wks"
@@ -636,7 +788,7 @@ for p in products:
   #  rdf4=get_xs_name2(joined_df,(p,3),[3,4])
   #  ax.plot(rdf4)
         mat=4
-        rdf=test[[2,4]].rolling(mat,axis=0).mean()
+        rdf=test[[2,3,4]].rolling(mat,axis=0).mean()
         rdf=rdf.T
         rdf=rdf.droplevel(level=0)
         rdf=rdf.T
@@ -644,8 +796,17 @@ for p in products:
 #joined_df['BB_scanned_sales']=joined_df['BB_scanned_sales'].rolling(mat,axis=0).mean()
    # plt.grid(True)
 #    rdf[['all_BB_coles_jams_invoiced','coles_BB_jams_total_scanned']].plot(grid=True,title="Coles Jam units Moving total "+str(mat)+" weeks")   #),'BB total scanned vs purchased Coles jam units per week')
-        ax=rdf.plot(grid=True,title="Coles units moving total "+str(mat)+" weeks")   #),'BB total scanned vs purchased Coles jam units per week')
-        ax.legend(title="")
+ 
+
+        styles1 = ['b-','g:','r-']
+       # styles1 = ['bs-','ro:','y^-']
+        linewidths = 1  # [2, 1, 4]
+
+        #styles2 = ['rs-','go-','b^-']
+       # fig, ax = plt.subplots()
+
+        ax2=rdf.plot(grid=True,title="Coles units moving total "+str(mat)+" weeks",style=styles1, lw=linewidths)   #),'BB total scanned vs purchased Coles jam units per week')
+        ax2.legend(title="")
         save_fig(p+"_moving_total",images_path)
 #plt.grid(True)
         plt.show()
@@ -671,9 +832,13 @@ if hdf.columns.nlevels>=2:
 
 #hdf=get_xs_name2(joined_df,"",5)
 #print("hdf=\n",hdf.columns)
-df=hdf[['coles_BB_jams_total_scanned','all_BB_coles_jams_invoiced_shifted_3wks']].rolling(mat,axis=0).mean()
+df=hdf[['coles_BB_jams_total_scanned','coles_BB_jams_invoiced','coles_BB_jams_invoiced_shifted_3wks']].rolling(mat,axis=0).mean()
+styles1 = ['b-','g:','r-']
+       # styles1 = ['bs-','ro:','y^-']
+linewidths = 1  # [2, 1, 4]
 
-ax=df.plot()
+  
+ax=df.plot(grid=True,title="Coles units moving total "+str(mat)+" weeks",style=styles1, lw=linewidths)
 ax.legend(title="")
 plt.show()
 #print(df)
@@ -689,185 +854,212 @@ plt.close("all")
 batch_length=4
 no_of_batches=1000
 no_of_repeats=4
-epochs=20
+epochs=5
 #start_point=101
-#end_point=df.shape[0]-target_offset  #123
-hdf.fillna(0,inplace=True)
-# use a simple model
+# #end_point=df.shape[0]-target_offset  #123
+# hdf.fillna(0,inplace=True)
+# # use a simple model
 
-X_set=hdf['coles_BB_jams_total_scanned'].to_numpy().astype(np.int32)[7:-4]
+# X_set=hdf['coles_BB_jams_total_scanned'].to_numpy().astype(np.int32)[7:-1]
 
-y_set=hdf['all_BB_coles_jams_invoiced_shifted_3wks'].to_numpy()[7:-4]   #iloc[target_offset:].to_numpy()
+# y_set=hdf['coles_BB_jams_invoiced_shifted_3wks'].to_numpy()[7:-1]   #iloc[target_offset:].to_numpy()
 
-X_new=hdf['coles_BB_jams_total_scanned'].to_numpy().astype(np.int32)[-4:]   #iloc[target_offset:].to_numpy()
-
-
-dates=hdf.index.tolist()[7:-4]
-print(hdf[['coles_BB_jams_total_scanned']])
-
-#X_set=np.concatenate((X_set,np.zeros(target_offset)),axis=0).astype(np.int32)
-#y_set=hdf['coles_BB_jams_total_scanned'].iloc[start_point:end_point].to_numpy().astype(np.int32)
-
-#dates=hdf[start_point:end_point].index.tolist()
-#pred_dates=hdf[end_point-1:].index.tolist()
-
-#print("1Xset=",X_set,X_set.shape)
-#print("1yset=",y_set,y_set.shape)
+# X_new=hdf['coles_BB_jams_total_scanned'].to_numpy().astype(np.int32)[-2:]   #iloc[target_offset:].to_numpy()
 
 
-#X_set=X_set[start_point:end_point]
-#y_pred=hdf['coles_BB_jams_total_scanned'].iloc[end_point-1:].to_numpy().astype(np.int32)
-#y_pred=hdf['coles_BB_jams_total_scanned'].to_numpy().astype(np.int32)
+# dates=hdf.index.tolist()[7:-1]
+# #print(hdf[['coles_BB_jams_total_scanned']])
 
-print("X=",X_set,X_set.shape)
-print("y=",y_set,y_set.shape)
-print("X new=",X_new,X_new.shape)
-print("dates=",dates,len(dates))
-#print("y_pred=",y_pred,y_pred.shape)
+# #X_set=np.concatenate((X_set,np.zeros(target_offset)),axis=0).astype(np.int32)
+# #y_set=hdf['coles_BB_jams_total_scanned'].iloc[start_point:end_point].to_numpy().astype(np.int32)
+
+# #dates=hdf[start_point:end_point].index.tolist()
+# #pred_dates=hdf[end_point-1:].index.tolist()
+
+# #print("1Xset=",X_set,X_set.shape)
+# #print("1yset=",y_set,y_set.shape)
 
 
+# #X_set=X_set[start_point:end_point]
+# #y_pred=hdf['coles_BB_jams_total_scanned'].iloc[end_point-1:].to_numpy().astype(np.int32)
+# #y_pred=hdf['coles_BB_jams_total_scanned'].to_numpy().astype(np.int32)
+
+# print("X=",X_set,X_set.shape)
+# print("y=",y_set,y_set.shape)
+# print("X new=",X_new,X_new.shape)
+# #print("dates=",dates,len(dates))
+# #print("y_pred=",y_pred,y_pred.shape)
+
+
+
+pfx="coles_BB_"
+print(pfx,products)
+for p in products:
+    if (p=="_t") | (p=="_*") | (p=="_T"):
+        pass
+    else:
+        test=joined_df.T.xs(p,level=3,drop_level=True)
+        test=test.droplevel(level=0)
+        test=test.droplevel(level=0)
+        test=test.droplevel(level=0).T
+        mdf=test[[2,3,4]]   #.rolling(mat,axis=0).mean()
+        mdf=mdf.T
+        mdf=mdf.droplevel(level=0)
+        mdf=mdf.T
+        
+        mdf.fillna(0,inplace=True)
+       # X_set=mdf['coles_BB_jams_total_scanned'].to_numpy().astype(np.int32)[7:-1]
+        X_set=mdf.iloc[:,0].to_numpy().astype(np.int32)[7:-1]     #np.array([13400, 12132, 12846, 9522, 11858 ,13846 ,13492, 12310, 13584 ,13324, 15656 ,15878 ,13566, 10104 , 7704  ,7704])
+ 
+ 
+      #  y_set=mdf['coles_BB_jams_invoiced_shifted_3wks'].to_numpy()[7:-1]   #iloc[target_offset:].to_numpy()
+        y_set=mdf.iloc[:,2].to_numpy().astype(np.int32)[7:-1]
+     #   X_new=mdf['coles_BB_jams_total_scanned'].to_numpy().astype(np.int32)[-2:]   #iloc[target_offset:].to_numpy()
+
+        dates=mdf.index.tolist()[7:-1]
+
+        print(p,mdf.T,X_set,y_set)
+        model=train_model(pfx+p,X_set,y_set,batch_length,no_of_batches)
+        predict_order(mdf,pfx+p,model)
+
+
+
+print("joined_df=\n",joined_df)
+print("joined_df.T=\n",joined_df.T)
+print("test=\n",get_xs_name2(df,2,4))
 ###############################
 # batches of X shape (no of batches,batch length, 1)
 # batches of Y shape (no of batches,batch length, 1)
 
-answer=input("Train a model?")
-if answer=="y":
+# answer=input("Train a model?")
+# if answer=="y":
     
     
-    X,y=create_X_and_y_batches(X_set,y_set,batch_length,no_of_batches)
+#     X,y=create_X_and_y_batches(X_set,y_set,batch_length,no_of_batches)
     
     
     
-    ##########################3
+#     ##########################3
     
-    dataset=tf.data.Dataset.from_tensor_slices((X,y)).cache().repeat(no_of_repeats)
-    dataset=dataset.shuffle(buffer_size=1000,seed=42)
+#     dataset=tf.data.Dataset.from_tensor_slices((X,y)).cache().repeat(no_of_repeats)
+#     dataset=dataset.shuffle(buffer_size=1000,seed=42)
     
-    train_set=dataset.batch(1).prefetch(1)
-    valid_set=dataset.batch(1).prefetch(1)
+#     train_set=dataset.batch(1).prefetch(1)
+#     valid_set=dataset.batch(1).prefetch(1)
        
      
     
-    ##########################
-    print("\nTraining with GRU and dropout")
-    model = keras.models.Sequential([
-    #     keras.layers.Conv1D(filters=st.batch_length,kernel_size=4, strides=1, padding='same', input_shape=[None, 1]),  #st.batch_length]), 
-      #   keras.layers.BatchNormalization(),
-         keras.layers.GRU(200, return_sequences=True, input_shape=[None, 1]), #st.batch_length]),
-        # keras.layers.BatchNormalization(),
-         keras.layers.GRU(200, return_sequences=True),
-       #  keras.layers.AlphaDropout(rate=0.2),
-       #  keras.layers.BatchNormalization(),
-         keras.layers.TimeDistributed(keras.layers.Dense(1))
-    ])
+#     ##########################
+#     print("\nTraining with GRU and dropout")
+#     model = keras.models.Sequential([
+#     #     keras.layers.Conv1D(filters=st.batch_length,kernel_size=4, strides=1, padding='same', input_shape=[None, 1]),  #st.batch_length]), 
+#       #   keras.layers.BatchNormalization(),
+#          keras.layers.GRU(200, return_sequences=True, input_shape=[None, 1]), #st.batch_length]),
+#         # keras.layers.BatchNormalization(),
+#          keras.layers.GRU(200, return_sequences=True),
+#        #  keras.layers.AlphaDropout(rate=0.2),
+#        #  keras.layers.BatchNormalization(),
+#          keras.layers.TimeDistributed(keras.layers.Dense(1))
+#     ])
       
-    model.compile(loss="mse", optimizer="adam", metrics=[last_time_step_mse])
+#     model.compile(loss="mse", optimizer="adam", metrics=[last_time_step_mse])
      
-    model.summary() 
+#     model.summary() 
      
-    #callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=self.patience),self.MyCustomCallback()]
+#     #callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=self.patience),self.MyCustomCallback()]
      
-    history = model.fit(train_set ,epochs=epochs,
-                         validation_data=(valid_set))  #, callbacks=callbacks)
+#     history = model.fit(train_set ,epochs=epochs,
+#                          validation_data=(valid_set))  #, callbacks=callbacks)
           
-    print("\nsave model :GRU_Dropout_coles jam_sales_predict_model.h5\n")
-    model.save("GRU_Dropout_coles_jam_sales_predict_model.h5", include_optimizer=True)
+#     print("\nsave model :GRU_Dropout_coles jam_sales_predict_model.h5\n")
+#     model.save("GRU_Dropout_coles_jam_sales_predict_model.h5", include_optimizer=True)
            
-    plot_learning_curves(history.history["loss"], history.history["val_loss"],epochs,"GRU and dropout:")
-    save_fig("GRU and dropout learning curve",images_path)
+#     plot_learning_curves(history.history["loss"], history.history["val_loss"],epochs,"GRU and dropout:")
+#     save_fig("GRU and dropout learning curve",images_path)
       
-    plt.show()
+#     plt.show()
 
-else:
+# else:
    
-    print("\nload model :GRU_Dropout_coles jam_sales_predict_model.h5\n")
+#     print("\nload model :GRU_Dropout_coles jam_sales_predict_model.h5\n")
 
-    model=keras.models.load_model("GRU_Dropout_coles_jam_sales_predict_model.h5",custom_objects={"last_time_step_mse": last_time_step_mse})
+#     model=keras.models.load_model("GRU_Dropout_coles_jam_sales_predict_model.h5",custom_objects={"last_time_step_mse": last_time_step_mse})
 
 
 
 
 #######################################################333
-scanned_sales=y_pred    #np.array([13400, 12132, 12846, 9522, 11858 ,13846 ,13492, 12310, 13584 ,13324, 15656 ,15878 ,13566, 10104 , 7704  ,7704])
-scanned_sales=scanned_sales.reshape(-1,1)[np.newaxis,...]
 
-print("scanned sales",scanned_sales,scanned_sales.shape,"[:,3,:]",scanned_sales[:,3,:])
-for t in range(scanned_sales.shape[1]-1):
-    print("predict",t,scanned_sales[:,t,:],"=",model(scanned_sales[:,t,:]))
-Y_pred=[np.stack(model(scanned_sales[:,r,:]).numpy(),axis=2) for r in range(scanned_sales.shape[1])]
-#print("Y_pred",Y_pred)
-Y_pred=np.concatenate((X_set[-1][np.newaxis,np.newaxis],np.array(Y_pred)[:,0,0]),axis=0)[:-1,0]
-print("Y_pred=",Y_pred)
-#########################################333
-fig, ax = plt.subplots()
-ax.xaxis.set_major_formatter(mdates.DateFormatter("%b\n%Y"))
-locator = mdates.MonthLocator(interval=3)
-ax.xaxis.set_major_locator(locator)
-plt.xticks(rotation=0)
-ax.grid(axis='x')
-ax.plot_date(dates, X_set,"b-")
-ax.plot_date(dates,y_set,"r-")
-plt.title("X (DC purchases-blue) and y (scanned sales-red) series aligned at "+str(target_offset)+" weeks offset.")
-plt.legend(fontsize=10,loc='best')
-plt.show()
-################################################
-#plt.plot(range(y_set.shape[0]-1,y_set.shape[0]-1+y_pred.shape[0]),y_pred,"r:")
 
-fig, ax = plt.subplots()
-ax.xaxis.set_major_formatter(mdates.DateFormatter("%b\n%Y"))
-locator = mdates.MonthLocator(interval=3)
-ax.xaxis.set_major_locator(locator)
-plt.xticks(rotation=0)
-ax.grid(axis='x')
-ax.plot_date(dates, X_set,"b-")
-ax.plot_date(dates,y_set,"r-")
-#ax.plot_date(dates,y_pred,"r:")
+# fig, ax = plt.subplots()
+# ax.xaxis.set_major_formatter(mdates.DateFormatter("%b\n%Y"))
+# locator = mdates.MonthLocator(interval=3)
+# ax.xaxis.set_major_locator(locator)
+# plt.xticks(rotation=0)
+# ax.grid(axis='x')
+# ax.plot_date(dates, X_set,"b-")
+# ax.plot_date(dates,y_set,"r-")
+# plt.title("X (DC purchases-blue) and y (scanned sales-red) series aligned at "+str(target_offset)+" weeks offset.")
+# plt.legend(fontsize=10,loc='best')
+# plt.show()
+# ################################################
+# #plt.plot(range(y_set.shape[0]-1,y_set.shape[0]-1+y_pred.shape[0]),y_pred,"r:")
 
-# plt.plot(range(X_set.shape[0]),X_set,"b-")
-# plt.plot(range(y_set.shape[0]),y_set,"r-")
-#plt.plot(range(y_set.shape[0]-1,y_set.shape[0]-1+y_pred.shape[0]),y_pred,"r:")
-#ax.plot(range(y_set.shape[0]-1,y_set.shape[0]-1+y_pred.shape[0]),y_pred,"r:")
-ax.plot_date(pred_dates,y_pred,"r:")
+# fig, ax = plt.subplots()
+# ax.xaxis.set_major_formatter(mdates.DateFormatter("%b\n%Y"))
+# locator = mdates.MonthLocator(interval=3)
+# ax.xaxis.set_major_locator(locator)
+# plt.xticks(rotation=0)
+# ax.grid(axis='x')
+# ax.plot_date(dates, X_set,"b-")
+# ax.plot_date(dates,y_set,"r-")
+# #ax.plot_date(dates,y_pred,"r:")
 
-#plt.plot(range(X_set.shape[0]-2,X_set.shape[0]-2+Y_pred.shape[0]),Y_pred,"b-")
+# # plt.plot(range(X_set.shape[0]),X_set,"b-")
+# # plt.plot(range(y_set.shape[0]),y_set,"r-")
+# #plt.plot(range(y_set.shape[0]-1,y_set.shape[0]-1+y_pred.shape[0]),y_pred,"r:")
+# #ax.plot(range(y_set.shape[0]-1,y_set.shape[0]-1+y_pred.shape[0]),y_pred,"r:")
+# ax.plot_date(pred_dates,y_pred,"r:")
 
-plt.legend(fontsize=10,loc='best')
-#plt.title("X (DC purchases-blue) and y (scanned sales-red) series aligned at "+str(target_offset)+" weeks offset.")
-plt.title("X (DC purchases-blue) and y (scanned sales-red) offset with new scanned sales")
-plt.show()
+# #plt.plot(range(X_set.shape[0]-2,X_set.shape[0]-2+Y_pred.shape[0]),Y_pred,"b-")
+
+# plt.legend(fontsize=10,loc='best')
+# #plt.title("X (DC purchases-blue) and y (scanned sales-red) series aligned at "+str(target_offset)+" weeks offset.")
+# plt.title("X (DC purchases-blue) and y (scanned sales-red) offset with new scanned sales")
+# plt.show()
  
 
 
  
-################################
-print("Y_pred",Y_pred,Y_pred.shape)
+# ################################
+# print("Y_pred",Y_pred,Y_pred.shape)
 
-fig, ax = plt.subplots()
-ax.xaxis.set_major_formatter(mdates.DateFormatter("%b\n%Y"))
-locator = mdates.MonthLocator(interval=3)
-ax.xaxis.set_major_locator(locator)
-plt.xticks(rotation=0)
-ax.grid(axis='x')
-ax.plot_date(dates, X_set,"b-")
-#ax.plot_date(dates,y_set,"r-")
-ax.plot_date(pred_dates,y_pred,"r:")
-ax.plot_date(pred_dates,Y_pred,"b:")
+# fig, ax = plt.subplots()
+# ax.xaxis.set_major_formatter(mdates.DateFormatter("%b\n%Y"))
+# locator = mdates.MonthLocator(interval=3)
+# ax.xaxis.set_major_locator(locator)
+# plt.xticks(rotation=0)
+# ax.grid(axis='x')
+# ax.plot_date(dates, X_set,"b-")
+# #ax.plot_date(dates,y_set,"r-")
+# ax.plot_date(pred_dates,y_pred,"r:")
+# ax.plot_date(pred_dates,Y_pred,"b:")
 
-# plt.plot(range(X_set.shape[0]),X_set,"b-")
-# #plt.plot(range(y_set.shape[0]),y_set,"r-")
-# plt.plot(range(y_set.shape[0]-1,y_set.shape[0]-1+y_pred.shape[0]),y_pred,"r:")
-# plt.plot(range(X_set.shape[0]-1,X_set.shape[0]-1+Y_pred.shape[0]),Y_pred,"b-")
+# # plt.plot(range(X_set.shape[0]),X_set,"b-")
+# # #plt.plot(range(y_set.shape[0]),y_set,"r-")
+# # plt.plot(range(y_set.shape[0]-1,y_set.shape[0]-1+y_pred.shape[0]),y_pred,"r:")
+# # plt.plot(range(X_set.shape[0]-1,X_set.shape[0]-1+Y_pred.shape[0]),Y_pred,"b-")
 
-plt.legend(fontsize=10,loc='best')
-plt.title("Coles jam predicted purchases")
-plt.show()
+# plt.legend(fontsize=10,loc='best')
+# plt.title("Coles jam predicted purchases")
+# plt.show()
 
 
-print("3Xset=",X_set,X_set.shape)
-print("3yset=",y_set,y_set.shape)
+# print("3Xset=",X_set,X_set.shape)
+# print("3yset=",y_set,y_set.shape)
  
-print("scanned_sales=",scanned_sales)
-print("Y_pred=",Y_pred)      
+# print("scanned_sales=",scanned_sales)
+# print("Y_pred=",Y_pred)      
 
 
 ##########################################################################3
@@ -877,54 +1069,54 @@ print("Y_pred=",Y_pred)
         
 #column_list=list(["coles_scan_week","bb_total_units","bb_promo_disc","sd_total_units","sd_promo_disc","bm_total_units","bm_promo_disc"])      
  
-col_dict=dict({0:"WW_scan_week",
-               1:"BB_off_promo_sales",
-               2:"BB_on_promo_sales",
-               3:"SD_off_promo_sales",
-               4:"SD_on_promo_sales",
-               5:"BM_off_promo_sales",
-               6:"BM_on_promo_sales"})
+# col_dict=dict({0:"WW_scan_week",
+#                1:"BB_off_promo_sales",
+#                2:"BB_on_promo_sales",
+#                3:"SD_off_promo_sales",
+#                4:"SD_on_promo_sales",
+#                5:"BM_off_promo_sales",
+#                6:"BM_on_promo_sales"})
        
-df=pd.read_excel(wwscanxls,-1,skiprows=[0,1,2]).T.reset_index()  #,header=[0,1,2])  #,skip_rows=0)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
-#print("before",df)
-df = df.rename(col_dict,axis='index').T
+# df=pd.read_excel(wwscanxls,-1,skiprows=[0,1,2]).T.reset_index()  #,header=[0,1,2])  #,skip_rows=0)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+# #print("before",df)
+# df = df.rename(col_dict,axis='index').T
 
-df['WW_scan_week']=pd.to_datetime(df['WW_scan_week'],format="%d/%m/%y")
-#df['coles_scan_week']=df["date"] #.strftime("%Y-%m-%d")
-df.fillna(0.0,inplace=True)
-df.drop_duplicates(keep='first', inplace=True)
-#df.replace(0.0, np.nan, inplace=True)
-#print("after",df)
+# df['WW_scan_week']=pd.to_datetime(df['WW_scan_week'],format="%d/%m/%y")
+# #df['coles_scan_week']=df["date"] #.strftime("%Y-%m-%d")
+# df.fillna(0.0,inplace=True)
+# df.drop_duplicates(keep='first', inplace=True)
+# #df.replace(0.0, np.nan, inplace=True)
+# #print("after",df)
 
-df=df.sort_values(by=['WW_scan_week'], ascending=True)
-df=df.set_index('WW_scan_week') 
-df=df.astype(np.float32)  #,inplace=True)
-df['weekno']= np.arange(len(df))
-#print("final",df,df.T)
+# df=df.sort_values(by=['WW_scan_week'], ascending=True)
+# df=df.set_index('WW_scan_week') 
+# df=df.astype(np.float32)  #,inplace=True)
+# df['weekno']= np.arange(len(df))
+# #print("final",df,df.T)
 
-df['BB_on_promo']=(df['BB_on_promo_sales']>0.0)
-df['SD_on_promo']=(df['SD_on_promo_sales']>0.0)
-df['BM_on_promo']=(df['BM_on_promo_sales']>0.0)
+# df['BB_on_promo']=(df['BB_on_promo_sales']>0.0)
+# df['SD_on_promo']=(df['SD_on_promo_sales']>0.0)
+# df['BM_on_promo']=(df['BM_on_promo_sales']>0.0)
 
-df['BB_total_sales']=df['BB_off_promo_sales']+df['BB_on_promo_sales']
-df['SD_total_sales']=df['SD_off_promo_sales']+df['SD_on_promo_sales']
-df['BM_total_sales']=df['BM_off_promo_sales']+df['BM_on_promo_sales']
+# df['BB_total_sales']=df['BB_off_promo_sales']+df['BB_on_promo_sales']
+# df['SD_total_sales']=df['SD_off_promo_sales']+df['SD_on_promo_sales']
+# df['BM_total_sales']=df['BM_off_promo_sales']+df['BM_on_promo_sales']
 
     
 
 
-df.replace(0.0, np.nan, inplace=True)
+# df.replace(0.0, np.nan, inplace=True)
 
-print("df=",df)
-plot_query(df,['BB_total_sales'],'BB total scanned WW jam units per week')
+# print("df=",df)
+# plot_query(df,['BB_total_sales'],'BB total scanned WW jam units per week')
 
 
 
-#sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='SD_on_promo',hue='BM_on_promo')  #,fit_reg=True,robust=True,legend=True) 
-#sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='BM_on_promo',hue='SD_on_promo')  #,fit_reg=True,robust=True,legend=True) 
-sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='SD_on_promo',hue='BB_on_promo')  #,fit_reg=True,robust=True,legend=True) 
-sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='BM_on_promo',hue='BB_on_promo')
+# #sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='SD_on_promo',hue='BM_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+# #sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='BM_on_promo',hue='SD_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+# sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='SD_on_promo',hue='BB_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+# sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='BM_on_promo',hue='BB_on_promo')
 
-sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='BM_on_promo',hue='SD_on_promo')  #,fit_reg=True,robust=True,legend=True) 
-sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='SD_on_promo',hue='BM_on_promo')
+# sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='BM_on_promo',hue='SD_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+# sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='SD_on_promo',hue='BM_on_promo')
 
