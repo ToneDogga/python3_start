@@ -165,8 +165,8 @@ def create_X_and_y_batches(X_set,y_set,batch_length,no_of_batches):
      X=tf.cast(tf.gather(X_set,indices[:,:-1,:],axis=0),tf.int32)
      y=tf.cast(tf.gather(y_set,indices[:,-1:,:],axis=0),tf.int32)
 
-     tf.print("2X[1]=",X[1],X.shape,"\n")
-     tf.print("2y[1]=",y[1],y.shape,"\n")
+   #  tf.print("2X[1]=",X[1],X.shape,"\n")
+   #  tf.print("2y[1]=",y[1],y.shape,"\n")
 
      return X,y
 
@@ -311,7 +311,7 @@ def predict_order(hdf,title,model):
     styles1 = ['b-','r:']
            # styles1 = ['bs-','ro:','y^-']
     linewidths = 1  # [2, 1, 4]
-    #print("df=\n",df,df.shape)
+    print("df=\n",df,df.shape)
     df.iloc[-26:].plot(grid=True,title=title,style=styles1, lw=linewidths)
     plt.pause(0.001)
     
@@ -334,7 +334,7 @@ def predict_order(hdf,title,model):
 
     #print(df)
     plt.close("all")
-    return
+    return df
 
 
 
@@ -689,7 +689,7 @@ df.replace(np.nan, 0.0, inplace=True)
 df=df*1000
 #print(df)
 
-output_dir = log_dir("SCBS2")
+output_dir = log_dir("scandata")
 os.makedirs(output_dir, exist_ok=True)
 
 images_path = os.path.join(output_dir, "images/")
@@ -854,7 +854,7 @@ plt.close("all")
 batch_length=4
 no_of_batches=1000
 no_of_repeats=4
-epochs=5
+epochs=8
 #start_point=101
 # #end_point=df.shape[0]-target_offset  #123
 # hdf.fillna(0,inplace=True)
@@ -893,8 +893,10 @@ epochs=5
 
 
 pfx="coles_BB_"
-print(pfx,products)
+print("Orders to predict:",pfx,products)
+count=0
 for p in products:
+    
     if (p=="_t") | (p=="_*") | (p=="_T"):
         pass
     else:
@@ -918,15 +920,18 @@ for p in products:
 
         dates=mdf.index.tolist()[7:-1]
 
-        print(p,mdf.T,X_set,y_set)
+    #    print(p,mdf.T,X_set,y_set)
         model=train_model(pfx+p,X_set,y_set,batch_length,no_of_batches)
-        predict_order(mdf,pfx+p,model)
+        if count==0:
+            results=predict_order(mdf,pfx+p,model).iloc[:,1]
+        else:    
+            results=pd.concat((results,predict_order(mdf,pfx+p,model).iloc[:,1]))
+        count+=1    
 
 
+print("results=\n",results)
+print("results.T=\n",results.T)
 
-print("joined_df=\n",joined_df)
-print("joined_df.T=\n",joined_df.T)
-print("test=\n",get_xs_name2(df,2,4))
 ###############################
 # batches of X shape (no of batches,batch length, 1)
 # batches of Y shape (no of batches,batch length, 1)
