@@ -649,18 +649,18 @@ report_type_dict=dict({0:"dictionary",
 product_type = namedtuple("product_type", ["brandno","customercat", "productgroup","product","type","name"])
 
 pkl_dict={"coles_BB_jams_invoiced.pkl":(1,12,10,"_T",3,"coles_BB_jams_invoiced"),   # special price cat, productgroup,productcode,product, on_promo, name)
-          "coles_SJ300_invoiced.pkl":(1,12,10,"SJ300",3,"coles_SJ300_invoiced"),
-          "coles_AJ300_invoiced.pkl":(1,12,10,"AJ300",3,"coles_AJ300_invoiced"),
-          "coles_OM300_invoiced.pkl":(1,12,10,"OM300",3,"coles_OM300_invoiced"),
-          "coles_RJ300_invoiced.pkl":(1,12,10,"RJ300",3,"coles_RJ300_invoiced"),
-          "coles_TS300_invoiced.pkl":(1,12,11,"TS300",3,"coles_TS300_invoiced"),
-          "coles_CAR280_invoiced.pkl":(1,12,13,"CAR280",3,"coles_CAR280_invoiced"),
-          "coles_BBR280_invoiced.pkl":(1,12,13,"BBR280",3,"coles_BBR280_invoiced"),
-          "coles_TC260_invoiced.pkl":(1,12,13,"TC260",3,"coles_TC260_invoiced"),
-          "coles_HTC260_invoiced.pkl":(1,12,13,"HTC260",3,"coles_HTC260_invoiced"),
-          "coles_PCD300_invoiced.pkl":(1,12,14,"PCD300",3,"coles_PCD300_invoiced"),
-          "coles_BLU300_invoiced.pkl":(1,12,14,"BLU300",3,"coles_BLU300_invoiced"),
-          "coles_RAN300_invoiced.pkl":(1,12,14,"RAN300",3,"coles_RAN300_invoiced")}
+          "coles_BB_SJ300_invoiced.pkl":(1,12,10,"SJ300",3,"coles_BB_SJ300_invoiced"),
+          "coles_BB_AJ300_invoiced.pkl":(1,12,10,"AJ300",3,"coles_BB_AJ300_invoiced"),
+          "coles_BB_OM300_invoiced.pkl":(1,12,10,"OM300",3,"coles_BB_OM300_invoiced"),
+          "coles_BB_RJ300_invoiced.pkl":(1,12,10,"RJ300",3,"coles_BB_RJ300_invoiced"),
+          "coles_BB_TS300_invoiced.pkl":(1,12,11,"TS300",3,"coles_BB_TS300_invoiced"),
+          "coles_BB_CAR280_invoiced.pkl":(1,12,13,"CAR280",3,"coles_BB_CAR280_invoiced"),
+          "coles_BB_BBR280_invoiced.pkl":(1,12,13,"BBR280",3,"coles_BB_BBR280_invoiced"),
+          "coles_BB_TC260_invoiced.pkl":(1,12,13,"TC260",3,"coles_BB_TC260_invoiced"),
+          "coles_BB_HTC260_invoiced.pkl":(1,12,13,"HTC260",3,"coles_BB_HTC260_invoiced"),
+          "coles_BB_PCD300_invoiced.pkl":(1,12,14,"PCD300",3,"coles_BB_PCD300_invoiced"),
+          "coles_BB_BLU300_invoiced.pkl":(1,12,14,"BLU300",3,"coles_BB_BLU300_invoiced"),
+          "coles_BB_RAN300_invoiced.pkl":(1,12,14,"RAN300",3,"coles_BB_RAN300_invoiced")}
           
 
 
