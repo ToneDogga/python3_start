@@ -437,7 +437,8 @@ def plot_query(query_df_passed,plot_col,query_name):
 
 def predict_order(hdf,title,model):
 
-    
+    latest_date=hdf.index.tail(1)    
+    print("latest date",latest_date)
     y_set=hdf.iloc[:,2].to_numpy().astype(np.int32)[7:-1]
     scanned_sales=hdf.iloc[:,0].to_numpy().astype(np.int32)[7:-1]     #np.array([13400, 12132, 12846, 9522, 11858 ,13846 ,13492, 12310, 13584 ,13324, 15656 ,15878 ,13566, 10104 , 7704  ,7704])
     scanned_sales=scanned_sales.reshape(-1,1)[np.newaxis,...]
@@ -473,7 +474,7 @@ def predict_order(hdf,title,model):
            # styles1 = ['bs-','ro:','y^-']
     linewidths = 1  # [2, 1, 4]
    # print("df=\n",df,df.shape)
-    df.iloc[-26:].plot(grid=True,title=title,style=styles1, lw=linewidths)
+    df.iloc[-26:].plot(grid=True,title=title+"("+str(latest_date)+")",style=styles1, lw=linewidths)
     #plt.pause(0.001)
     
     #df.iloc[-6:].plot(grid=True,title=title,style=styles1, lw=linewidths)
@@ -541,8 +542,8 @@ def train_model(name,X_set,y_set,batch_length,no_of_batches):
     print("\nsave model :"+name+"_predict_model.h5\n")
     model.save(name+"_sales_predict_model.h5", include_optimizer=True)
            
-    plot_learning_curves(history.history["loss"], history.history["val_loss"],epochs,"GRU and dropout:"+name)
-    save_fig(name+"GRU and dropout learning curve")  #,images_path)
+    plot_learning_curves(history.history["loss"], history.history["val_loss"],epochs,"GRU :"+name)
+    save_fig(name+"GRU learning curve")  #,images_path)
       
   #  plt.show()
     plt.close("all")
@@ -808,7 +809,9 @@ def plot_query(query_df_passed,plot_col,query_name):
 
 
 def predict_order(hdf,title,model):
+    hdf['lastdate'] = pd.to_datetime(hdf.index,format="%Y-%m-%d",exact=False)
 
+    latest_date = hdf['lastdate'].max()
     
     y_set=hdf.iloc[:,2].to_numpy().astype(np.int32)[7:-1]
     scanned_sales=hdf.iloc[:,0].to_numpy().astype(np.int32)[7:-1]     #np.array([13400, 12132, 12846, 9522, 11858 ,13846 ,13492, 12310, 13584 ,13324, 15656 ,15878 ,13566, 10104 , 7704  ,7704])
@@ -845,7 +848,7 @@ def predict_order(hdf,title,model):
            # styles1 = ['bs-','ro:','y^-']
     linewidths = 1  # [2, 1, 4]
    # print("df=\n",df,df.shape)
-    df.iloc[-26:].plot(grid=True,title=title,style=styles1, lw=linewidths)
+    df.iloc[-26:].plot(grid=True,title=title+" w/c:("+str(latest_date)+")",style=styles1, lw=linewidths)
     #plt.pause(0.001)
     
     #df.iloc[-6:].plot(grid=True,title=title,style=styles1, lw=linewidths)
@@ -913,8 +916,8 @@ def train_model(name,X_set,y_set,batch_length,no_of_batches):
     print("\nsave model :"+name+"_predict_model.h5\n")
     model.save(name+"_sales_predict_model.h5", include_optimizer=True)
            
-    plot_learning_curves(history.history["loss"], history.history["val_loss"],epochs,"GRU and dropout:"+name)
-    save_fig(name+"GRU and dropout learning curve")  #,images_path)
+    plot_learning_curves(history.history["loss"], history.history["val_loss"],epochs,"GRU :"+name)
+    save_fig(name+"GRU learning curve")  #,images_path)
       
   #  plt.show()
     plt.close("all")
@@ -2279,14 +2282,18 @@ tdf=tdf.astype(np.float64)
 
 #sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='SD_on_promo',hue='BM_on_promo')  #,fit_reg=True,robust=True,legend=True) 
 #sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='BM_on_promo',hue='SD_on_promo')  #,fit_reg=True,robust=True,legend=True) 
-sns.lmplot(x='weekno',y='coles_BB_jams_total_scanned',data=tdf,col='coles_SD_jams_on_promo',hue='coles_BB_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+sns.lmplot(x='weekno',y='coles_BB_jams_total_scanned',data=tdf,col='coles_BB_jams_on_promo',hue='coles_SD_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
 save_fig("coles1")   #),images_path)
-sns.lmplot(x='weekno',y='coles_BB_jams_total_scanned',data=tdf,col='coles_BM_jams_on_promo',hue='coles_BB_jams_on_promo')
+sns.lmplot(x='weekno',y='coles_BB_jams_total_scanned',data=tdf,col='coles_BB_jams_on_promo',hue='coles_BM_jams_on_promo')
 save_fig("coles2")  #,images_path)
-sns.lmplot(x='weekno',y='coles_BB_jams_total_scanned',data=tdf,col='coles_BM_jams_on_promo',hue='coles_SD_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
-save_fig("coles3")   #,images_path)
-sns.lmplot(x='weekno',y='coles_BB_jams_total_scanned',data=tdf,col='coles_SD_jams_on_promo',hue='coles_BM_jams_on_promo')
+sns.lmplot(x='weekno',y='coles_BB_jams_total_scanned',data=tdf,col='coles_SD_jams_on_promo',hue='coles_BB_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+save_fig("coles3")   #),images_path)
+sns.lmplot(x='weekno',y='coles_BB_jams_total_scanned',data=tdf,col='coles_BM_jams_on_promo',hue='coles_BB_jams_on_promo')
 save_fig("coles4")  #,images_path)
+sns.lmplot(x='weekno',y='coles_BB_jams_total_scanned',data=tdf,col='coles_BM_jams_on_promo',hue='coles_SD_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+save_fig("coles5")   #,images_path)
+sns.lmplot(x='weekno',y='coles_BB_jams_total_scanned',data=tdf,col='coles_SD_jams_on_promo',hue='coles_BM_jams_on_promo')
+save_fig("coles6")  #,images_path)
 ################################################################333
 # convert weekly scan data to daily sales
 
@@ -2371,6 +2378,11 @@ products=list(set(list(joined_df.columns.get_level_values(3))))
 
 #joined_df=joined_df.T
 
+joined_df['lastdate'] = pd.to_datetime(joined_df.index,format="%Y-%m-%d",exact=False)
+
+latest_date = joined_df['lastdate'].max()
+
+  
 for p in products:
     if (p=="_t") | (p=="_*") | (p=="_T"):
         pass
@@ -2395,11 +2407,12 @@ for p in products:
         
         rdf=rdf.droplevel(level=0,axis=1)
         
- #       print("rdf=\n",rdf,rdf.columns,rdf.T)
+      #  print("rdf=\n",rdf,rdf.columns,rdf.T)
 #joined_df['BB_scanned_sales']=joined_df['BB_scanned_sales'].rolling(mat,axis=0).mean()
    # plt.grid(True)
 #    rdf[['all_BB_coles_jams_invoiced','coles_BB_jams_total_scanned']].plot(grid=True,title="Coles Jam units Moving total "+str(mat)+" weeks")   #),'BB total scanned vs purchased Coles jam units per week')
- 
+        
+      #  print("p lastest date",p,latest_date)
 
         styles1 = ['b-','g:','r-']
        # styles1 = ['bs-','ro:','y^-']
@@ -2408,7 +2421,7 @@ for p in products:
         #styles2 = ['rs-','go-','b^-']
        # fig, ax = plt.subplots()
 
-        ax2=rdf.plot(grid=True,title="Coles units moving total "+str(mat)+" weeks",style=styles1, lw=linewidths)   #),'BB total scanned vs purchased Coles jam units per week')
+        ax2=rdf.plot(grid=True,title="Coles units moving total "+str(p)+":"+str(mat)+" weeks w/c:("+str(latest_date)+")",style=styles1, lw=linewidths)   #),'BB total scanned vs purchased Coles jam units per week')
         ax2.legend(title="")
         save_fig(p+"_moving_total")   #,images_path)
 #plt.grid(True)
@@ -2670,10 +2683,19 @@ ndf=ndf.astype(np.float64)
 #save_fig("ww1",images_path)
 #sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_BM_jams_on_promo',hue='WW_BB_jams_on_promo')
 #save_fig("ww2",images_path)
-sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_BM_jams_on_promo',hue='WW_SD_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_BB_jams_on_promo',hue='WW_SD_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+save_fig("ww1")  #,images_path)
+sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_BB_jams_on_promo',hue='WW_BM_jams_on_promo')
+save_fig("ww2")   #,images_path)
+sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_BM_jams_on_promo',hue='WW_BB_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
 save_fig("ww3")  #,images_path)
-sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_SD_jams_on_promo',hue='WW_BM_jams_on_promo')
+sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_SD_jams_on_promo',hue='WW_BB_jams_on_promo')
 save_fig("ww4")   #,images_path)
+
+sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_BM_jams_on_promo',hue='WW_SD_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+save_fig("ww5")  #,images_path)
+sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_SD_jams_on_promo',hue='WW_BM_jams_on_promo')
+save_fig("ww6")   #,images_path)
 
 #ndf=ndf.T
 #tdf['coles_scan_week']=tdf.index
