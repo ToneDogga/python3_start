@@ -343,7 +343,7 @@ def train_model(name,X_set,y_set,batch_length,no_of_batches):
                          validation_data=(valid_set))  #, callbacks=callbacks)
           
     print("\nsave model :"+name+"_predict_model.h5\n")
-    model.save(name+"_sales_predict_model.h5", include_optimizer=True)
+    model.save(output_dir+name+"_sales_predict_model.h5", include_optimizer=True)
            
     plot_learning_curves(history.history["loss"], history.history["val_loss"],epochs,"GRU :"+name)
     save_fig(name+"GRU learning curve")  #,images_path)
@@ -357,24 +357,24 @@ def train_model(name,X_set,y_set,batch_length,no_of_batches):
 
 
 
-def get_xs_name(df,filter_tuple):
-    #  returns a slice of the multiindex df with a tuple (column value,index_level) 
-    # col_value itselfcan be a tuple, col_level can be a list
-    # levels are (brand,specialpricecat, productgroup, product,name) 
-    #
-  #  print("get_xs_name df index",df.columns,df.columns.nlevels)
-    if df.columns.nlevels>=2:
+# def get_xs_name(df,filter_tuple):
+#     #  returns a slice of the multiindex df with a tuple (column value,index_level) 
+#     # col_value itselfcan be a tuple, col_level can be a list
+#     # levels are (brand,specialpricecat, productgroup, product,name) 
+#     #
+#   #  print("get_xs_name df index",df.columns,df.columns.nlevels)
+#     if df.columns.nlevels>=2:
 
-        df=df.xs(filter_tuple[0],level=filter_tuple[1],drop_level=False,axis=1)
-    #df=df.T
-   #     print("2get_xs_name df index",df.columns,df.columns.nlevels)
-        if df.columns.nlevels>=2:
-            for _ in range(df.columns.nlevels-1):
-                df=df.droplevel(level=0,axis=1)
+#         df=df.xs(filter_tuple[0],level=filter_tuple[1],drop_level=False,axis=1)
+#     #df=df.T
+#    #     print("2get_xs_name df index",df.columns,df.columns.nlevels)
+#         if df.columns.nlevels>=2:
+#             for _ in range(df.columns.nlevels-1):
+#                 df=df.droplevel(level=0,axis=1)
     
-    else:
-        print("not a multi index df columns=",df,df.columns)    
-    return df
+#     else:
+#         print("not a multi index df columns=",df,df.columns)    
+#     return df
 
 
 
@@ -406,177 +406,6 @@ def add_dates_back(df,all_dates):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# def log_dir(prefix=""):
-#     now = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-#     root_logdir = "./sales_reports"
-#     if prefix:
-#         prefix += "-"
-#     name = prefix + "run-" + now
-#     return "{}/{}/".format(root_logdir, name)
-
-
-
-# output_dir = log_dir()
-# os.makedirs(output_dir, exist_ok=True)
- 
-
-#     (Checking sales trends by customers and products.")
-
-# find all the good performing and poor performing outliers in retail sales
-#  limit product groups
-
-
-
-#############################
-  
-    
-# tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
-
-
-
-#  #   print("\n\nSales Crystal Ball Stack2 : TF2 Salestrans predict - By Anthony Paech 25/5/20")
-#  #   print("=============================================================================\n")       
-
-# print("Python version:",sys.version)
-# print("\ntensorflow:",tf.__version__)
-# #    print("eager exec:",tf.executing_eagerly())
-
-# print("keras:",keras.__version__)
-# print("numpy:",np.__version__)
-# print("pandas:",pd.__version__)
-# print("matplotlib:",mpl.__version__)
-
-# print("sklearn:",sklearn.__version__)
-   
-# print("\nnumber of cpus : ", multiprocessing.cpu_count())
-
-# visible_devices = tf.config.get_visible_devices('GPU') 
-
-# print("tf.config.get_visible_devices('GPU'):",visible_devices)
-
- 
-# print("\n============================================================================\n")       
-
-
-   
-# np.random.seed(42)
-# tf.random.set_seed(42)
-        
-
-
-
-#         self.start_point=0
-        
-  
-
-# def save_fig(fig_id, images_path, tight_layout=True, fig_extension="png", resolution=300):
-#     path = os.path.join(images_path, fig_id + "." + fig_extension)
-#     print("Saving figure", fig_id)
-#     if tight_layout:
-#         plt.tight_layout()
-#     plt.savefig(path, format=fig_extension, dpi=resolution)
-
-  
-   
-
-   
-# class MCDropout(keras.layers.Dropout):
-#      def call(inputs):
-#         return super().call(inputs,training=True)
-
-
-# class MCAlphaDropout(keras.layers.AlphaDropout):
-#     def call(inputs):
-#         return super().call(inputs,training=True)
-
-
-# def last_time_step_mse(Y_true, Y_pred):
-#     return keras.metrics.mean_squared_error(Y_true[:, -1], Y_pred[:, -1])
-
-
-# def plot_learning_curves(loss, val_loss,epochs,title):
-#     if ((np.min(loss)<=0) or (np.max(loss)==np.inf)):
-#         return
-#     if ((np.min(val_loss)<=0) or (np.max(val_loss)==np.inf)):
-#         return
-#     if np.min(loss)>10:
-#         lift=10
-#     else:
-#         lift=1
-#     ax = plt.gca()
-#     ax.set_yscale('log')
-  
-#     plt.plot(np.arange(len(loss)) + 0.5, loss, "b.-", label="Training loss")
-#     plt.plot(np.arange(len(val_loss)) + 1, val_loss, "r.-", label="Validation loss")
-#     plt.gca().xaxis.set_major_locator(mpl.ticker.MaxNLocator(integer=True))
-# #    plt.axis([1, epochs+1, 0, np.max(loss[1:])])
-#   #  plt.axis([1, epochs+1, np.min(loss), np.max(loss)])
-#     plt.axis([1, epochs+1, np.min(loss)-lift, np.max(loss)])
-
-#     plt.legend(fontsize=14)
-#     plt.title(title)
-#     plt.xlabel("Epochs")
-#     plt.ylabel("Loss")
-#     plt.grid(True)
-
-
- 
-
-# @tf.function
-# def sequential_indices(start_points,length_of_indices): 
-#      grid_indices=tf.meshgrid(tf.range(0,length_of_indices),start_points)   #int((end_point-start_point)/batch_length)+1)) #   print("gt=",gridtest)
-#      return tf.add(grid_indices[0],grid_indices[1])   #[:,:,np.newaxis
-    
- 
-  
-#  # print("new Y shape",Y.shape)
-#  # for step_ahead in range(1, predict_ahead_length + 1):
-#  #     Y[...,step_ahead - 1] = series[..., step_ahead:step_ahead+batch_length-predict_ahead_length, 0]  #+1
-
-# @tf.function
-# def create_X_batches(series,batch_length,no_of_batches,start_point,end_point):
-#      start_points=tf.random.uniform(shape=[no_of_batches],minval=start_point,
-#                   maxval=end_point-batch_length,dtype=tf.int32)
-#      return sequential_indices(start_points,batch_length)[...,tf.newaxis]
- 
- 
-
-# @tf.function
-# def create_X_and_y_batches(X_set,y_set,batch_length,no_of_batches):
-#      indices=create_X_batches(X_set,batch_length,no_of_batches,0,X_set.shape[0])
-#   #   print("X indices shape",X_indices.shape)
-#   #   print("full indices shape",full_indices.shape)
-                
-#      X=tf.cast(tf.gather(X_set,indices[:,:-1,:],axis=0),tf.int32)
-#      y=tf.cast(tf.gather(y_set,indices[:,-1:,:],axis=0),tf.int32)
-
-#      tf.print("2X[1]=",X[1],X.shape,"\n")
-#      tf.print("2y[1]=",y[1],y.shape,"\n")
-
-#      return X,y
-
-
-     
 
 
 
