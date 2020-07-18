@@ -28,8 +28,8 @@
 
 
 
-print("\n\nSales Crystal Ball Stack2 : TF2 Salestrans predict - By Anthony Paech 25/5/20")
-print("=============================================================================\n")       
+print("\n\nActual vs Expected- Sales crystal ball stack : TF2 Salestrans predict - By Anthony Paech 25/5/20")
+print("================================================================================================\n")       
  
 
 
@@ -159,7 +159,7 @@ def main():
     print("tf.config.get_visible_devices('GPU'):",visible_devices)
     
  
-    print("\n============================================================================\n")       
+    print("\n=======================================================================================\n")       
 
 
        
@@ -224,9 +224,10 @@ def main():
     #          del plot_dict[key]
               
 
+    latest_date=sales_df['date'].max()
 
 
-    plot_dict=st.query_sales(sales_df,st.queryfilename,plot_dict)  
+    plot_dict=st.query_sales(sales_df,st.queryfilename,plot_dict,latest_date)  
     
     
     ###########################33
@@ -388,7 +389,7 @@ def main():
     print("Plotting plot_dict...")
   #  print("new_plot df=\n",new_plot_df.columns,"->",new_column_names,new_plot_df.shape)
 
-    st.plot_new_plot_df(new_plot_df)
+    st.plot_new_plot_df(new_plot_df,latest_date)
     
     plt.show()
     plt.close("all")

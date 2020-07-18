@@ -72,7 +72,7 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off trac
 
 class salestrans:
     def __init__(self):   
-        self.epochs=2
+        self.epochs=8
     #    self.steps_per_epoch=100 
         self.no_of_batches=1000
         self.no_of_repeats=2
@@ -119,7 +119,17 @@ class salestrans:
         self.__version__="0.6.0"
         return
     
-
+   
+    
+    def log_dir(self,prefix=""):
+        now = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        root_logdir = "./SCBS2_outputs"
+        if prefix:
+            prefix += "-"
+        name = prefix + "run-" + now
+        return "{}/{}/".format(root_logdir, name)
+    
+  
       
     
     def save_fig(self,fig_id, images_path, tight_layout=True, fig_extension="png", resolution=300):
@@ -186,9 +196,10 @@ class salestrans:
             return pickle.load(f)
   
    
-    def query_sales(self,sales_df,queryfilename,plot_dict):  
+    def query_sales(self,sales_df,queryfilename,plot_dict,latest_date):  
         print("query sales:",queryfilename)
-        
+      #  latest_date=sales_df['date'].max()
+        print("lastyest date",latest_date)
         #        sales_df=[plot_dict[k] for k in plot_dict.keys()][0] 
      #   print("loading query list '",queryfilename,"'")
         query_dict = pd.read_excel(queryfilename, index_col=0, header=0,  skiprows=0).T.to_dict()  #  doublequote=False
@@ -212,7 +223,7 @@ class salestrans:
         plot_number=100 
         
         for k in table_dict.keys():
-                self.plot_query(table_dict[k][1],table_dict[k][0])  # 1].copy(),table_dict[k][0].copy(deep=True))
+                self.plot_query(table_dict[k][1],table_dict[k][0],latest_date)  # 1].copy(),table_dict[k][0].copy(deep=True))
   
                 print("Saving query dataframe:",table_dict[k][0])
                 pd.to_pickle(table_dict[k][1],self.output_dir+str(table_dict[k][0])+".pkl")
@@ -309,7 +320,7 @@ class salestrans:
   
   
   
-    def plot_query(self, query_df_from_dict,query_name):
+    def plot_query(self, query_df_from_dict,query_name,latest_date):
         query_df=query_df_from_dict.copy(deep=True)
     #    query_details=str(query_df.columns[0])
     #    print("qdf\n",query_df)
@@ -321,15 +332,17 @@ class salestrans:
      #   query_df=self.mat_add_1d(query_df.to_numpy().swapaxes(0,1),self.mats[0])
         query_df['qdate']=query_df.index.copy(deep=True)  #.to_timestamp(freq="D",how='s') #
 #        query_df['qdate']=pd.to_datetime(pd.Series(query_list).to_timestamp(freq="D",how='s'), format='%Y/%m/%d')
-       # print("query list",query_list)
+      #  print("query df",query_df,query_df.columns)
         query_df['qdate'].apply(lambda x : x.to_timestamp())
     #    query_df['qdate']=query_list.to_timestamp(freq="D",how='s')
         query_list=query_df['qdate'].tolist()
-        latest_date=query_list.max()
+
       #  print("qudf=\n",query_df,query_df.columns[1][0])
     #    print("f",query_list)
         #   query_df['qdate'] = query_df.qdate.tolist()
      #   print("query_df=",query_df)
+     #   latest_date=query_df['qdate'].max()
+
         query_df=query_df.rolling(self.mats[0]).mean()
         fill_val=query_df.iloc[self.mats[0]+1,0]  #.to_numpy()
     #    print("fill val",fill_val)
@@ -538,33 +551,7 @@ class salestrans:
     
  
     
- 
-    class MyCustomCallback(tf.keras.callbacks.Callback):
-    
-      def on_train_begin(self, logs=None):
-        print('Training:  begins at {}'.format(dt.datetime.now().time()))
-    
-      def on_train_end(self, logs=None):
-        print('Training:  ends at {}'.format(dt.datetime.now().time()))
-    
-      def on_predict_begin(self, logs=None):
-        print('Predicting: begins at {}'.format(dt.datetime.now().time()))
-    
-      def on_predict_end(self, logs=None):
-        print('Predicting: ends at {}'.format(dt.datetime.now().time()))
-    
-    
-    
-    class MCDropout(keras.layers.Dropout):
-         def call(self,inputs):
-            return super().call(inputs,training=True)
-    
-    
-    class MCAlphaDropout(keras.layers.AlphaDropout):
-        def call(self,inputs):
-            return super().call(inputs,training=True)
-    
-    
+     
     def last_time_step_mse(self,Y_true, Y_pred):
         return keras.metrics.mean_squared_error(Y_true[:, -1], Y_pred[:, -1])
     
@@ -626,22 +613,36 @@ class salestrans:
             
         if quotescount%2==1:  # odd
             test2=test2+'\"'
+            
+            
+        return test2
     
+    
+    def get_xs_name(df,filter_tuple):
+        #  returns a slice of the multiindex df with a tuple (column value,index_level) 
+        # col_value itselfcan be a tuple, col_level can be a list
+        # levels are (brand,specialpricecat, productgroup, product,name) 
+        #
+      #  print("get_xs_name df index",df.columns,df.columns.nlevels)
+        if df.columns.nlevels>=2:
+    
+            df=df.xs(filter_tuple[0],level=filter_tuple[1],drop_level=False,axis=1)
+        #df=df.T
+       #     print("2get_xs_name df index",df.columns,df.columns.nlevels)
+            if df.columns.nlevels>=2:
+                for _ in range(df.columns.nlevels-1):
+                    df=df.droplevel(level=0,axis=1)
         
-        return(test2)       
+        else:
+            print("not a multi index df columns=",df,df.columns)    
+        return df
+    
+    
+            
+         
 
 
-    
-    
-    def log_dir(self,prefix=""):
-        now = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-        root_logdir = "./SCBS2_outputs"
-        if prefix:
-            prefix += "-"
-        name = prefix + "run-" + now
-        return "{}/{}/".format(root_logdir, name)
-    
-  
+ 
     
   
     # @tf.function
@@ -886,7 +887,7 @@ class salestrans:
 
     
  
-    def plot_new_plot_df(self,new_plot_df):
+    def plot_new_plot_df(self,new_plot_df,latest_date):
     #    new_plot_df=self.build_final_plot_df(plot_dict)
 
     #    new_plot_df=pd.DataFrame(plot_dict,index=self.dates)
@@ -899,7 +900,8 @@ class salestrans:
   #      print("level 3 multiindex ",new_plot_df.columns.get_level_values(3))
         start_date = pd.to_datetime("02/02/18") + pd.DateOffset(days=self.start_point)
         end_date = pd.to_datetime("02/02/18") + pd.DateOffset(days=self.end_point)
-        latest_date=new_plot_df['date'].max()
+       # print("npdf=\n",new_plot_df,new_plot_df.columns)
+       # latest_date=new_plot_df['date'].max()
       #  end_date = pd.DateOffset("02/02/18", periods=self.end_point)   # 2000 days
         print("\nplot new df - start date",start_date,"end date",end_date)
  
@@ -948,7 +950,7 @@ class salestrans:
                 ax.xaxis.label.set_visible(False)
 
 
-                plt.title("Unit sales:"+str(plot_number_df.columns[0]+" w/c:("+str(latest_date)+")"),fontsize=10)   #str(new_plot_df.columns.get_level_values(0)))
+                plt.title("Unit sales:"+str(plot_number_df.columns[0])+" w/c:("+str(latest_date)+")",fontsize=10)   #str(new_plot_df.columns.get_level_values(0)))
                 plt.legend(fontsize=8)
                 plt.ylabel("units/day sales")
                 plt.grid(True)
@@ -960,5 +962,33 @@ class salestrans:
     #    plt.show()
         plt.close("all")
 
-       
+      
+
+    
+    class MyCustomCallback(tf.keras.callbacks.Callback):
+    
+      def on_train_begin(self, logs=None):
+        print('Training:  begins at {}'.format(dt.datetime.now().time()))
+    
+      def on_train_end(self, logs=None):
+        print('Training:  ends at {}'.format(dt.datetime.now().time()))
+    
+      def on_predict_begin(self, logs=None):
+        print('Predicting: begins at {}'.format(dt.datetime.now().time()))
+    
+      def on_predict_end(self, logs=None):
+        print('Predicting: ends at {}'.format(dt.datetime.now().time()))
+    
+    
+    
+    class MCDropout(keras.layers.Dropout):
+         def call(self,inputs):
+            return super().call(inputs,training=True)
+    
+    
+    class MCAlphaDropout(keras.layers.AlphaDropout):
+        def call(self,inputs):
+            return super().call(inputs,training=True)
+    
+
         
