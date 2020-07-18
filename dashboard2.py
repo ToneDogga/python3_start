@@ -1634,6 +1634,8 @@ df.index = pd.to_datetime(df.index, format = '%d/%m/%Y',infer_datetime_format=Tr
 #print(df.columns)
 df.replace(np.nan, 0.0,inplace=True)
 
+#test=get_xs_name(df,3,0)
+#print("test=\n",test)
 
 
 df[0,12,10,"_T",0,'coles_jams_total_scanned']=df[0,12,10,"_*",0,'coles_total_jam_curd_marm_off_promo_scanned']+df[0,12,10,"_*",1,'coles_total_jam_curd_marm_on_promo_scanned']
@@ -1679,7 +1681,8 @@ for col_count in range(0,len(df.columns),2):
     df[cc]=df.T.xs(p,level=3).sum()
 
 
-#tdf=get_xs_name(df,("_t",3))
+
+tdf=get_xs_name(df,("_t",3))
 plot_query2(tdf,['coles_BB_jams_total_scanned','coles_SD_jams_total_scanned','coles_BM_jams_total_scanned'],'BB total scanned Coles jam units per week')
 #tdf['coles_scan_week']=tdf.index
 tdf.reset_index('scan_week',drop=True,inplace=True)
@@ -1766,7 +1769,14 @@ joined_df=joined_df.T
 joined_df.index = pd.MultiIndex.from_tuples(joined_df.index,names=["brand","specialpricecat","productgroup","product","on_promo","names"])
 joined_df=joined_df.T
 
+
 products=list(set(list(joined_df.columns.get_level_values(3))))
+#print("products=",products)
+
+#graph_list=[]
+#print("jdf=\n",joined_df)
+
+#joined_df=joined_df.T
 
 joined_df['lastdate'] = pd.to_datetime(joined_df.index,format="%Y-%m-%d",exact=False)
 
@@ -1791,6 +1801,8 @@ for p in products:
        # styles1 = ['bs-','ro:','y^-']
         linewidths = 1  # [2, 1, 4]
 
+        #styles2 = ['rs-','go-','b^-']
+       # fig, ax = plt.subplots()
 
         ax2=rdf.plot(grid=True,title="Coles units moving total "+str(p)+":"+str(mat)+" weeks w/c:("+str(latest_date)+")",style=styles1, lw=linewidths)   #),'BB total scanned vs purchased Coles jam units per week')
         ax2.legend(title="")
@@ -1937,6 +1949,14 @@ df=df.set_index(list(df.columns[[0]]))   #.dt.strftime('%d/%m/%Y')
 df.index.name = 'scan_week'
 df.index = pd.to_datetime(df.index, format = "%Y-%m-%d",infer_datetime_format=True)
 
+#df.replace(np.nan, 0.0, inplace=True)
+#df=df.astype(np.float32)  #,inplace=True)
+
+#print("after6=\n",df)
+#print(df.columns)
+
+#test=get_xs_name(df,3,0)
+#print("test=\n",test)
 
 #df[0,10,10,"_T",0,'WW_jams_total_scanned']=df[0,10,10,"_*",0,'WW_total_jam_curd_marm_off_promo_scanned']+df[0,10,10,"_*",1,'WW_total_jam_curd_marm_on_promo_scanned']
 df[1,10,10,"_t",0,'WW_BB_jams_total_scanned']=df[1,10,10,"_*",0,'WW_BB_jams_off_promo_scanned']+df[1,10,10,"_*",1,'WW_BB_jams_on_promo_scanned']
@@ -1969,6 +1989,11 @@ ndf=ndf.droplevel(level=0,axis=1)
 ndf=ndf.droplevel(level=0,axis=1)
 ndf=ndf.droplevel(level=0,axis=1)
 
+#print("df=\n",df)
+#print("df.t=\n",df.T)
+
+#print("ndf=\n",ndf)
+#plot_query2(ndf,['WW_BB_jams_total_scanned','WW_SD_jams_total_scanned','WW_BM_jams_total_scanned'],'BB total scanned WW jam units per week')
 
 
 ndf.replace(np.nan, 0.0, inplace=True)
@@ -2000,7 +2025,7 @@ save_fig("ww5")  #,images_path)
 sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_SD_jams_on_promo',hue='WW_BM_jams_on_promo')
 save_fig("ww6")   #,images_path)
 
-#plt.show()
+
 plt.close("all")
 print("\nFinished....\n")
   
@@ -2009,3 +2034,9 @@ print("\nFinished....\n")
 #
 #if __name__ == '__main__':
 #    main()
+
+ 
+
+
+
+

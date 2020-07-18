@@ -325,6 +325,7 @@ class salestrans:
         query_df['qdate'].apply(lambda x : x.to_timestamp())
     #    query_df['qdate']=query_list.to_timestamp(freq="D",how='s')
         query_list=query_df['qdate'].tolist()
+        latest_date=query_list.max()
       #  print("qudf=\n",query_df,query_df.columns[1][0])
     #    print("f",query_list)
         #   query_df['qdate'] = query_df.qdate.tolist()
@@ -352,7 +353,7 @@ class salestrans:
      #   ax.axvline(pd.to_datetime(start_date), color='k', linestyle='--')
      #   ax.axvline(pd.to_datetime(end_date), color='k', linestyle='--')
 
-            plt.title("Unit sales:"+str(q),fontsize=10)   #str(new_plot_df.columns.get_level_values(0)))
+            plt.title("Unit sales:"+str(q)+" w/c:("+str(latest_date)+")",fontsize=10)   #str(new_plot_df.columns.get_level_values(0)))
      #   plt.legend(fontsize=8)
             plt.ylabel("units/day sales")
             plt.grid(True)
@@ -898,7 +899,7 @@ class salestrans:
   #      print("level 3 multiindex ",new_plot_df.columns.get_level_values(3))
         start_date = pd.to_datetime("02/02/18") + pd.DateOffset(days=self.start_point)
         end_date = pd.to_datetime("02/02/18") + pd.DateOffset(days=self.end_point)
-        
+        latest_date=new_plot_df['date'].max()
       #  end_date = pd.DateOffset("02/02/18", periods=self.end_point)   # 2000 days
         print("\nplot new df - start date",start_date,"end date",end_date)
  
@@ -947,7 +948,7 @@ class salestrans:
                 ax.xaxis.label.set_visible(False)
 
 
-                plt.title("Unit sales:"+str(plot_number_df.columns[0]),fontsize=10)   #str(new_plot_df.columns.get_level_values(0)))
+                plt.title("Unit sales:"+str(plot_number_df.columns[0]+" w/c:("+str(latest_date)+")"),fontsize=10)   #str(new_plot_df.columns.get_level_values(0)))
                 plt.legend(fontsize=8)
                 plt.ylabel("units/day sales")
                 plt.grid(True)
