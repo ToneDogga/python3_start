@@ -482,7 +482,7 @@ def load_sales(filenames):  # filenames is a list of xlsx files to load and sort
         print("appending",filename,":size=",new_df.shape)
         df=df.append(new_df)
         print("appended df size=",df.shape)
-    +" w/c:("+str(latest_date)+")"
+   # +" w/c:("+str(latest_date)+")"
     
     df.fillna(0,inplace=True)
     
@@ -493,8 +493,8 @@ def load_sales(filenames):  # filenames is a list of xlsx files to load and sort
     print("sort by date",df.shape[0],"records.\n")
     df.sort_values(by=['date'], inplace=True, ascending=False)
       
- #   print(df.head(5))
- #   print(df.tail(5))
+    print(df.head(3))
+    print(df.tail(3))
    
  
     df["period"]=df.date.dt.to_period('D')
@@ -946,7 +946,7 @@ np.random.seed(42)
 tf.random.set_seed(42)
 
 
-print("\n\nLoad scan data and package...\n")
+print("\n\nLoad scan data spreadsheets...\n")
 scan_data_files=["jam_scan_data_2020.xlsx","cond_scan_data_2020.xlsx","sauce_scan_data_2020.xlsx"]
 total_columns_count=1619+797
 scan_dict_savename="scan_dict.pkl"
