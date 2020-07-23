@@ -1494,8 +1494,8 @@ if answer=="y":
 
     
 sales_df.sort_values(by=['date'],ascending=True,inplace=True)
-first_date=sales_df['date'].iloc[-1]
-last_date=sales_df['date'].iloc[0]
+last_date=sales_df['date'].iloc[-1]
+first_date=sales_df['date'].iloc[0]
 
 print("\nAttache sales trans analysis up to date.  New save is:",sales_df_savename)
 print("\nData available:",sales_df.shape[0],"records.\nfirst date:",first_date,"\nlast date:",last_date,"\n")
