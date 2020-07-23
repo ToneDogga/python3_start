@@ -1023,24 +1023,25 @@ category_dict={0:"unknown",
                4:"dressings"}
 
 
-plot_type_dict={0:"Price vs units report",
-                   1:"Dollars on promo report",
-                   2:"Units vs price report",
-                   3:"Units on promo report",
-                   4:"Distribution report"}
+plot_type_dict={0:"Units report",
+                   1:"Dollars report",
+                   2:"Units vs dist report",
+                   3:"Dollars vs price report"}
+              #     4:"Distribution report",
+              #     5:"Price report"}
 
 
 #Used to convert the meaure column names to a measure type to match the dict above
 # the first digit is the plot report to group them in, the second is whether to stack the fields when plotting
-measure_conversion_dict={0:4,
-                         1:2,
-                         2:1,
-                         3:1,
-                         4:0,
-                         5:2,
+measure_conversion_dict={0:2,
+                         1:1,
+                         2:3,
+                         3:3,
+                         4:3,
+                      #   5:0,
                          6:0,
-                         7:3,
-                         8:3}
+                         7:2,
+                         8:2}
 
 
 #  measure order
@@ -1056,12 +1057,12 @@ measure_conversion_dict={0:4,
 
 
 #Stack the value when plotting?
-stacked_conversion_dict={0:False,
+stacked_conversion_dict={0:True,
                          1:False,
                          2:True,
                          3:True,
-                         4:False,
-                         5:False,
+                         4:True,
+                     #    5:False,
                          6:False,
                          7:True,
                          8:True}

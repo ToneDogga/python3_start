@@ -112,6 +112,10 @@ def log_dir(prefix=""):
 #     return df
 
 
+def remove(value, deletechars):
+    for c in deletechars:
+        value = value.replace(c,'')
+    return value;
 
 
 
@@ -145,8 +149,7 @@ def plot_df_xs(df,plot_type):
     
   #  print(df)
     
-    ax=plt.gca()
- 
+  #  print(df.shape)   #,'_'.join(df.columns))  
    # ax.tick_params(pad=12)
     
  #   print("\n",df)
@@ -158,43 +161,146 @@ def plot_df_xs(df,plot_type):
 
 
 #        ax.xaxis.set_major_formatter(formatter)
-    #    print("\n",df)
+   #     print("\n",df,df.T)
         
+        #ax=plt.gca()
+     #   plt.figure()
+     #   df.plot(y=df.columns[0:2],secondary_y=df.columns[2],grid=True,title=plot_type+":stacked",kind="bar",rot=0,stacked=True,fontsize=7)   #,style=styles1, lw=linewidths,stacked=True,fontsize=7)
+
+     #   if df.shape[1]==3:
+     #       ax=df.plot(secondary_y=df.columns[2],kind="bar",rot=0,stacked=True,fontsize=7)   #,style=styles1, lw=linewidths,stacked=True,fontsize=7)
+
+            #ax=df.plot(secondary_y=df.columns[2],kind="line",rot=0,fontsize=7)   #,style=styles1, lw=linewidths,stacked=True,fontsize=7)
+      #              ax.set_ylabel('price',fontsize=7)
+                
+        # fig, ax1 = plt.subplots()
+    #    fig, ax = plt.subplots()
+        # ax2 = ax1.twinx()
+        # ax1.plot(x, y1, 'g-')
+        # ax2.plot(x, y2, 'b-')
         
-        ax=df.plot(grid=True,title=plot_type+":stacked",kind="bar",rot=0,stacked=True,fontsize=7)   #,style=styles1, lw=linewidths,stacked=True,fontsize=7)
-  
-        ticklabels = ['']*len(df.index)
-        # Every 4th ticklable shows the month and day
-        ticklabels[::8] = [item.strftime('%b') for item in df.index[::8]]
-        # Every 12th ticklabel includes the year
-        ticklabels[10::52] = [item.strftime('\n\n%Y') for item in df.index[10::52]]
-        ax.xaxis.set_major_formatter(ticker.FixedFormatter(ticklabels))
-     #   plt.xtick_params(pad=100)
-        plt.gcf().autofmt_xdate()
-  
+        # ax1.set_xlabel('X data')
+        # ax1.set_ylabel('Y1 data', color='g')
+                # ax2.set_ylabel('Y2 data', color='b')
+       if df.shape[1]==3:
+            
+        #    print(df)            
+                        
+            fig = plt.figure() # Create matplotlib figure
+            
+             
+            ax = fig.add_subplot(111) # Create matplotlib axes
+            ax2 = ax.twinx() # Create another axes that shares the same x-axis as ax.
+            
+            
+#            df.plot(kind='bar', color=['red','blue'], ax=ax,rot=0,legend=False,stacked=True)  #, width=width, position=1)
+            ax2=df.iloc[:,2:].plot(kind='line',linestyle=":",ax=ax2,use_index=False,color='blue',legend=False)   #, width=width, position=0)
+            ax=df.iloc[:,:2].plot(kind='bar',color=['green','red'],rot=0,ax=ax,legend=False,stacked=True)  #, width=width, position=1)
+      #      ax2 = ax.twinx() # Create another axes that shares the same x-axis as ax.
 
-#plt.show()
 
+            ax.set_ylabel("Sales (000) / week",fontsize=8)
+            ax2.set_ylabel('$ Price or Depth of Dist',fontsize=8)
+            ax.set_xlabel("",fontsize=7)
+            fig.legend(fontsize=7,loc='best')
+
+
+     
+            ticklabels = ['']*len(df.index)
+         # Every 4th ticklable shows the month and day
+            ticklabels[::8] = [item.strftime('%b') for item in df.index[::8]]
+         # Every 12th ticklabel includes the year
+            ticklabels[10::26] = [item.strftime('\n\n%Y') for item in df.index[10::26]]
+   
 
  
+     # #   plt.ylabel("sales (000)",fontsize=7)
+     #  #  plt.xlabel("",fontsize=7)
 
-        ax.legend(fontsize=6)
-        plt.ylabel("sales (000)",fontsize=7)
-        plt.xlabel("",fontsize=7)
+            plt.gca().xaxis.set_major_formatter(ticker.FixedFormatter(ticklabels))
+     # #   plt.xtick_params(pad=100)
+            plt.gcf().autofmt_xdate()
+
+
+
+     #    plt.gca().legend(fontsize=6)      
+     #    save_fig("scandata_"+plot_type+"_"+remove(str(df.columns[0]),'\/:*?"<>|'))
+        
+     #   # save_fig("scandata_"+plot_type+"_"+str(df.columns[0][:-10]))
+          #  plt.show()   #ax=ax)
+        #    plt.close()
+       else:
+            fig = plt.figure() # Create matplotlib figure
+            
+             
+            ax = fig.add_subplot(111) # Create matplotlib axes
+         #   ax2 = ax.twinx() # Create another axes that shares the same x-axis as ax.
+            
+            
+#            df.plot(kind='bar', color=['red','blue'], ax=ax,rot=0,legend=False,stacked=True)  #, width=width, position=1)
+         #   ax2=df.iloc[:,2:].plot(kind='line',linestyle="-",ax=ax2,use_index=False,color='blue',legend=False)   #, width=width, position=0)
+            ax=df.iloc[:,:2].plot(kind='bar',color=['green','red'],rot=0,ax=ax,legend=False,stacked=True)  #, width=width, position=1)
+      #      ax2 = ax.twinx() # Create another axes that shares the same x-axis as ax.
+
+
+            ax.set_ylabel("Sales (000) / week",fontsize=8)
+          #  ax2.set_ylabel('Price',fontsize=8)
+            ax.set_xlabel("",fontsize=7)
+            fig.legend(fontsize=7,loc='best')
+
+
+     
+            ticklabels = ['']*len(df.index)
+         # Every 4th ticklable shows the month and day
+            ticklabels[::8] = [item.strftime('%b') for item in df.index[::8]]
+         # Every 12th ticklabel includes the year
+            ticklabels[10::26] = [item.strftime('\n\n%Y') for item in df.index[10::26]]
+   
+
  
+     # #   plt.ylabel("sales (000)",fontsize=7)
+     #  #  plt.xlabel("",fontsize=7)
+
+            plt.gca().xaxis.set_major_formatter(ticker.FixedFormatter(ticklabels))
+     # #   plt.xtick_params(pad=100)
+            plt.gcf().autofmt_xdate()
+
+
+
+     #    plt.gca().legend(fontsize=6)      
+     #    save_fig("scandata_"+plot_type+"_"+remove(str(df.columns[0]),'\/:*?"<>|'))
+        
+     #   # save_fig("scandata_"+plot_type+"_"+str(df.columns[0][:-10]))
+        #    plt.show()   #ax=ax)
+
+           
+ 
+    
+ 
+    
+ 
+    
+ 
+    
+ 
+    
       #  plt.show()
     else:
- 
-        ax.xaxis.set_minor_locator(mpl.dates.MonthLocator())
-        ax.xaxis.set_minor_formatter(mpl.dates.DateFormatter('%b'))
- #   ax.xtick_params(pad=20)
-        ax.xaxis.set_major_locator(mpl.dates.YearLocator())
-        ax.xaxis.set_major_formatter(mpl.dates.DateFormatter('%Y'))
-
-
-        df.plot(grid=True,title=plot_type,style=styles1,ax=ax,lw=linewidths,kind='line',stacked=False,fontsize=7)
-        ax.legend(fontsize=6)
-  #  plt.figure()
+       ax=plt.gca()
+   
+       ax.xaxis.set_minor_locator(mpl.dates.MonthLocator())
+       ax.xaxis.set_minor_formatter(mpl.dates.DateFormatter('%b'))
+#   ax.xtick_params(pad=20)
+       ax.xaxis.set_major_locator(mpl.dates.YearLocator())
+       ax.xaxis.set_major_formatter(mpl.dates.DateFormatter('%Y'))
+   
+   
+       df.plot(grid=True,title=plot_type,style=styles1,ax=ax,lw=linewidths,kind='line',stacked=False,fontsize=7)
+       ax.set_xlabel("",fontsize=7)
+       ax.set_ylabel("Sales (000) / week",fontsize=8)
+       ax.legend(fontsize=6,loc='best')
+   #    plt.show()
+     #  plt.figure()
 #ax.xaxis.set_minor_locator(matplotlib.dates.MonthLocator([1, 7]))
 #ax.xaxis.set_minor_formatter(matplotlib.dates.DateFormatter('%b'))
 #
@@ -204,15 +310,17 @@ def plot_df_xs(df,plot_type):
 
 
 #    ax.suptitle('test title', fontsize=20)
-        plt.ylabel("sales (000)",fontsize=7)
-        plt.xlabel("",fontsize=7)
+    #    plt.ylabel("sales (000)",fontsize=7)
+    #    plt.xlabel("",fontsize=7)
     
        # plt.pause(0.001)
         
       #  figname="scan_fig_"+title
       #  save_fig(figname)
-    
-    plt.show()   #ax=ax)
+  #    print remove(filename, '\/:*?"<>|')
+
+    save_fig("scandata_"+plot_type+"_"+remove(str(df.columns[0]),'\/:*?"<>|'))
+    #    plt.show()   #ax=ax)
     plt.close()
     return
 
@@ -308,7 +416,9 @@ print("plot type",plot_type_dict)   #=scan_data_dict['measure_type_dict']
 # one units+price
 # two dollars + depth of dist
 #
-print("\n\n")
+print("Index levels=",df.T.index.names)
+
+print("\n")
 report_count=1
 for category in category_dict.values(): # level 0
  #   print(category)
@@ -320,7 +430,6 @@ for category in category_dict.values(): # level 0
     #            print(variety)
                 for plot_type in plot_type_dict.keys(): #level 4
                   #  print("\n",plot_type)
-                    print("\rReport ("+str(report_count)+") plotting:"+str(plot_type_dict[plot_type])+"                        \r",end="\r",flush=True)
                      #  plot_df_xs(df.loc[:,(category,market,brand,variety,plot_type)],plot_type_dict[plot_type],plot_type) 
                 #    report_count+=1
                     cutshape=0
@@ -337,7 +446,9 @@ for category in category_dict.values(): # level 0
                     finally:
                          if cutshape>0:
                             plot_df_xs(cut,plot_type_dict[plot_type]) 
-                      #      print("\r..success                                                              \r",end="\r",flush=True)
+                            print("\rReport ("+str(report_count)+") plotting:"+str(plot_type_dict[plot_type])+"_"+remove(str(cut.columns[0]),'\/:*?"<>|')+"                                            \r",end="\r",flush=True)
+
+                        #      print("\r..success                                                              \r",end="\r",flush=True)
                             report_count+=1
                     #     else:
                     #        print("\r..fail. no data                                                        \r",end="\r",flush=True)
@@ -352,8 +463,52 @@ for category in category_dict.values(): # level 0
          #print(df[[category,market]])
 
 #print(df.loc[:,(1,1,2)])
+plt.close("all")
+print("\n")
+#df=df.reorder_levels(['category','market','brand','variety','plot_type','stacked','market_name','product','measure'],axis=0).T
+df=df.swaplevel(2,3,axis=1)
+df=df.swaplevel(1,2,axis=1)
+df=df.swaplevel(6,7,axis=1)
+
+#df=df.reorder_levels(['category','variety','market','brand','plot_type','stacked','market_name','product','measure'],axis=0).T
+print("latest 53 weeks only, Reordered index levels=",df.T.index.names)
 
 
 
+print("\n")
 
+for category in category_dict.values(): # level 0
+ #   print(category)
+   for variety in variety_type_dict.keys(): # level 3
+    #            print(variety)
+        for market in market_dict.keys(): # level 1
+  #      print(market)
+            for brand in brand_dict.keys():  # level2
+   #         print(brand)
+#plot_type_dict[plot_type]
 
+                for plot_type in plot_type_dict.keys(): #level 4
+                  #  print("\n",plot_type)
+        #            print("\rReport ("+str(report_count)+") plotting:"+str(plot_type_dict[plot_type])+"_"+remove(str(cut.columns[0]),'\/:*?"<>|')+"                                                                 \r",end="\r",flush=True)                                 #  plot_df_xs(df.loc[:,(category,market,brand,variety,plot_type)],plot_type_dict[plot_type],plot_type) 
+                #    report_count+=1
+                    cutshape=0
+                    try:
+                        cut=df.loc[-53:,(category,market,brand,variety,plot_type)]
+                        cutshape=cut.shape[0]
+                        
+                   #     if cut:
+                   #         plot_df_xs(cut,plot_type_dict[plot_type]) 
+
+                #       report_count+=1
+                    except:
+                        pass
+                    finally:
+                         if cutshape>0:
+                            plot_df_xs(cut,plot_type_dict[plot_type]) 
+                            print("\rReport ("+str(report_count)+") plotting:"+str(plot_type_dict[plot_type])+"_"+remove(str(cut.columns[0]),'\/:*?"<>|')+"                                                            \r",end="\r",flush=True)
+ 
+                        #      print("\r..success                                                              \r",end="\r",flush=True)
+                            report_count+=1
+
+plt.close("all")
+print("\nFinished...\n")
