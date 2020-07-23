@@ -853,6 +853,12 @@ report_dict={report("report_type_dict",0,"",""):report_type_dict,
 
 
 
+# prediction hyper-parameters
+batch_length=4
+no_of_batches=1000
+no_of_repeats=4
+epochs=8
+
 
 
 
@@ -880,7 +886,7 @@ stock_df['recent']=stock_df['end_date']>pd.Timestamp('today')
 
 
 #print("stock_df=\n",stock_df)
-stock_df=stock_df[(stock_df['qtyinstock']<=10) & (stock_df['recent']==True)]
+stock_df=stock_df[(stock_df['qtyinstock']<=100) & (stock_df['recent']==True)]
                 
 stock_report_df=stock_df[['code','lastsalesdate','qtyinstock']].sort_values('lastsalesdate',ascending=True)
 
@@ -2205,17 +2211,27 @@ save_fig("Coles_total_jams_units_moving_total")
 #print(df)
 plt.close("all")
 
+############################################################33
+# load previous runs coles_predictions
 
+previous_df=pd.read_pickle("coles_order_predict_results.pkl")
+#prev_cols=list(previous_df.columns).contains("prediction")
+#print("prev_cols",prev_cols)
+pred_cols = [col for col in previous_df.columns if 'prediction' in col]
+#print(list(previous_df.columns))
+#print(pred_cols)
+previous_df=previous_df[pred_cols]
+previous_df.columns=previous_df.columns+"_old"
+#print("previous df=\n",previous_df)
+#print("joined_df=\n",joined_df)
+#joined_df=pd.concat((joined_df,previous_df),axis=1)
+#print("new joined_df=\n",joined_df)
 
 #############################################################
      # 
     # 
     # no of weeks
 #target_offset=3
-batch_length=4
-no_of_batches=1000
-no_of_repeats=4
-epochs=8
 
 #answer="n"
 #answer=input("\nPredict next weeks Coles orders? (y/n)\n")
@@ -2261,8 +2277,13 @@ for p in products:
  #   print("results=\n",results)
  #   print("results.T=\n",results.T)
 #results.index = pd.to_datetime(df.index, format = '%d-%m-%Y',infer_datetime_format=True)
+results=pd.concat((results,previous_df),axis=1)
+results.sort_index(axis=1,inplace=True)
+print("results=\n",results.tail(5))
 
 results.to_pickle(output_dir+"coles_order_predict_results.pkl")
+results.to_pickle("coles_order_predict_results.pkl")
+
 results.to_excel(output_dir+"coles_order_predict_results.xlsx")
 
 
