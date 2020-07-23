@@ -948,11 +948,11 @@ tf.random.set_seed(42)
 
 print("\n\nLoad scan data spreadsheets...\n")
 scan_data_files=["jam_scan_data_2020.xlsx","cond_scan_data_2020.xlsx","sauce_scan_data_2020.xlsx"]
-total_columns_count=1619+797
+#total_columns_count=1619+797
 scan_dict_savename="scan_dict.pkl"
 
-output_dir = log_dir("scandata")
-os.makedirs(output_dir, exist_ok=True)
+#output_dir = log_dir("scandata")
+#os.makedirs(output_dir, exist_ok=True)
 
     
 warnings.filterwarnings('ignore')
@@ -1494,6 +1494,11 @@ if answer=="y":
 
     
 sales_df.sort_values(by=['date'],ascending=True,inplace=True)
+first_date=sales_df['date'].iloc[-1]
+last_date=sales_df['date'].iloc[0]
+
+print("\nAttache sales trans analysis up to date.  New save is:",sales_df_savename)
+print("\nData available:",sales_df.shape[0],"records.\nfirst date:",first_date,"\nlast date:",last_date,"\n")
 
 dds=sales_df.groupby(['period'])['salesval'].sum().to_frame() 
 datelen=dds.shape[0]-365
