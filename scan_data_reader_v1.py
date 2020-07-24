@@ -131,7 +131,7 @@ def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
 
 
 
-def plot_df_xs(df,plot_type):
+def plot_df_xs(df,plot_types):
     df=df.T
     #gcf().autofmt_xdate() 
 #    plot_df=df.loc[:,(category,market,brand,variety,plot_type)]
@@ -182,8 +182,9 @@ def plot_df_xs(df,plot_type):
         # ax1.set_xlabel('X data')
         # ax1.set_ylabel('Y1 data', color='g')
                 # ax2.set_ylabel('Y2 data', color='b')
-       if df.shape[1]==3:
-            
+      # print(df)         
+       if any(list(df.index.get_level_values(0))) & (df.shape[1]>2):   # second Y axis
+        #    df.index = df.index.droplevel(0)
         #    print(df)            
                         
             fig = plt.figure() # Create matplotlib figure
@@ -295,9 +296,9 @@ def plot_df_xs(df,plot_type):
        ax.xaxis.set_major_formatter(mpl.dates.DateFormatter('%Y'))
    
    
-       df.plot(grid=True,title=plot_type,style=styles1,ax=ax,lw=linewidths,kind='line',stacked=False,fontsize=7)
+       df.plot(grid=True,title=str(plot_type),style=styles1,ax=ax,lw=linewidths,kind='line',stacked=False,fontsize=7,legend=False)
        ax.set_xlabel("",fontsize=7)
-       ax.set_ylabel("Sales (000) / week",fontsize=8)
+    #   ax.set_ylabel("Sales (000) / week",fontsize=8)
        ax.legend(fontsize=6,loc='best')
    #    plt.show()
      #  plt.figure()
@@ -319,7 +320,7 @@ def plot_df_xs(df,plot_type):
       #  save_fig(figname)
   #    print remove(filename, '\/:*?"<>|')
 
-    save_fig("scandata_"+plot_type+"_"+remove(str(df.columns[0]),'\/:*?"<>|'))
+    save_fig("scandata_"+remove(str(plot_type)+"_"+str(df.columns[0]),'\/:*?"<>|'))
     #    plt.show()   #ax=ax)
     plt.close()
     return
@@ -400,6 +401,7 @@ plot_type_dict=scan_data_dict['plot_type_dict']
 variety_type_dict=scan_data_dict['variety_type_dict']
 measure_conversion_dict=scan_data_dict['measure_conversion_dict']
 stacked_conversion_dict=scan_data_dict['stacked_conversion_dict']
+second_y_axis_conversion_dict=scan_data_dict['second_y_axis_conversion_dict']
 
 
 # print("market",market_dict)  #=scan_data_dict['market_dict']
@@ -445,6 +447,7 @@ for category in category_dict.values(): # level 0
                         pass
                     finally:
                          if cutshape>0:
+                        #    print("cut=\n",cut) 
                             plot_df_xs(cut,plot_type_dict[plot_type]) 
                             print("\rReport ("+str(report_count)+") plotting:"+str(plot_type_dict[plot_type])+"_"+remove(str(cut.columns[0]),'\/:*?"<>|')+"                                            \r",end="\r",flush=True)
 
@@ -473,7 +476,7 @@ df=df.swaplevel(6,7,axis=1)
 #df=df.reorder_levels(['category','variety','market','brand','plot_type','stacked','market_name','product','measure'],axis=0).T
 print("latest 53 weeks only, Reordered index levels=",df.T.index.names)
 
-
+df=df.iloc[-53:,:]
 
 print("\n")
 
@@ -493,7 +496,7 @@ for category in category_dict.values(): # level 0
                 #    report_count+=1
                     cutshape=0
                     try:
-                        cut=df.loc[-53:,(category,market,brand,variety,plot_type)]
+                        cut=df.loc[:,(category,market,brand,variety,plot_type)]
                         cutshape=cut.shape[0]
                         
                    #     if cut:

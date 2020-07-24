@@ -908,8 +908,8 @@ except:
     
 #stock_report_df=stock_df[['code','lastsalesdate','qtyinstock']].sort_values('lastsalesdate',ascending=True)
 #print(production_schedule_df.columns)
-production_made_df=production_made_df[['to_date','jobid','code','qtybatches','qtyunits']].sort_values('to_date',ascending=True)
-print("\nProduction recently made:\n",production_made_df.tail(30))
+production_made_df=production_made_df[['to_date','jobid','code','qtybatches','qtyunits']].sort_values('to_date',ascending=False)
+print("\nProduction recently made:\n",production_made_df.head(50))
 
 
 
@@ -935,7 +935,7 @@ production_planned_df=production_planned_df[(production_planned_df['future']==Tr
 #stock_report_df=stock_df[['code','lastsalesdate','qtyinstock']].sort_values('lastsalesdate',ascending=True)
 #print(production_schedule_df.columns)
 production_planned_df=production_planned_df[['to_date','jobid','code','qtybatches','qtyunits']].sort_values('to_date',ascending=True)
-print("\nProduction planned:\n",production_planned_df.head(30))
+print("\nProduction planned:\n",production_planned_df.head(50))
 
 
 #######################################
@@ -1025,47 +1025,93 @@ category_dict={0:"unknown",
 
 plot_type_dict={0:"Units report",
                    1:"Dollars report",
-                   2:"Units vs dist report",
-                   3:"Dollars vs price report"}
-              #     4:"Distribution report",
-              #     5:"Price report"}
+                   2:"Dist vs ranking report",
+                   3:"Dollars vs price report",
+                   1:"Units/store/Week report",
+                   5:"Share report",
+                   }
 
 
 #Used to convert the meaure column names to a measure type to match the dict above
 # the first digit is the plot report to group them in, the second is whether to stack the fields when plotting
 measure_conversion_dict={0:2,
-                         1:1,
+                         1:5,
                          2:3,
                          3:3,
-                         4:3,
-                      #   5:0,
-                         6:0,
+                         4:4,
+                         5:4,
+                         6:2,
                          7:2,
-                         8:2}
+                         8:2,
+                         9:5,
+                         10:5,
+                         11:5,
+                         12:0,
+                         13:0,
+                         14:1,
+                         15:1}
 
 
-#  measure order
-# {'Depth Of Distribution Wtd': 0,
-# 'Dollars (000)': 1, 
-# 'Dollars (000) Sold off Promotion >= 5 % 6 wks': 2,
-#  'Dollars (000) Sold on Promotion >= 5 % 6 wks': 3, 
-#  'Price ($/Unit)': 4, 
-#  'Promoted Price >= 5 % 6 wks': 5, 
-#  'Units (000)': 6, 
-#   'Units (000) Sold off Promotion >= 5 % 6 wks': 7, 
-# 'Units (000) Sold on Promotion >= 5 % 6 wks': 8}
+
+
+#measure list=
+# ['Depth Of Distribution Wtd',   0
+#'Dollars (000)',                        1
+#'Dollars (000) Sold off Promotion >= 5 % 6 wks',             2
+#'Dollars (000) Sold on Promotion >= 5 % 6 wks',              3
+#'Price ($/Unit)',                4
+#'Units (000)',                      5
+#'Units (000) Ranked Position in Total Chutney Pickles Relish',         6 
+# 'Units (000) Ranked Position in Total Jam/Curd/Marmalade',           7
+# 'Units (000) Ranked Position in Total Sauces',                 8
+#'Units (000) Share of Total Chutney Pickles Relish',            9
+#'Units (000) Share of Total Jam/Curd/Marmalade',            10
+# 'Units (000) Share of Total Sauces',                        11
+#'Units (000) Sold off Promotion >= 5 % 6 wks',          12
+#'Units (000) Sold on Promotion >= 5 % 6 wks',           13
+#'Units/Store/Week - Baseline >= 5 6 wks',               14
+#'Units/Store/Week - Incremental']                        15
+
 
 
 #Stack the value when plotting?
-stacked_conversion_dict={0:True,
+stacked_conversion_dict={0:False,
                          1:False,
                          2:True,
                          3:True,
                          4:True,
-                     #    5:False,
+                         5:False,
                          6:False,
-                         7:True,
-                         8:True}
+                         7:False,
+                         8:False,
+                         9:False,
+                         10:False,
+                         11:False,
+                         12:True,
+                         13:True,
+                         14:True,
+                         15:True}
+
+
+#Stack the value when plotting?
+second_y_axis_conversion_dict={0:False,
+                         1:True,
+                         2:False,
+                         3:False,
+                         4:True,
+                         5:False,
+                         6:False,
+                         7:False,
+                         8:False,
+                         9:False,
+                         10:False,
+                         11:False,
+                         12:False,
+                         13:False,
+                         14:False,
+                         15:False}
+
+
 
 
 # #Used to convert the meaure column names back to a measure type to match the dict above
@@ -1094,10 +1140,10 @@ variety_type_dict={0:"unknown",
                    9:"raspberry",
                    10:"other",
                    11:"fig almond",
-                   12:"tomato chutney",
+                   12:"caramelis",
                    13:"worcestershire",
-                   14:"tomato sce",
-                   15:"tomato sce hot",
+                   14:"sce",
+                   15:"sce hot",
                    16:"fruit of forest",
                    17:"roadhouse",
                    18:"lime lemon",
@@ -1109,13 +1155,20 @@ variety_type_dict={0:"unknown",
                    24:"red currant",
                    25:"rose petal",
                    26:"ajvar",
-                   27:"4 fruit",
+                   27:"4 fru",
                    28:"peach",
                    29:"cherry",
-                   30:"chutney",
+                   30:"fruit",
                    31:"blackcurrant",
                    32:"fig royal",
-                   33:"tomato&red"
+                   33:"mato&red",
+                   34:"beetroot",
+                   35:"chilli",
+                   36:"burger",
+                   37:"omoto hot",
+                   38:"tomat",
+                   39:"apple",
+                   40:"takatala"
                    }
 
 brand_dict={0:"unknown",
@@ -1254,12 +1307,15 @@ market_name=df.index.get_level_values(1)
 df['plot_type']=plot_type
 df['market_name']=market_name
 df['stacked']=plot_type
+df['second_y']=plot_type
+
 #print(df)
 #df=df.T
 df=df.set_index('market_name', append=True)
 
 df=df.set_index('plot_type', append=True)
 df=df.set_index('stacked', append=True)
+df=df.set_index('second_y', append=True)
 
 #df=df.rename_levels(['category','market','product','measure'],axis=1)
 
@@ -1294,7 +1350,7 @@ market_rename_dict={market_list[k]:k for k in range(len(market_list))}
 
 measure_list=list(df.columns.levels[3])
 #stacked_list=list(df.columns.levels[3])
-#print(measure_list)
+print("measure list=\n",measure_list)
 
 #measure_dict={k:measure_list[k] for k in range(len(measure_list))}
 measure_rename_dict={measure_list[k]:k for k in range(len(measure_list))}
@@ -1312,6 +1368,7 @@ df.index.set_names('market_name', level=4,inplace=True)
 
 df.index.set_names('plot_type', level=5,inplace=True)
 df.index.set_names('stacked', level=6,inplace=True)
+df.index.set_names('second_y', level=7,inplace=True)
 
 #df = df.set_index('category', append=True)
          
@@ -1352,6 +1409,10 @@ df.rename(columns=measure_rename_dict,level='stacked',inplace=True)
 
 df.rename(columns=stacked_conversion_dict,level='stacked',inplace=True)
 
+df.rename(columns=measure_rename_dict,level='second_y',inplace=True)
+
+df.rename(columns=second_y_axis_conversion_dict,level='second_y',inplace=True)
+
 
 #print("3",df.T)
 
@@ -1378,7 +1439,7 @@ df = df.set_index('brand', append=True)
 df['variety']=product_values
 df = df.set_index('variety', append=True)
 #df=df.reorder_levels([4,0,3,5,2,1,6],axis=0)
-df=df.reorder_levels(['category','market','brand','variety','plot_type','stacked','market_name','product','measure'],axis=0).T
+df=df.reorder_levels(['category','market','brand','variety','plot_type','stacked','second_y','market_name','product','measure'],axis=0).T
 
 # new_level_name = "brand"
 # new_level_labels = ['p']
@@ -1402,7 +1463,8 @@ scan_dict={"original_df":original_df,
            'plot_type_dict':plot_type_dict,
            'brand_dict':brand_dict,
            'category_dict':category_dict,
-           'variety_type_dict':variety_type_dict}
+           'variety_type_dict':variety_type_dict,
+           'second_y_axis_conversion_dict':second_y_axis_conversion_dict}
 
 
 with open(scan_dict_savename,"wb") as f:
