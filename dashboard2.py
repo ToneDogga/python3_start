@@ -840,6 +840,10 @@ ww_convert_dict = {'scan_week': np.datetime64,
 
 
   
+        #    fig = plt.figure() # Create matplotlib figure
+            
+             
+         #   ax = fig.add_subplot(111) # Create matplotlib axes
 
 
 

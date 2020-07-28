@@ -419,7 +419,13 @@ print("plot type",plot_type_dict)   #=scan_data_dict['measure_type_dict']
 # two dollars + depth of dist
 #
 print("Index levels=",df.T.index.names)
-
+measures=df.T.index.get_level_values(-1).unique().tolist()
+with open("measures_savename.pkl","wb") as f:
+    pickle.dump(measures,f,protocol=-1)
+print("\nmeasures=",measures,len(measures))
+#measures2=list(measures)  
+#print("\nmeasures2=",measures2)
+  
 print("\n")
 report_count=1
 for category in category_dict.values(): # level 0
