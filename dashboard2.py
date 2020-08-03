@@ -437,7 +437,7 @@ def plot_query2(query_df_passed,plot_col,query_name):
     query_df=query_df_passed.copy(deep=True)
   #  query_details=str(query_df.columns[0])
   #  query_df.columns = query_df.columns.get_level_values(0)
-    print("query df shape",query_df.shape)
+ #   print("query df shape",query_df.shape)
  #   query_df=self.mat_add_1d(query_df.to_numpy().swapaxes(0,1),self.mats[0])
     query_df['weeks']=query_df.index.copy(deep=True)  #.to_timestamp(freq="D",how='s') #
 #        query_df['qdate']=pd.to_datetime(pd.Series(query_list).to_timestamp(freq="D",how='s'), format='%Y/%m/%d')
@@ -446,7 +446,7 @@ def plot_query2(query_df_passed,plot_col,query_name):
 #    query_df['qdate']=query_list.to_timestamp(freq="D",how='s')
     query_list=query_df['weeks'].tolist()
   #  print("qudf=\n",query_df,query_df.columns[1][0])
-    print("f",len(query_list))
+#    print("f",len(query_list))
     #   query_df['qdate'] = query_df.qdate.tolist()
 
     for col in plot_col:
@@ -745,7 +745,7 @@ coles_and_ww_pkl_dict={"coles_BB_jams_invoiced.pkl":(1,12,10,"_T",3,"coles_BB_ja
 # value is (brand,specialpricecat, productgroup, product,name)
 product_type = namedtuple("product_type", ["brandno","customercat", "productgroup","product","on_promo","name"])
 
-coles_and_ww_col_dict=  {"scan_week":(0,12,0,'_*',0,'scan_week'),
+coles_and_ww_col_dict= {  "scan_week":(0,12,0,'_*',0,'scan_week'),
             1:(0,12,10,"_*",0,"coles_total_jam_curd_marm_off_promo_scanned"),
             2:(0,12,10,"_*",1,"coles_total_jam_curd_marm_on_promo_scanned"),
             3:(1,12,10,"_*",0,"coles_BB_jams_off_promo_scanned"),
@@ -882,8 +882,7 @@ coles_and_ww_convert_dict = {
                 63: np.float64,
                 64: np.float64,
                 65: np.float64,
-                66: np.float64, 
-                67: np.float64} 
+                66: np.float64} 
   
 #ww_pkl_dict={}
 # "ww_BB_jams_invoiced.pkl":(1,12,10,"_T",3,"ww_BB_jams_invoiced"),   # special price cat, productgroup,productcode,product, on_promo, name)
@@ -2211,11 +2210,12 @@ tf.random.set_seed(42)
 
 #rename_dict=dict({"qty":"BB_total_invoiced_sales"})
 df=pd.read_excel(scandatalist[0],-1,skiprows=[0,1,2],dtype=object).T.reset_index(drop=True)  #,index_col=None)   #n,index_col=None)  #.T.reset_index()  #,header=[0,1,2])  #,skip_rows=0)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
-print("start df=\n",df)
+#print("start df=\n",df)
 for n in range(1,len(scandatalist)):
-    df2=pd.read_excel(scandatalist[n],-1,skiprows=[0,1,2],dtype=object).T.reset_index(drop=True)   #,index_col=None)  #.T   #.reset_index()  #,header=[0,1,2])  #,skip_rows=0)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+    df2=pd.read_excel(scandatalist[n],-1,skiprows=[0,1,2],dtype=object,index_col=None).T.reset_index(drop=True)   #,index_col=None)  #.T   #.reset_index()  #,header=[0,1,2])  #,skip_rows=0)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+    df2.drop(df2.index[0],inplace=True)
     df=pd.concat((df,df2),axis=0)
-    print("df[n]=\n",n,"=\n",df)
+ #   print("df[n]=\n",n,"=\n",df)
 
 #df=df.reset_index()
 #df=df.T
@@ -2245,35 +2245,36 @@ df.drop_duplicates(keep='first', inplace=True)
 #df=df.T
 # using dictionary to convert specific columns 
 #df.reset_index(drop=True,inplace=True)
-df.set_index('scan_week',inplace=True) 
+#df.set_index('scan_week',inplace=True) 
 #df['scan_week']=df.index
-print("after rename2=\n",df)   #.iloc[:,:4])
+#print("after rename2=\n",df)   #.iloc[:,:4])
 
 
 df = df.astype(coles_and_ww_convert_dict) 
-print("after rename3=\n",df)  #.iloc[:,:4])
+#print("after rename3=\n",df)  #.iloc[:,:4])
 
-df=df.T
+#df=df.T
 
-df = df.rename(coles_and_ww_col_dict)   #,axis='index')
-
-print("after rename4=\n",df)  #.iloc[:,:4])
-df=df.set_index('scan_week')   #,inplace=True)   #drop=True,inplace=True)
+df = df.rename(coles_and_ww_col_dict,axis='columns')
+#df['scan_week']=df.index
+#print("after rename4=\n",df)  #.iloc[:,:4])
+#df=df.set_index('scan_week',drop=True)   #,inplace=True)   #drop=True,inplace=True)
 #
-print("df4=\n",df)
+df=df.T
+#print("df5=\n",df)
 df.index = pd.MultiIndex.from_tuples(df.index,names=["brand","specialpricecat","productgroup","product","on_promo","names"])
 df=df.T
-print("final loaded df=\n",df)
+#print("final loaded df=\n",df)
 df.drop_duplicates(keep='first', inplace=True)
 df=df.set_index(list(df.columns[[0]]))   #.dt.strftime('%d/%m/%Y')
 df.index.name = 'scan_week'
 df.index = pd.to_datetime(df.index, format = '%d/%m/%Y',infer_datetime_format=True)
-#df=df.astype(np.float32)  #,inplace=True)
+df=df.astype(np.float32)  #,inplace=True)
 
 #print("after6=\n",df)
 #print(df.columns)
 df.replace(np.nan, 0.0,inplace=True)
-
+df=df*1000
 #test=get_xs_name(df,3,0)
 #print("test=\n",test)
 
@@ -2284,9 +2285,9 @@ df[2,12,10,"_t",0,'coles_SD_jams_total_scanned']=df[2,12,10,"_*",0,'coles_SD_jam
 df[3,12,10,"_t",0,'coles_BM_jams_total_scanned']=df[3,12,10,"_*",0,'coles_BM_jams_off_promo_scanned']+df[3,12,10,"_*",1,'coles_BM_jams_on_promo_scanned']
 #df=df*1000
 
-df[1,12,10,"_t",0,'coles_BB_jams_on_promo']=(df[1,12,10,"_*",1,'coles_BB_jams_on_promo_scanned']>0.0)
-df[2,12,10,"_t",0,'coles_SD_jams_on_promo']=(df[2,12,10,"_*",1,'coles_SD_jams_on_promo_scanned']>0.0)
-df[3,12,10,"_t",0,'coles_BM_jams_on_promo']=(df[3,12,10,"_*",1,'coles_BM_jams_on_promo_scanned']>0.0)
+df[1,12,10,"_t",0,'coles_BB_jams_on_promo']=(df[1,12,10,"_*",1,'coles_BB_jams_on_promo_scanned']>1000.0)
+df[2,12,10,"_t",0,'coles_SD_jams_on_promo']=(df[2,12,10,"_*",1,'coles_SD_jams_on_promo_scanned']>1000.0)
+df[3,12,10,"_t",0,'coles_BM_jams_on_promo']=(df[3,12,10,"_*",1,'coles_BM_jams_on_promo_scanned']>1000.0)
 
 df[0,10,10,"_T",0,'ww_jams_total_scanned']=df[0,10,10,"_*",0,'ww_total_jam_curd_marm_off_promo_scanned']+df[0,10,10,"_*",1,'ww_total_jam_curd_marm_on_promo_scanned']
 
@@ -2294,24 +2295,21 @@ df[1,10,10,"_t",0,'ww_BB_jams_total_scanned']=df[1,10,10,"_*",0,'ww_BB_jams_off_
 df[2,10,10,"_t",0,'ww_SD_jams_total_scanned']=df[2,10,10,"_*",0,'ww_SD_jams_off_promo_scanned']+df[2,10,10,"_*",1,'ww_SD_jams_on_promo_scanned']
 df[3,10,10,"_t",0,'ww_BM_jams_total_scanned']=df[3,10,10,"_*",0,'ww_BM_jams_off_promo_scanned']+df[3,10,10,"_*",1,'ww_BM_jams_on_promo_scanned']
  
-#df=df*1000
+df[1,10,10,"_t",0,'ww_BB_jams_on_promo']=(df[1,10,10,"_*",1,'ww_BB_jams_on_promo_scanned']>1000.0)
+df[2,10,10,"_t",0,'ww_SD_jams_on_promo']=(df[2,10,10,"_*",1,'ww_SD_jams_on_promo_scanned']>1000.0)
+df[3,10,10,"_t",0,'ww_BM_jams_on_promo']=(df[3,10,10,"_*",1,'ww_BM_jams_on_promo_scanned']>1000.0)
 
 
 
-df[1,10,10,"_t",0,'ww_BB_jams_on_promo']=(df[1,10,10,"_*",1,'ww_BB_jams_on_promo_scanned']>0.0)
-df[2,10,10,"_t",0,'ww_SD_jams_on_promo']=(df[2,10,10,"_*",1,'ww_SD_jams_on_promo_scanned']>0.0)
-df[3,10,10,"_t",0,'ww_BM_jams_on_promo']=(df[3,10,10,"_*",1,'ww_BM_jams_on_promo_scanned']>0.0)
+#df.replace(np.nan, 0.0, inplace=True)
 
-
-
-df.replace(np.nan, 0.0, inplace=True)
 df["","","","_t","",'weekno']= np.arange(df.shape[0])
 
 
 
 #df["","","","_t","",'weekno']= np.arange(df.shape[0])
 
-#print("after7=\n",df)
+print("after7=\n",df)
 ############################################
 # total all other on_promo and off_promo on matching productcodes (level 3)
 # and level 4 is either 0 or 1
@@ -2340,15 +2338,16 @@ for col_count in range(0,len(df.columns),2):
     df[cc]=df.T.xs(p,level=3).sum()
 
 
+print("after8=\n",df)
 
 tdf=get_xs_name(df,("_t",3))
 plot_query2(tdf,['coles_BB_jams_total_scanned','coles_SD_jams_total_scanned','coles_BM_jams_total_scanned'],'BB total scanned Coles jam units per week')
 plot_query2(tdf,['ww_BB_jams_total_scanned','ww_SD_jams_total_scanned','ww_BM_jams_total_scanned'],'BB total scanned ww jam units per week')
 
 #tdf['coles_scan_week']=tdf.index
-tdf.reset_index('scan_week',drop=True,inplace=True)
+#tdf.reset_index('scan_week',drop=True,inplace=True)
 tdf=tdf.astype(np.float64)
-#print("tdf=\n",tdf)
+print("tdf=\n",tdf)
 #print("tdf.T=\n",tdf.T)
 
 #sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='SD_on_promo',hue='BM_on_promo')  #,fit_reg=True,robust=True,legend=True) 
@@ -2366,17 +2365,17 @@ save_fig("coles5")   #,images_path)
 sns.lmplot(x='weekno',y='coles_BB_jams_total_scanned',data=tdf,col='coles_SD_jams_on_promo',hue='coles_BM_jams_on_promo')
 save_fig("coles6")  #,images_path)
 
-sns.lmplot(x='weekno',y='ww_BB_jams_total_scanned',data=ndf,col='ww_BB_jams_on_promo',hue='ww_SD_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+sns.lmplot(x='weekno',y='ww_BB_jams_total_scanned',data=tdf,col='ww_BB_jams_on_promo',hue='ww_SD_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
 save_fig("ww1")  #,images_path)
-sns.lmplot(x='weekno',y='ww_BB_jams_total_scanned',data=ndf,col='ww_BB_jams_on_promo',hue='ww_BM_jams_on_promo')
+sns.lmplot(x='weekno',y='ww_BB_jams_total_scanned',data=tdf,col='ww_BB_jams_on_promo',hue='ww_BM_jams_on_promo')
 save_fig("ww2")   #,images_path)
-sns.lmplot(x='weekno',y='ww_BB_jams_total_scanned',data=ndf,col='ww_BM_jams_on_promo',hue='ww_BB_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+sns.lmplot(x='weekno',y='ww_BB_jams_total_scanned',data=tdf,col='ww_BM_jams_on_promo',hue='ww_BB_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
 save_fig("ww3")  #,images_path)
-sns.lmplot(x='weekno',y='ww_BB_jams_total_scanned',data=ndf,col='ww_SD_jams_on_promo',hue='ww_BB_jams_on_promo')
+sns.lmplot(x='weekno',y='ww_BB_jams_total_scanned',data=tdf,col='ww_SD_jams_on_promo',hue='ww_BB_jams_on_promo')
 save_fig("ww4")   #,images_path)    
-sns.lmplot(x='weekno',y='ww_BB_jams_total_scanned',data=ndf,col='ww_BM_jams_on_promo',hue='ww_SD_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+sns.lmplot(x='weekno',y='ww_BB_jams_total_scanned',data=tdf,col='ww_BM_jams_on_promo',hue='ww_SD_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
 save_fig("ww5")  #,images_path)
-sns.lmplot(x='weekno',y='ww_BB_jams_total_scanned',data=ndf,col='ww_SD_jams_on_promo',hue='ww_BM_jams_on_promo')
+sns.lmplot(x='weekno',y='ww_BB_jams_total_scanned',data=tdf,col='ww_SD_jams_on_promo',hue='ww_BM_jams_on_promo')
 save_fig("ww6")   #,images_path)
 
 
@@ -2386,20 +2385,20 @@ save_fig("ww6")   #,images_path)
 ################################################################333
 # convert weekly scan data to daily sales
 
-tdf=get_xs_name(df,("_t",3))
-plot_query2(tdf,['ww_BB_jams_total_scanned','ww_SD_jams_total_scanned','ww_BM_jams_total_scanned'],'BB total scanned ww jam units per week')
-#tdf['coles_scan_week']=tdf.index
-tdf.reset_index('scan_week',drop=True,inplace=True)
-tdf=tdf.astype(np.float64)
+# tdf=get_xs_name(df,("_t",3))
+# plot_query2(tdf,['ww_BB_jams_total_scanned','ww_SD_jams_total_scanned','ww_BM_jams_total_scanned'],'BB total scanned ww jam units per week')
+# #tdf['coles_scan_week']=tdf.index
+# tdf.reset_index('scan_week',drop=True,inplace=True)
+# tdf=tdf.astype(np.float64)
 
 
-# ndf=df.droplevel(level=0,axis=1)
-# ndf=ndf.droplevel(level=0,axis=1)
+# # ndf=df.droplevel(level=0,axis=1)
+# # ndf=ndf.droplevel(level=0,axis=1)
 # ndf=ndf.droplevel(level=0,axis=1)
 # ndf=ndf.droplevel(level=0,axis=1)
 # ndf=ndf.droplevel(level=0,axis=1)
 
-# #print("df=\n",df)
+print("tdf8=\n",tdf)
 # #print("df.t=\n",df.T)
 
 # #print("ndf=\n",ndf)
@@ -2448,12 +2447,12 @@ tdf=tdf.astype(np.float64)
 
 
 
-df.replace(np.nan, 0.0, inplace=True)
+#df.replace(np.nan, 0.0, inplace=True)
 
 
 
 #print(df)
-df=df*1000
+#df=df*1000
 #print(df)
 
 ####################################
