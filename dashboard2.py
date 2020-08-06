@@ -2213,33 +2213,69 @@ df=pd.read_excel(scandatalist[0],-1,skiprows=[0,1,2],dtype=object).T.reset_index
 #print("start df=\n",df)
 for n in range(1,len(scandatalist)):
     df2=pd.read_excel(scandatalist[n],-1,skiprows=[0,1,2],dtype=object,index_col=None).T.reset_index(drop=True)   #,index_col=None)  #.T   #.reset_index()  #,header=[0,1,2])  #,skip_rows=0)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+ #   df2=pd.read_excel(scandatalist[n],-1,skiprows=[0,1,2],dtype=object).T.reset_index(drop=True)   #,index_col=None)  #.T   #.reset_index()  #,header=[0,1,2])  #,skip_rows=0)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+
     df2.drop(df2.index[0],inplace=True)
     df=pd.concat((df,df2),axis=0)
- #   print("df[n]=\n",n,"=\n",df)
+#print("df[n]=\n",n,"=\n",df)
 
 #df=df.reset_index()
 #df=df.T
 #df=df.T
-df.reset_index(drop=True,inplace=True)
 #df=df.T
+#df.iloc[:2].fillna(0.0,inplace=True)
+#df.iloc[:2].replace(np.nan, 0.0,inplace=True)
 #print("before rename=\n",df)
-df.fillna(0.0,inplace=True)
-df = df.rename({0:"scan_week"})
+#df=df.T
+#df.drop(df[df.iloc[:,0].isnull()],inplace=True,axis='columns')
+
+#df=df.T
+#print(df)
+df.reset_index(drop=True,inplace=True)
+
 #df=df.T   #reset_index(drop=True).T
 #df.reset_index(drop=True,inplace=True)
 
 
-df=df.T
 #df = df.rename({0:"scan_week"})
 #df = df.astype(coles_and_ww_convert_dict) 
 
 
 #df = df.rename(coles_and_ww_col_dict)   #,axis='index')
+#df.iloc[2:].fillna(0.0,inplace=True)
 
-#print("after rename1",df)
+df = df.rename({0:"scan_week"})
+df=df.T
+#df.reset_index(drop=True,inplace=True)
+
+#print("after rename1=\n",df)
+#df.reset_index(drop=True,inplace=True)
+#df=df.loc[df.scan_week.dropna()]
+#df=df.loc[~df.scan_week.isnull()]
+#df=df.loc[df.iloc[2:].all()==0]
+df = df.dropna(subset=['scan_week'])
+df.fillna(0.0,inplace=True)
+
+#df=df.drop(df[df.scan_week.isnull()])   #,inplace=True)  #,axis='columns')
+
+#print("after rename2=\n",df)
+#df.reset_index(drop=True,inplace=True)
+
 #df=df.T
-df['scan_week']=pd.to_datetime(df['scan_week'],format="%d/%m/%Y")
+df = df.astype(coles_and_ww_convert_dict) 
+#print("after rename3=\n",df)  #.iloc[:,:4])
+
+#df=df.T
+df['scan_week']=pd.to_datetime(df['scan_week'],format="%d/%m/%Y",exact=False)   #,yearfirst=True)
+
+df = df.rename(coles_and_ww_col_dict,axis='columns')
+print("after rename2=\n",df)
 df.drop_duplicates(keep='first', inplace=True)
+df.reset_index(drop=True,inplace=True)
+
+
+print("after rename3=\n",df)
+
 #df=df.T
 #df.set_index('scan_week',inplace=True)   #drop=True,inplace=True)
 #df=df.T
@@ -2250,12 +2286,6 @@ df.drop_duplicates(keep='first', inplace=True)
 #print("after rename2=\n",df)   #.iloc[:,:4])
 
 
-df = df.astype(coles_and_ww_convert_dict) 
-#print("after rename3=\n",df)  #.iloc[:,:4])
-
-#df=df.T
-
-df = df.rename(coles_and_ww_col_dict,axis='columns')
 #df['scan_week']=df.index
 #print("after rename4=\n",df)  #.iloc[:,:4])
 #df=df.set_index('scan_week',drop=True)   #,inplace=True)   #drop=True,inplace=True)
@@ -2309,7 +2339,7 @@ df["","","","_t","",'weekno']= np.arange(df.shape[0])
 
 #df["","","","_t","",'weekno']= np.arange(df.shape[0])
 
-print("after7=\n",df)
+#print("after7=\n",df)
 ############################################
 # total all other on_promo and off_promo on matching productcodes (level 3)
 # and level 4 is either 0 or 1
@@ -2338,7 +2368,7 @@ for col_count in range(0,len(df.columns),2):
     df[cc]=df.T.xs(p,level=3).sum()
 
 
-print("after8=\n",df)
+#print("after8=\n",df)
 
 tdf=get_xs_name(df,("_t",3))
 plot_query2(tdf,['coles_BB_jams_total_scanned','coles_SD_jams_total_scanned','coles_BM_jams_total_scanned'],'BB total scanned Coles jam units per week')
@@ -2347,7 +2377,7 @@ plot_query2(tdf,['ww_BB_jams_total_scanned','ww_SD_jams_total_scanned','ww_BM_ja
 #tdf['coles_scan_week']=tdf.index
 #tdf.reset_index('scan_week',drop=True,inplace=True)
 tdf=tdf.astype(np.float64)
-print("tdf=\n",tdf)
+#print("tdf=\n",tdf)
 #print("tdf.T=\n",tdf.T)
 
 #sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='SD_on_promo',hue='BM_on_promo')  #,fit_reg=True,robust=True,legend=True) 
