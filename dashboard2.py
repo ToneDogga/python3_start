@@ -786,32 +786,32 @@ coles_and_ww_col_dict= {  "scan_week":(0,12,0,'_*',0,'scan_week'),
                 38:(2,10,10,"_*",1,"ww_SD_jams_on_promo_scanned"),
                 39:(3,10,10,"_*",0,"ww_BM_jams_off_promo_scanned"),
                 40:(3,10,10,"_*",1,"ww_BM_jams_on_promo_scanned"),
-                41:(4,10,10,"SJ300",0,"ww_BB_SJ300_off_promo_scanned"),
-                42:(4,10,10,"SJ300",1,"ww_BB_SJ300_on_promo_scanned"),
-                43:(5,10,10,"RJ300",0,"ww_BB_RJ300_off_promo_scanned"),
-                44:(5,10,10,"RJ300",1,"ww_BB_RJ300_on_promo_scanned"),
-                45:(6,10,10,"BOM300",0,"ww_BB_BOM300_off_promo_scanned"),
-                46:(6,10,10,"BOM300",1,"ww_BB_BOM300_on_promo_scanned"),
-                47:(7,10,10,"AJ300",0,"ww_BB_AJ300_off_promo_scanned"),
-                48:(7,10,10,"AJ300",1,"ww_BB_AJ300_on_promo_scanned"),
-                49:(8,10,10,"BB300",0,"ww_BB_BB300_off_promo_scanned"),
-                50:(8,10,10,"BB300",1,"ww_BB_BB300_on_promo_scanned"),
-                51:(9,10,10,"BLJ300",0,"ww_BB_BLJ300_off_promo_scanned"),
-                52:(9,10,10,"BLJ300",1,"ww_BB_BLJ300_on_promo_scanned"),
-                53:(10,10,11,"TS300",0,"ww_BB_TS300_off_promo_scanned"),
-                54:(10,10,11,"TS300",1,"ww_BB_TS300_on_promo_scanned"),
-                55:(11,10,13,"BUR260",0,"ww_BB_BUR260_off_promo_scanned"),
-                56:(11,10,13,"BUR260",1,"ww_BB_BUR260_on_promo_scanned"),
-                57:(12,10,13,"TC260",0,"ww_BB_TC260_off_promo_scanned"),
-                58:(12,10,13,"TC260",1,"ww_BB_TC260_on_promo_scanned"),
-                59:(13,10,13,"HTC260",0,"ww_BB_HTC260_off_promo_scanned"),
-                60:(13,10,13,"HTC260",1,"ww_BB_HTC260_on_promo_scanned"),
-                61:(14,10,13,"BBR280",0,"ww_BB_BBR280_off_promo_scanned"),
-                62:(14,10,13,"BBR280",1,"ww_BB_BBR280_on_promo_scanned"),
-                63:(15,10,13,"CAR280",0,"ww_BB_CAR280_off_promo_scanned"),
-                64:(15,10,13,"CAR280",1,"ww_BB_CAR280_on_promo_scanned"),
-                65:(16,10,13,"TCP280",0,"ww_BB_TCP280_off_promo_scanned"),
-                66:(16,10,13,"TCP280",1,"ww_BB_TCP280_on_promo_scanned")}
+                41:(1,10,10,"SJ300",0,"ww_BB_SJ300_off_promo_scanned"),
+                42:(1,10,10,"SJ300",1,"ww_BB_SJ300_on_promo_scanned"),
+                43:(1,10,10,"RJ300",0,"ww_BB_RJ300_off_promo_scanned"),
+                44:(1,10,10,"RJ300",1,"ww_BB_RJ300_on_promo_scanned"),
+                45:(1,10,10,"BOM300",0,"ww_BB_BOM300_off_promo_scanned"),
+                46:(1,10,10,"BOM300",1,"ww_BB_BOM300_on_promo_scanned"),
+                47:(1,10,10,"AJ300",0,"ww_BB_AJ300_off_promo_scanned"),
+                48:(1,10,10,"AJ300",1,"ww_BB_AJ300_on_promo_scanned"),
+                49:(1,10,10,"BB300",0,"ww_BB_BB300_off_promo_scanned"),
+                50:(1,10,10,"BB300",1,"ww_BB_BB300_on_promo_scanned"),
+                51:(1,10,10,"BLJ300",0,"ww_BB_BLJ300_off_promo_scanned"),
+                52:(1,10,10,"BLJ300",1,"ww_BB_BLJ300_on_promo_scanned"),
+                53:(1,10,11,"TS300",0,"ww_BB_TS300_off_promo_scanned"),
+                54:(1,10,11,"TS300",1,"ww_BB_TS300_on_promo_scanned"),
+                55:(1,10,13,"BUR260",0,"ww_BB_BUR260_off_promo_scanned"),
+                56:(1,10,13,"BUR260",1,"ww_BB_BUR260_on_promo_scanned"),
+                57:(1,10,13,"TC260",0,"ww_BB_TC260_off_promo_scanned"),
+                58:(1,10,13,"TC260",1,"ww_BB_TC260_on_promo_scanned"),
+                59:(1,10,13,"HTC260",0,"ww_BB_HTC260_off_promo_scanned"),
+                60:(1,10,13,"HTC260",1,"ww_BB_HTC260_on_promo_scanned"),
+                61:(1,10,13,"BBR280",0,"ww_BB_BBR280_off_promo_scanned"),
+                62:(1,10,13,"BBR280",1,"ww_BB_BBR280_on_promo_scanned"),
+                63:(1,10,13,"CAR280",0,"ww_BB_CAR280_off_promo_scanned"),
+                64:(1,10,13,"CAR280",1,"ww_BB_CAR280_on_promo_scanned"),
+                65:(1,10,13,"TCP280",0,"ww_BB_TCP280_off_promo_scanned"),
+                66:(1,10,13,"TCP280",1,"ww_BB_TCP280_on_promo_scanned")}
 
  
 
@@ -1002,7 +1002,7 @@ report_dict={report("report_type_dict",0,"",""):report_type_dict,
 batch_length=4
 no_of_batches=1000
 no_of_repeats=4
-epochs=8
+epochs=1
 
 
 
@@ -2198,102 +2198,60 @@ if False:
 
 
 #############################
- 
+# load scan data from excel reports into a df and add multiindexes for graphing options
 
    
 np.random.seed(42)
 tf.random.set_seed(42)
         
-#column_list=list(["coles_scan_week","bb_total_units","bb_promo_disc","sd_total_units","sd_promo_disc","bm_total_units","bm_promo_disc"])      
- 
- 
-
-#rename_dict=dict({"qty":"BB_total_invoiced_sales"})
 df=pd.read_excel(scandatalist[0],-1,skiprows=[0,1,2],dtype=object).T.reset_index(drop=True)  #,index_col=None)   #n,index_col=None)  #.T.reset_index()  #,header=[0,1,2])  #,skip_rows=0)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
 #print("start df=\n",df)
 for n in range(1,len(scandatalist)):
     df2=pd.read_excel(scandatalist[n],-1,skiprows=[0,1,2],dtype=object,index_col=None).T.reset_index(drop=True)   #,index_col=None)  #.T   #.reset_index()  #,header=[0,1,2])  #,skip_rows=0)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
- #   df2=pd.read_excel(scandatalist[n],-1,skiprows=[0,1,2],dtype=object).T.reset_index(drop=True)   #,index_col=None)  #.T   #.reset_index()  #,header=[0,1,2])  #,skip_rows=0)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
 
     df2.drop(df2.index[0],inplace=True)
     df=pd.concat((df,df2),axis=0)
-#print("df[n]=\n",n,"=\n",df)
 
-#df=df.reset_index()
-#df=df.T
-#df=df.T
-#df=df.T
-#df.iloc[:2].fillna(0.0,inplace=True)
-#df.iloc[:2].replace(np.nan, 0.0,inplace=True)
-#print("before rename=\n",df)
-#df=df.T
-#df.drop(df[df.iloc[:,0].isnull()],inplace=True,axis='columns')
-
-#df=df.T
-#print(df)
 df.reset_index(drop=True,inplace=True)
 
-#df=df.T   #reset_index(drop=True).T
-#df.reset_index(drop=True,inplace=True)
-
-
-#df = df.rename({0:"scan_week"})
-#df = df.astype(coles_and_ww_convert_dict) 
-
-
-#df = df.rename(coles_and_ww_col_dict)   #,axis='index')
-#df.iloc[2:].fillna(0.0,inplace=True)
 
 df = df.rename({0:"scan_week"})
 df=df.T
-#df.reset_index(drop=True,inplace=True)
 
-#print("after rename1=\n",df)
-#df.reset_index(drop=True,inplace=True)
-#df=df.loc[df.scan_week.dropna()]
-#df=df.loc[~df.scan_week.isnull()]
-#df=df.loc[df.iloc[2:].all()==0]
 df = df.dropna(subset=['scan_week'])
 df.fillna(0.0,inplace=True)
 
-#df=df.drop(df[df.scan_week.isnull()])   #,inplace=True)  #,axis='columns')
-
-#print("after rename2=\n",df)
-#df.reset_index(drop=True,inplace=True)
-
-#df=df.T
 df = df.astype(coles_and_ww_convert_dict) 
-#print("after rename3=\n",df)  #.iloc[:,:4])
-
-#df=df.T
 df['scan_week']=pd.to_datetime(df['scan_week'],format="%d/%m/%Y",exact=False)   #,yearfirst=True)
 
 df = df.rename(coles_and_ww_col_dict,axis='columns')
-print("after rename2=\n",df)
+#print("after rename2=\n",df.index)
 df.drop_duplicates(keep='first', inplace=True)
+# delete weeks with all zeros
+#print("df before delete=\n",df)  #.to_string())  #.tail(10),"\n",df.T,"\n",df.columns,df.T.columns)
+#df = df[(df.iloc[:,2:] != 0.0).any()]
+df=df[df.sum(axis=1)!=0]
+#print("empty1 df=\n",df.iloc[:,1:])
+#df2=df.iloc[:,1:]
+#print("df2=\n",df2)
+#print("df2.sum=\n",df2.sum(axis=1))
+
+#print("nonempty df=\n",df,"\n",df.T)  #df[df.sum(axis=1)==0])
+#print("empty3 df=\n",df[(df.iloc[:,2:]!=0).any()])
+
+#print("df after delete=\n",df)  #to_string())  #tail(10),"\n",df.T,"\n",df.columns,df.T.columns)
+
+
+
 df.reset_index(drop=True,inplace=True)
 
-
-print("after rename3=\n",df)
-
-#df=df.T
-#df.set_index('scan_week',inplace=True)   #drop=True,inplace=True)
-#df=df.T
-# using dictionary to convert specific columns 
-#df.reset_index(drop=True,inplace=True)
-#df.set_index('scan_week',inplace=True) 
-#df['scan_week']=df.index
-#print("after rename2=\n",df)   #.iloc[:,:4])
-
-
-#df['scan_week']=df.index
-#print("after rename4=\n",df)  #.iloc[:,:4])
-#df=df.set_index('scan_week',drop=True)   #,inplace=True)   #drop=True,inplace=True)
-#
 df=df.T
 #print("df5=\n",df)
 df.index = pd.MultiIndex.from_tuples(df.index,names=["brand","specialpricecat","productgroup","product","on_promo","names"])
+#print("df level (0)=\n",df.index.get_level_values(0))
+
 df=df.T
+
 #print("final loaded df=\n",df)
 df.drop_duplicates(keep='first', inplace=True)
 df=df.set_index(list(df.columns[[0]]))   #.dt.strftime('%d/%m/%Y')
@@ -2306,7 +2264,7 @@ df=df.astype(np.float32)  #,inplace=True)
 df.replace(np.nan, 0.0,inplace=True)
 df=df*1000
 #test=get_xs_name(df,3,0)
-#print("test=\n",test)
+#print("df6=\n",df,"\n",df.T)
 
 
 df[0,12,10,"_T",0,'coles_jams_total_scanned']=df[0,12,10,"_*",0,'coles_total_jam_curd_marm_off_promo_scanned']+df[0,12,10,"_*",1,'coles_total_jam_curd_marm_on_promo_scanned']
@@ -2331,15 +2289,14 @@ df[3,10,10,"_t",0,'ww_BM_jams_on_promo']=(df[3,10,10,"_*",1,'ww_BM_jams_on_promo
 
 
 
-#df.replace(np.nan, 0.0, inplace=True)
 
 df["","","","_t","",'weekno']= np.arange(df.shape[0])
 
 
+#print("df7.T=\n",df.T)   #,"\n",df.T)
+#print("df7 levels=\n",df.columns.levels)
+#print("df7 level (0)=\n",df.T.index.get_level_values(0))
 
-#df["","","","_t","",'weekno']= np.arange(df.shape[0])
-
-#print("after7=\n",df)
 ############################################
 # total all other on_promo and off_promo on matching productcodes (level 3)
 # and level 4 is either 0 or 1
@@ -2349,10 +2306,18 @@ df["","","","_t","",'weekno']= np.arange(df.shape[0])
 
 for col_count in range(0,len(df.columns),2):
     cc=list(df.iloc[:,col_count].name)
+    #print("cc=",cc)
     if cc[0]==1:
         brand="BB"
+    elif cc[0]==2:
+        brand="SD"
+    elif cc[0]==3:
+        brand="BM"
+    elif cc[0]==0:
+        brand="Total"
     else:
-        brand="other"
+        brand=str(cc[0])+"Other"
+        
     if cc[1]==10:
         cust="WW"
     elif cc[1]==12:
@@ -2428,7 +2393,7 @@ save_fig("ww6")   #,images_path)
 # ndf=ndf.droplevel(level=0,axis=1)
 # ndf=ndf.droplevel(level=0,axis=1)
 
-print("tdf8=\n",tdf)
+#print("tdf.T=\n",tdf.T)   #,"\n",tdf.T)
 # #print("df.t=\n",df.T)
 
 # #print("ndf=\n",ndf)
@@ -2499,7 +2464,6 @@ coles_and_ww_pkl_dict=report_dict[report('coles_and_ww_pkl_dict',0,"","")]
 
 ###########################################3
 
-
 joined_df=df.copy(deep=True)
 for key in coles_and_ww_pkl_dict.keys():
    # savepkl="scanned_sales_plus_"+key
@@ -2538,10 +2502,15 @@ joined_df=joined_df.T
 
 joined_df.index = pd.MultiIndex.from_tuples(joined_df.index,names=["brand","specialpricecat","productgroup","product","on_promo","names"])
 joined_df=joined_df.T
+#print("joined_df keys=\n",joined_df.keys())
 
+#print("joined df=\n",joined_df,"\n",joined_df.T)
 
-products=list(set(list(joined_df.columns.get_level_values(3))))
-print("products=",products)
+#products=list(set(list(joined_df.columns.get_level_values(3))))
+retailers=list(set(list(joined_df.columns.get_level_values(1))))
+
+#print("retailers=",retailers)
+#print("products=",products)
 
 #graph_list=[]
 #print("jdf=\n",joined_df)
@@ -2552,40 +2521,89 @@ joined_df['lastdate'] = pd.to_datetime(joined_df.index,format="%Y-%m-%d",exact=F
 
 latest_date = joined_df['lastdate'].max()
 
-  
-for p in products:
-    if (p=="_t") | (p=="_*") | (p=="_T"):
+
+
+
+
+
+
+scan_sort=joined_df.T.droplevel(level=2,axis=0)
+#print("scan_sort=\n",scan_sort)
+
+#scan_sort=scan_sort.droplevel(level=1,axis=0)
+#scan_sort=scan_sort.droplevel(level=2,axis=0)
+scan_sort=scan_sort.droplevel(level=3,axis=0)
+print("scan sort=\n",scan_sort)  #,"\n",scan_sort.T)
+mat=4
+
+
+
+for r in retailers: 
+    if r=="":
         pass
     else:
-        test=joined_df.T.xs(p,level=3,drop_level=True)
-        test=test.droplevel(level=0,axis=0)
-        test=test.droplevel(level=0,axis=0)
-        test=test.droplevel(level=0,axis=0).T
-        mat=4
-        rdf=test[[2,3,4]].rolling(mat,axis=0).mean()
+        retailers_slice=scan_sort.xs(r,level=1,drop_level=True)
+      #  print("r",r,"retailers_slice",retailers_slice)
+        brands=list(set(list(retailers_slice.index.get_level_values(0))))
+    #    retailers_slice=retailers_slice.droplevel(level=0)
+
+        products=list(set(list(retailers_slice.index.get_level_values(1))))
+  #      print("retailers=",r,"products=",products)
+        if r==10:
+            ptx="ww_"
+        elif r==12:
+            ptx="coles_"
+        else:
+            ptx="other_"
+ 
+        for b in brands:
+            brand_slice=retailers_slice.xs(b,level=0,drop_level=True)
+            print("brand slice=\n",brand_slice)
+            if b==1:
+                btx="BB_"
+            elif b==2:
+                btx="SD_"
+            elif b==3:
+                btx="BM_"
+            else:
+                btx="other_"
+
+            for p in products:
+                final_slice=brand_slice.xs(p,level=0,drop_level=True)
+                print("final_slice=\n",final_slice)
+                if (p=="_t") | (p=="_*") | (p=="_T"):
+                    pass
+                else:
+     #               print("final_slice=\n",final_slice)
+                    #rdf=final_slice[[2,3,4]].rolling(mat,axis=0).mean()
+                    rdf=final_slice.iloc[2:].rolling(mat,axis=0).mean()
+                    
+                    rdf.replace(np.nan, 0.0,inplace=True)
+                 #   rdf=rdf.iloc[2:]
+                  #  rdf=rdf.droplevel(level=0,axis=1)
+                    print("rdf shape=",rdf.shape,"\n")  #,rdf.index)
+                    if rdf.shape[0]==3:
+                        #print(rdf)
         
-        rdf=rdf.droplevel(level=0,axis=1)
-        
-
-        styles1 = ['b-','g:','r-']
-       # styles1 = ['bs-','ro:','y^-']
-        linewidths = 1  # [2, 1, 4]
-
-        #styles2 = ['rs-','go-','b^-']
-       # fig, ax = plt.subplots()
-
-        ax2=rdf.plot(grid=True,title="Units moving total "+str(p)+":"+str(mat)+" weeks w/c:("+str(latest_date)+")",style=styles1, lw=linewidths)   #),'BB total scanned vs purchased Coles jam units per week')
-        ax2.legend(title="")
-        save_fig(p+"_moving_total")   #,images_path)
-#plt.grid(True)
-      #  plt.show()
-plt.close("all")
-
-#savepkl="invoiced_and_scanned_sales.pkl"
-
-print("saving query dataframe:",savepkl)
-pd.to_pickle(rdf,savepkl)
-
+                        styles1 = ['b-','g:','r-']
+                       # styles1 = ['bs-','ro:','y^-']
+                        linewidths = 1  # [2, 1, 4]
+                
+                        #styles2 = ['rs-','go-','b^-']
+                       # fig, ax = plt.subplots()
+                
+                        ax2=rdf.T.plot(grid=True,title="Units moving total "+str(p)+":"+str(mat)+" weeks w/c:("+str(latest_date)+")",style=styles1, lw=linewidths)   #),'BB total scanned vs purchased Coles jam units per week')
+                        ax2.legend(title="")
+                        save_fig(ptx+btx+str(p)+"_moving_total")   #,images_path)
+    #plt.grid(True)
+          #  plt.show()
+                   #     plt.close("all")
+    
+    #savepkl="invoiced_and_scanned_sales.pkl"
+    
+                        print("saving query dataframe:",ptx+btx+str(p)+"_rdf.pkl")
+                        pd.to_pickle(rdf,ptx+btx+str(p)+"_rdf.pkl")
+                        plt.close()  #("all")
 #print(joined_df.columns)
 
 
@@ -2598,6 +2616,9 @@ hdf=joined_df.copy(deep=True)
 if hdf.columns.nlevels>=2:
     for _ in range(hdf.columns.nlevels-1):
         hdf=hdf.droplevel(level=0,axis=1)
+
+##############################################################################
+
 
 #hdf=get_xs_name2(joined_df,"",5)
 #print("hdf=\n",hdf.columns)
@@ -2612,12 +2633,30 @@ ax.legend(title="")
 save_fig("Coles_total_jams_units_moving_total")
 #plt.show()
 #print(df)
+plt.close()   #"all")
+
+
+#hdf=get_xs_name2(joined_df,"",5)
+#print("hdf=\n",hdf.columns)
+df=hdf[['ww_BB_jams_total_scanned','ww_BB_jams_invoiced','ww_BB_jams_invoiced_shifted_3wks']].rolling(mat,axis=0).mean()
+styles1 = ['b-','g:','r-']
+       # styles1 = ['bs-','ro:','y^-']
+linewidths = 1  # [2, 1, 4]
+
+  
+ax=df.plot(grid=True,title="ww units moving total "+str(mat)+" weeks w/c:"+str(latest_date),style=styles1, lw=linewidths)
+ax.legend(title="")
+save_fig("Ww_total_jams_units_moving_total")
+#plt.show()
+#print(df)
 plt.close("all")
+
+
 
 ############################################################33
 # load previous runs coles_predictions
 
-previous_df=pd.read_pickle("coles_order_predict_results.pkl")
+previous_df=pd.read_pickle("order_predict_results.pkl")
 #prev_cols=list(previous_df.columns).contains("prediction")
 #print("prev_cols",prev_cols)
 pred_cols = [col for col in previous_df.columns if 'prediction' in col]
@@ -2639,44 +2678,82 @@ previous_df.columns=previous_df.columns+"_old"
 #answer="n"
 #answer=input("\nPredict next weeks Coles orders? (y/n)\n")
 #if answer=="y":
-pfx="coles_BB_"
-print("Orders to predict:",pfx,products)
-count=0
-for p in products:
-    
-    if (p=="_t") | (p=="_*") | (p=="_T"):
+#scan_sort=scan_sort.T
+#print("retailers=",retailers)
+#print("scan sort=\n",scan_sort)
+for r in retailers: 
+    if r=="":
         pass
     else:
-        test=joined_df.T.xs(p,level=3,drop_level=True)
-        test=test.droplevel(level=0)
-        test=test.droplevel(level=0)
-        test=test.droplevel(level=0).T
-        mdf=test[[2,3,4]]   #.rolling(mat,axis=0).mean()
-        
-        mdf=mdf.droplevel(level=0,axis=1)
-        
-        
-        mdf.fillna(0,inplace=True)
-        if mdf.shape[1]>2:
-            # X_set=mdf['coles_BB_jams_total_scanned'].to_numpy().astype(np.int32)[7:-1]
-            X_set=mdf.iloc[:,0].to_numpy().astype(np.int32)[7:-1]     #np.array([13400, 12132, 12846, 9522, 11858 ,13846 ,13492, 12310, 13584 ,13324, 15656 ,15878 ,13566, 10104 , 7704  ,7704])
+        retailers_slice=scan_sort.xs(r,level=1,drop_level=True)
+        print("retailer",r,"slice=\n",retailers_slice)
+        brands=list(set(list(retailers_slice.index.get_level_values(0))))
+    #    retailers_slice=retailers_slice.droplevel(level=0)
+        products=list(set(list(retailers_slice.index.get_level_values(1))))
+        print("products=",products)
+        if r==10:
+            ptx="ww_"
+        elif r==12:
+            ptx="coles_"
+        else:
+            ptx="other_"
+                
+        for b in brands:
+            brand_slice=retailers_slice.xs(b,level=0,drop_level=True)
+            print("brand slice=\n",brand_slice)
+
+            if b==1:
+                btx="BB_"
+            elif b==2:
+                btx="SD_"
+            elif b==3:
+                btx="BM_"
+            else:
+                btx="other_"
+
+   # pfx="coles_BB_"
+   # print("Orders to predict:",pfx,products)
+            count=0
+            for p in products:
+                
+                if (p=="_t") | (p=="_*") | (p=="_T"):
+                    pass
+                else:
+                    mdf=brand_slice.xs(p,level=0,drop_level=True)
      
-     
-          #  y_set=mdf['coles_BB_jams_invoiced_shifted_3wks'].to_numpy()[7:-1]   #iloc[target_offset:].to_numpy()
-            y_set=mdf.iloc[:,2].to_numpy().astype(np.int32)[7:-1]
-          #   X_new=mdf['coles_BB_jams_total_scanned'].to_numpy().astype(np.int32)[-2:]   #iloc[target_offset:].to_numpy()
+                   # print("mdf=\n",mdf)
+                    #mdf=mdf.droplevel(level=0)
+                   # test=test.droplevel(level=0)
+                   # test=test.droplevel(level=0).T
+                   # mdf=test[[2,3,4]]   #.rolling(mat,axis=0).mean()
+                    
+                   # mdf=final_slice.droplevel(level=0,axis=1)
+                    if mdf.shape[0]>2:
+                    
+                        mdf.fillna(0,inplace=True)
+                        mdf=mdf.T
+                        print("p=",p,"mdf=\n",mdf)
     
-            dates=mdf.index.tolist()[7:-1]
     
-        #    print(p,mdf.T,X_set,y_set)
-            model=train_model(pfx+p,X_set,y_set,batch_length,no_of_batches)
-            if count==0:
-                results=predict_order(mdf,pfx+p,model).iloc[:,:]
-            else:    
-                results=pd.concat((results,predict_order(mdf,pfx+p,model).iloc[:,:]),axis=1)
-        #    print(count,"results:=\n",results,results.shape)    
-            count+=1    
-            
+                        # X_set=mdf['coles_BB_jams_total_scanned'].to_numpy().astype(np.int32)[7:-1]
+                        X_set=mdf.iloc[:,0].to_numpy().astype(np.int32)[7:-1]     #np.array([13400, 12132, 12846, 9522, 11858 ,13846 ,13492, 12310, 13584 ,13324, 15656 ,15878 ,13566, 10104 , 7704  ,7704])
+                 
+                 
+                      #  y_set=mdf['coles_BB_jams_invoiced_shifted_3wks'].to_numpy()[7:-1]   #iloc[target_offset:].to_numpy()
+                        y_set=mdf.iloc[:,2].to_numpy().astype(np.int32)[7:-1]
+                      #   X_new=mdf['coles_BB_jams_total_scanned'].to_numpy().astype(np.int32)[-2:]   #iloc[target_offset:].to_numpy()
+                
+                        dates=mdf.index.tolist()[7:-1]
+                
+                        print("\n\n",r,ptx,btx,p,mdf.T,X_set.shape,y_set.shape)
+                        model=train_model(ptx+btx+str(p),X_set,y_set,batch_length,no_of_batches)
+                        if count==0:
+                            results=predict_order(mdf,ptx+btx+str(p),model).iloc[:,:]
+                        else:    
+                            results=pd.concat((results,predict_order(mdf,ptx+btx+str(p),model).iloc[:,:]),axis=1)
+                    #    print(count,"results:=\n",results,results.shape)    
+                        count+=1    
+                    
     
  #   print("results=\n",results)
  #   print("results.T=\n",results.T)
@@ -2686,10 +2763,10 @@ if results.shape[0]>0:
     results.sort_index(axis=1,inplace=True)
     print("results=\n",results.tail(5))
     
-    results.to_pickle(output_dir+"coles_and_ww_order_predict_results.pkl")
-    results.to_pickle("coles_and_ww_order_predict_results.pkl")
+    results.to_pickle(output_dir+"order_predict_results.pkl")
+    results.to_pickle("order_predict_results.pkl")
     
-    results.to_excel(output_dir+"coles_and_ww_order_predict_results.xlsx")
+    results.to_excel(output_dir+"order_predict_results.xlsx")
 
 
 ##########################################################################3
@@ -2766,15 +2843,15 @@ if results.shape[0]>0:
 
   
 
-#plot_query2(df,['WW_BB_jams_total_scanned'],'BB total scanned WW jam units per week')
-
-
-#    test=joined_df.T.xs(p,level=3,drop_level=True)
-ndf=df.droplevel(level=0,axis=1)
-ndf=ndf.droplevel(level=0,axis=1)
-ndf=ndf.droplevel(level=0,axis=1)
-ndf=ndf.droplevel(level=0,axis=1)
-ndf=ndf.droplevel(level=0,axis=1)
+# #plot_query2(df,['WW_BB_jams_total_scanned'],'BB total scanned WW jam units per week')
+# ndf=df.copy(deep=True)
+# print("ndf=\n",ndf)
+# #    test=joined_df.T.xs(p,level=3,drop_level=True)
+# ndf=df.droplevel(level=0,axis=0)
+# ndf=ndf.droplevel(level=0,axis=0)
+# ndf=ndf.droplevel(level=0,axis=0)
+# ndf=ndf.droplevel(level=0,axis=0)
+# ndf=ndf.droplevel(level=0,axis=0)
 
 #print("df=\n",df)
 #print("df.t=\n",df.T)
@@ -2783,34 +2860,34 @@ ndf=ndf.droplevel(level=0,axis=1)
 #plot_query2(ndf,['WW_BB_jams_total_scanned','WW_SD_jams_total_scanned','WW_BM_jams_total_scanned'],'BB total scanned WW jam units per week')
 
 
-ndf.replace(np.nan, 0.0, inplace=True)
-#
-ndf.reset_index('scan_week',drop=True,inplace=True)
-ndf=ndf.astype(np.float64)
-#print("ndf=\n",ndf)
-#print("ndf.t=\n",ndf.T)
+# ndf.replace(np.nan, 0.0, inplace=True)
+# #
+# ndf.reset_index('scan_week',drop=True,inplace=True)
+# ndf=ndf.astype(np.float64)
+# #print("ndf=\n",ndf)
+# #print("ndf.t=\n",ndf.T)
 
-#ndf.index = pd.to_datetime(ndf.index, format = "%Y-%m-%d",infer_datetime_format=True)
+# #ndf.index = pd.to_datetime(ndf.index, format = "%Y-%m-%d",infer_datetime_format=True)
 
-#print(ndf.index)
-#sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='SD_on_promo',hue='BM_on_promo')  #,fit_reg=True,robust=True,legend=True) 
-#sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='BM_on_promo',hue='SD_on_promo')  #,fit_reg=True,robust=True,legend=True) 
-#sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_SD_jams_on_promo',hue='WW_BB_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
-#save_fig("ww1",images_path)
-#sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_BM_jams_on_promo',hue='WW_BB_jams_on_promo')
-#save_fig("ww2",images_path)
-sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_BB_jams_on_promo',hue='WW_SD_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
-save_fig("ww1")  #,images_path)
-sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_BB_jams_on_promo',hue='WW_BM_jams_on_promo')
-save_fig("ww2")   #,images_path)
-sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_BM_jams_on_promo',hue='WW_BB_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
-save_fig("ww3")  #,images_path)
-sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_SD_jams_on_promo',hue='WW_BB_jams_on_promo')
-save_fig("ww4")   #,images_path)    
-sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_BM_jams_on_promo',hue='WW_SD_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
-save_fig("ww5")  #,images_path)
-sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_SD_jams_on_promo',hue='WW_BM_jams_on_promo')
-save_fig("ww6")   #,images_path)
+# #print(ndf.index)
+# #sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='SD_on_promo',hue='BM_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+# #sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='BM_on_promo',hue='SD_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+# #sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_SD_jams_on_promo',hue='WW_BB_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+# #save_fig("ww1",images_path)
+# #sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_BM_jams_on_promo',hue='WW_BB_jams_on_promo')
+# #save_fig("ww2",images_path)
+# sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_BB_jams_on_promo',hue='WW_SD_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+# save_fig("ww1")  #,images_path)
+# sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_BB_jams_on_promo',hue='WW_BM_jams_on_promo')
+# save_fig("ww2")   #,images_path)
+# sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_BM_jams_on_promo',hue='WW_BB_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+# save_fig("ww3")  #,images_path)
+# sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_SD_jams_on_promo',hue='WW_BB_jams_on_promo')
+# save_fig("ww4")   #,images_path)    
+# sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_BM_jams_on_promo',hue='WW_SD_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+# save_fig("ww5")  #,images_path)
+# sns.lmplot(x='weekno',y='WW_BB_jams_total_scanned',data=ndf,col='WW_SD_jams_on_promo',hue='WW_BM_jams_on_promo')
+# save_fig("ww6")   #,images_path)
 
 
 plt.close("all")
