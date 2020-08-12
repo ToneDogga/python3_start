@@ -464,6 +464,8 @@ def plot_query2(query_df_passed,plot_col,query_name):
     plt.legend(fontsize=8)
     plt.ylabel("(000) units scanned/week")
     plt.grid(True)
+    figname="fig_4_"+"Unit scanned sales (000):"+query_name
+    save_fig(figname)
  #   self.save_fig("actual_"+query_name+query_details,self.images_path)
   #  plt.draw()
   #  plt.pause(0.001)
@@ -652,6 +654,16 @@ def glset_GSV(dds,title):
     return dds[['date','mat7','diff7','30_day%','90_day%','365_day%','mat']].tail(18),figname
     
 
+
+
+def find_active_products(sales_df,age):  # 90 days?  retuen product codes of products sold in past {age} days
+    print("sales df1=\n",sales_df)
+ #   sales_df=sales_df[sales_df['date']>]
+ #   sales_df['recents']=pd.Timedelta(pd.to_datetime('today') -lastone['date']).days
+    sales_df['diff1']=sales_df.date.diff(periods=1)
+    #print("td=",sales_df['date']-pd.to_datetime('today'))   #,unit='days'))
+    print("saels df2=\n",sales_df)
+    return []
 
 
  
@@ -2128,35 +2140,82 @@ year_sales_df=sales_df[sales_df['date']>end_date]
 year_sales_df=year_sales_df[year_sales_df['productgroup'].isin(product_groups_only) & year_sales_df['specialpricecat'].isin(spc_only)]   
 #print("ysdf2=",year_sales_df[['date','code','product']])
   
-cust_list=year_sales_df.code.unique()
-cust_list = cust_list[cust_list != 'OFFINV']
+#cust_list=year_sales_df.code.unique()
+#cust_list = cust_list[cust_list != 'OFFINV']
 #cust_licust_list.remove('OFFINV')
-cust_list.sort()
-prod_list=year_sales_df['product'].unique()
-prod_list.sort()
+#cust_list.sort()
+#prod_list=year_sales_df[['product','productgroup']].sort_values(by=['productgroup'])   #.unique()
 
+end_date=sales_df['date'].iloc[-1]- pd.Timedelta(90, unit='d')
+#print(end_date)
+ninetyday_sales_df=sales_df[sales_df['date']>end_date]
+#print("ysdf1=",year_sales_df)
+ninetyday_sales_df=ninetyday_sales_df[ninetyday_sales_df['productgroup'].isin(product_groups_only) & ninetyday_sales_df['specialpricecat'].isin(spc_only)]   
+
+#prod_list=list(set([tuple(r) for r in year_sales_df[['productgroup', 'product']].sort_values(by=['productgroup','product'],ascending=[True,True]).to_numpy()]))
+prod_list=list(set([tuple(r) for r in ninetyday_sales_df[['productgroup', 'product']].to_numpy()]))
+cust_list=list(set([tuple(r) for r in ninetyday_sales_df[['specialpricecat', 'code']].to_numpy()]))
+#cust_list = cust_list[cust_list != (88.0,'OFFINV')]
+cust_list.remove((88.0,'OFFINV'))
+#print("prod_list=\n",prod_list)
+#print("cust_list=\n",cust_list)
+#prod_list.sort()
+#print("prod_list=",prod_list)
 #print("c=",cust_list,len(cust_list))
 #print("p=",prod_list,len(prod_list))
 
 print("\nunique customers=",len(cust_list))
 print("unique products=",len(prod_list))
 
+cust_dict={k: v for v, k in enumerate(cust_list)}
+prod_dict={k: v for v, k in enumerate(prod_list)}
+#print("cist dict=\n",cust_dict)
+#print("prod dict=\n",prod_dict)
+dist_df=pd.DataFrame.from_dict(cust_dict,orient='index')  
+for p in prod_dict.keys():
+    dist_df[p]=False #np.nan  #False#,columns=prod_list)
+
+dist_df.drop(0,inplace=True,axis=1)
+dist_df=dist_df.T
+dist_df.index=pd.MultiIndex.from_tuples(dist_df.index,sortorder=0,names=['productgroup','product'])
+dist_df.sort_index(level=0,ascending=True,inplace=True)
+dist_df=dist_df.T
+dist_df.index=pd.MultiIndex.from_tuples(dist_df.index,sortorder=0,names=['specialpricecat','code'])
+dist_df.sort_index(level=0,ascending=True,inplace=True)
+
+#df.index = pd.MultiIndex.from_tuples(df.index,names=["brand","specialpricecat","productgroup","product","on_promo","names"])
+#print("df level (0)=\n",df.index.get_level_values(0))
+
+#print("dist_df before=\n",dist_df)
 
 year_sales_df['counter']=0
 new_sales_df=year_sales_df.copy(deep=True)
 new_sales_df=new_sales_df.iloc[0:0]
+
+newninety_sales_df=ninetyday_sales_df.copy(deep=True)
+newninety_sales_df=newninety_sales_df.iloc[0:0]
+
 #print(new_sales_df)
 
 #figure_list=[]
+#dist_df=pd.DataFrame(cust_dict)
+#print("dist df ",dist_df)
 t=0
 total=len(cust_list)*len(prod_list)
 print("total combinations=",total,"\n")
-if False:
+if True:
+#    product_list=find_active_products(new_sales_df,age=90)  # 90 days
     for cust in cust_list:
         for prod in prod_list:
-            s=year_sales_df[(year_sales_df['code']==cust) & (year_sales_df['product']==prod) & (year_sales_df['salesval']>0.0) & (year_sales_df['qty']>0.0)].copy(deep=True)
+            r=ninetyday_sales_df[(ninetyday_sales_df['code']==cust[1]) & (ninetyday_sales_df['product']==prod[1]) & (ninetyday_sales_df['salesval']>0.0) & (ninetyday_sales_df['qty']>0.0)].copy(deep=True)
+         #   s['counter']=s.shape[0]
+ 
+            s=year_sales_df[(year_sales_df['code']==cust[1]) & (year_sales_df['product']==prod[1]) & (year_sales_df['salesval']>0.0) & (year_sales_df['qty']>0.0)].copy(deep=True)
             s['counter']=s.shape[0]
-        #    print("s=\n",s[['code','product','counter']],s.shape)
+            if r.shape[0]>0:
+                dist_df.loc[cust,prod]=True #s.date.max()
+                print("r=",r)
+             #   print("no distribution=\n",cust,"->", prod)  #s[['code','product']])
             s=s.sort_values('date',ascending=False)
           #  s.index=s.date
             t+=1
@@ -2164,14 +2223,16 @@ if False:
                 print("\r",cust,prod,"+",s.shape[0],"=",new_sales_df.shape[0],int(round(t/total*100,0)),"%               ",end='\r',flush=True)
     
             if s.shape[0]>7: 
-                s['slope'],figname,name=calculate_first_derivative(s,cust,prod,latest_date)  
+                s['slope'],figname,name=calculate_first_derivative(s,cust[1],prod[1],latest_date)  
                # s['figure']=figure
               #  figure_list.append(figure)
                 new_sales_df=new_sales_df.append(s)
                 if (figname!="") & (name!=""):
-                    report_dict[report(name,8,cust,prod)]=figname
+                    report_dict[report(name,8,cust[1],prod[1])]=figname
      
     print("\n\n")
+    print("distribution matrix =\n",dist_df)
+    dist_df.to_excel(output_dir+"distribution_report.xlsx")
     #print("\nysdf3=",new_sales_df[['date','code','product','counter','slope']],new_sales_df.shape)
     new_sales_df.drop_duplicates(['code','product'],keep='first',inplace=True)
     #new_sales_df=new_sales_df[new_sales_df['slope']>0.02]
@@ -2181,7 +2242,7 @@ if False:
     print("\nworst growth=",new_sales_df[['code','product','slope']].tail(50).to_string())
     print(new_sales_df.shape)
     report_dict[report(name,3,"_*","_*")]=new_sales_df
-    new_sales_df[['code','product','slope']].to_excel(output_dir+name+".xlsx") 
+    new_sales_df[['code','product','slope']].to_excel(output_dir+name+".xlsx",merge_cells=False,freeze_panes=(2,2)) 
     
     
     #print("\n\nreport dict=\n",report_dict.keys())
