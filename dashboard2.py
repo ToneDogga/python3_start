@@ -2171,9 +2171,11 @@ cust_dict={k: v for v, k in enumerate(cust_list)}
 prod_dict={k: v for v, k in enumerate(prod_list)}
 #print("cist dict=\n",cust_dict)
 #print("prod dict=\n",prod_dict)
-dist_df=pd.DataFrame.from_dict(cust_dict,orient='index')  
+dist_df=pd.DataFrame.from_dict(cust_dict,orient='index',dtype=object)  
 for p in prod_dict.keys():
-    dist_df[p]=False #np.nan  #False#,columns=prod_list)
+#    print pd.to_datetime(dict(year=df.Y, month=df.M, day=df.D))
+    dist_df[p]= df.apply(lambda row : pd.to_datetime(dict(year=[2000],month=[1],day=[1])), axis=1)
+#    dist_df[p]=0 #pd.to_datetime({'year': 2000,'month':1,'day':1})   #0  #False #np.nan  #False#,columns=prod_list)
 
 dist_df.drop(0,inplace=True,axis=1)
 dist_df=dist_df.T
@@ -2213,8 +2215,8 @@ if True:
             s=year_sales_df[(year_sales_df['code']==cust[1]) & (year_sales_df['product']==prod[1]) & (year_sales_df['salesval']>0.0) & (year_sales_df['qty']>0.0)].copy(deep=True)
             s['counter']=s.shape[0]
             if r.shape[0]>0:
-                dist_df.loc[cust,prod]=True #s.date.max()
-                print("r=",r)
+                dist_df.loc[cust,prod]=r['date'].dt.strftime('%d/%m/%Y').max()      #pd.to_datetime({'year': 2020,'month': 1,'day': 1})  #  r.shape[0] #s.date.max()
+           #     print("r['date']=",r['date'],"\n",r['date'].max())
              #   print("no distribution=\n",cust,"->", prod)  #s[['code','product']])
             s=s.sort_values('date',ascending=False)
           #  s.index=s.date
@@ -2231,7 +2233,7 @@ if True:
                     report_dict[report(name,8,cust[1],prod[1])]=figname
      
     print("\n\n")
-    print("distribution matrix =\n",dist_df)
+    #print("distribution matrix =\n",dist_df)
     dist_df.to_excel(output_dir+"distribution_report.xlsx")
     #print("\nysdf3=",new_sales_df[['date','code','product','counter','slope']],new_sales_df.shape)
     new_sales_df.drop_duplicates(['code','product'],keep='first',inplace=True)
