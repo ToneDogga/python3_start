@@ -1043,7 +1043,8 @@ stock_df['recent']=stock_df['end_date']>pd.Timestamp('today')
 
 
 #print("stock_df=\n",stock_df)
-stock_df=stock_df[(stock_df['qtyinstock']<=2000) & (stock_df['recent']==True) & ((stock_df['productgroup']>=10) & (stock_df['productgroup']<=17))]  # | (stock_df['productgroup']==12) | (stock_df['productgroup']==13) | (stock_df['productgroup']==14) | (stock_df['productgroup']<=17))]
+#stock_df=stock_df[(stock_df['qtyinstock']<=2000) & (stock_df['recent']==True) & ((stock_df['productgroup']>=10) & (stock_df['productgroup']<=17))]  # | (stock_df['productgroup']==12) | (stock_df['productgroup']==13) | (stock_df['productgroup']==14) | (stock_df['productgroup']<=17))]
+stock_df=stock_df[(stock_df['recent']==True) & ((stock_df['productgroup']>=10) & (stock_df['productgroup']<=17))]  # | (stock_df['productgroup']==12) | (stock_df['productgroup']==13) | (stock_df['productgroup']==14) | (stock_df['productgroup']<=17))]
                 
 stock_report_df=stock_df[['productgroup','code','lastsalesdate','qtyinstock']].sort_values(['productgroup','qtyinstock'],ascending=[True,True])
 
@@ -2336,9 +2337,9 @@ df[2,12,10,"_t",0,'coles_SD_jams_total_scanned']=df[2,12,10,"_*",0,'coles_SD_jam
 df[3,12,10,"_t",0,'coles_BM_jams_total_scanned']=df[3,12,10,"_*",0,'coles_BM_jams_off_promo_scanned']+df[3,12,10,"_*",1,'coles_BM_jams_on_promo_scanned']
 #df=df*1000
 
-df[1,12,10,"_t",0,'coles_BB_jams_on_promo']=(df[1,12,10,"_*",1,'coles_BB_jams_on_promo_scanned']>1000.0)
-df[2,12,10,"_t",0,'coles_SD_jams_on_promo']=(df[2,12,10,"_*",1,'coles_SD_jams_on_promo_scanned']>1000.0)
-df[3,12,10,"_t",0,'coles_BM_jams_on_promo']=(df[3,12,10,"_*",1,'coles_BM_jams_on_promo_scanned']>1000.0)
+df[1,12,10,"_t",0,'coles_BB_jams_on_promo']=(df[1,12,10,"_*",1,'coles_BB_jams_on_promo_scanned']>0)
+df[2,12,10,"_t",0,'coles_SD_jams_on_promo']=(df[2,12,10,"_*",1,'coles_SD_jams_on_promo_scanned']>0)
+df[3,12,10,"_t",0,'coles_BM_jams_on_promo']=(df[3,12,10,"_*",1,'coles_BM_jams_on_promo_scanned']>0)
 
 df[0,10,10,"_T",0,'ww_jams_total_scanned']=df[0,10,10,"_*",0,'ww_total_jam_curd_marm_off_promo_scanned']+df[0,10,10,"_*",1,'ww_total_jam_curd_marm_on_promo_scanned']
 
@@ -2346,9 +2347,9 @@ df[1,10,10,"_t",0,'ww_BB_jams_total_scanned']=df[1,10,10,"_*",0,'ww_BB_jams_off_
 df[2,10,10,"_t",0,'ww_SD_jams_total_scanned']=df[2,10,10,"_*",0,'ww_SD_jams_off_promo_scanned']+df[2,10,10,"_*",1,'ww_SD_jams_on_promo_scanned']
 df[3,10,10,"_t",0,'ww_BM_jams_total_scanned']=df[3,10,10,"_*",0,'ww_BM_jams_off_promo_scanned']+df[3,10,10,"_*",1,'ww_BM_jams_on_promo_scanned']
  
-df[1,10,10,"_t",0,'ww_BB_jams_on_promo']=(df[1,10,10,"_*",1,'ww_BB_jams_on_promo_scanned']>1000.0)
-df[2,10,10,"_t",0,'ww_SD_jams_on_promo']=(df[2,10,10,"_*",1,'ww_SD_jams_on_promo_scanned']>1000.0)
-df[3,10,10,"_t",0,'ww_BM_jams_on_promo']=(df[3,10,10,"_*",1,'ww_BM_jams_on_promo_scanned']>1000.0)
+df[1,10,10,"_t",0,'ww_BB_jams_on_promo']=(df[1,10,10,"_*",1,'ww_BB_jams_on_promo_scanned']>0)
+df[2,10,10,"_t",0,'ww_SD_jams_on_promo']=(df[2,10,10,"_*",1,'ww_SD_jams_on_promo_scanned']>0)
+df[3,10,10,"_t",0,'ww_BM_jams_on_promo']=(df[3,10,10,"_*",1,'ww_BM_jams_on_promo_scanned']>0)
 
 
 
