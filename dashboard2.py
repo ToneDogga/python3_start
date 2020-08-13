@@ -2155,9 +2155,15 @@ ninetyday_sales_df=ninetyday_sales_df[ninetyday_sales_df['productgroup'].isin(pr
 
 #prod_list=list(set([tuple(r) for r in year_sales_df[['productgroup', 'product']].sort_values(by=['productgroup','product'],ascending=[True,True]).to_numpy()]))
 prod_list=list(set([tuple(r) for r in ninetyday_sales_df[['productgroup', 'product']].to_numpy()]))
-cust_list=list(set([tuple(r) for r in ninetyday_sales_df[['specialpricecat', 'code']].to_numpy()]))
+cust_list=list(set([tuple(r) for r in ninetyday_sales_df[['salesrep','specialpricecat', 'code']].to_numpy()]))
 #cust_list = cust_list[cust_list != (88.0,'OFFINV')]
-cust_list.remove((88.0,'OFFINV'))
+#print("cust_list=\n",len(cust_list))
+cust_list=[c for c in cust_list if c[2]!="OFFINV"]
+    #     #r=[k for k, v in brand_dict.items() if v in product_list]  
+
+#print("\nnew cust_list=",cust_list,len(cust_list))
+
+
 #print("prod_list=\n",prod_list)
 #print("cust_list=\n",cust_list)
 #prod_list.sort()
@@ -2168,6 +2174,7 @@ cust_list.remove((88.0,'OFFINV'))
 print("\nunique customers=",len(cust_list))
 print("unique products=",len(prod_list))
 
+print("\nCreating distribution report....\n")
 cust_dict={k: v for v, k in enumerate(cust_list)}
 prod_dict={k: v for v, k in enumerate(prod_list)}
 #print("cist dict=\n",cust_dict)
@@ -2183,7 +2190,7 @@ dist_df=dist_df.T
 dist_df.index=pd.MultiIndex.from_tuples(dist_df.index,sortorder=0,names=['productgroup','product'])
 dist_df.sort_index(level=0,ascending=True,inplace=True)
 dist_df=dist_df.T
-dist_df.index=pd.MultiIndex.from_tuples(dist_df.index,sortorder=0,names=['specialpricecat','code'])
+dist_df.index=pd.MultiIndex.from_tuples(dist_df.index,sortorder=0,names=['salesrep','specialpricecat','code'])
 dist_df.sort_index(level=0,ascending=True,inplace=True)
 
 #df.index = pd.MultiIndex.from_tuples(df.index,names=["brand","specialpricecat","productgroup","product","on_promo","names"])
@@ -2210,10 +2217,10 @@ if True:
 #    product_list=find_active_products(new_sales_df,age=90)  # 90 days
     for cust in cust_list:
         for prod in prod_list:
-            r=ninetyday_sales_df[(ninetyday_sales_df['code']==cust[1]) & (ninetyday_sales_df['product']==prod[1]) & (ninetyday_sales_df['salesval']>0.0) & (ninetyday_sales_df['qty']>0.0)].copy(deep=True)
+            r=ninetyday_sales_df[(ninetyday_sales_df['code']==cust[2]) & (ninetyday_sales_df['product']==prod[1]) & (ninetyday_sales_df['salesval']>0.0) & (ninetyday_sales_df['qty']>0.0)].copy(deep=True)
          #   s['counter']=s.shape[0]
  
-            s=year_sales_df[(year_sales_df['code']==cust[1]) & (year_sales_df['product']==prod[1]) & (year_sales_df['salesval']>0.0) & (year_sales_df['qty']>0.0)].copy(deep=True)
+            s=year_sales_df[(year_sales_df['code']==cust[2]) & (year_sales_df['product']==prod[1]) & (year_sales_df['salesval']>0.0) & (year_sales_df['qty']>0.0)].copy(deep=True)
             s['counter']=s.shape[0]
             if r.shape[0]>0:
                 dist_df.loc[cust,prod]=r['date'].dt.strftime('%d/%m/%Y').max()      #pd.to_datetime({'year': 2020,'month': 1,'day': 1})  #  r.shape[0] #s.date.max()
@@ -2226,12 +2233,12 @@ if True:
                 print("\r",cust,prod,"+",s.shape[0],"=",new_sales_df.shape[0],int(round(t/total*100,0)),"%               ",end='\r',flush=True)
     
             if s.shape[0]>7: 
-                s['slope'],figname,name=calculate_first_derivative(s,cust[1],prod[1],latest_date)  
+                s['slope'],figname,name=calculate_first_derivative(s,cust[2],prod[1],latest_date)  
                # s['figure']=figure
               #  figure_list.append(figure)
                 new_sales_df=new_sales_df.append(s)
                 if (figname!="") & (name!=""):
-                    report_dict[report(name,8,cust[1],prod[1])]=figname
+                    report_dict[report(name,8,cust[2],prod[1])]=figname
      
     print("\n\n")
     #print("distribution matrix =\n",dist_df)
@@ -2355,6 +2362,13 @@ df[3,10,10,"_t",0,'ww_BM_jams_on_promo']=(df[3,10,10,"_*",1,'ww_BM_jams_on_promo
 
 
 df["","","","_t","",'weekno']= np.arange(df.shape[0])
+
+
+
+
+
+
+
 
 
 #print("df7.T=\n",df.T)   #,"\n",df.T)
@@ -2531,7 +2545,7 @@ coles_and_ww_pkl_dict=report_dict[report('coles_and_ww_pkl_dict',0,"","")]
 joined_df=df.copy(deep=True)
 for key in coles_and_ww_pkl_dict.keys():
    # savepkl="scanned_sales_plus_"+key
-    print("Loading query dataframe:",key)
+ #   print("Loading query dataframe:",key)
     with open(key,"rb") as f:
         actual_sales=pickle.load(f)
  #   print("key=",key,"coles_pkl_dict]key]=",pkl_dict[key],"\n",actual_sales)    
@@ -2654,16 +2668,18 @@ for r in retailers:
                                 pass
                             else:
                            #     print("final_slice=\n",final_slice)
-                                if final_slice.shape[0]>0:
+                                if final_slice.shape[0]>2:
                  #               print("final_slice=\n",final_slice)
                                 #rdf=final_slice[[2,3,4]].rolling(mat,axis=0).mean()
                                     rdf=final_slice.iloc[2:].rolling(mat,axis=0).mean()
                                     
                                     rdf.replace(np.nan, 0.0,inplace=True)
+                                    
+                                    print("rdf=\n",rdf)
                                  #   rdf=rdf.iloc[2:]
                                   #  rdf=rdf.droplevel(level=0,axis=1)
                                    # print("rdf shape=",rdf.shape,"\n")  #,rdf.index)
-                                    if rdf.shape[0]==3:
+                                    if rdf.shape[0]==5:
                                         #print(rdf)
                         
                                         styles1 = ['b-','g:','r-']
@@ -2673,7 +2689,7 @@ for r in retailers:
                                         #styles2 = ['rs-','go-','b^-']
                                        # fig, ax = plt.subplots()
                                 
-                                        ax2=rdf.T.plot(grid=True,title="Units moving total "+str(p)+":"+str(mat)+" weeks w/c:("+str(latest_date)+")",style=styles1, lw=linewidths)   #),'BB total scanned vs purchased Coles jam units per week')
+                                        ax2=rdf.plot(grid=True,title="Units moving total "+str(p)+":"+str(mat)+" weeks w/c:("+str(latest_date)+")",style=styles1, lw=linewidths)   #),'BB total scanned vs purchased Coles jam units per week')
                                         ax2.legend(title="")
                                         save_fig(ptx+btx+str(p)+"_moving_total")   #,images_path)
                     #plt.grid(True)
@@ -2682,7 +2698,7 @@ for r in retailers:
                     
                     #savepkl="invoiced_and_scanned_sales.pkl"
                     
-                                        print("saving query dataframe:",ptx+btx+str(p)+"_rdf.pkl")
+                                    #    print("saving query dataframe:",ptx+btx+str(p)+"_rdf.pkl")
                                         pd.to_pickle(rdf,ptx+btx+str(p)+"_rdf.pkl")
                                         plt.close()  #("all")
     #print(joined_df.columns)
@@ -2709,7 +2725,7 @@ styles1 = ['b-','g:','r-']
 linewidths = 1  # [2, 1, 4]
 
   
-ax=df.T.plot(grid=True,title="Coles units moving total "+str(mat)+" weeks w/c:"+str(latest_date),style=styles1, lw=linewidths)
+ax=df.plot(grid=True,title="Coles units moving total "+str(mat)+" weeks w/c:"+str(latest_date),style=styles1, lw=linewidths)
 ax.legend(title="")
 save_fig("Coles_total_jams_units_moving_total")
 #plt.show()
@@ -2725,7 +2741,7 @@ styles1 = ['b-','g:','r-']
 linewidths = 1  # [2, 1, 4]
 
   
-ax=df.T.plot(grid=True,title="ww units moving total "+str(mat)+" weeks w/c:"+str(latest_date),style=styles1, lw=linewidths)
+ax=df.plot(grid=True,title="ww units moving total "+str(mat)+" weeks w/c:"+str(latest_date),style=styles1, lw=linewidths)
 ax.legend(title="")
 save_fig("Ww_total_jams_units_moving_total")
 #plt.show()
@@ -2737,10 +2753,10 @@ plt.close("all")
 ############################################################33
 # load previous runs coles_predictions
 
-previous_df=pd.read_pickle("order_predict_results.pkl")
-pred_cols = [col for col in previous_df.columns if 'prediction' in col]
-previous_df=previous_df[pred_cols]
-previous_df.columns=previous_df.columns+"_old"
+# previous_df=pd.read_pickle("order_predict_results.pkl")
+# pred_cols = [col for col in previous_df.columns if 'prediction' in col]
+# previous_df=previous_df[pred_cols]
+# previous_df.columns=previous_df.columns+"_old"
 
 #############################################################
      # 
@@ -2753,7 +2769,7 @@ previous_df.columns=previous_df.columns+"_old"
 
 retailers=list(set(list(joined_df.columns.get_level_values(1))))
 
-print("retailers=",retailers)
+#print("retailers=",retailers)
 
 
 #graph_list=[]
