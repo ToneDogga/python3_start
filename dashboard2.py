@@ -65,6 +65,11 @@ from matplotlib.pyplot import plot, draw, ion, show
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import seaborn as sns
+
+
+import BB_data_dict as dd
+
+
 #plt.ion() # enables interactive mode
 
 #print("matplotlib:",mpl.__version__)
@@ -76,35 +81,35 @@ mpl.rc('ytick', labelsize=12)
 
 #colesjamsxls="Coles_scan_data_300620.xlsx"
 #latestscannedsalescoles="Coles_IRI_portal_scan_data_170620.xlsx"
-stock_level_query='stock_level_query.xlsx'
-production_made_query='Production Schedule.xlsx'
-production_made_sheet="Schedule"
-production_planned_query='B Stock & Schedule Forecast.xlsx'
-production_planned_sheet="Schedule"
-report_savename="sales_trans_report_dict.pkl"
-colesscan="Coles_scan_data_300620.xlsx"
-woolscan="Ww_scan_data_300620.xlsx"
-scandatalist=["Coles_scan_data_300620.xlsx","Ww_scan_data_300620.xlsx"]
-  #  report_savename="sales_trans_report_dict.pkl"
-savepkl="coles_and_ww_invoiced_and_scanned_sales.pkl"
+# stock_level_query='stock_level_query.xlsx'
+# production_made_query='Production Schedule.xlsx'
+# production_made_sheet="Schedule"
+# production_planned_query='B Stock & Schedule Forecast.xlsx'
+# production_planned_sheet="Schedule"
+# report_savename="sales_trans_report_dict.pkl"
+# colesscan="Coles_scan_data_300620.xlsx"
+# woolscan="Ww_scan_data_300620.xlsx"
+# scandatalist=["Coles_scan_data_300620.xlsx","Ww_scan_data_300620.xlsx"]
+#   #  report_savename="sales_trans_report_dict.pkl"
+# savepkl="coles_and_ww_invoiced_and_scanned_sales.pkl"
 
 
-sales_df_savename="sales_trans_df.pkl"
-filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
+# sales_df_savename="sales_trans_df.pkl"
+# filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
    
-# output_dir = log_dir("scandata")
-# os.makedirs(output_dir, exist_ok=True)
+# # output_dir = log_dir("scandata")
+# # os.makedirs(output_dir, exist_ok=True)
 
-# images_path = os.path.join(output_dir, "images/")
-# os.makedirs(images_path, exist_ok=True)
+# # images_path = os.path.join(output_dir, "images/")
+# # os.makedirs(images_path, exist_ok=True)
 
-product_groups_only=["10","11","12","13","14","15","18"]
-spc_only=["088"]   #,"038","048","028","080","020","030","040"]
+# product_groups_only=["10","11","12","13","14","15","18"]
+# spc_only=["088"]   #,"038","048","028","080","020","030","040"]
 
-mats=7
+# mats=7
 
-scan_data_files=["jam_scan_data_2020.xlsx","cond_scan_data_2020.xlsx","sauce_scan_data_2020.xlsx"]
-scan_dict_savename="scan_dict.pkl"
+# scan_data_files=["jam_scan_data_2020.xlsx","cond_scan_data_2020.xlsx","sauce_scan_data_2020.xlsx"]
+# scan_dict_savename="scan_dict.pkl"
 
 
 def log_dir(prefix=""):
@@ -310,7 +315,7 @@ def predict_order(hdf,title,model):
 
 
 
-def train_model(name,X_set,y_set,batch_length,no_of_batches):
+def train_model(name,X_set,y_set,batch_length,no_of_batches,epochs):
    
     X,y=create_X_and_y_batches(X_set,y_set,batch_length,no_of_batches)
     
@@ -351,7 +356,7 @@ def train_model(name,X_set,y_set,batch_length,no_of_batches):
     print("\nsave model :"+name+"_predict_model.h5\n")
     model.save(output_dir+name+"_sales_predict_model.h5", include_optimizer=True)
            
-    plot_learning_curves(history.history["loss"], history.history["val_loss"],epochs,"GRU :"+name)
+    plot_learning_curves(history.history["loss"], history.history["val_loss"],dd.epochs,"GRU :"+name)
     save_fig(name+"GRU learning curve")  #,images_path)
       
   #  plt.show()
@@ -666,6 +671,19 @@ def find_active_products(sales_df,age):  # 90 days?  retuen product codes of pro
     return []
 
 
+
+def find_in_dict(dictname,name):
+    m= [k for k, v in dictname.items() if v in name.lower()]
+    if len(m)>1:
+        m=m[-1]
+    elif len(m)==1:
+        m=m[0]
+    else:
+        m=0
+    return m    
+
+    
+  
  
 
     
@@ -707,194 +725,201 @@ np.random.seed(42)
 tf.random.set_seed(42)
   
 ##############################################################################
+
+
+
+
+
+
+
    #report = namedtuple("report", ["name", "report_type","cust","prod"])
  
-report = namedtuple("report", ["name", "report_type","cust","prod"])
+# report = namedtuple("report", ["name", "report_type","cust","prod"])
 
-report_type_dict={0:"dictionary",
-                       3:"dataframe",
-                       5:"spreadsheet",
-                       6:"pivottable",
-                       8:"chart_filename"}
+# report_type_dict={0:"dictionary",
+#                        3:"dataframe",
+#                        5:"spreadsheet",
+#                        6:"pivottable",
+#                        8:"chart_filename"}
 
 
 
-# value is (brand,specialpricecat, productgroup, product,type,name)
-# type is 0 off promo. 1 is on promo, 2 is total of both, 3 is invoiced total
+# # value is (brand,specialpricecat, productgroup, product,type,name)
+# # type is 0 off promo. 1 is on promo, 2 is total of both, 3 is invoiced total
 
-product_type = namedtuple("product_type", ["brandno","customercat", "productgroup","product","type","name"])
+# product_type = namedtuple("product_type", ["brandno","customercat", "productgroup","product","type","name"])
 
-coles_and_ww_pkl_dict={"coles_BB_jams_invoiced.pkl":(1,12,10,"_T",3,"coles_BB_jams_invoiced"),   # special price cat, productgroup,productcode,product, on_promo, name)
-          "coles_BB_SJ300_invoiced.pkl":(1,12,10,"SJ300",3,"coles_BB_SJ300_invoiced"),
-          "coles_BB_AJ300_invoiced.pkl":(1,12,10,"AJ300",3,"coles_BB_AJ300_invoiced"),
-          "coles_BB_OM300_invoiced.pkl":(1,12,10,"OM300",3,"coles_BB_OM300_invoiced"),
-          "coles_BB_RJ300_invoiced.pkl":(1,12,10,"RJ300",3,"coles_BB_RJ300_invoiced"),
-          "coles_BB_TS300_invoiced.pkl":(1,12,11,"TS300",3,"coles_BB_TS300_invoiced"),
-          "coles_BB_CAR280_invoiced.pkl":(1,12,13,"CAR280",3,"coles_BB_CAR280_invoiced"),
-          "coles_BB_BBR280_invoiced.pkl":(1,12,13,"BBR280",3,"coles_BB_BBR280_invoiced"),
-          "coles_BB_TC260_invoiced.pkl":(1,12,13,"TC260",3,"coles_BB_TC260_invoiced"),
-          "coles_BB_HTC260_invoiced.pkl":(1,12,13,"HTC260",3,"coles_BB_HTC260_invoiced"),
-          "coles_BB_PCD300_invoiced.pkl":(1,12,14,"PCD300",3,"coles_BB_PCD300_invoiced"),
-          "coles_BB_BLU300_invoiced.pkl":(1,12,14,"BLU300",3,"coles_BB_BLU300_invoiced"),
-          "coles_BB_RAN300_invoiced.pkl":(1,12,14,"RAN300",3,"coles_BB_RAN300_invoiced"),
-          "ww_BB_jams_invoiced.pkl":(1,10,10,"_T",3,"ww_BB_jams_invoiced"),   # special price cat, productgroup,productcode,product, on_promo, name)
-          "ww_BB_SJ300_invoiced.pkl":(1,10,10,"SJ300",3,"ww_BB_SJ300_invoiced"),
-          "ww_BB_RJ300_invoiced.pkl":(1,10,10,"RJ300",3,"ww_BB_RJ300_invoiced"),
-          "ww_BB_BOM300_invoiced.pkl":(1,10,10,"BOM300",3,"ww_BB_BOM300_invoiced"),
-          "ww_BB_AJ300_invoiced.pkl":(1,10,10,"AJ300",3,"ww_BB_AJ300_invoiced"),
-          "ww_BB_BB300_invoiced.pkl":(1,10,10,"BB300",3,"ww_BB_BB300_invoiced"),
-          "ww_BB_BLJ300_invoiced.pkl":(1,10,10,"BLJ300",3,"ww_BB_BLJ300_invoiced"),
-          "ww_BB_TS300_invoiced.pkl":(1,10,11,"TS300",3,"ww_BB_TS300_invoiced"),
-          "ww_BB_BUR280_invoiced.pkl":(1,10,13,"BUR280",3,"ww_BB_BUR280_invoiced"),
-          "ww_BB_TC260_invoiced.pkl":(1,10,13,"TC260",3,"ww_BB_TC260_invoiced"),
-          "ww_BB_HTC260_invoiced.pkl":(1,10,13,"HTC260",3,"ww_BB_HTC260_invoiced"),
-          "ww_BB_BBR280_invoiced.pkl":(1,10,13,"BBR280",3,"ww_BB_BBR280_invoiced"),
-          "ww_BB_CAR280_invoiced.pkl":(1,10,13,"CAR280",3,"ww_BB_CAR280_invoiced"),
-          "ww_BB_TCP260_invoiced.pkl":(1,10,13,"TCP260",3,"ww_BB_TCP260_invoiced")}
+# coles_and_ww_pkl_dict={"coles_BB_jams_invoiced.pkl":(1,12,10,"_T",3,"coles_BB_jams_invoiced"),   # special price cat, productgroup,productcode,product, on_promo, name)
+#           "coles_BB_SJ300_invoiced.pkl":(1,12,10,"SJ300",3,"coles_BB_SJ300_invoiced"),
+#           "coles_BB_AJ300_invoiced.pkl":(1,12,10,"AJ300",3,"coles_BB_AJ300_invoiced"),
+#           "coles_BB_OM300_invoiced.pkl":(1,12,10,"OM300",3,"coles_BB_OM300_invoiced"),
+#           "coles_BB_RJ300_invoiced.pkl":(1,12,10,"RJ300",3,"coles_BB_RJ300_invoiced"),
+#           "coles_BB_TS300_invoiced.pkl":(1,12,11,"TS300",3,"coles_BB_TS300_invoiced"),
+#           "coles_BB_CAR280_invoiced.pkl":(1,12,13,"CAR280",3,"coles_BB_CAR280_invoiced"),
+#           "coles_BB_BBR280_invoiced.pkl":(1,12,13,"BBR280",3,"coles_BB_BBR280_invoiced"),
+#           "coles_BB_TC260_invoiced.pkl":(1,12,13,"TC260",3,"coles_BB_TC260_invoiced"),
+#           "coles_BB_HTC260_invoiced.pkl":(1,12,13,"HTC260",3,"coles_BB_HTC260_invoiced"),
+#           "coles_BB_PCD300_invoiced.pkl":(1,12,14,"PCD300",3,"coles_BB_PCD300_invoiced"),
+#           "coles_BB_BLU300_invoiced.pkl":(1,12,14,"BLU300",3,"coles_BB_BLU300_invoiced"),
+#           "coles_BB_RAN300_invoiced.pkl":(1,12,14,"RAN300",3,"coles_BB_RAN300_invoiced"),
+#           "ww_BB_jams_invoiced.pkl":(1,10,10,"_T",3,"ww_BB_jams_invoiced"),   # special price cat, productgroup,productcode,product, on_promo, name)
+#           "ww_BB_SJ300_invoiced.pkl":(1,10,10,"SJ300",3,"ww_BB_SJ300_invoiced"),
+#           "ww_BB_RJ300_invoiced.pkl":(1,10,10,"RJ300",3,"ww_BB_RJ300_invoiced"),
+#           "ww_BB_BOM300_invoiced.pkl":(1,10,10,"BOM300",3,"ww_BB_BOM300_invoiced"),
+#           "ww_BB_AJ300_invoiced.pkl":(1,10,10,"AJ300",3,"ww_BB_AJ300_invoiced"),
+#           "ww_BB_BB300_invoiced.pkl":(1,10,10,"BB300",3,"ww_BB_BB300_invoiced"),
+#           "ww_BB_BLJ300_invoiced.pkl":(1,10,10,"BLJ300",3,"ww_BB_BLJ300_invoiced"),
+#           "ww_BB_TS300_invoiced.pkl":(1,10,11,"TS300",3,"ww_BB_TS300_invoiced"),
+#           "ww_BB_BUR280_invoiced.pkl":(1,10,13,"BUR280",3,"ww_BB_BUR280_invoiced"),
+#           "ww_BB_TC260_invoiced.pkl":(1,10,13,"TC260",3,"ww_BB_TC260_invoiced"),
+#           "ww_BB_HTC260_invoiced.pkl":(1,10,13,"HTC260",3,"ww_BB_HTC260_invoiced"),
+#           "ww_BB_BBR280_invoiced.pkl":(1,10,13,"BBR280",3,"ww_BB_BBR280_invoiced"),
+#           "ww_BB_CAR280_invoiced.pkl":(1,10,13,"CAR280",3,"ww_BB_CAR280_invoiced"),
+#           "ww_BB_TCP260_invoiced.pkl":(1,10,13,"TCP260",3,"ww_BB_TCP260_invoiced")}
          
 
    
-# value is (brand,specialpricecat, productgroup, product,name)
-product_type = namedtuple("product_type", ["brandno","customercat", "productgroup","product","on_promo","name"])
+# # value is (brand,specialpricecat, productgroup, product,name)
+# product_type = namedtuple("product_type", ["brandno","customercat", "productgroup","product","on_promo","name"])
 
-coles_and_ww_col_dict= {  "scan_week":(0,12,0,'_*',0,'scan_week'),
-            1:(0,12,10,"_*",0,"coles_total_jam_curd_marm_off_promo_scanned"),
-            2:(0,12,10,"_*",1,"coles_total_jam_curd_marm_on_promo_scanned"),
-            3:(1,12,10,"_*",0,"coles_BB_jams_off_promo_scanned"),
-            4:(1,12,10,"_*",1,"coles_BB_jams_on_promo_scanned"),
-            5:(2,12,10,"_*",0,"coles_SD_jams_off_promo_scanned"),
-            6:(2,12,10,"_*",1,"coles_SD_jams_on_promo_scanned"),
-            7:(3,12,10,"_*",0,"coles_BM_jams_off_promo_scanned"),
-            8:(3,12,10,"_*",1,"coles_BM_jams_on_promo_scanned"),
-            9:(1,12,10,"SJ300",0,"coles_BB_SJ300_off_promo_scanned"),
-            10:(1,12,10,"SJ300",1,"coles_BB_SJ300_on_promo_scanned"),
-            11:(1,12,10,"RJ300",0,"coles_BB_RJ300_off_promo_scanned"),
-            12:(1,12,10,"RJ300",1,"coles_BB_RJ300_on_promo_scanned"),
-            13:(1,12,10,"OM300",0,"coles_BB_OM300_off_promo_scanned"),
-            14:(1,12,10,"OM300",1,"coles_BB_OM300_on_promo_scanned"),
-            15:(1,12,10,"AJ300",0,"coles_BB_AJ300_off_promo_scanned"),
-            16:(1,12,10,"AJ300",1,"coles_BB_AJ300_on_promo_scanned"),
-            17:(1,12,13,"TC260",0,"coles_BB_TC260_off_promo_scanned"),
-            18:(1,12,13,"TC260",1,"coles_BB_TC260_on_promo_scanned"),
-            19:(1,12,13,"HTC260",0,"coles_BB_HTC260_off_promo_scanned"),
-            20:(1,12,13,"HTC260",1,"coles_BB_HTC260_on_promo_scanned"),
-            21:(1,12,13,"CAR280",0,"coles_BB_CAR280_off_promo_scanned"),
-            22:(1,12,13,"CAR280",1,"coles_BB_CAR280_on_promo_scanned"),
-            23:(1,12,13,"BBR280",0,"coles_BB_BBR280_off_promo_scanned"),
-            24:(1,12,13,"BBR280",1,"coles_BB_BBR280_on_promo_scanned"),
-            25:(1,12,11,"TS300",0,"coles_BB_TS300_off_promo_scanned"),
-            26:(1,12,11,"TS300",1,"coles_BB_TS300_on_promo_scanned"),
-            27:(1,12,14,"PCD300",0,"coles_BB_PCD300_off_promo_scanned"),
-            28:(1,12,14,"PCD300",1,"coles_BB_PCD300_on_promo_scanned"),
-            29:(1,12,14,"BLU300",0,"coles_BB_BLU300_off_promo_scanned"),
-            30:(1,12,14,"BLU300",1,"coles_BB_BLU300_on_promo_scanned"),
-            31:(1,12,14,"RAN300",0,"coles_BB_RAN300_off_promo_scanned"),
-            32:(1,12,14,"RAN300",1,"coles_BB_RAN300_on_promo_scanned"),
-                33:(0,10,10,"_*",0,"ww_total_jam_curd_marm_off_promo_scanned"),
-                34:(0,10,10,"_*",1,"ww_total_jam_curd_marm_on_promo_scanned"),
-                35:(1,10,10,"_*",0,"ww_BB_jams_off_promo_scanned"),
-                36:(1,10,10,"_*",1,"ww_BB_jams_on_promo_scanned"),
-                37:(2,10,10,"_*",0,"ww_SD_jams_off_promo_scanned"),
-                38:(2,10,10,"_*",1,"ww_SD_jams_on_promo_scanned"),
-                39:(3,10,10,"_*",0,"ww_BM_jams_off_promo_scanned"),
-                40:(3,10,10,"_*",1,"ww_BM_jams_on_promo_scanned"),
-                41:(1,10,10,"SJ300",0,"ww_BB_SJ300_off_promo_scanned"),
-                42:(1,10,10,"SJ300",1,"ww_BB_SJ300_on_promo_scanned"),
-                43:(1,10,10,"RJ300",0,"ww_BB_RJ300_off_promo_scanned"),
-                44:(1,10,10,"RJ300",1,"ww_BB_RJ300_on_promo_scanned"),
-                45:(1,10,10,"BOM300",0,"ww_BB_BOM300_off_promo_scanned"),
-                46:(1,10,10,"BOM300",1,"ww_BB_BOM300_on_promo_scanned"),
-                47:(1,10,10,"AJ300",0,"ww_BB_AJ300_off_promo_scanned"),
-                48:(1,10,10,"AJ300",1,"ww_BB_AJ300_on_promo_scanned"),
-                49:(1,10,10,"BB300",0,"ww_BB_BB300_off_promo_scanned"),
-                50:(1,10,10,"BB300",1,"ww_BB_BB300_on_promo_scanned"),
-                51:(1,10,10,"BLJ300",0,"ww_BB_BLJ300_off_promo_scanned"),
-                52:(1,10,10,"BLJ300",1,"ww_BB_BLJ300_on_promo_scanned"),
-                53:(1,10,11,"TS300",0,"ww_BB_TS300_off_promo_scanned"),
-                54:(1,10,11,"TS300",1,"ww_BB_TS300_on_promo_scanned"),
-                55:(1,10,13,"BUR260",0,"ww_BB_BUR260_off_promo_scanned"),
-                56:(1,10,13,"BUR260",1,"ww_BB_BUR260_on_promo_scanned"),
-                57:(1,10,13,"TC260",0,"ww_BB_TC260_off_promo_scanned"),
-                58:(1,10,13,"TC260",1,"ww_BB_TC260_on_promo_scanned"),
-                59:(1,10,13,"HTC260",0,"ww_BB_HTC260_off_promo_scanned"),
-                60:(1,10,13,"HTC260",1,"ww_BB_HTC260_on_promo_scanned"),
-                61:(1,10,13,"BBR280",0,"ww_BB_BBR280_off_promo_scanned"),
-                62:(1,10,13,"BBR280",1,"ww_BB_BBR280_on_promo_scanned"),
-                63:(1,10,13,"CAR280",0,"ww_BB_CAR280_off_promo_scanned"),
-                64:(1,10,13,"CAR280",1,"ww_BB_CAR280_on_promo_scanned"),
-                65:(1,10,13,"TCP280",0,"ww_BB_TCP280_off_promo_scanned"),
-                66:(1,10,13,"TCP280",1,"ww_BB_TCP280_on_promo_scanned")}
+# coles_and_ww_col_dict= {  "scan_week":(0,12,0,'_*',0,'scan_week'),
+#             1:(0,12,10,"_*",0,"coles_total_jam_curd_marm_off_promo_scanned"),
+#             2:(0,12,10,"_*",1,"coles_total_jam_curd_marm_on_promo_scanned"),
+#             3:(1,12,10,"_*",0,"coles_BB_jams_off_promo_scanned"),
+#             4:(1,12,10,"_*",1,"coles_BB_jams_on_promo_scanned"),
+#             5:(2,12,10,"_*",0,"coles_SD_jams_off_promo_scanned"),
+#             6:(2,12,10,"_*",1,"coles_SD_jams_on_promo_scanned"),
+#             7:(3,12,10,"_*",0,"coles_BM_jams_off_promo_scanned"),
+#             8:(3,12,10,"_*",1,"coles_BM_jams_on_promo_scanned"),
+#             9:(1,12,10,"SJ300",0,"coles_BB_SJ300_off_promo_scanned"),
+#             10:(1,12,10,"SJ300",1,"coles_BB_SJ300_on_promo_scanned"),
+#             11:(1,12,10,"RJ300",0,"coles_BB_RJ300_off_promo_scanned"),
+#             12:(1,12,10,"RJ300",1,"coles_BB_RJ300_on_promo_scanned"),
+#             13:(1,12,10,"OM300",0,"coles_BB_OM300_off_promo_scanned"),
+#             14:(1,12,10,"OM300",1,"coles_BB_OM300_on_promo_scanned"),
+#             15:(1,12,10,"AJ300",0,"coles_BB_AJ300_off_promo_scanned"),
+#             16:(1,12,10,"AJ300",1,"coles_BB_AJ300_on_promo_scanned"),
+#             17:(1,12,13,"TC260",0,"coles_BB_TC260_off_promo_scanned"),
+#             18:(1,12,13,"TC260",1,"coles_BB_TC260_on_promo_scanned"),
+#             19:(1,12,13,"HTC260",0,"coles_BB_HTC260_off_promo_scanned"),
+#             20:(1,12,13,"HTC260",1,"coles_BB_HTC260_on_promo_scanned"),
+#             21:(1,12,13,"CAR280",0,"coles_BB_CAR280_off_promo_scanned"),
+#             22:(1,12,13,"CAR280",1,"coles_BB_CAR280_on_promo_scanned"),
+#             23:(1,12,13,"BBR280",0,"coles_BB_BBR280_off_promo_scanned"),
+#             24:(1,12,13,"BBR280",1,"coles_BB_BBR280_on_promo_scanned"),
+#             25:(1,12,11,"TS300",0,"coles_BB_TS300_off_promo_scanned"),
+#             26:(1,12,11,"TS300",1,"coles_BB_TS300_on_promo_scanned"),
+#             27:(1,12,14,"PCD300",0,"coles_BB_PCD300_off_promo_scanned"),
+#             28:(1,12,14,"PCD300",1,"coles_BB_PCD300_on_promo_scanned"),
+#             29:(1,12,14,"BLU300",0,"coles_BB_BLU300_off_promo_scanned"),
+#             30:(1,12,14,"BLU300",1,"coles_BB_BLU300_on_promo_scanned"),
+#             31:(1,12,14,"RAN300",0,"coles_BB_RAN300_off_promo_scanned"),
+#             32:(1,12,14,"RAN300",1,"coles_BB_RAN300_on_promo_scanned"),
+#                 33:(0,10,10,"_*",0,"ww_total_jam_curd_marm_off_promo_scanned"),
+#                 34:(0,10,10,"_*",1,"ww_total_jam_curd_marm_on_promo_scanned"),
+#                 35:(1,10,10,"_*",0,"ww_BB_jams_off_promo_scanned"),
+#                 36:(1,10,10,"_*",1,"ww_BB_jams_on_promo_scanned"),
+#                 37:(2,10,10,"_*",0,"ww_SD_jams_off_promo_scanned"),
+#                 38:(2,10,10,"_*",1,"ww_SD_jams_on_promo_scanned"),
+#                 39:(3,10,10,"_*",0,"ww_BM_jams_off_promo_scanned"),
+#                 40:(3,10,10,"_*",1,"ww_BM_jams_on_promo_scanned"),
+#                 41:(1,10,10,"SJ300",0,"ww_BB_SJ300_off_promo_scanned"),
+#                 42:(1,10,10,"SJ300",1,"ww_BB_SJ300_on_promo_scanned"),
+#                 43:(1,10,10,"RJ300",0,"ww_BB_RJ300_off_promo_scanned"),
+#                 44:(1,10,10,"RJ300",1,"ww_BB_RJ300_on_promo_scanned"),
+#                 45:(1,10,10,"BOM300",0,"ww_BB_BOM300_off_promo_scanned"),
+#                 46:(1,10,10,"BOM300",1,"ww_BB_BOM300_on_promo_scanned"),
+#                 47:(1,10,10,"AJ300",0,"ww_BB_AJ300_off_promo_scanned"),
+#                 48:(1,10,10,"AJ300",1,"ww_BB_AJ300_on_promo_scanned"),
+#                 49:(1,10,10,"BB300",0,"ww_BB_BB300_off_promo_scanned"),
+#                 50:(1,10,10,"BB300",1,"ww_BB_BB300_on_promo_scanned"),
+#                 51:(1,10,10,"BLJ300",0,"ww_BB_BLJ300_off_promo_scanned"),
+#                 52:(1,10,10,"BLJ300",1,"ww_BB_BLJ300_on_promo_scanned"),
+#                 53:(1,10,11,"TS300",0,"ww_BB_TS300_off_promo_scanned"),
+#                 54:(1,10,11,"TS300",1,"ww_BB_TS300_on_promo_scanned"),
+#                 55:(1,10,13,"BUR260",0,"ww_BB_BUR260_off_promo_scanned"),
+#                 56:(1,10,13,"BUR260",1,"ww_BB_BUR260_on_promo_scanned"),
+#                 57:(1,10,13,"TC260",0,"ww_BB_TC260_off_promo_scanned"),
+#                 58:(1,10,13,"TC260",1,"ww_BB_TC260_on_promo_scanned"),
+#                 59:(1,10,13,"HTC260",0,"ww_BB_HTC260_off_promo_scanned"),
+#                 60:(1,10,13,"HTC260",1,"ww_BB_HTC260_on_promo_scanned"),
+#                 61:(1,10,13,"BBR280",0,"ww_BB_BBR280_off_promo_scanned"),
+#                 62:(1,10,13,"BBR280",1,"ww_BB_BBR280_on_promo_scanned"),
+#                 63:(1,10,13,"CAR280",0,"ww_BB_CAR280_off_promo_scanned"),
+#                 64:(1,10,13,"CAR280",1,"ww_BB_CAR280_on_promo_scanned"),
+#                 65:(1,10,13,"TCP280",0,"ww_BB_TCP280_off_promo_scanned"),
+#                 66:(1,10,13,"TCP280",1,"ww_BB_TCP280_on_promo_scanned")}
 
  
 
-coles_and_ww_convert_dict = {
-          #      'scan_week': np.datetime64, 
-                1: np.float64,
-                2: np.float64,
-                3: np.float64,
-                4: np.float64,
-                5: np.float64,
-                6: np.float64,
-                7: np.float64,
-                8: np.float64,
-                9: np.float64,
-                10: np.float64,
-                11: np.float64,
-                12: np.float64,
-                13: np.float64,
-                14: np.float64,
-                15: np.float64,
-                16: np.float64,
-                17: np.float64,
-                18: np.float64,
-                19: np.float64,
-                20: np.float64,
-                21: np.float64,
-                22: np.float64,
-                23: np.float64,
-                24: np.float64,
-                25: np.float64,
-                26: np.float64,
-                27: np.float64,
-                28: np.float64,
-                29: np.float64,
-                30: np.float64,
-                31: np.float64,
-                32: np.float64,
-                33: np.float64,
-                34: np.float64,
-                35: np.float64,
-                36: np.float64,
-                37: np.float64,
-                38: np.float64,
-                39: np.float64,
-                40: np.float64,
-                41: np.float64,
-                42: np.float64,
-                43: np.float64,
-                44: np.float64,
-                45: np.float64,
-                46: np.float64,
-                47: np.float64,
-                48: np.float64,
-                49: np.float64,
-                50: np.float64,
-                51: np.float64,
-                52: np.float64,
-                53: np.float64,
-                54: np.float64,
-                55: np.float64,
-                56: np.float64,
-                57: np.float64,
-                58: np.float64,
-                59: np.float64,
-                60: np.float64,
-                61: np.float64,
-                62: np.float64,
-                63: np.float64,
-                64: np.float64,
-                65: np.float64,
-                66: np.float64} 
+# coles_and_ww_convert_dict = {
+#           #      'scan_week': np.datetime64, 
+#                 1: np.float64,
+#                 2: np.float64,
+#                 3: np.float64,
+#                 4: np.float64,
+#                 5: np.float64,
+#                 6: np.float64,
+#                 7: np.float64,
+#                 8: np.float64,
+#                 9: np.float64,
+#                 10: np.float64,
+#                 11: np.float64,
+#                 12: np.float64,
+#                 13: np.float64,
+#                 14: np.float64,
+#                 15: np.float64,
+#                 16: np.float64,
+#                 17: np.float64,
+#                 18: np.float64,
+#                 19: np.float64,
+#                 20: np.float64,
+#                 21: np.float64,
+#                 22: np.float64,
+#                 23: np.float64,
+#                 24: np.float64,
+#                 25: np.float64,
+#                 26: np.float64,
+#                 27: np.float64,
+#                 28: np.float64,
+#                 29: np.float64,
+#                 30: np.float64,
+#                 31: np.float64,
+#                 32: np.float64,
+#                 33: np.float64,
+#                 34: np.float64,
+#                 35: np.float64,
+#                 36: np.float64,
+#                 37: np.float64,
+#                 38: np.float64,
+#                 39: np.float64,
+#                 40: np.float64,
+#                 41: np.float64,
+#                 42: np.float64,
+#                 43: np.float64,
+#                 44: np.float64,
+#                 45: np.float64,
+#                 46: np.float64,
+#                 47: np.float64,
+#                 48: np.float64,
+#                 49: np.float64,
+#                 50: np.float64,
+#                 51: np.float64,
+#                 52: np.float64,
+#                 53: np.float64,
+#                 54: np.float64,
+#                 55: np.float64,
+#                 56: np.float64,
+#                 57: np.float64,
+#                 58: np.float64,
+#                 59: np.float64,
+#                 60: np.float64,
+#                 61: np.float64,
+#                 62: np.float64,
+#                 63: np.float64,
+#                 64: np.float64,
+#                 65: np.float64,
+#                 66: np.float64} 
   
 #ww_pkl_dict={}
 # "ww_BB_jams_invoiced.pkl":(1,12,10,"_T",3,"ww_BB_jams_invoiced"),   # special price cat, productgroup,productcode,product, on_promo, name)
@@ -1004,17 +1029,17 @@ coles_and_ww_convert_dict = {
 #  Report_dict is a dictionary of all the reports created plus the report_type_dict to decode it
 # at the end it is picked so it can be loaded
 
-report_dict={report("report_type_dict",0,"",""):report_type_dict,
-             report("coles_and_ww_pkl_dict",0,"",""):coles_and_ww_pkl_dict}
+# report_dict={report("report_type_dict",0,"",""):dd.report_type_dict,
+#              report("coles_and_ww_pkl_dict",0,"",""):dd.coles_and_ww_pkl_dict}
 
 
 
 
 # prediction hyper-parameters
-batch_length=4
-no_of_batches=1000
-no_of_repeats=4
-epochs=6
+# batch_length=4
+# no_of_batches=1000
+# no_of_repeats=4
+# epochs=6
 
 
 
@@ -1026,8 +1051,8 @@ epochs=6
 #     with open("stock_level_query.pkl","rb") as f:
 #        stock_df=pickle.load(f)
 # except:  
-print("load:",stock_level_query)
-stock_df=pd.read_excel(stock_level_query)    # -1 means all rows   
+print("load:",dd.stock_level_query)
+stock_df=pd.read_excel(dd.stock_level_query)    # -1 means all rows   
 with open("stock_level_query.pkl","wb") as f:
     pickle.dump(stock_df, f,protocol=-1)
 #except:
@@ -1048,6 +1073,7 @@ stock_df=stock_df[(stock_df['recent']==True) & ((stock_df['productgroup']>=10) &
                 
 stock_report_df=stock_df[['productgroup','code','lastsalesdate','qtyinstock']].sort_values(['productgroup','qtyinstock'],ascending=[True,True])
 
+stock_report_df.replace({'productgroup':dd.productgroups_dict},inplace=True)
 
 print("Out of stock report\n",stock_report_df.to_string())
 
@@ -1057,8 +1083,8 @@ print("Out of stock report\n",stock_report_df.to_string())
 #     with open("production_made.pkl","rb") as f:
 #        production_made_df=pickle.load(f)
 # except:  
-print("load:",production_made_query)
-production_made_df=pd.read_excel(production_made_query,sheet_name=production_made_sheet)    # -1 means all rows   
+print("load:",dd.production_made_query)
+production_made_df=pd.read_excel(dd.production_made_query,sheet_name=dd.production_made_sheet)    # -1 means all rows   
 with open("production_made.pkl","wb") as f:
     pickle.dump(production_made_df, f,protocol=-1)
 #print("stock df size=",stock_df.shape,stock_df.columns)
@@ -1079,8 +1105,8 @@ print("\nProduction recently made:\n",production_made_df.tail(50))
 #     with open("production_planned.pkl","rb") as f:
 #        production_planned_df=pickle.load(f)
 # except:  
-print("load:",production_planned_query)
-production_planned_df=pd.read_excel(production_planned_query,sheet_name=production_planned_sheet)    # -1 means all rows   
+print("load:",dd.production_planned_query)
+production_planned_df=pd.read_excel(dd.production_planned_query,sheet_name=dd.production_planned_sheet)    # -1 means all rows   
 with open("production_planned.pkl","wb") as f:
     pickle.dump(production_planned_df, f,protocol=-1)
 #print("stock df size=",stock_df.shape,stock_df.columns)
@@ -1105,9 +1131,9 @@ tf.random.set_seed(42)
 
 
 print("\n\nLoad scan data spreadsheets...\n")
-scan_data_files=["jam_scan_data_2020.xlsx","cond_scan_data_2020.xlsx","sauce_scan_data_2020.xlsx"]
-#total_columns_count=1619+797
-scan_dict_savename="scan_dict.pkl"
+# scan_data_files=["jam_scan_data_2020.xlsx","cond_scan_data_2020.xlsx","sauce_scan_data_2020.xlsx"]
+# #total_columns_count=1619+797
+# scan_dict_savename="scan_dict.pkl"
 
 #output_dir = log_dir("scandata")
 #os.makedirs(output_dir, exist_ok=True)
@@ -1155,228 +1181,228 @@ tf.random.set_seed(42)
 #market_dict={0:"Woolworths",
 #              1:"Coles"}
 
-market_dict={0:"Woolworths",
-              1:"coles"}
-           #   2:"indies",
-           #   3:"ritches",
-           #   4:"drakes"}
+# market_dict={0:"Woolworths",
+#               1:"coles"}
+#            #   2:"indies",
+#            #   3:"ritches",
+#            #   4:"drakes"}
 
 
 
-# measure_dict={1:"units_sold_total",
-#               2:"units_sold_off_promotion",
-#               3:"units_sold_on_promotion",
-#               4:"dollars_sold_total",
-#               5:"dollars_sold_off_promotion",
-#               6:"dollars_sold_on_promotion",
-#               7:"full_price",
-#               8:"promo_price",
-#               9:"weighted_depth_of_dist"}
+# # measure_dict={1:"units_sold_total",
+# #               2:"units_sold_off_promotion",
+# #               3:"units_sold_on_promotion",
+# #               4:"dollars_sold_total",
+# #               5:"dollars_sold_off_promotion",
+# #               6:"dollars_sold_on_promotion",
+# #               7:"full_price",
+# #               8:"promo_price",
+# #               9:"weighted_depth_of_dist"}
 
 
-category_dict={0:"unknown",
-               1:"jams",
-               2:"condiments",
-               3:"sauces",
-               4:"dressings"}
+# category_dict={0:"unknown",
+#                1:"jams",
+#                2:"condiments",
+#                3:"sauces",
+#                4:"dressings"}
 
 
-plot_type_dict={0:"Units report",
-                   1:"Dollars report",
-                   2:"Dist vs ranking report",
-                   3:"Dollars vs price report",
-                   4:"Units/store/Week report",
-                   5:"Share report",
-                   }
+# plot_type_dict={0:"Units report",
+#                    1:"Dollars report",
+#                    2:"Dist vs ranking report",
+#                    3:"Dollars vs price report",
+#                    4:"Units/store/Week report",
+#                    5:"Share report",
+#                    }
 
 
-#Used to convert the meaure column names to a measure type to match the dict above
-# the first digit is the plot report to group them in, the second is whether to stack the fields when plotting
-measure_conversion_dict={0:2,
-                         1:5,
-                         2:3,
-                         3:3,
-                         4:4,
-                         5:4,
-                         6:2,
-                         7:2,
-                         8:2,
-                         9:5,
-                         10:5,
-                         11:5,
-                         12:0,
-                         13:0,
-                         14:1,
-                         15:1}
-
-
-
-
-#measure list=
-# ['Depth Of Distribution Wtd',   0
-#'Dollars (000)',                        1
-#'Dollars (000) Sold off Promotion >= 5 % 6 wks',             2
-#'Dollars (000) Sold on Promotion >= 5 % 6 wks',              3
-#'Price ($/Unit)',                4
-#'Units (000)',                      5
-#'Units (000) Ranked Position in Total Chutney Pickles Relish',         6 
-# 'Units (000) Ranked Position in Total Jam/Curd/Marmalade',           7
-# 'Units (000) Ranked Position in Total Sauces',                 8
-#'Units (000) Share of Total Chutney Pickles Relish',            9
-#'Units (000) Share of Total Jam/Curd/Marmalade',            10
-# 'Units (000) Share of Total Sauces',                        11
-#'Units (000) Sold off Promotion >= 5 % 6 wks',          12
-#'Units (000) Sold on Promotion >= 5 % 6 wks',           13
-#'Units/Store/Week - Baseline >= 5 6 wks',               14
-#'Units/Store/Week - Incremental']                        15
-
-
-
-#Stack the value when plotting?
-stacked_conversion_dict={0:False,
-                         1:False,
-                         2:True,
-                         3:True,
-                         4:True,
-                         5:False,
-                         6:False,
-                         7:False,
-                         8:False,
-                         9:False,
-                         10:False,
-                         11:False,
-                         12:True,
-                         13:True,
-                         14:True,
-                         15:True}
-
-
-#Stack the value when plotting?
-second_y_axis_conversion_dict={0:False,
-                         1:True,
-                         2:False,
-                         3:False,
-                         4:True,
-                         5:False,
-                         6:False,
-                         7:False,
-                         8:False,
-                         9:False,
-                         10:False,
-                         11:False,
-                         12:False,
-                         13:False,
-                         14:False,
-                         15:False}
-
-
-# y axis reversed for ranking reports
-reverse_conversion_dict={0:False,
-                         1:False,
-                         2:False,
-                         3:False,
-                         4:False,
-                         5:False,
-                         6:True,
-                         7:True,
-                         8:True,
-                         9:False,
-                         10:False,
-                         11:False,
-                         12:False,
-                         13:False,
-                         14:False,
-                         15:False}
-
-
-
-
-# #Used to convert the meaure column names back to a measure type to match the dict above
-# measure_unconversion_dict={4:0,
-#                          2:1,
-#                          2:2,
+# #Used to convert the meaure column names to a measure type to match the dict above
+# # the first digit is the plot report to group them in, the second is whether to stack the fields when plotting
+# measure_conversion_dict={0:2,
+#                          1:5,
 #                          2:3,
-#                          3:4,
-#                          3:5,
-#                          1:6,
-#                          1:7,
-#                          1:8}
+#                          3:3,
+#                          4:4,
+#                          5:4,
+#                          6:2,
+#                          7:2,
+#                          8:2,
+#                          9:5,
+#                          10:5,
+#                          11:5,
+#                          12:0,
+#                          13:0,
+#                          14:1,
+#                          15:1}
 
 
 
 
-variety_type_dict={0:"unknown",
-                   1:"total",
-                   2:"apricot",
-                   3:"blackberry",
-                   4:"blueberry",
-                   5:"orange marm",
-                   6:"blood orange marm",
-                   7:"plum",
-                   8:"strawberry",
-                   9:"raspberry",
-                   10:"other",
-                   11:"fig almond",
-                   12:"caramelis",
-                   13:"worcestershire",
-                   14:"sce",
-                   15:"sce hot",
-                   16:"fruit of forest",
-                   17:"roadhouse",
-                   18:"lime lemon",
-                   19:"peri peri",
-                   20:"pear",
-                   21:"quince",
-                   22:"mustard pickles",
-                   23:"mango",
-                   24:"red currant",
-                   25:"rose petal",
-                   26:"ajvar",
-                   27:"4 fru",
-                   28:"peach",
-                   29:"cherry",
-                   30:"fruit",
-                   31:"blackcurrant",
-                   32:"fig royal",
-                   33:"mato&red",
-                   34:"beetroot",
-                   35:"chilli",
-                   36:"burger",
-                   37:"omoto hot",
-                   38:"tomat",
-                   39:"apple",
-                   40:"takatala"
-                   }
+# #measure list=
+# # ['Depth Of Distribution Wtd',   0
+# #'Dollars (000)',                        1
+# #'Dollars (000) Sold off Promotion >= 5 % 6 wks',             2
+# #'Dollars (000) Sold on Promotion >= 5 % 6 wks',              3
+# #'Price ($/Unit)',                4
+# #'Units (000)',                      5
+# #'Units (000) Ranked Position in Total Chutney Pickles Relish',         6 
+# # 'Units (000) Ranked Position in Total Jam/Curd/Marmalade',           7
+# # 'Units (000) Ranked Position in Total Sauces',                 8
+# #'Units (000) Share of Total Chutney Pickles Relish',            9
+# #'Units (000) Share of Total Jam/Curd/Marmalade',            10
+# # 'Units (000) Share of Total Sauces',                        11
+# #'Units (000) Sold off Promotion >= 5 % 6 wks',          12
+# #'Units (000) Sold on Promotion >= 5 % 6 wks',           13
+# #'Units/Store/Week - Baseline >= 5 6 wks',               14
+# #'Units/Store/Week - Incremental']                        15
 
-brand_dict={0:"unknown",
-            1:"beerenberg",
-            2:"st dalfour",
-            3:"bonne maman",
-            4:"cottees",
-            5:"anathoth",
-            6:"roses",
-            10:"baxters",
-            11:"whitlocks",
-            12:"barker",
-            13:"three threes",
-            14:"spring gully",
-            15:"masterfoods",
-            16:"yackandandah",
-            17:"goan",
-            18:"podravka",
-            20:"heinz",
-            21:"leggos",
-            22:"mrs h.s.ball",
-            23:"branston",
-            24:"maggie beer",
-            25:"country cuisine",
-            26:"fletchers",
-            27:"jamie oliver",
-            28:"regimental",
-            29:"maleny",
-            7:"ixl",
-            30:"red kellys",
-            100:"other"}
+
+
+# #Stack the value when plotting?
+# stacked_conversion_dict={0:False,
+#                          1:False,
+#                          2:True,
+#                          3:True,
+#                          4:True,
+#                          5:False,
+#                          6:False,
+#                          7:False,
+#                          8:False,
+#                          9:False,
+#                          10:False,
+#                          11:False,
+#                          12:True,
+#                          13:True,
+#                          14:True,
+#                          15:True}
+
+
+# #Stack the value when plotting?
+# second_y_axis_conversion_dict={0:False,
+#                          1:True,
+#                          2:False,
+#                          3:False,
+#                          4:True,
+#                          5:False,
+#                          6:False,
+#                          7:False,
+#                          8:False,
+#                          9:False,
+#                          10:False,
+#                          11:False,
+#                          12:False,
+#                          13:False,
+#                          14:False,
+#                          15:False}
+
+
+# # y axis reversed for ranking reports
+# reverse_conversion_dict={0:False,
+#                          1:False,
+#                          2:False,
+#                          3:False,
+#                          4:False,
+#                          5:False,
+#                          6:True,
+#                          7:True,
+#                          8:True,
+#                          9:False,
+#                          10:False,
+#                          11:False,
+#                          12:False,
+#                          13:False,
+#                          14:False,
+#                          15:False}
+
+
+
+
+# # #Used to convert the meaure column names back to a measure type to match the dict above
+# # measure_unconversion_dict={4:0,
+# #                          2:1,
+# #                          2:2,
+# #                          2:3,
+# #                          3:4,
+# #                          3:5,
+# #                          1:6,
+# #                          1:7,
+# #                          1:8}
+
+
+
+
+# variety_type_dict={0:"unknown",
+#                    1:"total",
+#                    2:"apricot",
+#                    3:"blackberry",
+#                    4:"blueberry",
+#                    5:"orange marm",
+#                    6:"blood orange marm",
+#                    7:"plum",
+#                    8:"strawberry",
+#                    9:"raspberry",
+#                    10:"other",
+#                    11:"fig almond",
+#                    12:"caramelis",
+#                    13:"worcestershire",
+#                    14:"sce",
+#                    15:"sce hot",
+#                    16:"fruit of forest",
+#                    17:"roadhouse",
+#                    18:"lime lemon",
+#                    19:"peri peri",
+#                    20:"pear",
+#                    21:"quince",
+#                    22:"mustard pickles",
+#                    23:"mango",
+#                    24:"red currant",
+#                    25:"rose petal",
+#                    26:"ajvar",
+#                    27:"4 fru",
+#                    28:"peach",
+#                    29:"cherry",
+#                    30:"fruit",
+#                    31:"blackcurrant",
+#                    32:"fig royal",
+#                    33:"mato&red",
+#                    34:"beetroot",
+#                    35:"chilli",
+#                    36:"burger",
+#                    37:"omoto hot",
+#                    38:"tomat",
+#                    39:"apple",
+#                    40:"takatala"
+#                    }
+
+# brand_dict={0:"unknown",
+#             1:"beerenberg",
+#             2:"st dalfour",
+#             3:"bonne maman",
+#             4:"cottees",
+#             5:"anathoth",
+#             6:"roses",
+#             10:"baxters",
+#             11:"whitlocks",
+#             12:"barker",
+#             13:"three threes",
+#             14:"spring gully",
+#             15:"masterfoods",
+#             16:"yackandandah",
+#             17:"goan",
+#             18:"podravka",
+#             20:"heinz",
+#             21:"leggos",
+#             22:"mrs h.s.ball",
+#             23:"branston",
+#             24:"maggie beer",
+#             25:"country cuisine",
+#             26:"fletchers",
+#             27:"jamie oliver",
+#             28:"regimental",
+#             29:"maleny",
+#             7:"ixl",
+#             30:"red kellys",
+#             100:"other"}
 
 
 #############################
@@ -1415,20 +1441,7 @@ brand_dict={0:"unknown",
     
 
 
-
-
-def find_in_dict(dictname,name):
-    m= [k for k, v in dictname.items() if v in name.lower()]
-    if len(m)>1:
-        m=m[-1]
-    elif len(m)==1:
-        m=m[0]
-    else:
-        m=0
-    return m    
-
-    
-    
+  
     
 np.random.seed(42)
 tf.random.set_seed(42)
@@ -1439,7 +1452,7 @@ tf.random.set_seed(42)
     
 
 count=1
-for scan_file in scan_data_files:
+for scan_file in dd.scan_data_files:
     column_count=pd.read_excel(scan_file,-1).shape[1]   #count(axis='columns')
     print("Loading...",scan_file,"->",column_count,"columns")
     convert_dict={col: np.float64 for col in range(1,column_count-1)}   #1619
@@ -1448,7 +1461,7 @@ for scan_file in scan_data_files:
     if count==1:
         df=pd.read_excel(scan_file,-1,dtype=convert_dict,index_col=0,header=[0,1,2])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
         df=df.T
-        df['category']=[category_dict[count]]*(column_count-1)
+        df['category']=[dd.category_dict[count]]*(column_count-1)
         df = df.set_index('category', append=True)
         df=df.T
 
@@ -1458,7 +1471,7 @@ for scan_file in scan_data_files:
         df2=pd.read_excel(scan_file,-1,index_col=0,header=[0,1,2])
      #   print(df2)
         df2=df2.T
-        df2['category']=[category_dict[count]]*(column_count-1)
+        df2['category']=[dd.category_dict[count]]*(column_count-1)
         df2 = df2.set_index('category', append=True)
         df2=df2.T
    #     print(df2)
@@ -1583,19 +1596,19 @@ df.rename(columns=market_rename_dict,level='market',inplace=True)
 #df.rename(columns=product_rename_dict,level='product',inplace=True)
 df.rename(columns=measure_rename_dict,level='plot_type',inplace=True)
 #print("2",df.T)
-df.rename(columns=measure_conversion_dict,level='plot_type',inplace=True)
+df.rename(columns=dd.measure_conversion_dict,level='plot_type',inplace=True)
 
 df.rename(columns=measure_rename_dict,level='stacked',inplace=True)
 
-df.rename(columns=stacked_conversion_dict,level='stacked',inplace=True)
+df.rename(columns=dd.stacked_conversion_dict,level='stacked',inplace=True)
 
 df.rename(columns=measure_rename_dict,level='second_y',inplace=True)
 
-df.rename(columns=second_y_axis_conversion_dict,level='second_y',inplace=True)
+df.rename(columns=dd.second_y_axis_conversion_dict,level='second_y',inplace=True)
 
 df.rename(columns=measure_rename_dict,level='reverse',inplace=True)
 
-df.rename(columns=reverse_conversion_dict,level='reverse',inplace=True)
+df.rename(columns=dd.reverse_conversion_dict,level='reverse',inplace=True)
 
 
 #print("3",df.T)
@@ -1607,9 +1620,9 @@ df.rename(columns=reverse_conversion_dict,level='reverse',inplace=True)
 #    print(c,find_in_dict(brand_dict,c),find_in_dict(variety_type_dict,c))  
  #   print(df.loc[find_in_dict(brand_dict,c)])
 
-brand_values=[find_in_dict(brand_dict,c) for c in original_df.columns.get_level_values('product')]
+brand_values=[find_in_dict(dd.brand_dict,c) for c in original_df.columns.get_level_values('product')]
 #print("brands:",brand_values)
-product_values=[find_in_dict(variety_type_dict,c) for c in original_df.columns.get_level_values('product')]
+product_values=[find_in_dict(dd.variety_type_dict,c) for c in original_df.columns.get_level_values('product')]
 #print("products:",product_values)
   #  print(c,"=",variety_type_dict[c])
    # print(c,find_in_dict(brand_dict,c),find_in_dict(variety_type_dict,c))  
@@ -1638,31 +1651,31 @@ df=df.reorder_levels(['category','market','brand','variety','plot_type','stacked
 #print(full_index_df)
 
 scan_dict={"original_df":original_df,
-           "final_df":df,
- #          "full_index_df":full_index_df,
-           "market_dict":market_dict,
+            "final_df":df,
+  #          "full_index_df":full_index_df,
+            "market_dict":market_dict,
         #   "product_dict":product_dict,
-           "measure_conversion_dict":measure_conversion_dict,
-           "stacked_conversion_dict":stacked_conversion_dict,
-           'plot_type_dict':plot_type_dict,
-           'brand_dict':brand_dict,
-           'category_dict':category_dict,
-           'variety_type_dict':variety_type_dict,
-           'second_y_axis_conversion_dict':second_y_axis_conversion_dict,
-           'reverse_conversion_dict':reverse_conversion_dict}
+            "measure_conversion_dict":dd.measure_conversion_dict,
+            "stacked_conversion_dict":dd.stacked_conversion_dict,
+            'plot_type_dict':dd.plot_type_dict,
+            'brand_dict':dd.brand_dict,
+            'category_dict':dd.category_dict,
+            'variety_type_dict':dd.variety_type_dict,
+            'second_y_axis_conversion_dict':dd.second_y_axis_conversion_dict,
+            'reverse_conversion_dict':dd.reverse_conversion_dict}
 
 
-with open(scan_dict_savename,"wb") as f:
+with open(dd.scan_dict_savename,"wb") as f:
     pickle.dump(scan_dict,f,protocol=-1)
     
 ##############################################################    
 
-with open(scan_dict_savename, 'rb') as g:
-    scan_data_dict = pickle.load(g)
+with open(dd.scan_dict_savename, 'rb') as g:
+    dd.scan_data_dict = pickle.load(g)
 
 
 
-print("final_df shape:",scan_data_dict['final_df'].shape)
+print("final_df shape:",dd.scan_data_dict['final_df'].shape)
 print("\n\n********************************************\n")
 print("unknown brands=")
 try:
@@ -1683,7 +1696,7 @@ except:
 
 #
 print("\n\n")
-print("All scandata dataframe saved to",scan_dict_savename,":\n",scan_data_dict['final_df'])
+print("All scandata dataframe saved to",dd.scan_dict_savename,":\n",dd.scan_data_dict['final_df'])
 
 
 
@@ -1719,7 +1732,7 @@ print("All scandata dataframe saved to",scan_dict_savename,":\n",scan_data_dict[
 ###################################################    
  
 
-with open(sales_df_savename,"rb") as f:
+with open(dd.sales_df_savename,"rb") as f:
     sales_df=pickle.load(f)
 
 #print("sales shape df=\n",sales_df.shape)
@@ -1736,8 +1749,8 @@ print("\nData available:",sales_df.shape[0],"records.\nfirst date:",first_date,"
 answer="y"
 answer=input("Refresh salestrans?")
 if answer=="y":
-    sales_df=load_sales(filenames)  # filenames is a list of xlsx files to load and sort by date
-    with open(sales_df_savename,"wb") as f:
+    sales_df=load_sales(dd.filenames)  # filenames is a list of xlsx files to load and sort by date
+    with open(dd.sales_df_savename,"wb") as f:
           pickle.dump(sales_df, f,protocol=-1)
 
     
@@ -1745,7 +1758,7 @@ sales_df.sort_values(by=['date'],ascending=True,inplace=True)
 last_date=sales_df['date'].iloc[-1]
 first_date=sales_df['date'].iloc[0]
 
-print("\nAttache sales trans analysis up to date.  New save is:",sales_df_savename)
+print("\nAttache sales trans analysis up to date.  New save is:",dd.sales_df_savename)
 print("\nData available:",sales_df.shape[0],"records.\nfirst date:",first_date,"\nlast date:",last_date,"\n")
 
 dds=sales_df.groupby(['period'])['salesval'].sum().to_frame() 
@@ -1781,9 +1794,9 @@ print("\n",name)
 title=name+" w/c:("+str(latest_date)+")"
 
 result,figname=glset_GSV(dds,name)
-report_dict[report(name,3,"_*","_*")]=result
-report_dict[report(name,8,"_*","_*")]=figname
-report_dict[report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,3,"_*","_*")]=result
+dd.report_dict[dd.report(name,8,"_*","_*")]=figname
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
 
 result.to_excel(output_dir+name+".xlsx") 
 
@@ -1795,9 +1808,9 @@ print("\n",name)
 shop_df=sales_df[(sales_df['glset']=="SHP")]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
 result,figname=glset_GSV(dds,name)
-report_dict[report(name,3,"CASHSHOP","_*")]=result
-report_dict[report(name,8,"CASHSHOP","_*")]=figname
-report_dict[report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,3,"CASHSHOP","_*")]=result
+dd.report_dict[dd.report(name,8,"CASHSHOP","_*")]=figname
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
 
 result.to_excel(output_dir+name+".xlsx") 
 
@@ -1808,9 +1821,9 @@ print("\n",name)
 shop_df=sales_df[(sales_df['glset']=="ONL")]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
 result,figname=glset_GSV(dds,name)
-report_dict[report(name,3,"_*","_*")]=result
-report_dict[report(name,8,"_*","_*")]=figname
-report_dict[report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,3,"_*","_*")]=result
+dd.report_dict[dd.report(name,8,"_*","_*")]=figname
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
 
 result.to_excel(output_dir+name+".xlsx") 
 
@@ -1820,9 +1833,9 @@ print("\n",name)
 shop_df=sales_df[(sales_df['glset']=="EXS")]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
 result,figname=glset_GSV(dds,name)
-report_dict[report(name,3,"_*","_*")]=result
-report_dict[report(name,8,"_*","_*")]=figname
-report_dict[report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,3,"_*","_*")]=result
+dd.report_dict[dd.report(name,8,"_*","_*")]=figname
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
 
 result.to_excel(output_dir+name+".xlsx") 
 
@@ -1833,8 +1846,10 @@ print("\n",name)
 shop_df=sales_df[(sales_df['glset']=="NAT")]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
 result,figname=glset_GSV(dds,name)
-report_dict[report(name,3,"_*","_*")]=result
-report_dict[report(name,8,"_*","_*")]=figname
+dd.report_dict[dd.report(name,3,"_*","_*")]=result
+dd.report_dict[dd.report(name,8,"_*","_*")]=figname
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+
 result.to_excel(output_dir+name+".xlsx") 
 
 ############################################
@@ -1844,9 +1859,9 @@ print("\n",name)
 shop_df=sales_df[(sales_df['specialpricecat']==10)]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
 result,figname=glset_GSV(dds,name)
-report_dict[report(name,3,"_*","_*")]=result
-report_dict[report(name,8,"_*","_*")]=figname
-report_dict[report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,3,"_*","_*")]=result
+dd.report_dict[dd.report(name,8,"_*","_*")]=figname
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
 
 result.to_excel(output_dir+name+".xlsx") 
 
@@ -1857,9 +1872,9 @@ print("\n",name)
 shop_df=sales_df[(sales_df['specialpricecat']==12)]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
 result,figname=glset_GSV(dds,name)
-report_dict[report(name,3,"_*","_*")]=result
-report_dict[report(name,8,"_*","_*")]=figname
-report_dict[report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,3,"_*","_*")]=result
+dd.report_dict[dd.report(name,8,"_*","_*")]=figname
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
 
 result.to_excel(output_dir+name+".xlsx") 
 
@@ -1870,9 +1885,9 @@ print("\n",name)
 shop_df=sales_df[(sales_df['glset']=="DFS")]
 dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
 result,figname=glset_GSV(dds,name)
-report_dict[report(name,3,"_*","_*")]=result
-report_dict[report(name,8,"_*","_*")]=figname
-report_dict[report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,3,"_*","_*")]=result
+dd.report_dict[dd.report(name,8,"_*","_*")]=figname
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
 
 result.to_excel(output_dir+name+".xlsx") 
 
@@ -1897,8 +1912,8 @@ sales_df["year"] = pd.to_datetime(sales_df["date"]).dt.strftime('%Y')
 pivot_df=pd.pivot_table(sales_df, values='qty', index=['productgroup','product'],columns=['year','month'], aggfunc=np.sum, margins=False,dropna=True,observed=True)
 name="pivot_table_units"
 pivot_df.to_excel(output_dir+name+".xlsx") 
-report_dict[report(name,6,"_*","_*")]=pivot_df
-report_dict[report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
 
 
 
@@ -1906,9 +1921,9 @@ pivot_df=pd.pivot_table(sales_df, values='salesval', index=['productgroup','prod
 
 name="pivot_table_dollars"
 pivot_df.to_excel(output_dir+name+".xlsx") 
-report_dict[report(name,6,"_*","_*")]=pivot_df
+dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
 #report_dict[report(name,5,"*","*")]=name+".xlsx"
-report_dict[report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
 
 
 pivot_df=pd.pivot_table(sales_df[sales_df['productgroup']<"40"], values='qty', index=['productgroup'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
@@ -1918,10 +1933,10 @@ figname=plot_stacked_line_pivot(pivot_df,name,False)   #,number=6)
 
 
 pivot_df.to_excel(output_dir+name+".xlsx") 
-report_dict[report(name,6,"_*","_*")]=pivot_df
+dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
 #report_dict[report(name,5,"*","*")]=name+".xlsx"
-report_dict[report(name,8,"_*","_*")]=figname
-report_dict[report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,8,"_*","_*")]=figname
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
 
 
 
@@ -1930,9 +1945,9 @@ pivot_df=pd.pivot_table(sales_df, values='salesval', index=['glset','specialpric
 
 name="pivot_table_customers_x_glset_x_spc"
 pivot_df.to_excel(output_dir+name+".xlsx")
-report_dict[report(name,6,"_*","_*")]=pivot_df
+dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
 #report_dict[report(name,5,"*","*")]=name+".xlsx"
-report_dict[report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
 
 
 pivot_df=pd.pivot_table(sales_df, values='salesval', index=['glset'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
@@ -1941,19 +1956,19 @@ pivot_df=pd.pivot_table(sales_df, values='salesval', index=['glset'],columns=['y
 #print(pivot_df)  
 name="pivot_table_customers_x_glset"
 pivot_df.to_excel(output_dir+name+".xlsx")
-report_dict[report(name,6,"_*","_*")]=pivot_df
+dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
 #report_dict[report(name,5,"*","*")]=name+".xlsx"
-report_dict[report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
 
 
 pivot_df=pd.pivot_table(sales_df, values='salesval', index=['specialpricecat'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
 #pivot_df.sort_index(axis='columns', ascending=False, level=['month','year'])
 name="Dollar sales per month by spc"
 figname=plot_stacked_line_pivot(pivot_df,name,False)   #,number=6)
-report_dict[report(name,6,"_*","_*")]=pivot_df
+dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
 #report_dict[report(name,5,"*","*")]=name+".xlsx"
-report_dict[report(name,8,"_*","_*")]=figname
-report_dict[report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,8,"_*","_*")]=figname
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
 
 pivot_df.to_excel(output_dir+name+".xlsx")
 
@@ -1962,10 +1977,10 @@ pivot_df.to_excel(output_dir+name+".xlsx")
 pivot_df=pd.pivot_table(sales_df, values='salesval', index=['specialpricecat'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
 name="pivot_table_customers_spc_nocodes"
 pivot_df.to_excel(output_dir+name+".xlsx")
-report_dict[report(name,6,"_*","_*")]=pivot_df
+dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
 #report_dict[report(name,5,"*","*")]=name+".xlsx"
-report_dict[report(name,8,"_*","_*")]=figname
-report_dict[report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,8,"_*","_*")]=figname
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
 
 
 pivot_df=pd.pivot_table(sales_df, values='salesval', index=['specialpricecat','code'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
@@ -1975,9 +1990,9 @@ pivot_df=pd.pivot_table(sales_df, values='salesval', index=['specialpricecat','c
 #print(pivot_df) 
 name="pivot_table_customers_x_spc"
 pivot_df.to_excel(output_dir+name+".xlsx") 
-report_dict[report(name,6,"_*","_*")]=pivot_df
+dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
 #report_dict[report(name,5,"*","*")]=name+".xlsx"
-report_dict[report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
 
 
 pivot_df=pd.pivot_table(sales_df, values='salesval', index=['cat','code'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
@@ -1985,9 +2000,9 @@ pivot_df=pd.pivot_table(sales_df, values='salesval', index=['cat','code'],column
 #print(pivot_df) 
 name="pivot_table_customers"
 pivot_df.to_excel(output_dir+name+".xlsx") 
-report_dict[report(name,6,"_*","_*")]=pivot_df
+dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
 #report_dict[report(name,5,"*","*")]=name+".xlsx"
-report_dict[report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
 
 
 ##################################################################3
@@ -1997,11 +2012,11 @@ print("\nUpdate and save the qty reports from the coles_and_ww_pkl_dict\n")
 
 
 
-for key in coles_and_ww_pkl_dict.keys():
-    brand=coles_and_ww_pkl_dict[key][0]
-    spc=coles_and_ww_pkl_dict[key][1]
-    pg=str(coles_and_ww_pkl_dict[key][2])
-    pc=coles_and_ww_pkl_dict[key][3]
+for key in dd.coles_and_ww_pkl_dict.keys():
+    brand=dd.coles_and_ww_pkl_dict[key][0]
+    spc=dd.coles_and_ww_pkl_dict[key][1]
+    pg=str(dd.coles_and_ww_pkl_dict[key][2])
+    pc=dd.coles_and_ww_pkl_dict[key][3]
     if (pc=="_*") | (pc=="_t") | (pc=="_T"):
     #    print("pc=",pc,pg,spc)
         v=sales_df.query('specialpricecat==@spc & productgroup==@pg')[['date','qty']]
@@ -2032,8 +2047,8 @@ unique_code_pivot_df=pivot_df.drop_duplicates('code',keep='first')
 name="Top 50 customers by $purchases in the last 30 days"
 print("\n",name)
 print(unique_code_pivot_df[['code','total_dollars']].head(50))
-report_dict[report(name,3,"_*","_*")]=unique_code_pivot_df
-report_dict[report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
 
 unique_code_pivot_df[['code','total_dollars']].head(50).to_excel(output_dir+name+".xlsx") 
 
@@ -2046,10 +2061,26 @@ unique_code_pivot_df=pivot_df.drop_duplicates('specialpricecat',keep='first')
 #unique_code_pivot_df=pd.unique(pivot_df['code'])
 print("\n",name)
 print(unique_code_pivot_df[['specialpricecat','total_dollars']].head(50))
-report_dict[report(name,3,"_*","_*")]=unique_code_pivot_df
-report_dict[report(name,5,"_*","-*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
+dd.report_dict[dd.report(name,5,"_*","-*")]=output_dir+name+".xlsx"
 
 unique_code_pivot_df[['specialpricecat','total_dollars']].head(50).to_excel(output_dir+name+".xlsx") 
+
+
+year_sales_df["total_dollars"]=year_sales_df['salesval'].groupby(year_sales_df["salesrep"]).transform(sum)
+pivot_df=year_sales_df.sort_values(by=["total_dollars"],ascending=[False])
+#print("pv=",pivot_df)
+name="Top salesreps by $sales in the last 30 days"
+unique_code_pivot_df=pivot_df.drop_duplicates('salesrep',keep='first')
+unique_code_pivot_df.replace({'salesrep':dd.salesrep_dict},inplace=True)
+
+#unique_code_pivot_df=pd.unique(pivot_df['code'])
+print("\n",name)
+print(unique_code_pivot_df[['salesrep','total_dollars']].head(50))
+dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
+dd.report_dict[dd.report(name,5,"_*","-*")]=output_dir+name+".xlsx"
+
+unique_code_pivot_df[['salesrep','total_dollars']].head(50).to_excel(output_dir+name+".xlsx") 
 
 
 
@@ -2068,8 +2099,8 @@ name="Top 50 products by $sales in the last 30 days"
 print("\n",name)
 print(unique_code_pivot_df[['product','total_units','total_dollars']].head(50))
 #pivot_df.to_excel("pivot_table_customers_ranking.xlsx") 
-report_dict[report(name,3,"_*","_*")]=unique_code_pivot_df
-report_dict[report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
 
 unique_code_pivot_df[['product','total_units','total_dollars']].head(50).to_excel(output_dir+name+".xlsx") 
 
@@ -2080,13 +2111,14 @@ year_sales_df["total_dollars"]=year_sales_df['salesval'].groupby(year_sales_df["
 year_sales_df["total_units"]=year_sales_df['qty'].groupby(year_sales_df["productgroup"]).transform(sum)
 pivot_df=year_sales_df.sort_values(by=["total_dollars"],ascending=[False])
 unique_pg_pivot_df=pivot_df.drop_duplicates('productgroup',keep='first')
+unique_pg_pivot_df.replace({'productgroup':dd.productgroup_dict},inplace=True)
 
 name="Top productgroups by $sales in the last 30 days"
 print("\n",name)
 print(unique_pg_pivot_df[['productgroup','total_units','total_dollars']].head(20))
 #pivot_df.to_excel("pivot_table_customers_ranking.xlsx") 
-report_dict[report(name,3,"_*","_*")]=unique_code_pivot_df
-report_dict[report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
 
 unique_pg_pivot_df[['productgroup','total_units','total_dollars']].head(20).to_excel(output_dir+name+".xlsx") 
 
@@ -2103,8 +2135,8 @@ credit_df=month_sales_df[(month_sales_df['salesval']<-100) | (month_sales_df['qt
 credit_df=credit_df.sort_values(by=["salesval"],ascending=[True])
 
 print(credit_df.tail(50)[['date','code','glset','qty','salesval']])
-report_dict[report(name,3,"_*","_*")]=credit_df
-report_dict[report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+dd.report_dict[dd.report(name,3,"_*","_*")]=credit_df
+dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
 
 credit_df[['date','code','glset','qty','salesval']].tail(50).to_excel(output_dir+name+".xlsx") 
 
@@ -2138,7 +2170,7 @@ end_date=sales_df['date'].iloc[-1]- pd.Timedelta(366, unit='d')
 #print(end_date)
 year_sales_df=sales_df[sales_df['date']>end_date]
 #print("ysdf1=",year_sales_df)
-year_sales_df=year_sales_df[year_sales_df['productgroup'].isin(product_groups_only) & year_sales_df['specialpricecat'].isin(spc_only)]   
+year_sales_df=year_sales_df[year_sales_df['productgroup'].isin(dd.product_groups_only) & year_sales_df['specialpricecat'].isin(dd.spc_only)]   
 #print("ysdf2=",year_sales_df[['date','code','product']])
   
 #cust_list=year_sales_df.code.unique()
@@ -2151,7 +2183,7 @@ end_date=sales_df['date'].iloc[-1]- pd.Timedelta(90, unit='d')
 #print(end_date)
 ninetyday_sales_df=sales_df[sales_df['date']>end_date]
 #print("ysdf1=",year_sales_df)
-ninetyday_sales_df=ninetyday_sales_df[ninetyday_sales_df['productgroup'].isin(product_groups_only) & ninetyday_sales_df['specialpricecat'].isin(spc_only)]   
+ninetyday_sales_df=ninetyday_sales_df[ninetyday_sales_df['productgroup'].isin(dd.product_groups_only) & ninetyday_sales_df['specialpricecat'].isin(dd.spc_only)]   
 
 #prod_list=list(set([tuple(r) for r in year_sales_df[['productgroup', 'product']].sort_values(by=['productgroup','product'],ascending=[True,True]).to_numpy()]))
 prod_list=list(set([tuple(r) for r in ninetyday_sales_df[['productgroup', 'product']].to_numpy()]))
@@ -2191,12 +2223,15 @@ dist_df.index=pd.MultiIndex.from_tuples(dist_df.index,sortorder=0,names=['produc
 dist_df.sort_index(level=0,ascending=True,inplace=True)
 dist_df=dist_df.T
 dist_df.index=pd.MultiIndex.from_tuples(dist_df.index,sortorder=0,names=['salesrep','specialpricecat','code'])
+dist_df=dist_df.rename(dd.salesrep_dict,level='salesrep',axis='index')
+dist_df=dist_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
+
 dist_df.sort_index(level=0,ascending=True,inplace=True)
 
 #df.index = pd.MultiIndex.from_tuples(df.index,names=["brand","specialpricecat","productgroup","product","on_promo","names"])
 #print("df level (0)=\n",df.index.get_level_values(0))
 
-#print("dist_df before=\n",dist_df)
+#print("dist_df before=\n",dist_df,"\n",dd.salesrep_dict)
 
 year_sales_df['counter']=0
 new_sales_df=year_sales_df.copy(deep=True)
@@ -2238,7 +2273,7 @@ if True:
               #  figure_list.append(figure)
                 new_sales_df=new_sales_df.append(s)
                 if (figname!="") & (name!=""):
-                    report_dict[report(name,8,cust[2],prod[1])]=figname
+                    dd.report_dict[dd.report(name,8,cust[2],prod[1])]=figname
      
     print("\n\n")
     #print("distribution matrix =\n",dist_df)
@@ -2251,14 +2286,14 @@ if True:
     print("\nbest growth=",new_sales_df[['code','product','slope']].head(100).to_string())
     print("\nworst growth=",new_sales_df[['code','product','slope']].tail(50).to_string())
     print(new_sales_df.shape)
-    report_dict[report(name,3,"_*","_*")]=new_sales_df
+    dd.report_dict[dd.report(name,3,"_*","_*")]=new_sales_df
     new_sales_df[['code','product','slope']].to_excel(output_dir+name+".xlsx",merge_cells=False,freeze_panes=(2,2)) 
     
     
     #print("\n\nreport dict=\n",report_dict.keys())
-    print("reports being pickled and saved to",report_savename)
-    with open(report_savename,"wb") as f:
-        pickle.dump(report_dict, f,protocol=-1)
+    print("reports being pickled and saved to",dd.report_savename)
+    with open(dd.report_savename,"wb") as f:
+        pickle.dump(dd.report_dict, f,protocol=-1)
       
     #plt.pause(0.001) 
     #plt.show()
@@ -2275,10 +2310,10 @@ if True:
 np.random.seed(42)
 tf.random.set_seed(42)
         
-df=pd.read_excel(scandatalist[0],-1,skiprows=[0,1,2],dtype=object).T.reset_index(drop=True)  #,index_col=None)   #n,index_col=None)  #.T.reset_index()  #,header=[0,1,2])  #,skip_rows=0)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+df=pd.read_excel(dd.scandatalist[0],-1,skiprows=[0,1,2],dtype=object).T.reset_index(drop=True)  #,index_col=None)   #n,index_col=None)  #.T.reset_index()  #,header=[0,1,2])  #,skip_rows=0)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
 #print("start df=\n",df)
-for n in range(1,len(scandatalist)):
-    df2=pd.read_excel(scandatalist[n],-1,skiprows=[0,1,2],dtype=object,index_col=None).T.reset_index(drop=True)   #,index_col=None)  #.T   #.reset_index()  #,header=[0,1,2])  #,skip_rows=0)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+for n in range(1,len(dd.scandatalist)):
+    df2=pd.read_excel(dd.scandatalist[n],-1,skiprows=[0,1,2],dtype=object,index_col=None).T.reset_index(drop=True)   #,index_col=None)  #.T   #.reset_index()  #,header=[0,1,2])  #,skip_rows=0)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
 
     df2.drop(df2.index[0],inplace=True)
     df=pd.concat((df,df2),axis=0)
@@ -2292,10 +2327,10 @@ df=df.T
 df = df.dropna(subset=['scan_week'])
 df.fillna(0.0,inplace=True)
 #print("df3=\n",df,"\n",df.T)
-df = df.astype(coles_and_ww_convert_dict) 
+df = df.astype(dd.coles_and_ww_convert_dict) 
 df['scan_week']=pd.to_datetime(df['scan_week'],format="%d/%m/%Y",exact=False)   #,yearfirst=True)
 
-df = df.rename(coles_and_ww_col_dict,axis='columns')
+df = df.rename(dd.coles_and_ww_col_dict,axis='columns')
 #print("after rename2=\n",df.index)
 df.drop_duplicates(keep='first', inplace=True)
 # delete weeks with all zeros
@@ -2533,11 +2568,11 @@ save_fig("ww6")   #,images_path)
 # coles_pkl_dict contains a list of files names as keys to run as the actual sales in the prediction vs actual df
 #
 
-with open(report_savename,"rb") as f:
-    report_dict=pickle.load(f)
+with open(dd.report_savename,"rb") as f:
+    dd.report_dict=pickle.load(f)
 
 #print("report dict=",report_dict.keys())
-coles_and_ww_pkl_dict=report_dict[report('coles_and_ww_pkl_dict',0,"","")]
+coles_and_ww_pkl_dict=dd.report_dict[dd.report('coles_and_ww_pkl_dict',0,"","")]
 #print("cole_pkl dict=",coles_pkl_dict)
 
 ###########################################3
@@ -2875,7 +2910,7 @@ for r in retailers:
                                      dates=mdf.index.tolist()[7:-1]
                              
                                      print("\n\n",ptx+btx+p,mdf.T,X_set.shape,y_set.shape)
-                                     model=train_model(ptx+btx+str(p),X_set,y_set,batch_length,no_of_batches)
+                                     model=train_model(ptx+btx+str(p),X_set,y_set,dd.batch_length,dd.no_of_batches,dd.epochs)
                                      if count==0:
                                          results=predict_order(mdf,ptx+btx+str(p),model)
                                      else:    
