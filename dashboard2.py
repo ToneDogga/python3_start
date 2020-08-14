@@ -323,7 +323,7 @@ def train_model(name,X_set,y_set,batch_length,no_of_batches,epochs):
     
     ##########################3
     
-    dataset=tf.data.Dataset.from_tensor_slices((X,y)).cache().repeat(no_of_repeats)
+    dataset=tf.data.Dataset.from_tensor_slices((X,y)).cache().repeat(dd.no_of_repeats)
     dataset=dataset.shuffle(buffer_size=1000,seed=42)
     
     train_set=dataset.batch(1).prefetch(1)
@@ -457,7 +457,7 @@ def plot_query2(query_df_passed,plot_col,query_name):
     for col in plot_col:
         new_query_df=query_df[col].copy(deep=True)
      #   print("1query_df=",new_query_df)
-        new_query_df=new_query_df.rolling(mats,axis=0).mean()
+        new_query_df=new_query_df.rolling(dd.mats,axis=0).mean()
         ax=new_query_df.plot(x='week_count',y=col)   #,style="b-")   #,use_index=False)   # actual
 
   #  col_no=1
@@ -2223,8 +2223,6 @@ dist_df.index=pd.MultiIndex.from_tuples(dist_df.index,sortorder=0,names=['produc
 dist_df.sort_index(level=0,ascending=True,inplace=True)
 dist_df=dist_df.T
 dist_df.index=pd.MultiIndex.from_tuples(dist_df.index,sortorder=0,names=['salesrep','specialpricecat','code'])
-dist_df=dist_df.rename(dd.salesrep_dict,level='salesrep',axis='index')
-dist_df=dist_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
 
 dist_df.sort_index(level=0,ascending=True,inplace=True)
 
@@ -2277,6 +2275,9 @@ if True:
      
     print("\n\n")
     #print("distribution matrix =\n",dist_df)
+    dist_df=dist_df.rename(dd.salesrep_dict,level='salesrep',axis='index')
+    dist_df=dist_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
+
     dist_df.to_excel(output_dir+"distribution_report.xlsx")
     #print("\nysdf3=",new_sales_df[['date','code','product','counter','slope']],new_sales_df.shape)
     new_sales_df.drop_duplicates(['code','product'],keep='first',inplace=True)
