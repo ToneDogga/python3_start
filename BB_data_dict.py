@@ -101,7 +101,22 @@ salesrep_dict={"14":"Brendan Selby",
                }
 
 
-
+spc_dict={122:"Harris farms",
+          107:"Lite n easy",
+          10:"Woolworhs",
+          12:"Coles",
+          88:"SA stores",
+          80:"SA distributors",
+          20:"NSW distributors",
+          40:"QLD distributors",
+          30:"VIC distributors",
+          38:"VIC stores",
+          28:"NSW stores",
+          48:"QLD stores",
+          50:"WA distributors",
+          70:"TAS distributors",
+          92:"Shop",
+          95:"Online shop"}
 
 
 report = namedtuple("report", ["name", "report_type","cust","prod"])

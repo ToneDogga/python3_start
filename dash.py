@@ -524,9 +524,9 @@ def plot_stacked_line_pivot(pivot_df,title,stacked=True,number=6):
 def plot_trend(s,title,slope,latest_date):
    #  ax=s[['days_since_last_order','units']].iloc[-1].plot(x='days_since_last_order', linestyle='None', color="green", marker='.')
 
-     fig=s[['days_since_last_order','units']].iloc[:-1].plot(x='days_since_last_order', linestyle='None', color="red", marker='o')
+     fig=s[['days since last order','units']].iloc[:-1].plot(x='days since last order', linestyle='None', color="red", marker='o')
 
-     s[['days_since_last_order','bestfit']].plot(x='days_since_last_order',kind="line",ax=fig)
+     s[['days since last order','bestfit']].plot(x='days since last order',kind="line",ax=fig)
 
      plt.title(title+" (slope="+str(round(slope,3))+") w/c:("+str(latest_date)+")")  #str(new_plot_df.columns.get_level_values(0)))
      fig.legend(fontsize=8)
@@ -572,7 +572,7 @@ def calculate_first_derivative(s,cust,prod,latest_date):
     X=X[::-1,0]
   #  X=X[:,0]
 
-    s['days_since_last_order']=X
+    s['days since last order']=X
     y=s[['qty']].to_numpy()   
     y=y[::-1,0]
     s['units']=y
@@ -1131,8 +1131,8 @@ def main():
     name="Beerenberg GSV Annual growth rate"
     print("\n",name)
     title=name+" w/c:("+str(latest_date)+")"
-    
-    result,figname=glset_GSV(dds,name)
+    dds_mat=dds.groupby(['period'])['salesval'].sum().to_frame() 
+    result,figname=glset_GSV(dds_mat,name)
     dd.report_dict[dd.report(name,3,"_*","_*")]=result
     dd.report_dict[dd.report(name,8,"_*","_*")]=figname
     dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
@@ -1248,7 +1248,19 @@ def main():
     
     sales_df["month"] = pd.to_datetime(sales_df["date"]).dt.strftime('%m-%b')
     sales_df["year"] = pd.to_datetime(sales_df["date"]).dt.strftime('%Y')
+    
+    saved_sales_df=sales_df.copy(deep=True)
+    
+    sales_df.replace({'productgroup':dd.productgroup_dict},inplace=True)
+    sales_df.replace({'productgroup':dd.productgroups_dict},inplace=True)
+    sales_df.replace({'specialpricecat':dd.spc_dict},inplace=True)
+
+
+########################################################3
+
+
     pivot_df=pd.pivot_table(sales_df, values='qty', index=['productgroup','product'],columns=['year','month'], aggfunc=np.sum, margins=False,dropna=True,observed=True)
+
     name="pivot_table_units"
     pivot_df.to_excel(output_dir+name+".xlsx") 
     dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
@@ -1257,7 +1269,9 @@ def main():
     
     
     pivot_df=pd.pivot_table(sales_df, values='salesval', index=['productgroup','product'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
-    
+ #   pivot_df.replace({'productgroup':dd.productgroup_dict},inplace=True)
+ #   pivot_df.replace({'productgroup':dd.productgroups_dict},inplace=True)
+
     name="pivot_table_dollars"
     pivot_df.to_excel(output_dir+name+".xlsx") 
     dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
@@ -1281,7 +1295,7 @@ def main():
     
     
     pivot_df=pd.pivot_table(sales_df, values='salesval', index=['glset','specialpricecat','code'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
-    
+
     name="pivot_table_customers_x_glset_x_spc"
     pivot_df.to_excel(output_dir+name+".xlsx")
     dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
@@ -1302,6 +1316,8 @@ def main():
     
     pivot_df=pd.pivot_table(sales_df, values='salesval', index=['specialpricecat'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
     #pivot_df.sort_index(axis='columns', ascending=False, level=['month','year'])
+ #   pivot_df.replace({'specialpricecat':dd.spc_dict},inplace=True)
+
     name="Dollar sales per month by spc"
     figname=plot_stacked_line_pivot(pivot_df,name,False)   #,number=6)
     dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
@@ -1314,6 +1330,8 @@ def main():
     
     #print(pivot_df) 
     pivot_df=pd.pivot_table(sales_df, values='salesval', index=['specialpricecat'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
+  #  pivot_df.replace({'specialpricecat':dd.spc_dict},inplace=True)
+   
     name="pivot_table_customers_spc_nocodes"
     pivot_df.to_excel(output_dir+name+".xlsx")
     dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
@@ -1323,6 +1341,8 @@ def main():
     
     
     pivot_df=pd.pivot_table(sales_df, values='salesval', index=['specialpricecat','code'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
+   # pivot_df.replace({'specialpricecat':dd.spc_dict},inplace=True)
+
     #pivot_df.sort_index(axis='columns', ascending=False, level=['month','year'])
     #ax=plot_stacked_line_pivot(pivot_df,"Unit sales per month by productgroup",False)   #,number=6)
     
@@ -1348,7 +1368,7 @@ def main():
     # update reports and save them as pickles for the brand_index.py program
     
     print("\nUpdate and save the qty reports from the coles_and_ww_pkl_dict\n")
-    
+    sales_df=saved_sales_df
     
     
     for key in dd.coles_and_ww_pkl_dict.keys():
@@ -1449,6 +1469,8 @@ def main():
     #print("pv=",pivot_df)
     name="Top 50 customers special price category by $purchases in the last 30 days"
     unique_code_pivot_df=pivot_df.drop_duplicates('specialpricecat',keep='first')
+    unique_code_pivot_df.replace({'specialpricecat':dd.spc_dict},inplace=True)
+    
     #unique_code_pivot_df=pd.unique(pivot_df['code'])
     print("\n",name)
     print(unique_code_pivot_df[['specialpricecat','total_dollars']].head(50))
@@ -1558,7 +1580,8 @@ def main():
     
     
     
-    
+    sales_df=saved_sales_df
+   
     
     
     #################################################################################################
@@ -1624,7 +1647,12 @@ def main():
         print("\nunique customers=",len(cust_list))
         print("unique products=",len(prod_list))
         
-        print("\nCreating distribution report and sales trends graphs....\n")
+        #spc_text=dd.spc_only.replace(dd.spc_dict,inplace=True)
+       # spc_text=[]
+        spc_text=[dd.spc_dict.get(int(e),'') for e in dd.spc_only]
+        
+        print("\nCreating distribution report and sales trends graphs for special price categories:",spc_text,"....\n")
+        
         cust_dict={k: v for v, k in enumerate(cust_list)}
         prod_dict={k: v for v, k in enumerate(prod_list)}
         #print("cist dict=\n",cust_dict)
@@ -1694,6 +1722,8 @@ def main():
             print("\n\n")
             #print("distribution matrix =\n",dist_df)
             dist_df=dist_df.rename(dd.salesrep_dict,level='salesrep',axis='index')
+            dist_df=dist_df.rename(dd.spc_dict,level='specialpricecat',axis='index')
+
             dist_df=dist_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
             dist_df=dist_df.rename(dd.productgroups_dict,level='productgroup',axis='columns')
         
