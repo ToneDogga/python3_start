@@ -664,8 +664,8 @@ def main():
     tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
     
     
-    print("\n\n\nDashboard2 : TF2 Salestrans analyse/predict - By Anthony Paech 25/5/20")
-    print("==============================================================================\n")       
+    print("\n\n\nDash : Beerenberg TF2 Salestrans analyse/predict dashboard- By Anthony Paech 25/5/20")
+    print("=================================================================================================\n")       
     
     print("Python version:",sys.version)
     print("\ntensorflow:",tf.__version__)
@@ -685,7 +685,7 @@ def main():
     print("tf.config.get_visible_devices('GPU'):",visible_devices)
     
      
-    print("\n=============================================================================\n")       
+    print("\n=================================================================================================\n")       
     
     
        
@@ -723,13 +723,13 @@ def main():
     
     #print("stock_df=\n",stock_df)
     #stock_df=stock_df[(stock_df['qtyinstock']<=2000) & (stock_df['recent']==True) & ((stock_df['productgroup']>=10) & (stock_df['productgroup']<=17))]  # | (stock_df['productgroup']==12) | (stock_df['productgroup']==13) | (stock_df['productgroup']==14) | (stock_df['productgroup']<=17))]
-    stock_df=stock_df[(stock_df['recent']==True) & ((stock_df['productgroup']>=10) & (stock_df['productgroup']<=17))]  # | (stock_df['productgroup']==12) | (stock_df['productgroup']==13) | (stock_df['productgroup']==14) | (stock_df['productgroup']<=17))]
+    stock_df=stock_df[(stock_df['recent']==True) & (stock_df['qtyinstock']<=dd.low_stock_limit) & ((stock_df['productgroup']>=10) & (stock_df['productgroup']<=17))]  # | (stock_df['productgroup']==12) | (stock_df['productgroup']==13) | (stock_df['productgroup']==14) | (stock_df['productgroup']<=17))]
                     
     stock_report_df=stock_df[['productgroup','code','lastsalesdate','qtyinstock']].sort_values(['productgroup','qtyinstock'],ascending=[True,True])
     
     stock_report_df.replace({'productgroup':dd.productgroups_dict},inplace=True)
     
-    print("Out of stock report\n",stock_report_df.to_string())
+    print("Low stock report (below",dd.low_stock_limit,"units)\n",stock_report_df.to_string())
     
     #####################################
     
@@ -1371,6 +1371,58 @@ def main():
     ##############################################################33
     # rank top customers and products
     #
+    
+    
+    latest_date=sales_df['date'].max()
+    
+    end_date=sales_df['date'].iloc[-1]- pd.Timedelta(2, unit='d')
+    #print(end_date)
+    #print("ysdf=",sales_df)
+    year_sales_df=sales_df[sales_df['date']>end_date]
+    #print("ysdf=",year_sales_df)
+    year_sales_df["total_dollars"]=year_sales_df['salesval'].groupby(year_sales_df["code"]).transform(sum)
+    pivot_df=year_sales_df.sort_values(by=["total_dollars"],ascending=[False])
+    #print("pv=",pivot_df)
+    unique_code_pivot_df=pivot_df.drop_duplicates('code',keep='first')
+    #unique_code_pivot_df=pd.unique(pivot_df['code'])
+    name="Top 20 customers by $purchases in the last 2 days"
+    print("\n",name)
+    print(unique_code_pivot_df[['code','total_dollars']].head(20))
+    dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
+    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    
+    unique_code_pivot_df[['code','total_dollars']].head(20).to_excel(output_dir+name+".xlsx") 
+    
+   
+    
+    
+    
+    
+    
+    latest_date=sales_df['date'].max()
+    
+    end_date=sales_df['date'].iloc[-1]- pd.Timedelta(7, unit='d')
+    #print(end_date)
+    #print("ysdf=",sales_df)
+    year_sales_df=sales_df[sales_df['date']>end_date]
+    #print("ysdf=",year_sales_df)
+    year_sales_df["total_dollars"]=year_sales_df['salesval'].groupby(year_sales_df["code"]).transform(sum)
+    pivot_df=year_sales_df.sort_values(by=["total_dollars"],ascending=[False])
+    #print("pv=",pivot_df)
+    unique_code_pivot_df=pivot_df.drop_duplicates('code',keep='first')
+    #unique_code_pivot_df=pd.unique(pivot_df['code'])
+    name="Top 30 customers by $purchases in the last 7 days"
+    print("\n",name)
+    print(unique_code_pivot_df[['code','total_dollars']].head(30))
+    dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
+    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    
+    unique_code_pivot_df[['code','total_dollars']].head(30).to_excel(output_dir+name+".xlsx") 
+    
+    
+    
+    
+    
     latest_date=sales_df['date'].max()
     
     end_date=sales_df['date'].iloc[-1]- pd.Timedelta(30, unit='d')
@@ -1421,10 +1473,34 @@ def main():
     
     unique_code_pivot_df[['salesrep','total_dollars']].head(50).to_excel(output_dir+name+".xlsx") 
     
+    latest_date=sales_df['date'].max()
+    
+    end_date=sales_df['date'].iloc[-1]- pd.Timedelta(365, unit='d')
+    year_sales_df=sales_df[sales_df['date']>end_date]
+
+    
+    year_sales_df["total_dollars"]=year_sales_df['salesval'].groupby(year_sales_df["salesrep"]).transform(sum)
+    pivot_df=year_sales_df.sort_values(by=["total_dollars"],ascending=[False])
+    #print("pv=",pivot_df)
+    name="Top salesreps by $sales in the last 365 days"
+    unique_code_pivot_df=pivot_df.drop_duplicates('salesrep',keep='first')
+    unique_code_pivot_df.replace({'salesrep':dd.salesrep_dict},inplace=True)
+    
+    #unique_code_pivot_df=pd.unique(pivot_df['code'])
+    print("\n",name)
+    print(unique_code_pivot_df[['salesrep','total_dollars']].head(50))
+    dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
+    dd.report_dict[dd.report(name,5,"_*","-*")]=output_dir+name+".xlsx"
+    
+    unique_code_pivot_df[['salesrep','total_dollars']].head(50).to_excel(output_dir+name+".xlsx") 
     
     
     
+    latest_date=sales_df['date'].max()
     
+    end_date=sales_df['date'].iloc[-1]- pd.Timedelta(30, unit='d')
+    year_sales_df=sales_df[sales_df['date']>end_date]
+
     
     year_sales_df["total_dollars"]=year_sales_df['salesval'].groupby(year_sales_df["product"]).transform(sum)
     year_sales_df["total_units"]=year_sales_df['qty'].groupby(year_sales_df["product"]).transform(sum)
@@ -1451,6 +1527,7 @@ def main():
     pivot_df=year_sales_df.sort_values(by=["total_dollars"],ascending=[False])
     unique_pg_pivot_df=pivot_df.drop_duplicates('productgroup',keep='first')
     unique_pg_pivot_df.replace({'productgroup':dd.productgroup_dict},inplace=True)
+    unique_pg_pivot_df.replace({'productgroup':dd.productgroups_dict},inplace=True)
     
     name="Top productgroups by $sales in the last 30 days"
     print("\n",name)
@@ -1485,7 +1562,7 @@ def main():
     
     
     #################################################################################################
-    
+    # Create distribution report and find all the good performing and poor performing outliers in retail sales
     if answer3=="y":
 
         print("\nChecking sales trends by customers and products of past year.")
@@ -1618,6 +1695,7 @@ def main():
             #print("distribution matrix =\n",dist_df)
             dist_df=dist_df.rename(dd.salesrep_dict,level='salesrep',axis='index')
             dist_df=dist_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
+            dist_df=dist_df.rename(dd.productgroups_dict,level='productgroup',axis='columns')
         
             dist_df.to_excel(output_dir+"distribution_report.xlsx")
             #print("\nysdf3=",new_sales_df[['date','code','product','counter','slope']],new_sales_df.shape)

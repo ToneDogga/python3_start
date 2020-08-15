@@ -10,13 +10,20 @@ from collections import namedtuple
 import numpy as np
 
 
+
+#  tf model hyper parameters for order prediction based on scan sales data
 batch_length=4
 no_of_batches=1000
 no_of_repeats=4
 epochs=6
 
 
+# product appears on low stock report if units stock is below this number
+low_stock_limit=8000
 
+
+
+# filenames in same directory as this programme
 stock_level_query='stock_level_query.xlsx'
 production_made_query='Production Schedule.xlsx'
 production_made_sheet="Schedule"
@@ -33,15 +40,12 @@ savepkl="coles_and_ww_invoiced_and_scanned_sales.pkl"
 sales_df_savename="sales_trans_df.pkl"
 filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
    
-# output_dir = log_dir("scandata")
-# os.makedirs(output_dir, exist_ok=True)
 
-# images_path = os.path.join(output_dir, "images/")
-# os.makedirs(images_path, exist_ok=True)
+product_groups_only=["10","11","12","13","14","15","16","17","18"]
+spc_only=["088","028"]   #,"038","048","028","080","020","030","040"]
 
-product_groups_only=["10","11","12","13","14","15","18"]
-spc_only=["088"]   #,"038","048","028","080","020","030","040"]
 
+# moving average total days used in prediction
 mats=7
 
 scan_data_files=["jam_scan_data_2020.xlsx","cond_scan_data_2020.xlsx","sauce_scan_data_2020.xlsx"]
@@ -49,12 +53,12 @@ scan_dict_savename="scan_dict.pkl"
 
 
 
-productgroup_dict={"1":"30g glass",
-                   "2":"40g glass",
-                   "41":"15g Sterling",
-                   "42":"30g Sterling",
-                   "43":"50g Sterling",
-                   "5":"14g SIS",
+productgroup_dict={"01":"30g glass",
+                   "02":"40g glass",
+                   "041":"15g Sterling",
+                   "042":"30g Sterling",
+                   "043":"50g Sterling",
+                   "05":"14g SIS",
                    "10":"Jams 250ml glass jar",
                    "11":"Sauce 300ml glass bottle",
                    "12":"Dressings 300ml glass bottle",
@@ -63,7 +67,8 @@ productgroup_dict={"1":"30g glass",
                    "15":"Condiments for cheese 150ml glass jar",
                    "16":"Traditional condiments 150ml glass jar",
                    "17":"Mustards 150ml glass jar",
-                   "18":"Olive Oil 500ml"}
+                   "18":"Olive Oil 500ml",
+                   "31":"2 Litre"}
 
 productgroups_dict={1:"30g glass",
                    2:"40g glass",
@@ -79,7 +84,8 @@ productgroups_dict={1:"30g glass",
                    15:"Condiments for cheese 150ml glass jar",
                    16:"Traditional condiments 150ml glass jar",
                    17:"Mustards 150ml glass jar",
-                   18:"Olive Oil 500ml"}
+                   18:"Olive Oil 500ml",
+                   31:"2 Litre"}
 
 
 
@@ -91,6 +97,7 @@ salesrep_dict={"14":"Brendan Selby",
                "36":"Annette Paech",
                "37":"Miles Rafferty",
                "39":"Sophia Simos",
+               "11":"Coles and WW"
                }
 
 
@@ -111,8 +118,8 @@ report_type_dict={0:"dictionary",
  
 #scandata = namedtuple("scandata", ["market", "product","measure"])
 
-market_dict={0:"Woolworths",
-              1:"Coles"}
+#market_dict={10:"Woolworths",
+#              12:"Coles"}
 
 
 
