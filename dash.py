@@ -1755,7 +1755,7 @@ def main():
     
     #############################
     # load scan data from excel reports into a df and add multiindexes for graphing options
-    
+    print("\nLoad scan data..",dd.scandatalist,"\n")
        
     np.random.seed(42)
     tf.random.set_seed(42)
@@ -1770,7 +1770,7 @@ def main():
     
     df.reset_index(drop=True,inplace=True)
     
-    #print("df1=\n",df,"\n",df.T)
+    print("df1=\n",df,"\n",df.T)
     df = df.rename({0:"scan_week"})
     df=df.T
     #print("df2=\n",df,"\n",df.T)
@@ -1824,29 +1824,29 @@ def main():
     
     
     df[0,12,10,"_T",0,'coles_jams_total_scanned']=df[0,12,10,"_*",0,'coles_total_jam_curd_marm_off_promo_scanned']+df[0,12,10,"_*",1,'coles_total_jam_curd_marm_on_promo_scanned']
-    df[1,12,10,"_t",0,'coles_BB_jams_total_scanned']=df[1,12,10,"_*",0,'coles_BB_jams_off_promo_scanned']+df[1,12,10,"_*",1,'coles_BB_jams_on_promo_scanned']
-    df[2,12,10,"_t",0,'coles_SD_jams_total_scanned']=df[2,12,10,"_*",0,'coles_SD_jams_off_promo_scanned']+df[2,12,10,"_*",1,'coles_SD_jams_on_promo_scanned']
-    df[3,12,10,"_t",0,'coles_BM_jams_total_scanned']=df[3,12,10,"_*",0,'coles_BM_jams_off_promo_scanned']+df[3,12,10,"_*",1,'coles_BM_jams_on_promo_scanned']
+    df[1,12,10,"_t",0,'coles_beerenberg_jams_total_scanned']=df[1,12,10,"_*",0,'coles_beerenberg_jams_off_promo_scanned']+df[1,12,10,"_*",1,'coles_beerenberg_jams_on_promo_scanned']
+    df[2,12,10,"_t",0,'coles_st_dalfour_jams_total_scanned']=df[2,12,10,"_*",0,'coles_st_dalfour_jams_off_promo_scanned']+df[2,12,10,"_*",1,'coles_st_dalfour_jams_on_promo_scanned']
+    df[3,12,10,"_t",0,'coles_bonne_maman_jams_total_scanned']=df[3,12,10,"_*",0,'coles_bonne_maman_jams_off_promo_scanned']+df[3,12,10,"_*",1,'coles_bonne_maman_jams_on_promo_scanned']
     #df=df*1000
     
-    df[1,12,10,"_t",0,'coles_BB_jams_on_promo']=(df[1,12,10,"_*",1,'coles_BB_jams_on_promo_scanned']>0)
-    df[2,12,10,"_t",0,'coles_SD_jams_on_promo']=(df[2,12,10,"_*",1,'coles_SD_jams_on_promo_scanned']>0)
-    df[3,12,10,"_t",0,'coles_BM_jams_on_promo']=(df[3,12,10,"_*",1,'coles_BM_jams_on_promo_scanned']>0)
+    df[1,12,10,"_t",0,'coles_beerenberg_jams_on_promo']=(df[1,12,10,"_*",1,'coles_beerenberg_jams_on_promo_scanned']>0)
+    df[2,12,10,"_t",0,'coles_st_dalfour_jams_on_promo']=(df[2,12,10,"_*",1,'coles_st_dalfour_jams_on_promo_scanned']>0)
+    df[3,12,10,"_t",0,'coles_bonne_maman_jams_on_promo']=(df[3,12,10,"_*",1,'coles_bonne_maman_jams_on_promo_scanned']>0)
     
-    df[0,10,10,"_T",0,'ww_jams_total_scanned']=df[0,10,10,"_*",0,'ww_total_jam_curd_marm_off_promo_scanned']+df[0,10,10,"_*",1,'ww_total_jam_curd_marm_on_promo_scanned']
+    df[0,10,10,"_T",0,'woolworths_jams_total_scanned']=df[0,10,10,"_*",0,'woolworths_total_jam_curd_marm_off_promo_scanned']+df[0,10,10,"_*",1,'woolworths_total_jam_curd_marm_on_promo_scanned']
     
-    df[1,10,10,"_t",0,'ww_BB_jams_total_scanned']=df[1,10,10,"_*",0,'ww_BB_jams_off_promo_scanned']+df[1,10,10,"_*",1,'ww_BB_jams_on_promo_scanned']
-    df[2,10,10,"_t",0,'ww_SD_jams_total_scanned']=df[2,10,10,"_*",0,'ww_SD_jams_off_promo_scanned']+df[2,10,10,"_*",1,'ww_SD_jams_on_promo_scanned']
-    df[3,10,10,"_t",0,'ww_BM_jams_total_scanned']=df[3,10,10,"_*",0,'ww_BM_jams_off_promo_scanned']+df[3,10,10,"_*",1,'ww_BM_jams_on_promo_scanned']
+    df[1,10,10,"_t",0,'woolworths_beerenberg_jams_total_scanned']=df[1,10,10,"_*",0,'woolworths_beerenberg_jams_off_promo_scanned']+df[1,10,10,"_*",1,'woolworths_beerenberg_jams_on_promo_scanned']
+    df[2,10,10,"_t",0,'woolworths_st_dalfour_jams_total_scanned']=df[2,10,10,"_*",0,'woolworths_st_dalfour_jams_off_promo_scanned']+df[2,10,10,"_*",1,'woolworths_st_dalfour_jams_on_promo_scanned']
+    df[3,10,10,"_t",0,'woolworths_bonne_maman_jams_total_scanned']=df[3,10,10,"_*",0,'woolworths_bonne_maman_jams_off_promo_scanned']+df[3,10,10,"_*",1,'woolworths_bonne_maman_jams_on_promo_scanned']
      
-    df[1,10,10,"_t",0,'ww_BB_jams_on_promo']=(df[1,10,10,"_*",1,'ww_BB_jams_on_promo_scanned']>0)
-    df[2,10,10,"_t",0,'ww_SD_jams_on_promo']=(df[2,10,10,"_*",1,'ww_SD_jams_on_promo_scanned']>0)
-    df[3,10,10,"_t",0,'ww_BM_jams_on_promo']=(df[3,10,10,"_*",1,'ww_BM_jams_on_promo_scanned']>0)
+    df[1,10,10,"_t",0,'woolworths_beerenberg_jams_on_promo']=(df[1,10,10,"_*",1,'woolworths_beerenberg_jams_on_promo_scanned']>0)
+    df[2,10,10,"_t",0,'woolworths_st_dalfour_jams_on_promo']=(df[2,10,10,"_*",1,'woolworths_st_dalfour_jams_on_promo_scanned']>0)
+    df[3,10,10,"_t",0,'woolworths_bonne_maman_jams_on_promo']=(df[3,10,10,"_*",1,'woolworths_bonne_maman_jams_on_promo_scanned']>0)
     
     
     
     
-    df["","","","_t","",'weekno']= np.arange(df.shape[0])
+  #  df["","","","_t","",'weekno']= np.arange(df.shape[0])
     
     
     
@@ -1856,7 +1856,7 @@ def main():
     
     
     
-    #print("df7.T=\n",df.T)   #,"\n",df.T)
+    #print("df7=\n",df,df.shape,"df7.T=\n",df.T)   #,"\n",df.T)
     #print("df7 levels=\n",df.columns.levels)
     #print("df7 level (0)=\n",df.T.index.get_level_values(0))
     
@@ -1869,24 +1869,27 @@ def main():
     
     for col_count in range(0,len(df.columns),2):
         cc=list(df.iloc[:,col_count].name)
-        #print("cc=",cc)
-        if cc[0]==1:
-            brand="BB"
-        elif cc[0]==2:
-            brand="SD"
-        elif cc[0]==3:
-            brand="BM"
-        elif cc[0]==0:
-            brand="Total"
-        else:
-            brand=str(cc[0])+"Other"
+        
+     #   print("cc[0],cc[1]=",cc[0],cc[1],type(cc[0]),type(cc[1]))
+        brand=dd.brand_dict[cc[0]]
+        cust=dd.spc_dict[cc[1]]
+        # if cc[0]==1:
+        #     brand="BB"
+        # elif cc[0]==2:
+        #     brand="SD"
+        # elif cc[0]==3:
+        #     brand="BM"
+        # elif cc[0]==0:
+        #     brand="Total"
+        # else:
+        #     brand=str(cc[0])+"Other"
             
-        if cc[1]==10:
-            cust="ww"
-        elif cc[1]==12:
-            cust="coles"
-        else:
-            cust="other"
+        # if cc[1]==10:
+        #     cust="ww"
+        # elif cc[1]==12:
+        #     cust="coles"
+        # else:
+        #     cust="other"
         
         #customer=cc[1]
         p=cc[3]    # product name
@@ -1895,45 +1898,46 @@ def main():
         cc=tuple(cc)
         df[cc]=df.T.xs(p,level=3).sum()
     
-    
-    #print("after8=\n",df)
+    df["","","","_t","",'weekno']= np.arange(df.shape[0])
+    print("df8=\n",df,df.shape,"\n",df.T)
     
     tdf=get_xs_name(df,("_t",3))
-    plot_query2(tdf,['coles_BB_jams_total_scanned','coles_SD_jams_total_scanned','coles_BM_jams_total_scanned'],'BB total scanned Coles jam units per week')
-    plot_query2(tdf,['ww_BB_jams_total_scanned','ww_SD_jams_total_scanned','ww_BM_jams_total_scanned'],'BB total scanned ww jam units per week')
+    plot_query2(tdf,['coles_beerenberg_jams_total_scanned','coles_st_dalfour_jams_total_scanned','coles_bonne_maman_jams_total_scanned'],'beerenberg total scanned Coles jam units per week')
+    plot_query2(tdf,['woolworths_beerenberg_jams_total_scanned','woolworths_st_dalfour_jams_total_scanned','woolworths_bonne_maman_jams_total_scanned'],'BB total scanned ww jam units per week')
     
     #tdf['coles_scan_week']=tdf.index
     #tdf.reset_index('scan_week',drop=True,inplace=True)
     tdf=tdf.astype(np.float64)
-    #print("tdf=\n",tdf)
-    #print("tdf.T=\n",tdf.T)
-    
+    print("tdf=\n",tdf)
+    print("tdf.T=\n",tdf.T)
+ 
+   
     #sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='SD_on_promo',hue='BM_on_promo')  #,fit_reg=True,robust=True,legend=True) 
     #sns.lmplot(x='weekno',y='BB_total_sales',data=df,col='BM_on_promo',hue='SD_on_promo')  #,fit_reg=True,robust=True,legend=True) 
-    sns.lmplot(x='weekno',y='coles_BB_jams_total_scanned',data=tdf,col='coles_BB_jams_on_promo',hue='coles_SD_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+    sns.lmplot(x='weekno',y='coles_beerenberg_jams_total_scanned',data=tdf,col='coles_beerenberg_jams_on_promo',hue='coles_st_dalfour_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
     save_fig("coles1")   #),images_path)
-    sns.lmplot(x='weekno',y='coles_BB_jams_total_scanned',data=tdf,col='coles_BB_jams_on_promo',hue='coles_BM_jams_on_promo')
+    sns.lmplot(x='weekno',y='coles_beerenberg_jams_total_scanned',data=tdf,col='coles_beerenberg_jams_on_promo',hue='coles_bonne_maman_jams_on_promo')
     save_fig("coles2")  #,images_path)
-    sns.lmplot(x='weekno',y='coles_BB_jams_total_scanned',data=tdf,col='coles_SD_jams_on_promo',hue='coles_BB_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+    sns.lmplot(x='weekno',y='coles_beerenberg_jams_total_scanned',data=tdf,col='coles_st_dalfour_jams_on_promo',hue='coles_beerenberg_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
     save_fig("coles3")   #),images_path)
-    sns.lmplot(x='weekno',y='coles_BB_jams_total_scanned',data=tdf,col='coles_BM_jams_on_promo',hue='coles_BB_jams_on_promo')
+    sns.lmplot(x='weekno',y='coles_beerenberg_jams_total_scanned',data=tdf,col='coles_bonne_maman_jams_on_promo',hue='coles_beerenberg_jams_on_promo')
     save_fig("coles4")  #,images_path)
-    sns.lmplot(x='weekno',y='coles_BB_jams_total_scanned',data=tdf,col='coles_BM_jams_on_promo',hue='coles_SD_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+    sns.lmplot(x='weekno',y='coles_beerenberg_jams_total_scanned',data=tdf,col='coles_bonne_maman_jams_on_promo',hue='coles_st_dalfour_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
     save_fig("coles5")   #,images_path)
-    sns.lmplot(x='weekno',y='coles_BB_jams_total_scanned',data=tdf,col='coles_SD_jams_on_promo',hue='coles_BM_jams_on_promo')
+    sns.lmplot(x='weekno',y='coles_beerenberg_jams_total_scanned',data=tdf,col='coles_st_dalfour_jams_on_promo',hue='coles_bonne_maman_jams_on_promo')
     save_fig("coles6")  #,images_path)
     
-    sns.lmplot(x='weekno',y='ww_BB_jams_total_scanned',data=tdf,col='ww_BB_jams_on_promo',hue='ww_SD_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+    sns.lmplot(x='weekno',y='woolworths_beerenberg_jams_total_scanned',data=tdf,col='woolworths_beerenberg_jams_on_promo',hue='woolworths_st_dalfour_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
     save_fig("ww1")  #,images_path)
-    sns.lmplot(x='weekno',y='ww_BB_jams_total_scanned',data=tdf,col='ww_BB_jams_on_promo',hue='ww_BM_jams_on_promo')
+    sns.lmplot(x='weekno',y='woolworths_beerenberg_jams_total_scanned',data=tdf,col='woolworths_beerenberg_jams_on_promo',hue='woolworths_bonne_maman_jams_on_promo')
     save_fig("ww2")   #,images_path)
-    sns.lmplot(x='weekno',y='ww_BB_jams_total_scanned',data=tdf,col='ww_BM_jams_on_promo',hue='ww_BB_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+    sns.lmplot(x='weekno',y='woolworths_beerenberg_jams_total_scanned',data=tdf,col='woolworths_bonne_maman_jams_on_promo',hue='woolworths_beerenberg_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
     save_fig("ww3")  #,images_path)
-    sns.lmplot(x='weekno',y='ww_BB_jams_total_scanned',data=tdf,col='ww_SD_jams_on_promo',hue='ww_BB_jams_on_promo')
+    sns.lmplot(x='weekno',y='woolworths_beerenberg_jams_total_scanned',data=tdf,col='woolworths_st_dalfour_jams_on_promo',hue='woolworths_beerenberg_jams_on_promo')
     save_fig("ww4")   #,images_path)    
-    sns.lmplot(x='weekno',y='ww_BB_jams_total_scanned',data=tdf,col='ww_BM_jams_on_promo',hue='ww_SD_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
+    sns.lmplot(x='weekno',y='woolworths_beerenberg_jams_total_scanned',data=tdf,col='woolworths_bonne_maman_jams_on_promo',hue='woolworths_st_dalfour_jams_on_promo')  #,fit_reg=True,robust=True,legend=True) 
     save_fig("ww5")  #,images_path)
-    sns.lmplot(x='weekno',y='ww_BB_jams_total_scanned',data=tdf,col='ww_SD_jams_on_promo',hue='ww_BM_jams_on_promo')
+    sns.lmplot(x='weekno',y='woolworths_beerenberg_jams_total_scanned',data=tdf,col='woolworths_st_dalfour_jams_on_promo',hue='woolworths_bonne_maman_jams_on_promo')
     save_fig("ww6")   #,images_path)
     
     
@@ -1951,13 +1955,13 @@ def main():
             dd.report_dict=pickle.load(f)
         
         #print("report dict=",report_dict.keys())
-        coles_and_ww_pkl_dict=dd.report_dict[dd.report('coles_and_ww_pkl_dict',0,"","")]
+        dd.coles_and_ww_pkl_dict=dd.report_dict[dd.report('coles_and_ww_pkl_dict',0,"","")]
         #print("cole_pkl dict=",coles_pkl_dict)
         
         ###########################################3
         
         joined_df=df.copy(deep=True)
-        for key in coles_and_ww_pkl_dict.keys():
+        for key in dd.coles_and_ww_pkl_dict.keys():
            # savepkl="scanned_sales_plus_"+key
          #   print("Loading query dataframe:",key)
             with open(key,"rb") as f:
@@ -1971,10 +1975,10 @@ def main():
          #   print(key,"fdf=\n",forecast_df,"pdk=",pkl_dict[key])
             joined_df=pd.concat([joined_df,forecast_df],axis=1)   #.sort_index(axis=1)
         #    joined_df=joined_df.rename(columns={"qty":key.rsplit(".", 1)[0]})
-            joined_df=joined_df.rename(columns={"qty":coles_and_ww_pkl_dict[key]})
+            joined_df=joined_df.rename(columns={"qty":dd.coles_and_ww_pkl_dict[key]})
          
-            shifted_key=list(coles_and_ww_pkl_dict[key])
-            
+            shifted_key=list(dd.coles_and_ww_pkl_dict[key])
+            print("key=",key,shifted_key)
             #  create another query with the invoiced sales shifted left 3 week to align with scanned sales
             shifted_df=forecast_df.shift(3, freq='W')[:-3]   # 3 weeks
           #  print("shufted key=",shifted_key)
@@ -2025,7 +2029,7 @@ def main():
         #scan_sort=scan_sort.droplevel(level=1,axis=0)
         #scan_sort=scan_sort.droplevel(level=2,axis=0)
         scan_sort=scan_sort.droplevel(level=3,axis=0)
-        #print("scan sort=\n",scan_sort)  #,"\n",scan_sort.T)
+        print("scan sort=\n",scan_sort)  #,"\n",scan_sort.T)
         mat=4
         
         
@@ -2045,12 +2049,13 @@ def main():
                 #    retailers_slice=retailers_slice.droplevel(level=0)
               #      print("brands=\n",brands)
               #      print("retailers=",r,"products=",products)
-                    if r==10:
-                        ptx="ww_"
-                    elif r==12:
-                        ptx="coles_"
-                    else:
-                        ptx="other_"
+                    ptx=dd.spc_dict[r]  
+                    # if r==10:
+                    #     ptx="ww_"
+                    # elif r==12:
+                    #     ptx="coles_"
+                    # else:
+                    #     ptx="other_"
              
                     for b in brands:
                         try:
@@ -2062,14 +2067,15 @@ def main():
                         #    print("products=",products)
         
                    #         print("brand slice=\n",brand_slice)
-                            if b==1:
-                                btx="BB_"
-                            elif b==2:
-                                btx="SD_"
-                            elif b==3:
-                                btx="BM_"
-                            else:
-                                btx="other_"
+                            btx=dd.brand_dict[b]
+                            # if b==1:
+                            #     btx="BB_"
+                            # elif b==2:
+                            #     btx="SD_"
+                            # elif b==3:
+                            #     btx="BM_"
+                            # else:
+       #                         btx="other_"
                 
                             for p in products:
                            #     print("p=",p)
@@ -2122,18 +2128,19 @@ def main():
         #  X is the BB_total_sales
         # the Target y is scanned sales 4 weeks ahead
         # 
-        #print("jdf=\n",joined_df)
+        print("jdf=\n",joined_df)
         hdf=joined_df.copy(deep=True)
         if hdf.columns.nlevels>=2:
             for _ in range(hdf.columns.nlevels-1):
                 hdf=hdf.droplevel(level=0,axis=1)
         
         ##############################################################################
-        
+        print("hdf=",hdf)
+        print("joined_df columns=\n",joined_df.columns.get_level_values(5))
         
         #hdf=get_xs_name2(joined_df,"",5)
         #print("hdf=\n",hdf.columns)
-        df=hdf[['coles_BB_jams_total_scanned','coles_BB_jams_invoiced','coles_BB_jams_invoiced_shifted_3wks']].rolling(mat,axis=0).mean()
+        df=hdf[['coles_beerenberg_jams_total_scanned','coles_beerenberg_jams_total_invoiced','coles_beerenberg_jams_total_invoiced_shifted_3wks']].rolling(mat,axis=0).mean()
         styles1 = ['b-','g:','r-']
                # styles1 = ['bs-','ro:','y^-']
         linewidths = 1  # [2, 1, 4]
@@ -2149,7 +2156,7 @@ def main():
         
         #hdf=get_xs_name2(joined_df,"",5)
         #print("hdf=\n",hdf.columns)
-        df=hdf[['ww_BB_jams_total_scanned','ww_BB_jams_invoiced','ww_BB_jams_invoiced_shifted_3wks']].rolling(mat,axis=0).mean()
+        df=hdf[['woolworths_beerenberg_jams_total_scanned','woolworths_beerenberg_jams_total_invoiced','woolworths_beerenberg_jams_total_invoiced_shifted_3wks']].rolling(mat,axis=0).mean()
         styles1 = ['b-','g:','r-']
                # styles1 = ['bs-','ro:','y^-']
         linewidths = 1  # [2, 1, 4]
@@ -2227,12 +2234,13 @@ def main():
                 #    retailers_slice=retailers_slice.droplevel(level=0)
                  #   print("brands=\n",brands)
               #      print("retailers=",r,"products=",products)
-                    if r==10:
-                        ptx="ww_"
-                    elif r==12:
-                        ptx="coles_"
-                    else:
-                        ptx="other_"
+                    ptx=dd.spc_dict[r] 
+                    # if r==10:
+                    #     ptx="ww_"
+                    # elif r==12:
+                    #     ptx="coles_"
+                    # else:
+                    #     ptx="other_"
              
                     for b in brands:
                         try:
@@ -2244,14 +2252,16 @@ def main():
                           #  print("products=",products)
         
                    #         print("brand slice=\n",brand_slice)
-                            if b==1:
-                                btx="BB_"
-                            elif b==2:
-                                btx="SD_"
-                            elif b==3:
-                                btx="BM_"
-                            else:
-                                btx="other_"
+                            btx=dd.brand_dict[b]
+ 
+                            # if b==1:
+                            #     btx="BB_"
+                            # elif b==2:
+                            #     btx="SD_"
+                            # elif b==3:
+                            #     btx="BM_"
+                            # else:
+                            #     btx="other_"
                 
                 
                             c_count=0
