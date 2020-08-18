@@ -614,8 +614,8 @@ def load_sales(filenames):  # filenames is a list of xlsx files to load and sort
     print("sort by date",df.shape[0],"records.\n")
     df.sort_values(by=['date'], inplace=True, ascending=False)
       
-    print(df.head(3))
-    print(df.tail(3))
+    #print(df.head(3))
+    #print(df.tail(3))
    
  
     df["period"]=df.date.dt.to_period('D')
@@ -1147,8 +1147,11 @@ def main():
     #######################################
       
     # Big IRI scan data spreadsheets 
-    df,original_df=load_IRI(dd.scan_data_files)
+    print("Load IRI all scan data:",dd.scan_data_files,"......")
     
+    
+    df,original_df=load_IRI(dd.scan_data_files)
+    print("IRI shape=",df.shape,"\n")
     
     # new_level_name = "brand"
     # new_level_labels = ['p']
@@ -1810,7 +1813,7 @@ def main():
         cust_dict={k: v for v, k in enumerate(cust_list)}
         prod_dict={k: v for v, k in enumerate(prod_list)}
         #print("cist dict=\n",cust_dict)
-        print("prod dict=\n",prod_dict)
+       # print("prod dict=\n",prod_dict)
         dist_df=pd.DataFrame.from_dict(cust_dict,orient='index',dtype=object)  
         for p in prod_dict.keys():
         #    print pd.to_datetime(dict(year=df.Y, month=df.M, day=df.D))
@@ -1909,7 +1912,7 @@ def main():
     
     #############################
     # load scan data from excel reports into a df and add multiindexes for graphing options
-    print("\nLoad scan data..",dd.scandatalist,"\n")
+    print("\nLoad prediction and brand index scan data..",dd.scandatalist,"\n")
        
     np.random.seed(42)
     tf.random.set_seed(42)
@@ -1967,6 +1970,7 @@ def main():
     df=df.set_index(list(df.columns[[0]]))   #.dt.strftime('%d/%m/%Y')
     df.index.name = 'scan_week'
     df.index = pd.to_datetime(df.index, format = '%d/%m/%Y',infer_datetime_format=True)
+    df=df.sort_index()
     df=df.astype(np.float32)  #,inplace=True)
     
     #print("after6=\n",df)
@@ -1977,87 +1981,78 @@ def main():
     #print("df6=\n",df,"\n",df.T)
     
     
-    df[0,12,10,"jams",0,'coles_jams_total_scanned']=df[0,12,10,"jams",0,'coles_total_jam_curd_marm_off_promo_scanned']+df[0,12,10,"jams",1,'coles_total_jam_curd_marm_on_promo_scanned']
-    df[1,12,10,"jams",0,'coles_beerenberg_jams_total_scanned']=df[1,12,10,"jams",0,'coles_beerenberg_jams_off_promo_scanned']+df[1,12,10,"jams",1,'coles_beerenberg_jams_on_promo_scanned']
-    df[2,12,10,"jams",0,'coles_st_dalfour_jams_total_scanned']=df[2,12,10,"jams",0,'coles_st_dalfour_jams_off_promo_scanned']+df[2,12,10,"jams",1,'coles_st_dalfour_jams_on_promo_scanned']
-    df[3,12,10,"jams",0,'coles_bonne_maman_jams_total_scanned']=df[3,12,10,"jams",0,'coles_bonne_maman_jams_off_promo_scanned']+df[3,12,10,"jams",1,'coles_bonne_maman_jams_on_promo_scanned']
-    #df=df*1000
-    
-    df[1,12,10,"jams",0,'coles_beerenberg_jams_on_promo']=(df[1,12,10,"jams",1,'coles_beerenberg_jams_on_promo_scanned']>0)
-    df[2,12,10,"jams",0,'coles_st_dalfour_jams_on_promo']=(df[2,12,10,"jams",1,'coles_st_dalfour_jams_on_promo_scanned']>0)
-    df[3,12,10,"jams",0,'coles_bonne_maman_jams_on_promo']=(df[3,12,10,"jams",1,'coles_bonne_maman_jams_on_promo_scanned']>0)
-    
-    df[0,10,10,"jams",0,'woolworths_jams_total_scanned']=df[0,10,10,"jams",0,'woolworths_total_jam_curd_marm_off_promo_scanned']+df[0,10,10,"jams",1,'woolworths_total_jam_curd_marm_on_promo_scanned']
-    
-    df[1,10,10,"jams",0,'woolworths_beerenberg_jams_total_scanned']=df[1,10,10,"jams",0,'woolworths_beerenberg_jams_off_promo_scanned']+df[1,10,10,"jams",1,'woolworths_beerenberg_jams_on_promo_scanned']
-    df[2,10,10,"jams",0,'woolworths_st_dalfour_jams_total_scanned']=df[2,10,10,"jams",0,'woolworths_st_dalfour_jams_off_promo_scanned']+df[2,10,10,"jams",1,'woolworths_st_dalfour_jams_on_promo_scanned']
-    df[3,10,10,"jams",0,'woolworths_bonne_maman_jams_total_scanned']=df[3,10,10,"jams",0,'woolworths_bonne_maman_jams_off_promo_scanned']+df[3,10,10,"jams",1,'woolworths_bonne_maman_jams_on_promo_scanned']
      
-    df[1,10,10,"jams",0,'woolworths_beerenberg_jams_on_promo']=(df[1,10,10,"jams",1,'woolworths_beerenberg_jams_on_promo_scanned']>0)
-    df[2,10,10,"jams",0,'woolworths_st_dalfour_jams_on_promo']=(df[2,10,10,"jams",1,'woolworths_st_dalfour_jams_on_promo_scanned']>0)
-    df[3,10,10,"jams",0,'woolworths_bonne_maman_jams_on_promo']=(df[3,10,10,"jams",1,'woolworths_bonne_maman_jams_on_promo_scanned']>0)
+    before_joined_list=df.columns.to_list()
     
     
-    
-    
-  #  df["","","","_t","",'weekno']= np.arange(df.shape[0])
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    #print("df7=\n",df,df.shape,"df7.T=\n",df.T)   #,"\n",df.T)
-    #print("df7 levels=\n",df.columns.levels)
-    #print("df7 level (0)=\n",df.T.index.get_level_values(0))
-    
+           #joined_list=joined_df.index.to_list()
+      #  print("joined list=\n",joined_list)
+    before_joined_list_df=pd.DataFrame(before_joined_list,columns=df.columns.names)
+    #    print("jldf=\n",joined_list_df)
+    before_joined_list_df = before_joined_list_df[(before_joined_list_df['on_promo'] == 0) | (before_joined_list_df['on_promo'] == 1)]
+    before_joined_list_df = before_joined_list_df[before_joined_list_df['brand'] != 0].iloc[:,:]
+        
+    before_joined_list_df.drop_duplicates(keep='first',inplace=True)
+    records = list(before_joined_list_df.iloc[:,:4].to_records(index=False))
+       # df.drop(df.columns[0], axis=1)
+    print("df=\n",df)   
+    print("\nbefore joined list df=\n",before_joined_list_df.to_string())
+    print("records=",records)
+   
     ############################################
     # total all other on_promo and off_promo on matching productcodes (level 3)
     # and level 4 is either 0 or 1
     # get a list of products
     #products=list(set(list(df.columns.get_level_values(3))))
     #print("products=",products)
- #   print("df.columns=\n",df.columns.to_list())    
-    for col_count in range(0,len(df.columns),2):
-        cc=list(df.iloc[:,col_count].name)
-        
-     #   print("cc[0],cc[1]=",cc[0],cc[1],type(cc[0]),type(cc[1]))
+ #   print("df.columns=\n",df.columns.to_list())   
+    row_count=0 
+    for rec in records:
+        cc=list(df.iloc[row_count,:].name)
+        print("starting cc=",cc)
         brand=dd.brand_dict[cc[0]]
         cust=dd.spc_dict[cc[1]]
-        # if cc[0]==1:
-        #     brand="BB"
-        # elif cc[0]==2:
-        #     brand="SD"
-        # elif cc[0]==3:
-        #     brand="BM"
-        # elif cc[0]==0:
-        #     brand="Total"
-        # else:
-        #     brand=str(cc[0])+"Other"
-            
-        # if cc[1]==10:
-        #     cust="ww"
-        # elif cc[1]==12:
-        #     cust="coles"
-        # else:
-        #     cust="other"
-        
-        #customer=cc[1]
+         #customer=cc[1]
         p=cc[3]    # product name
         cc[4]=2   # type is total                 
         cc[5]=str(cust)+"_"+str(brand)+"_"+str(p)+"_total_scanned"
         cc=tuple(cc)
-        df[cc]=df.T.xs(p,level=3).sum()
+        print("rc=",row_count," finishing cc=",cc)
+   #     df[cc]=df.T.xs(cc[5],level=5).sum()
+        df[cc]=df.iloc[row_count:row_count+1]
+        row_count+=2
     
  #   print("df8=\n",df,df.shape,"\n",df.T)
-    df["","","","jams","",'weekno']= np.arange(df.shape[0])
+   # df["","","","jams","",'weekno']= np.arange(df.shape[0])
     
   #  print("df=\n",df)
   #  print("df.iloc[11:]=\n",df.iloc[11:])
      #   tdf=get_xs_name(df,("jams",3))
+
+  # df[0,12,10,"jams",0,'coles_jams_total_scanned']=df[0,12,10,"jams",0,'coles_total_jam_curd_marm_off_promo_scanned']+df[0,12,10,"jams",1,'coles_total_jam_curd_marm_on_promo_scanned']
+    # df[1,12,10,"jams",0,'coles_beerenberg_jams_total_scanned']=df[1,12,10,"jams",0,'coles_beerenberg_jams_off_promo_scanned']+df[1,12,10,"jams",1,'coles_beerenberg_jams_on_promo_scanned']
+    # df[2,12,10,"jams",0,'coles_st_dalfour_jams_total_scanned']=df[2,12,10,"jams",0,'coles_st_dalfour_jams_off_promo_scanned']+df[2,12,10,"jams",1,'coles_st_dalfour_jams_on_promo_scanned']
+    # df[3,12,10,"jams",0,'coles_bonne_maman_jams_total_scanned']=df[3,12,10,"jams",0,'coles_bonne_maman_jams_off_promo_scanned']+df[3,12,10,"jams",1,'coles_bonne_maman_jams_on_promo_scanned']
+    # #df=df*1000
+    
+    df[1,12,10,"jams",0,'coles_beerenberg_jams_on_promo']=(df[1,12,10,"jams",1,'coles_beerenberg_jams_on_promo_scanned']>0)
+    df[2,12,10,"jams",0,'coles_st_dalfour_jams_on_promo']=(df[2,12,10,"jams",1,'coles_st_dalfour_jams_on_promo_scanned']>0)
+    df[3,12,10,"jams",0,'coles_bonne_maman_jams_on_promo']=(df[3,12,10,"jams",1,'coles_bonne_maman_jams_on_promo_scanned']>0)
+    
+    # df[0,10,10,"jams",0,'woolworths_jams_total_scanned']=df[0,10,10,"jams",0,'woolworths_total_jam_curd_marm_off_promo_scanned']+df[0,10,10,"jams",1,'woolworths_total_jam_curd_marm_on_promo_scanned']
+    
+    # df[1,10,10,"jams",0,'woolworths_beerenberg_jams_total_scanned']=df[1,10,10,"jams",0,'woolworths_beerenberg_jams_off_promo_scanned']+df[1,10,10,"jams",1,'woolworths_beerenberg_jams_on_promo_scanned']
+    # df[2,10,10,"jams",0,'woolworths_st_dalfour_jams_total_scanned']=df[2,10,10,"jams",0,'woolworths_st_dalfour_jams_off_promo_scanned']+df[2,10,10,"jams",1,'woolworths_st_dalfour_jams_on_promo_scanned']
+    # df[3,10,10,"jams",0,'woolworths_bonne_maman_jams_total_scanned']=df[3,10,10,"jams",0,'woolworths_bonne_maman_jams_off_promo_scanned']+df[3,10,10,"jams",1,'woolworths_bonne_maman_jams_on_promo_scanned']
+     
+    df[1,10,10,"jams",0,'woolworths_beerenberg_jams_on_promo']=(df[1,10,10,"jams",1,'woolworths_beerenberg_jams_on_promo_scanned']>0)
+    df[2,10,10,"jams",0,'woolworths_st_dalfour_jams_on_promo']=(df[2,10,10,"jams",1,'woolworths_st_dalfour_jams_on_promo_scanned']>0)
+    df[3,10,10,"jams",0,'woolworths_bonne_maman_jams_on_promo']=(df[3,10,10,"jams",1,'woolworths_bonne_maman_jams_on_promo_scanned']>0)
+    
+    
+ 
+
+
 
 
 ##########################################################################################33
@@ -2069,29 +2064,44 @@ def main():
     # coles beerenberg jams 2
     plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_st_dalfour_jams_on_promo','coles_bonne_maman_jams_on_promo'],savename="coles2")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
     # coles beerenberg jams 3
-    plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_st_dalfour_jams_off_promo_scanned',col_and_hue=['coles_bonne_maman_jams_on_promo','coles_beerenberg_jams_on_promo'],savename="coles3")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+    plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_beerenberg_jams_on_promo','coles_st_dalfour_jams_on_promo'],savename="coles3")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
     # coles beerenberg jams 4
-    plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_st_dalfour_jams_off_promo_scanned',col_and_hue=['coles_beerenberg_jams_on_promo','coles_bonne_maman_jams_on_promo'],savename="coles4")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
-    # coles beerenberg jams 5
-    plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_bonne_maman_jams_off_promo_scanned',col_and_hue=['coles_st_dalfour_jams_on_promo','coles_beerenberg_jams_on_promo'],savename="coles5")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
-    # coles beerenberg jams 5
-    plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_bonne_maman_jams_off_promo_scanned',col_and_hue=['coles_beerenberg_jams_on_promo','coles_st_dalfour_jams_on_promo'],savename="coles6")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+    plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_st_dalfour_jams_on_promo','coles_beerenberg_jams_on_promo'],savename="coles4")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+     # coles beerenberg jams 5
+    plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_beerenberg_jams_on_promo','coles_bonne_maman_jams_on_promo'],savename="coles5")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
     # coles beerenberg jams 6
-    
+    plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_bonne_maman_jams_on_promo','coles_beerenberg_jams_on_promo'],savename="coles6")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+    # coles beerenberg jams 7   
+    plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_st_dalfour_jams_off_promo_scanned',col_and_hue=['coles_bonne_maman_jams_on_promo','coles_beerenberg_jams_on_promo'],savename="coles7")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+    # coles beerenberg jams 8
+    plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_st_dalfour_jams_off_promo_scanned',col_and_hue=['coles_beerenberg_jams_on_promo','coles_bonne_maman_jams_on_promo'],savename="coles8")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+    # coles beerenberg jams 9
+    plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_bonne_maman_jams_off_promo_scanned',col_and_hue=['coles_st_dalfour_jams_on_promo','coles_beerenberg_jams_on_promo'],savename="coles9")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+    # coles beerenberg jams 10
+    plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_bonne_maman_jams_off_promo_scanned',col_and_hue=['coles_beerenberg_jams_on_promo','coles_st_dalfour_jams_on_promo'],savename="coles10")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+ 
    
     # woolworths beerenberg jams 1
     plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_bonne_maman_jams_on_promo','woolworths_st_dalfour_jams_on_promo'],savename="woolworths1")
     # woolworths beerenberg jams 2
     plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_st_dalfour_jams_on_promo','woolworths_bonne_maman_jams_on_promo'],savename="woolworths2")   
     # woolworths beerenberg jams 3
-    plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='woolworths_st_dalfour_jams_off_promo_scanned',col_and_hue=['woolworths_bonne_maman_jams_on_promo','woolworths_beerenberg_jams_on_promo'],savename="woolworths3")   
+    plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_beerenberg_jams_on_promo','woolworths_st_dalfour_jams_on_promo'],savename="woolworths3")
     # woolworths beerenberg jams 4
-    plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='woolworths_st_dalfour_jams_off_promo_scanned',col_and_hue=['woolworths_beerenberg_jams_on_promo','woolworths_bonne_maman_jams_on_promo'],savename="woolworths4")
+    plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_st_dalfour_jams_on_promo','woolworths_beerenberg_jams_on_promo'],savename="woolworths4")   
     # woolworths beerenberg jams 5
-    plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='woolworths_bonne_maman_jams_off_promo_scanned',col_and_hue=['woolworths_st_dalfour_jams_on_promo','woolworths_beerenberg_jams_on_promo'],savename="woolworths5")   
-    # woolworths beerenberg jams 5
-    plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='woolworths_bonne_maman_jams_off_promo_scanned',col_and_hue=['woolworths_beerenberg_jams_on_promo','woolworths_st_dalfour_jams_on_promo'],savename="woolworths6")
+    plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_bonne_maman_jams_on_promo','woolworths_beerenberg_jams_on_promo'],savename="woolworths5")
     # woolworths beerenberg jams 6
+    plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_beerenberg_jams_on_promo','woolworths_bonne_maman_jams_on_promo'],savename="woolworths6")   
+    # woolworths beerenberg jams 7
+    plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_st_dalfour_jams_off_promo_scanned',col_and_hue=['woolworths_bonne_maman_jams_on_promo','woolworths_beerenberg_jams_on_promo'],savename="woolworths7")   
+    # woolworths beerenberg jams 8
+    plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_st_dalfour_jams_off_promo_scanned',col_and_hue=['woolworths_beerenberg_jams_on_promo','woolworths_bonne_maman_jams_on_promo'],savename="woolworths8")
+    # woolworths beerenberg jams 9
+    plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_bonne_maman_jams_off_promo_scanned',col_and_hue=['woolworths_st_dalfour_jams_on_promo','woolworths_beerenberg_jams_on_promo'],savename="woolworths9")   
+    # woolworths beerenberg jams 10
+    plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_bonne_maman_jams_off_promo_scanned',col_and_hue=['woolworths_beerenberg_jams_on_promo','woolworths_st_dalfour_jams_on_promo'],savename="woolworths10")
+    
    
    
    
@@ -2215,12 +2225,25 @@ def main():
         #print("joined_df.index=\n",joined_df.index.to_list())   #get_level_values(5).to_list())    
 
         joined_df=joined_df.T
-        print("joined_df.index=\n",list(joined_df.index))   #.get_level_values(5).to_list())    
+       # print("joined_df.index=\n",list(joined_df.index))   #.get_level_values(5).to_list())    
  
         #print("\njoined_df before=\n",joined_df)
         
         
         joined_df.index = pd.MultiIndex.from_tuples(joined_df.index,names=["brand","specialpricecat","productgroup","product","on_promo","names"])
+ 
+        joined_df=joined_df.sort_index()    #[('brand', 'specialpricecat','productgroup','product')], ascending=[True,True,True,True])
+        joined_list=joined_df.index.to_list()
+      #  print("joined list=\n",joined_list)
+        joined_list_df=pd.DataFrame(joined_list,columns=joined_df.index.names)
+    #    print("jldf=\n",joined_list_df)
+        joined_list_df = joined_list_df[joined_list_df['brand'] != 0].iloc[:,:5]
+        
+        joined_list_df.drop_duplicates(keep='first',inplace=True)
+        
+       # df.drop(df.columns[0], axis=1)
+        print("\njoined list df=\n",joined_list_df.to_string())
+
         joined_df=joined_df.T
         #print("joined_df keys=\n",joined_df.keys())
         
@@ -2236,14 +2259,18 @@ def main():
        
         #joined_df=joined_df.T
         
-        joined_df['lastdate'] = pd.to_datetime(joined_df.index,format="%Y-%m-%d",exact=False)
+    #    joined_df['lastdate'] = pd.to_datetime(joined_df.index,format="%Y-%m-%d",exact=False)
+        latest_date = pd.to_datetime(joined_df.index,format="%Y-%m-%d",exact=False).max()
+      
+     #   latest_date = joined_df['lastdate'].max()
         
-        latest_date = joined_df['lastdate'].max()
+
         
-        print("joined df=\n",joined_df)
- 
+      #  print("joined df=\n",joined_df)
+      #  print("joined df.T=\n",joined_df.T)
         
-        
+        joined_df.to_excel("joinedsave.xlsx")
+        joined_df.T.to_excel("joinedsaveT.xlsx")
         
         
         
@@ -2274,7 +2301,7 @@ def main():
                 #    retailers_slice=retailers_slice.droplevel(level=0)
               #      print("brands=\n",brands)
               #      print("retailers=",r,"products=",products)
-                    ptx=dd.spc_dict[r]  
+                    ptx=dd.spc_dict[r]+"_"  
                     # if r==10:
                     #     ptx="ww_"
                     # elif r==12:
@@ -2292,7 +2319,7 @@ def main():
                         #    print("products=",products)
         
                    #         print("brand slice=\n",brand_slice)
-                            btx=dd.brand_dict[b]
+                            btx=dd.brand_dict[b]+"_"
                             # if b==1:
                             #     btx="BB_"
                             # elif b==2:
@@ -2365,7 +2392,7 @@ def main():
         
         #hdf=get_xs_name2(joined_df,"",5)
         #print("hdf=\n",hdf.columns)
-        df=hdf[['coles_beerenberg_jams_total_scanned','coles_beerenberg_jams_total_invoiced','coles_beerenberg_jams_total_invoiced_shifted_3wks']].rolling(mat,axis=0).mean()
+        df=hdf[['coles_beerenberg_jams_total_scanned','coles_beerenberg_jams_invoiced','coles_beerenberg_jams_invoiced_shifted_3wks']].rolling(mat,axis=0).mean()
         styles1 = ['b-','g:','r-']
                # styles1 = ['bs-','ro:','y^-']
         linewidths = 1  # [2, 1, 4]
@@ -2381,7 +2408,7 @@ def main():
         
         #hdf=get_xs_name2(joined_df,"",5)
         #print("hdf=\n",hdf.columns)
-        df=hdf[['woolworths_beerenberg_jams_total_scanned','woolworths_beerenberg_jams_total_invoiced','woolworths_beerenberg_jams_total_invoiced_shifted_3wks']].rolling(mat,axis=0).mean()
+        df=hdf[['woolworths_beerenberg_jams_total_scanned','woolworths_beerenberg_jams_invoiced','woolworths_beerenberg_jams_invoiced_shifted_3wks']].rolling(mat,axis=0).mean()
         styles1 = ['b-','g:','r-']
                # styles1 = ['bs-','ro:','y^-']
         linewidths = 1  # [2, 1, 4]
@@ -2459,7 +2486,7 @@ def main():
                 #    retailers_slice=retailers_slice.droplevel(level=0)
                  #   print("brands=\n",brands)
               #      print("retailers=",r,"products=",products)
-                    ptx=dd.spc_dict[r] 
+                    ptx=dd.spc_dict[r]+"_" 
                     # if r==10:
                     #     ptx="ww_"
                     # elif r==12:
@@ -2477,7 +2504,7 @@ def main():
                           #  print("products=",products)
         
                    #         print("brand slice=\n",brand_slice)
-                            btx=dd.brand_dict[b]
+                            btx=dd.brand_dict[b]+"_"
  
                             # if b==1:
                             #     btx="BB_"
