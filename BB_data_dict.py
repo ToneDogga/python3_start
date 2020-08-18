@@ -103,7 +103,7 @@ salesrep_dict={"14":"Brendan Selby",
 
 spc_dict={122:"Harris farms",
           107:"Lite n easy",
-          10:"woolworhs",
+          10:"woolworths",
           12:"coles",
           88:"SA stores",
           80:"SA distributors",
@@ -133,8 +133,11 @@ report_type_dict={0:"dictionary",
  
 #scandata = namedtuple("scandata", ["market", "product","measure"])
 
-#market_dict={10:"Woolworths",
-#              12:"Coles"}
+market_rename_dict={"AU Woolworths scan":10,
+                    "AU Coles Group scan":12}
+
+market_rename_dict2={"AU Woolworths scan":"woolworths",
+                    "AU Coles Group scan":"coles"}
 
 
 
@@ -347,7 +350,7 @@ brand_dict={0:"total",
 
 product_type = namedtuple("product_type", ["brandno","customercat", "productgroup","product","type","name"])
 
-coles_and_ww_pkl_dict={"coles_beerenberg_jams_invoiced.pkl":(1,12,10,"_T",3,"coles_beerenberg_jams_invoiced"),   # special price cat, productgroup,productcode,product, on_promo, name)
+coles_and_ww_pkl_dict={"coles_beerenberg_jams_invoiced.pkl":(1,12,10,"jams",3,"coles_beerenberg_jams_invoiced"),   # special price cat, productgroup,productcode,product, on_promo, name)
           "coles_beerenberg_SJ300_invoiced.pkl":(1,12,10,"SJ300",3,"coles_beerenberg_SJ300_invoiced"),
           "coles_beerenberg_AJ300_invoiced.pkl":(1,12,10,"AJ300",3,"coles_beerenberg_AJ300_invoiced"),
           "coles_beerenberg_OM300_invoiced.pkl":(1,12,10,"OM300",3,"coles_beerenberg_OM300_invoiced"),
@@ -360,7 +363,7 @@ coles_and_ww_pkl_dict={"coles_beerenberg_jams_invoiced.pkl":(1,12,10,"_T",3,"col
           "coles_beerenberg_PCD300_invoiced.pkl":(1,12,14,"PCD300",3,"coles_beerenberg_PCD300_invoiced"),
           "coles_beerenberg_BLU300_invoiced.pkl":(1,12,14,"BLU300",3,"coles_beerenberg_BLU300_invoiced"),
           "coles_beerenberg_RAN300_invoiced.pkl":(1,12,14,"RAN300",3,"coles_beerenberg_RAN300_invoiced"),
-          "woolworths_beerenberg_jams_invoiced.pkl":(1,10,10,"_T",3,"woolworths_beerenberg_jams_invoiced"),   # special price cat, productgroup,productcode,product, on_promo, name)
+          "woolworths_beerenberg_jams_invoiced.pkl":(1,10,10,"jams",3,"woolworths_beerenberg_jams_invoiced"),   # special price cat, productgroup,productcode,product, on_promo, name)
           "woolworths_beerenberg_SJ300_invoiced.pkl":(1,10,10,"SJ300",3,"woolworths_beerenberg_SJ300_invoiced"),
           "woolworths_beerenberg_RJ300_invoiced.pkl":(1,10,10,"RJ300",3,"woolworths_beerenberg_RJ300_invoiced"),
           "woolworths_beerenberg_BOM300_invoiced.pkl":(1,10,10,"BOM300",3,"woolworths_beerenberg_BOM300_invoiced"),
@@ -374,21 +377,27 @@ coles_and_ww_pkl_dict={"coles_beerenberg_jams_invoiced.pkl":(1,12,10,"_T",3,"col
           "woolworths_beerenberg_BBR280_invoiced.pkl":(1,10,13,"BBR280",3,"woolworths_beerenberg_BBR280_invoiced"),
           "woolworths_beerenberg_CAR280_invoiced.pkl":(1,10,13,"CAR280",3,"woolworths_beerenberg_CAR280_invoiced"),
           "woolworths_beerenberg_TCP260_invoiced.pkl":(1,10,13,"TCP260",3,"woolworths_beerenberg_TCP260_invoiced")}
-         
+    
+    
+
+
+
+
+     
 
    
 # value is (brand,specialpricecat, productgroup, product,name)
 product_type = namedtuple("product_type", ["brandno","customercat", "productgroup","product","on_promo","name"])
 
 coles_and_ww_col_dict= {  "scan_week":(0,12,0,'_*',0,'scan_week'),
-            1:(0,12,10,"_*",0,"coles_total_jam_curd_marm_off_promo_scanned"),
-            2:(0,12,10,"_*",1,"coles_total_jam_curd_marm_on_promo_scanned"),
-            3:(1,12,10,"_*",0,"coles_beerenberg_jams_off_promo_scanned"),
-            4:(1,12,10,"_*",1,"coles_beerenberg_jams_on_promo_scanned"),
-            5:(2,12,10,"_*",0,"coles_st_dalfour_jams_off_promo_scanned"),
-            6:(2,12,10,"_*",1,"coles_st_dalfour_jams_on_promo_scanned"),
-            7:(3,12,10,"_*",0,"coles_bonne_maman_jams_off_promo_scanned"),
-            8:(3,12,10,"_*",1,"coles_bonne_maman_jams_on_promo_scanned"),
+            1:(0,12,10,"jams",0,"coles_total_jam_curd_marm_off_promo_scanned"),
+            2:(0,12,10,"jams",1,"coles_total_jam_curd_marm_on_promo_scanned"),
+            3:(1,12,10,"jams",0,"coles_beerenberg_jams_off_promo_scanned"),
+            4:(1,12,10,"jams",1,"coles_beerenberg_jams_on_promo_scanned"),
+            5:(2,12,10,"jams",0,"coles_st_dalfour_jams_off_promo_scanned"),
+            6:(2,12,10,"jams",1,"coles_st_dalfour_jams_on_promo_scanned"),
+            7:(3,12,10,"jams",0,"coles_bonne_maman_jams_off_promo_scanned"),
+            8:(3,12,10,"jams",1,"coles_bonne_maman_jams_on_promo_scanned"),
             9:(1,12,10,"SJ300",0,"coles_beerenberg_SJ300_off_promo_scanned"),
             10:(1,12,10,"SJ300",1,"coles_beerenberg_SJ300_on_promo_scanned"),
             11:(1,12,10,"RJ300",0,"coles_beerenberg_RJ300_off_promo_scanned"),
@@ -413,14 +422,14 @@ coles_and_ww_col_dict= {  "scan_week":(0,12,0,'_*',0,'scan_week'),
             30:(1,12,14,"BLU300",1,"coles_beerenberg_BLU300_on_promo_scanned"),
             31:(1,12,14,"RAN300",0,"coles_beerenberg_RAN300_off_promo_scanned"),
             32:(1,12,14,"RAN300",1,"coles_beerenberg_RAN300_on_promo_scanned"),
-                33:(0,10,10,"_*",0,"woolworths_total_jam_curd_marm_off_promo_scanned"),
-                34:(0,10,10,"_*",1,"woolworths_total_jam_curd_marm_on_promo_scanned"),
-                35:(1,10,10,"_*",0,"woolworths_beerenberg_jams_off_promo_scanned"),
-                36:(1,10,10,"_*",1,"woolworths_beerenberg_jams_on_promo_scanned"),
-                37:(2,10,10,"_*",0,"woolworths_st_dalfour_jams_off_promo_scanned"),
-                38:(2,10,10,"_*",1,"woolworths_st_dalfour_jams_on_promo_scanned"),
-                39:(3,10,10,"_*",0,"woolworths_bonne_maman_jams_off_promo_scanned"),
-                40:(3,10,10,"_*",1,"woolworths_bonne_maman_jams_on_promo_scanned"),
+                33:(0,10,10,"jams",0,"woolworths_total_jam_curd_marm_off_promo_scanned"),
+                34:(0,10,10,"jams",1,"woolworths_total_jam_curd_marm_on_promo_scanned"),
+                35:(1,10,10,"jams",0,"woolworths_beerenberg_jams_off_promo_scanned"),
+                36:(1,10,10,"jams",1,"woolworths_beerenberg_jams_on_promo_scanned"),
+                37:(2,10,10,"jams",0,"woolworths_st_dalfour_jams_off_promo_scanned"),
+                38:(2,10,10,"jams",1,"woolworths_st_dalfour_jams_on_promo_scanned"),
+                39:(3,10,10,"jams",0,"woolworths_bonne_maman_jams_off_promo_scanned"),
+                40:(3,10,10,"jams",1,"woolworths_bonne_maman_jams_on_promo_scanned"),
                 41:(1,10,10,"SJ300",0,"woolworths_beerenberg_SJ300_off_promo_scanned"),
                 42:(1,10,10,"SJ300",1,"woolworths_beerenberg_SJ300_on_promo_scanned"),
                 43:(1,10,10,"RJ300",0,"woolworths_beerenberg_RJ300_off_promo_scanned"),
@@ -449,6 +458,34 @@ coles_and_ww_col_dict= {  "scan_week":(0,12,0,'_*',0,'scan_week'),
                 66:(1,10,13,"TCP280",1,"woolworths_beerenberg_TCP280_on_promo_scanned")}
 
  
+
+
+
+
+# df[0,12,10,"_T",0,'coles_jams_total_scanned']=df[0,12,10,"_*",0,'coles_total_jam_curd_marm_off_promo_scanned']+df[0,12,10,"_*",1,'coles_total_jam_curd_marm_on_promo_scanned']
+#     df[1,12,10,"_t",0,'coles_beerenberg_jams_total_scanned']=df[1,12,10,"_*",0,'coles_beerenberg_jams_off_promo_scanned']+df[1,12,10,"_*",1,'coles_beerenberg_jams_on_promo_scanned']
+#     df[2,12,10,"_t",0,'coles_st_dalfour_jams_total_scanned']=df[2,12,10,"_*",0,'coles_st_dalfour_jams_off_promo_scanned']+df[2,12,10,"_*",1,'coles_st_dalfour_jams_on_promo_scanned']
+#     df[3,12,10,"_t",0,'coles_bonne_maman_jams_total_scanned']=df[3,12,10,"_*",0,'coles_bonne_maman_jams_off_promo_scanned']+df[3,12,10,"_*",1,'coles_bonne_maman_jams_on_promo_scanned']
+#     #df=df*1000
+    
+#     df[1,12,10,"_t",0,'coles_beerenberg_jams_on_promo']=(df[1,12,10,"_*",1,'coles_beerenberg_jams_on_promo_scanned']>0)
+#     df[2,12,10,"_t",0,'coles_st_dalfour_jams_on_promo']=(df[2,12,10,"_*",1,'coles_st_dalfour_jams_on_promo_scanned']>0)
+#     df[3,12,10,"_t",0,'coles_bonne_maman_jams_on_promo']=(df[3,12,10,"_*",1,'coles_bonne_maman_jams_on_promo_scanned']>0)
+    
+#     df[0,10,10,"_T",0,'woolworths_jams_total_scanned']=df[0,10,10,"_*",0,'woolworths_total_jam_curd_marm_off_promo_scanned']+df[0,10,10,"_*",1,'woolworths_total_jam_curd_marm_on_promo_scanned']
+    
+#     df[1,10,10,"_t",0,'woolworths_beerenberg_jams_total_scanned']=df[1,10,10,"_*",0,'woolworths_beerenberg_jams_off_promo_scanned']+df[1,10,10,"_*",1,'woolworths_beerenberg_jams_on_promo_scanned']
+#     df[2,10,10,"_t",0,'woolworths_st_dalfour_jams_total_scanned']=df[2,10,10,"_*",0,'woolworths_st_dalfour_jams_off_promo_scanned']+df[2,10,10,"_*",1,'woolworths_st_dalfour_jams_on_promo_scanned']
+#     df[3,10,10,"_t",0,'woolworths_bonne_maman_jams_total_scanned']=df[3,10,10,"_*",0,'woolworths_bonne_maman_jams_off_promo_scanned']+df[3,10,10,"_*",1,'woolworths_bonne_maman_jams_on_promo_scanned']
+     
+#     df[1,10,10,"_t",0,'woolworths_beerenberg_jams_on_promo']=(df[1,10,10,"_*",1,'woolworths_beerenberg_jams_on_promo_scanned']>0)
+#     df[2,10,10,"_t",0,'woolworths_st_dalfour_jams_on_promo']=(df[2,10,10,"_*",1,'woolworths_st_dalfour_jams_on_promo_scanned']>0)
+#     df[3,10,10,"_t",0,'woolworths_bonne_maman_jams_on_promo']=(df[3,10,10,"_*",1,'woolworths_bonne_maman_jams_on_promo_scanned']>0)
+    
+
+
+
+
 
 coles_and_ww_convert_dict = {
           #      'scan_week': np.datetime64, 
