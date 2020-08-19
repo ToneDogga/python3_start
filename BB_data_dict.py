@@ -48,6 +48,9 @@ spc_only=["088","028"]   #,"038","048","028","080","020","030","040"]
 # moving average total days used in prediction
 mats=7
 
+# moving average for weeks to calculate a rolling average on scanned data
+mat=4
+
 scan_data_files=["jam_scan_data_2020.xlsx","cond_scan_data_2020.xlsx","sauce_scan_data_2020.xlsx"]
 scan_dict_savename="scan_dict.pkl"
 
@@ -86,6 +89,17 @@ productgroups_dict={1:"30g glass",
                    17:"Mustards 150ml glass jar",
                    18:"Olive Oil 500ml",
                    31:"2 Litre"}
+
+
+series_type_dict={0:0, #"0 baseline",
+             1:1,    #"1 incremental",
+             2:2,   #"2 total",
+             3:3,    #"3 invoiced",
+             4:4,    #"4 invoiced_shifted",
+             6:6,   #"6 scanned 4wk mt",
+             8:8,    # invoiced_prediction
+             9:9}    #"9 promo flag"}
+
 
 
 
