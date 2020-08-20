@@ -97,6 +97,7 @@ series_type_dict={0:0, #"0 baseline",
              3:3,    #"3 invoiced",
              4:4,    #"4 invoiced_shifted",
              6:6,   #"6 scanned 4wk mt",
+             7:7,   #"7 invoiced shifted 4wk mt",
              8:8,    # invoiced_prediction
              9:9}    #"9 promo flag"}
 

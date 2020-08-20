@@ -217,76 +217,51 @@ def get_xs_name(df,filter_tuple):
 
 
 
-def predict_order(joined_df,X_set,y_set,predrec,model):    #inv_hdf,mat_hdf,rec,model):
-   # print("predrec=",predrec)
-
-  #  predrec[5]=predrec[5]+"_prediction"
-
-   # print("predrec=",predrec)
-   # print("joined_df=\n",joined_df)
-    # retailer=spc_dict[rec[0]]
-    # brand=brand_dict]rec[1]]
-    # product_grp=product_groups_dict[rec[2]]
-    
-    # product=rec[3]
-
-    # title=retailer+"_"+brand+"_"+product_grp+"_"+product+"_ordered_prediction"
-    # print("predict title=",title)
-    
-    # latest_date = pd.to_datetime(hdf.index,format="%Y-%m-%d",exact=False).max()
-
-   # latest_date = hdf['lastdate'].max()
-         #   X_set=joined_df.xs(total_rec,level=[0,1,2,3,4],axis=0,drop_level=True).to_numpy().astype(np.int32)[0,7:-1]    # iloc[:,2] type 2 is total
-         # #   X_set=X_set[0,7:-1]  
-         #    print("x_set=\n",X_set,X_set.shape)
-         #    y_set=joined_df.xs(inv_shift_rec,level=[0,1,2,3,4],axis=0,drop_level=True).to_numpy().astype(np.int32)[0,7:-1]  #[7:-1]    # iloc[:,3] type 2 is total
-         #  #  y_set=y_set[0,7:-1]
-         #    print("y_set=\n",y_set,y_set.shape)
-  
-  
-    #y_set=hdf.iloc[:,2].to_numpy().astype(np.int32)[7:-1]
-    #scanned_sales=hdf.iloc[:,0].to_numpy().astype(np.int32)[7:-1]     #np.array([13400, 12132, 12846, 9522, 11858 ,13846 ,13492, 12310, 13584 ,13324, 15656 ,15878 ,13566, 10104 , 7704  ,7704])
+def predict_order(joined_df,X_set,y_set_full,predrec,model):    #inv_hdf,mat_hdf,rec,model):
     scanned_sales=X_set.reshape(-1,1)[np.newaxis,...]
-    
-    #print("scanned sales",scanned_sales,scanned_sales.shape,"#[:,-2:,:]",scanned_sales[:,-2:,:])
-    #for t in range(scanned_sales.shape[1]-1):
-    #    print("predict",t,scanned_sales[:,t,:],"=",model(scanned_sales[:,t,:]))
     Y_pred=np.stack(model(scanned_sales[:,-1,:]).numpy(),axis=2) #for r in range(scanned_sales.shape[1])]
-    print("Y_pred",Y_pred,Y_pred.shape)
-    j=np.concatenate((y_set[1:],Y_pred[0,:,0]),axis=0)
-    print("j=",j,j.shape)
-    print("joined_df=\n",joined_df,joined_df.shape)
+  #  print("Y_pred",Y_pred,Y_pred.shape)
+    j=np.concatenate((y_set_full[:-1],Y_pred[0,:,0]),axis=0)
+  #  print("j=",j,j.shape)
+  #  print("joined_df=\n",joined_df,joined_df.shape)
     joined_df=joined_df.T
     joined_df[predrec]=j  #[0,0]  #:np.concatenate((y_set[1:],Y_pred[0,:,0]),axis=0)
     joined_df=joined_df.T
-    print("joined_df2=\n",joined_df,joined_df.shape)
+    joined_df=joined_df.sort_index()
+ #   print("joined_df2=\n",joined_df,joined_df.shape)
 
     return joined_df
     
    
     
    
-def plot_prediction(df):    
-    dates=hdf.index.tolist()[7:]
+def plot_prediction(df,title,latest_date):    
+ #   dates=hdf.index.tolist()[7:]
     #print("dates:",dates,len(dates))
-    df=pd.DataFrame({title+'_total_scanned':X_pred,title+'_ordered_prediction':Y_pred,title+'_total_invoiced_shifted_3wks':y_invoiced},index=dates)
+  #  df=pd.DataFrame({title+'_total_scanned':X_pred,title+'_ordered_prediction':Y_pred,title+'_total_invoiced_shifted_3wks':y_invoiced},index=dates)
    # df=pd.DataFrame({title+'_total_scanned':X_pred,title+'_ordered_prediction':Y_pred},index=dates)
  
     #shifted_df=df.shift(1, freq='W')   #[:-3]   # 3 weeks
     
     #df=gdf[['coles_BB_jams_total_scanned','all_BB_coles_jams_predicted']].rolling(mat,axis=0).mean()
-    
+    df=df.droplevel(['type'])
+    df=df.sort_index()
+  #  print("plor pred=\n",df)
+  #  df.replace(0.0,np.nan,inplace=True)    # don't plot zero values
+    df=df.T
+
   #  styles1 = ['b-','r:']
-    styles1 = ['b-','g:','r:']
+    styles1 = ['g:','r:','b-']
            # styles1 = ['bs-','ro:','y^-']
     linewidths = 1  # [2, 1, 4]
    # print("df=\n",df,df.shape)
-    df.iloc[-26:].plot(grid=True,title=title+" w/c:("+str(latest_date)+")",style=styles1, lw=linewidths)
+    ax=plt.gca()
+    df.iloc[-26:].plot(grid=True,title=title+" w/c:("+str(latest_date)+")",style=styles1, lw=linewidths,ax=ax)
     #plt.pause(0.001)
     
     #df.iloc[-6:].plot(grid=True,title=title,style=styles1, lw=linewidths)
     #plt.pause(0.001)
-    #ax.legend(title="")
+    ax.legend(title="")
     #plt.ax.show()
     
     #df=df.rolling(mat,axis=0).mean()
@@ -303,7 +278,7 @@ def plot_prediction(df):
 
     #print(df)
     plt.close("all")
-    return df
+    return 
 
 
 
@@ -1988,7 +1963,7 @@ def main():
     
     df=df.T
     #print("df5=\n",df)
-    df.index = pd.MultiIndex.from_tuples(df.index,names=["brand","specialpricecat","productgroup","product","on_promo","names"])
+    df.index = pd.MultiIndex.from_tuples(df.index,names=["brand","specialpricecat","productgroup","product","type","names"])
     #print("df level (0)=\n",df.index.get_level_values(0))
     
     df=df.T
@@ -2017,7 +1992,7 @@ def main():
       #  print("joined list=\n",joined_list)
     before_joined_list_df=pd.DataFrame(before_joined_list,columns=df.columns.names)
     #    print("jldf=\n",joined_list_df)
-    before_joined_list_df = before_joined_list_df[(before_joined_list_df['on_promo'] == 0) | (before_joined_list_df['on_promo'] == 1)]
+    before_joined_list_df = before_joined_list_df[(before_joined_list_df['type'] == 0) | (before_joined_list_df['type'] == 1)]
     before_joined_list_df = before_joined_list_df[before_joined_list_df['brand'] != 0].iloc[:,:]
         
     before_joined_list_df.drop_duplicates(keep='first',inplace=True)
@@ -2046,6 +2021,8 @@ def main():
        # cc=list(df.loc[rec].name)
         cc=list(rec)
         cc2=list(rec)
+        cc3=list(rec)
+        cc4=list(rec)
       #  print("starting cc=",cc)
 
         
@@ -2057,6 +2034,9 @@ def main():
         cc.append(str(cust)+"_"+str(brand)+"_"+str(cc[3])+"_total_scanned")   # cc[5]= new name
         cc=tuple(cc)
         
+        
+        
+
      #   cc2=list(rec)
       #  print("starting cc=",cc)
 
@@ -2069,11 +2049,22 @@ def main():
         cc2.append(str(cust)+"_"+str(brand)+"_"+str(cc2[3])+"_4wk_moving_total_scanned")   # cc[5]= new name
         cc2=tuple(cc2)
 
+        # cc3.append(4)  # cc[4]   # type is total                 
+        # cc3.append(str(cust)+"_"+str(brand)+"_"+str(cc3[3])+"_invoiced_shifted_3wks")   # cc[5]= new name
+        # cc3=tuple(cc3)
+
+        # cc4.append(7)  # cc[4]   # type is moving total                 
+        # cc4.append(str(cust)+"_"+str(brand)+"_"+str(cc4[3])+"_4wk_moving_total_invoiced_shifted_3wks")   # cc[5]= new name
+        # cc4=tuple(cc4)
+
+
         
         
       #  print("finishing cc=",cc)
     #     df[cc]=df.T.xs(cc[5],level=5).sum()
         testslice=df.xs(rec,level=[0,1,2,3],axis=0,drop_level=False)
+        
+    
       #  print("rec=",rec,"row count=",row_count,"test=\n",testslice)
         df=df.T
      #   print("cc=",cc,"cc2=",cc2)  #"before df=\n",df)
@@ -2081,7 +2072,10 @@ def main():
      #   print("cc2 mat=",cc2,df[cc].rolling(4,axis=0).mean())   # 4weeks
 
         df[cc2]=df[cc].rolling(dd.mat,axis=0).mean()   # 4weeks
-
+        
+     #   df[cc4]=df[cc3].rolling(dd.mat,axis=0).mean()   # 4weeks
+          
+    
       #  print("df[cc]=",cc,"\n",df[cc])
         df=df.T
 
@@ -2298,7 +2292,7 @@ def main():
   
         
         
-        joined_df.index = pd.MultiIndex.from_tuples(joined_df.index,names=["brand","specialpricecat","productgroup","product","on_promo","names"])
+        joined_df.index = pd.MultiIndex.from_tuples(joined_df.index,names=["brand","specialpricecat","productgroup","product","type","names"])
         joined_df=joined_df.rename(dd.series_type_dict,level=4,axis='index')
 
         joined_df=joined_df.sort_index()    #[('brand', 'specialpricecat','productgroup','product')], ascending=[True,True,True,True])
@@ -2548,7 +2542,7 @@ def main():
         
                #joined_list=joined_df.index.to_list()
   #      print("joined list=\n",joined_list)
-        print("\njoined_df=\n",joined_df)   #,"\n",joined_df.T)
+  #      print("\njoined_df=\n",joined_df)   #,"\n",joined_df.T)
         joined_index_df=pd.DataFrame(joined_list,columns=joined_df.index.names)
         #    print("jldf=\n",joined_list_df)
        # joined_index_df = joined_index_df[(joined_index_df['on_promo'] == 'baseline') | (joined_index_df['on_promo'] == 1)]
@@ -2562,11 +2556,27 @@ def main():
         unique_records = list(joined_index_df.iloc[:,:4].drop_duplicates(keep='first').to_records(index=False))
     
        # records2=list(set(records))
-        print("unique records=",unique_records,len(unique_records))
+        print("unique records=",len(unique_records))
        
  
-        c_count=0
+        c_count=1
         for rec in unique_records:
+            cc2=list(rec)
+            cc2.append(4)
+            cc2=tuple(cc2)
+                        
+            cc3=list(rec) 
+           # cc4=list(rec)
+            cc3.append(7)  # cc[4]   # type is total                 
+            cc3.append(str(cust)+"_"+str(brand)+"_"+str(cc3[3])+"_4wk_moving_total_invoiced_shifted_3wks")   # cc[5]= new name
+            cc3=tuple(cc3)
+    
+            testslice=joined_df.xs(cc2,level=[0,1,2,3,4],axis=0,drop_level=False)
+            slicesum=testslice.sum(axis=0)
+            joined_df=joined_df.T
+            joined_df[cc3]=slicesum.rolling(dd.mat,axis=0).mean()   # 4weeks
+            joined_df=joined_df.T
+    
             xrec=list(rec)
             xrec.append(2)
             yrec=list(rec)
@@ -2579,14 +2589,17 @@ def main():
           #  print("predrec=",predrec)
           
         #    print("predrec1=",predrec)
-            pname=str(joined_df.xs(tuple(predrec),level=[0,1,2,3,4],axis=0,drop_level=False).index[0][5])    #.get_level_values('names')   #.astype(str, copy = False)   #to_string()   #.name    #.get_level_values(5)
-            pname=pname+"_prediction"
+            try:
+                pname=str(joined_df.xs(tuple(predrec),level=[0,1,2,3,4],axis=0,drop_level=False).index[0][5])    #.get_level_values('names')   #.astype(str, copy = False)   #to_string()   #.name    #.get_level_values(5)
+                pname=pname+"_prediction"
+            except:
+                pname="No_data_"+str(predrec)
          #   print("pname",pname)
             predrec[4]=8
             predrec.append(pname)  
             
             predrec=tuple(predrec)
-            print("new predrec=",predrec)
+       #     print("new predrec=",predrec)
  
         #    matrec=list(rec)
         #    matrec.append(6)
@@ -2600,11 +2613,14 @@ def main():
             y_hdf=joined_df.xs(yrec,level=[0,1,2,3,4],axis=0,drop_level=False)     #.T.to_numpy().astype(np.int32)
             inv_hdf=joined_df.xs(invrec,level=[0,1,2,3,4],axis=0,drop_level=False).T.to_numpy().astype(np.int32)
         #    mat_hdf=joined_df.xs(matrec,level=[0,1,2,3,4],axis=0,drop_level=False).T.to_numpy().astype(np.int32)
+            y_hdf.fillna(0.0,inplace=True)
+            X_hdf.fillna(0.0,inplace=True)
 
-            print("mdf=\n",mdf)
+
+            print("\nproduct slice to predict and plot:'",pname,"'-> (",c_count,"/",len(unique_records),") =\n",mdf)
            # print("y_hdf=\n",y_hdf)
             
-            print("str(rec)",str(rec))   #,"total_rec=",total_rec,"inv_shift_rec",inv_shift_rec) 
+          #  print("str(rec)",str(rec))   #,"total_rec=",total_rec,"inv_shift_rec",inv_shift_rec) 
             #  .append(2))
             # X_set=mdf['coles_BB_jams_total_scanned'].to_numpy().astype(np.int32)[7:-1]
            # X_set=joined_df.xs(total_rec,level=[0,1,2,3,4],axis=0,drop_level=True).to_numpy().astype(np.int32)[0,7:-1]    # iloc[:,2] type 2 is total
@@ -2613,6 +2629,7 @@ def main():
             #   X_set=X_set[0,7:-1]  
           #  print("x_set=\n",X_set,X_set.shape)
 #            y_set=joined_df.xs(inv_shift_rec,level=[0,1,2,3,4],axis=0,drop_level=True).to_numpy().astype(np.int32)[0,7:-1]  #[7:-1]    # iloc[:,3] type 2 is total
+            y_set_full=y_hdf.T.to_numpy().astype(np.int32)[:,0]
             y_set=y_hdf.T.to_numpy().astype(np.int32)[7:-1,0]  #[7:-1]    # iloc[:,3] type 2 is total
 
             #  y_set=y_set[0,7:-1]
@@ -2625,16 +2642,29 @@ def main():
            #     print("dates=\n",dates,len(dates))
                #    print("\n\n",ptx+btx+p,mdf.T,X_set.shape,y_set.shape)
                 model=train_model(clean_up_name(str(rec)),X_set,y_set,dd.batch_length,dd.no_of_batches,dd.epochs)
-                if c_count==0:
-                    joined_df=predict_order(joined_df,X_set,y_set,predrec,model)
-                else:    
-                    joined_df=pd.concat((joined_df,predict_order(joined_df,X_set,y_set,predrec,model)),axis=1)
-                c_count+=1   
+             #   if c_count==0:
+                joined_df=predict_order(joined_df,X_set,y_set_full,predrec,model)
+              #  else:    
+               #     joined_df=pd.concat((joined_df,predict_order(joined_df,X_set,y_set_full,predrec,model)),axis=0)
+            #    c_count+=1   
                 mdf=joined_df.xs(rec,level=[0,1,2,3],axis=0,drop_level=False)
-                print("mdf2=\n",mdf)
+            #    print("mdf after=\n",mdf)
+                mdf_mask = mdf.index.get_level_values('type').isin([2,4,8])
+           #     print("mdf_mask=\n",mdf_mask)
  
-                #print("Y_pred_series=",Y_pred_series)
+                plot_mdf=mdf[mdf_mask]
+          #      print("plotmdf=\n",plot_mdf)
+                plot_mdf=plot_mdf.droplevel(['brand','specialpricecat','productgroup','product'])
+ #               plot_mdf=plot_mdf.droplevel([0,1,2,3])
+ 
+                title=str(plot_mdf.index[0][1])
+              # plot_mdf[m].reset_index(level=2, drop=True)
+               # plot_mdf=mdf.xs((2,4,8),level='type',axis=0,drop_level=False)   # scanned total, shifted invoiced and predicted type 2,4,8
+            #    print("plot mdf,title=\n",plot_mdf,"\n",title)
 
+                plot_prediction(plot_mdf,title,latest_date)
+                #print("Y_pred_series=",Y_pred_series)
+            c_count+=1    
 
 
 
@@ -2821,8 +2851,9 @@ def main():
         #results.index = pd.to_datetime(df.index, format = '%d-%m-%Y',infer_datetime_format=True)
         # if Y_pred.shape[0]>0:
         #   #  results=pd.concat((results,previous_df),axis=1)
+        joined_df.fillna(0.0,inplace=True)
         joined_df.sort_index(axis=1,inplace=True)
-        print("joined_df.T=\n",joined_df.T)
+        print("final joined_df.T=\n",joined_df.T)
 
         #     print("results=\n",results.tail(5))
             
