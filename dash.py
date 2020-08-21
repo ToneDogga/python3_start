@@ -916,9 +916,9 @@ def get_xs_name(df,filter_tuple):
 
 
 
-def predict_order(joined_df,X_set,y_set_full,predrec,model):    #inv_hdf,mat_hdf,rec,model):
-    scanned_sales=X_set.reshape(-1,1)[np.newaxis,...]
-    Y_pred=np.stack(model(scanned_sales[:,-1,:]).numpy(),axis=2) #for r in range(scanned_sales.shape[1])]
+def predict_order(joined_df,X_set_full,y_set_full,predrec,model):    #inv_hdf,mat_hdf,rec,model):
+    scanned_sales=X_set_full.reshape(-1,1)[np.newaxis,...]
+    Y_pred=np.stack(model(scanned_sales[:,-2,:]).numpy(),axis=2) #for r in range(scanned_sales.shape[1])]
   #  print("Y_pred",Y_pred,Y_pred.shape)
     j=np.concatenate((y_set_full[:-1],Y_pred[0,:,0]),axis=0)
   #  print("j=",j,j.shape)
@@ -2509,9 +2509,10 @@ def main():
             print("\nproduct slice to predict and plot:'",pname,"'-> (",c_count,"/",len(unique_records),") =\n",mdf)
 
             try:
-                X_set=X_hdf.T.to_numpy().astype(np.int32)[7:-1,0]    # iloc[:,2] type 2 is total
+                X_set_full=X_hdf.T.to_numpy().astype(np.int32)[:,0]
+                X_set=X_hdf.T.to_numpy().astype(np.int32)[5:-3,0]    # iloc[:,2] type 2 is total
                 y_set_full=y_hdf.T.to_numpy().astype(np.int32)[:,0]
-                y_set=y_hdf.T.to_numpy().astype(np.int32)[7:-1,0]  #[7:-1]    # iloc[:,3] type 2 is total
+                y_set=y_hdf.T.to_numpy().astype(np.int32)[6:-2,0]  #[7:-1]    # iloc[:,3] type 2 is total
             except:
                 print("X_set or y_set empty")
             else:    
@@ -2529,7 +2530,7 @@ def main():
                     model=train_model(clean_up_name(str(rec)),X_set,y_set,dd.batch_length,dd.no_of_batches,dd.epochs)
                  #   if c_count==0:
                #     pmdf=add_a_week(mdf) 
-                    joined_df=predict_order(joined_df,X_set,y_set_full,predrec,model)
+                    joined_df=predict_order(joined_df,X_set_full,y_set_full,predrec,model)
                   #  else:    
                    #     joined_df=pd.concat((joined_df,predict_order(joined_df,X_set,y_set_full,predrec,model)),axis=0)
                 #    c_count+=1   
