@@ -1555,7 +1555,11 @@ def main():
             v=sales_df.query('specialpricecat==@spc & productgroup==@pg')[['date','qty']]
         else: 
             v=sales_df.query('specialpricecat==@spc & product==@pc')[['date','qty']]
-        print("saving",key)  #,"v=\n",v)  #,"=\n",v)      
+     #   v.index = pd.to_datetime('date')  #, format='%Y')
+  #      v.set_index('date')
+      #  v=v.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+
+        print("saving",key)   #,"v=\v",v)  #,"v=\n",v)  #,"=\n",v)      
         #print(v)
         with open(key,"wb") as f:
               pickle.dump(v, f,protocol=-1)
@@ -1908,7 +1912,7 @@ def main():
         
         
         
-            print(dist_df,"\n",dist_df.T)
+          #  print(dist_df,"\n",dist_df.T)
 #  list_data=pd.date_range(start='1/1/2018', end='1/08/2018').to_list()
 # Create a Pandas dataframe from the data.
 #df = pd.DataFrame(list_data)
@@ -2137,9 +2141,9 @@ def main():
  
     df=df.T
  
-    df[1,12,10,"jams",0,'coles_beerenberg_jams_total_scanned']=df[1,12,10,"jams",0,'coles_beerenberg_jams_off_promo_scanned']+df[1,12,10,"jams",1,'coles_beerenberg_jams_on_promo_scanned']
-    df[2,12,10,"jams",0,'coles_st_dalfour_jams_total_scanned']=df[2,12,10,"jams",0,'coles_st_dalfour_jams_off_promo_scanned']+df[2,12,10,"jams",1,'coles_st_dalfour_jams_on_promo_scanned']
-    df[3,12,10,"jams",0,'coles_bonne_maman_jams_total_scanned']=df[3,12,10,"jams",0,'coles_bonne_maman_jams_off_promo_scanned']+df[3,12,10,"jams",1,'coles_bonne_maman_jams_on_promo_scanned']
+    df[1,12,10,"jams",2,'coles_beerenberg_jams_total_scanned']=df[1,12,10,"jams",0,'coles_beerenberg_jams_off_promo_scanned']+df[1,12,10,"jams",1,'coles_beerenberg_jams_on_promo_scanned']
+    df[2,12,10,"jams",2,'coles_st_dalfour_jams_total_scanned']=df[2,12,10,"jams",0,'coles_st_dalfour_jams_off_promo_scanned']+df[2,12,10,"jams",1,'coles_st_dalfour_jams_on_promo_scanned']
+    df[3,12,10,"jams",2,'coles_bonne_maman_jams_total_scanned']=df[3,12,10,"jams",0,'coles_bonne_maman_jams_off_promo_scanned']+df[3,12,10,"jams",1,'coles_bonne_maman_jams_on_promo_scanned']
     
  
     df[1,12,10,"jams",9,'coles_beerenberg_jams_on_promo']=(df[1,12,10,"jams",1,'coles_beerenberg_jams_on_promo_scanned']>0)
@@ -2148,9 +2152,9 @@ def main():
     
     # df[0,10,10,"jams",0,'woolworths_jams_total_scanned']=df[0,10,10,"jams",0,'woolworths_total_jam_curd_marm_off_promo_scanned']+df[0,10,10,"jams",1,'woolworths_total_jam_curd_marm_on_promo_scanned']
     
-    df[1,10,10,"jams",0,'woolworths_beerenberg_jams_total_scanned']=df[1,10,10,"jams",0,'woolworths_beerenberg_jams_off_promo_scanned']+df[1,10,10,"jams",1,'woolworths_beerenberg_jams_on_promo_scanned']
-    df[2,10,10,"jams",0,'woolworths_st_dalfour_jams_total_scanned']=df[2,10,10,"jams",0,'woolworths_st_dalfour_jams_off_promo_scanned']+df[2,10,10,"jams",1,'woolworths_st_dalfour_jams_on_promo_scanned']
-    df[3,10,10,"jams",0,'woolworths_bonne_maman_jams_total_scanned']=df[3,10,10,"jams",0,'woolworths_bonne_maman_jams_off_promo_scanned']+df[3,10,10,"jams",1,'woolworths_bonne_maman_jams_on_promo_scanned']
+    df[1,10,10,"jams",2,'woolworths_beerenberg_jams_total_scanned']=df[1,10,10,"jams",0,'woolworths_beerenberg_jams_off_promo_scanned']+df[1,10,10,"jams",1,'woolworths_beerenberg_jams_on_promo_scanned']
+    df[2,10,10,"jams",2,'woolworths_st_dalfour_jams_total_scanned']=df[2,10,10,"jams",0,'woolworths_st_dalfour_jams_off_promo_scanned']+df[2,10,10,"jams",1,'woolworths_st_dalfour_jams_on_promo_scanned']
+    df[3,10,10,"jams",2,'woolworths_bonne_maman_jams_total_scanned']=df[3,10,10,"jams",0,'woolworths_bonne_maman_jams_off_promo_scanned']+df[3,10,10,"jams",1,'woolworths_bonne_maman_jams_on_promo_scanned']
      
     df[1,10,10,"jams",9,'woolworths_beerenberg_jams_on_promo']=(df[1,10,10,"jams",1,'woolworths_beerenberg_jams_on_promo_scanned']>0)
     df[2,10,10,"jams",9,'woolworths_st_dalfour_jams_on_promo']=(df[2,10,10,"jams",1,'woolworths_st_dalfour_jams_on_promo_scanned']>0)
@@ -2572,12 +2576,22 @@ def main():
 
         #     print("results=\n",results.tail(5))
             
+        
+        
+        
+        
         joined_df.to_pickle(output_dir+"order_predict_results.pkl")
         #     results.to_pickle("order_predict_results.pkl")
-            
-        joined_df.to_excel(output_dir+"order_predict_results.xlsx",engine='xlsxwriter')
         
         
+        sheet_name = 'Sheet1'
+
+        writer = pd.ExcelWriter(output_dir+"order_predict_results.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
+       
+        
+        joined_df.to_excel(writer,sheet_name=sheet_name)    #,engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')
+        
+        writer.save()    
     
     plt.close("all")
     

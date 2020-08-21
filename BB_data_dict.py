@@ -367,14 +367,14 @@ product_type = namedtuple("product_type", ["brandno","customercat", "productgrou
 
 coles_and_ww_pkl_dict={"coles_beerenberg_jams_invoiced.pkl":(1,12,10,"jams",3,"coles_beerenberg_jams_invoiced"),   # special price cat, productgroup,productcode,product, on_promo, name)
           "coles_beerenberg_SJ300_invoiced.pkl":(1,12,10,"SJ300",3,"coles_beerenberg_SJ300_invoiced"),
-          "coles_beerenberg_AJ300_invoiced.pkl":(1,12,10,"AJ300",3,"coles_beerenberg_AJ300_invoiced"),
-          "coles_beerenberg_OM300_invoiced.pkl":(1,12,10,"OM300",3,"coles_beerenberg_OM300_invoiced"),
           "coles_beerenberg_RJ300_invoiced.pkl":(1,12,10,"RJ300",3,"coles_beerenberg_RJ300_invoiced"),
-          "coles_beerenberg_TS300_invoiced.pkl":(1,12,11,"TS300",3,"coles_beerenberg_TS300_invoiced"),
-          "coles_beerenberg_CAR280_invoiced.pkl":(1,12,13,"CAR280",3,"coles_beerenberg_CAR280_invoiced"),
-          "coles_beerenberg_BBR280_invoiced.pkl":(1,12,13,"BBR280",3,"coles_beerenberg_BBR280_invoiced"),
+          "coles_beerenberg_OM300_invoiced.pkl":(1,12,10,"OM300",3,"coles_beerenberg_OM300_invoiced"),
+          "coles_beerenberg_AJ300_invoiced.pkl":(1,12,10,"AJ300",3,"coles_beerenberg_AJ300_invoiced"),
           "coles_beerenberg_TC260_invoiced.pkl":(1,12,13,"TC260",3,"coles_beerenberg_TC260_invoiced"),
           "coles_beerenberg_HTC260_invoiced.pkl":(1,12,13,"HTC260",3,"coles_beerenberg_HTC260_invoiced"),
+          "coles_beerenberg_CAR280_invoiced.pkl":(1,12,13,"CAR280",3,"coles_beerenberg_CAR280_invoiced"),
+          "coles_beerenberg_BBR280_invoiced.pkl":(1,12,13,"BBR280",3,"coles_beerenberg_BBR280_invoiced"),
+          "coles_beerenberg_TS300_invoiced.pkl":(1,12,11,"TS300",3,"coles_beerenberg_TS300_invoiced"),
           "coles_beerenberg_PCD300_invoiced.pkl":(1,12,14,"PCD300",3,"coles_beerenberg_PCD300_invoiced"),
           "coles_beerenberg_BLU300_invoiced.pkl":(1,12,14,"BLU300",3,"coles_beerenberg_BLU300_invoiced"),
           "coles_beerenberg_RAN300_invoiced.pkl":(1,12,14,"RAN300",3,"coles_beerenberg_RAN300_invoiced"),
@@ -383,7 +383,7 @@ coles_and_ww_pkl_dict={"coles_beerenberg_jams_invoiced.pkl":(1,12,10,"jams",3,"c
           "woolworths_beerenberg_RJ300_invoiced.pkl":(1,10,10,"RJ300",3,"woolworths_beerenberg_RJ300_invoiced"),
           "woolworths_beerenberg_BOM300_invoiced.pkl":(1,10,10,"BOM300",3,"woolworths_beerenberg_BOM300_invoiced"),
           "woolworths_beerenberg_AJ300_invoiced.pkl":(1,10,10,"AJ300",3,"woolworths_beerenberg_AJ300_invoiced"),
-          "woolworths_beerenberg_BB300_invoiced.pkl":(1,10,10,"BB300",3,"woolworths_beerenberg_BB300_invoiced"),
+          "woolworths_beerenberg_BJ300_invoiced.pkl":(1,10,10,"BJ300",3,"woolworths_beerenberg_BJ300_invoiced"),
           "woolworths_beerenberg_BLJ300_invoiced.pkl":(1,10,10,"BLJ300",3,"woolworths_beerenberg_BLJ300_invoiced"),
           "woolworths_beerenberg_TS300_invoiced.pkl":(1,10,11,"TS300",3,"woolworths_beerenberg_TS300_invoiced"),
           "woolworths_beerenberg_BUR280_invoiced.pkl":(1,10,13,"BUR280",3,"woolworths_beerenberg_BUR280_invoiced"),
@@ -391,8 +391,10 @@ coles_and_ww_pkl_dict={"coles_beerenberg_jams_invoiced.pkl":(1,12,10,"jams",3,"c
           "woolworths_beerenberg_HTC260_invoiced.pkl":(1,10,13,"HTC260",3,"woolworths_beerenberg_HTC260_invoiced"),
           "woolworths_beerenberg_BBR280_invoiced.pkl":(1,10,13,"BBR280",3,"woolworths_beerenberg_BBR280_invoiced"),
           "woolworths_beerenberg_CAR280_invoiced.pkl":(1,10,13,"CAR280",3,"woolworths_beerenberg_CAR280_invoiced"),
-          "woolworths_beerenberg_TCP260_invoiced.pkl":(1,10,13,"TCP260",3,"woolworths_beerenberg_TCP260_invoiced")}
+          "woolworths_beerenberg_TCP265_invoiced.pkl":(1,10,13,"TCP265",3,"woolworths_beerenberg_TCP265_invoiced"),
+          "woolworths_beerenberg_SMP265_invoiced.pkl":(1,10,13,"SMP265",3,"woolworths_beerenberg_SMP265_invoiced")}
     
+   
     
 
 
@@ -453,8 +455,8 @@ coles_and_ww_col_dict= {  "scan_week":(0,12,0,'_*',0,'scan_week'),
                 46:(1,10,10,"BOM300",1,"woolworths_beerenberg_BOM300_on_promo_scanned"),
                 47:(1,10,10,"AJ300",0,"woolworths_beerenberg_AJ300_off_promo_scanned"),
                 48:(1,10,10,"AJ300",1,"woolworths_beerenberg_AJ300_on_promo_scanned"),
-                49:(1,10,10,"BB300",0,"woolworths_beerenberg_BB300_off_promo_scanned"),
-                50:(1,10,10,"BB300",1,"woolworths_beerenberg_BB300_on_promo_scanned"),
+                49:(1,10,10,"BJ300",0,"woolworths_beerenberg_BJ300_off_promo_scanned"),
+                50:(1,10,10,"BJ300",1,"woolworths_beerenberg_BJ300_on_promo_scanned"),
                 51:(1,10,10,"BLJ300",0,"woolworths_beerenberg_BLJ300_off_promo_scanned"),
                 52:(1,10,10,"BLJ300",1,"woolworths_beerenberg_BLJ300_on_promo_scanned"),
                 53:(1,10,11,"TS300",0,"woolworths_beerenberg_TS300_off_promo_scanned"),
@@ -469,8 +471,10 @@ coles_and_ww_col_dict= {  "scan_week":(0,12,0,'_*',0,'scan_week'),
                 62:(1,10,13,"BBR280",1,"woolworths_beerenberg_BBR280_on_promo_scanned"),
                 63:(1,10,13,"CAR280",0,"woolworths_beerenberg_CAR280_off_promo_scanned"),
                 64:(1,10,13,"CAR280",1,"woolworths_beerenberg_CAR280_on_promo_scanned"),
-                65:(1,10,13,"TCP280",0,"woolworths_beerenberg_TCP280_off_promo_scanned"),
-                66:(1,10,13,"TCP280",1,"woolworths_beerenberg_TCP280_on_promo_scanned")}
+                65:(1,10,13,"TCP265",0,"woolworths_beerenberg_TCP265_off_promo_scanned"),
+                66:(1,10,13,"TCP265",1,"woolworths_beerenberg_TCP265_on_promo_scanned"),
+                67:(1,10,13,"SMP265",0,"woolworths_beerenberg_SMP265_off_promo_scanned"),
+                68:(1,10,13,"SMP265",1,"woolworths_beerenberg_SMP265_on_promo_scanned")}
 
  
 
