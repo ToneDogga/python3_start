@@ -2603,7 +2603,7 @@ def main():
 
         joined_df.fillna(0.0,inplace=True)
         p_mask = joined_df.index.get_level_values('type').isin([8])
-        p_df=joined_df[p_mask]
+        p_df=joined_df[p_mask].T
         now = datetime.utcnow().strftime("%Y%m%d%H%M%S")
 
         p_df.to_pickle("dash_run_"+now+dd.predictions_only_savename)
