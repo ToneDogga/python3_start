@@ -57,13 +57,6 @@ with open(dd.scan_dict_savename, 'rb') as g:
    #              'second_y_axis_conversion_dict':dd.second_y_axis_conversion_dict,
    #              'reverse_conversion_dict':dd.reverse_conversion_dict}
 
-# a plot is described by a query list
-# a plot title name in query[0] 
-# plot details are in a dictionary at query[1]
-# Seconary y columns is in a list of column numbers in query[1]
-# a query list in query[1:]
-# (the column names in the query contain the line plotting information in their multiindex for the y values in each column)
-#
 
 
 
@@ -78,7 +71,43 @@ with open(dd.scan_dict_savename, 'rb') as g:
    
 
 # create a query language for a multiindex scan data df
+ # a plot is described by a query list
+# a plot title name in query[0] 
+# plot details are in a dictionary at query[1]
+# Seconary y columns is in a list of column numbers in query[1]
+# a query list in query[1:]
+# (the column names in the query contain the line plotting information in their multiindex for the y values in each column)
+#
+
+
     
+def plot_query(query,scan_data):    
+    slice_df=slice_filter(query,scan_data)
+    #print("q=\n",title,"\n", q)
+    keep_list=['column_name',"style",'linewidth','stacked','second_y','reverse']
+    plot_df,title,sy,style,reverse=decode_query(slice_df,query,keep_list)
+    
+    print("final plot_df=\n",plot_df.T)
+    #ax=g.plot(grid=True,title=title,style=styles1, lw=linewidths,use_index=True)   #,legend=g.index[0][0])a
+    ax=plot_df.plot(grid=True,title=title,use_index=True,secondary_y=sy,style=style)   #,legend=g.index[0][0])
+    
+    ax.tick_params(axis='x', which='major', labelsize=7)
+    ax.tick_params(axis='y', which='major', labelsize=7)
+    
+    #ew_labels = [dt.date.fromordinal(int(item)) for item in ax.get_xticks()]
+      #  print("new_labels=",new_labels)
+    #improved_labels = ['{}-{}'.format(calendar.month_abbr[int(m)],y) for y, m , d in map(lambda x: str(x).split('-'), new_labels)]
+      #  print("improved labels",improved_labels)
+    #ax.set_xticklabels(fontsize=8)
+     
+    #ax.set_xticklabels(fontsize=4)
+    ax.legend(title="",fontsize=7)
+    print("rev=",reverse)
+    return    
+ 
+    
+
+   
 def slice_filter(query,df):
     print("slice filter query=",query)
     if isinstance(df.index, pd.MultiIndex):
@@ -155,10 +184,11 @@ def tidy_up(df,keep_list):
 
 
 
-def decode_query(query,keep_list):  
+
+def decode_query(slice_df,query,keep_list):  
     query_dict=query[0]
     title=query_dict['title']
-    g,r=tidy_up(q,keep_list)
+    gdf,r=tidy_up(slice_df,keep_list)
     #print("g=\n",g,"\n",g.T)
     
     #print("r=\n",r,"\n",r['column_name'])
@@ -166,44 +196,88 @@ def decode_query(query,keep_list):
                # styles1 = ['bs-','ro:','y^-']
     #linewidths = max(r['linewidth'].tolist())   #1  # [2, 1, 4]
     
-    g.columns=g.columns.droplevel(list(range(1,len(keep_list))))
-    sy=[g.columns[n] for n in query_dict["second_y"]]
+    gdf.columns=gdf.columns.droplevel(list(range(1,len(keep_list))))
+    sy=[gdf.columns[n] for n in query_dict["second_y"]]
     style=query_dict['style']
     reverse=query_dict['reverse']
-    return g,title,sy,style,reverse
+    return gdf,title,sy,style,reverse
+
+
+
+def set_plot_properties(df):
+    df=reverse_rankings(df)
+    print(df.T)
+    return df
+
+
+
+def reverse_rankings(df):
+  #  df=df.T
+ #   for row in df.index:
+   # print(df.columns.get_level_values('measure'))
+    j=0
  
+    #k=df.index.names.index('measure')
+   # print(df.loc[:, df.columns.get_level_values('measure')])
+    #print(k)
+ #   measure=df.columns.get_level_values('measure')
+ #   reverse=list(df.columns.get_level_values('reverse'))
     
+  #  dflist=[m for m in df.columns.get_level_values('measure') if m.lower().find("ranked")!=-1]
+  #  print(dflist)
+  #  df.index = df.index.set_levels(df.index.levels[14]==True, level='measure')
+  
+  
+    df=df.T
+    for m in df.index.get_level_values('measure'):
+        if m.lower().find("ranked")==-1:
+        #    print(m)
+         #   print(df.columns[j][14])   #.get_level_values('reverse'))
+            df.index.get_level_values('reverse')
+        else:
+            print(df.index.get_level_values('reverse')[j])   #=True
+            
+ #  df.index.set_levels([u'Total', u'x2'],level=1,inplace=True)
+            df.index.set_labels(reverse_list,level='reverse',inplace=True)         
+        j+=1    
+    print(df.columns)    
+ #   print(m)
+    # for i in df.columns:
+    #    if i.get_level_values('measure').lower().find("ranked")==-1:
+    #        print("no")
+    #    else:
+    #        print("yes")
+    #        df.columns.get_level_values('reverse')[j]=True
+    #    j+=1    
+        
+    # #    m=col.get_level_values('measure')
+    #    print(m)
+        # if col.lower().find("ranked")==-1:
+        #     df.columns[j].get_level_values['reverse']=False
+        # else:
+        #     df.columns[j].get_level_values['reverse']=True
+    #    j+=1 
+            
+    
+    
+    
+    
+    return df
+
+
+   
  
     
  
     
 
 print("All scandata dataframe saved to",dd.scan_dict_savename)   #,":\n",scan_dict['final_df'])
-scan_data=scan_dict['final_df']
+scan_data=set_plot_properties(scan_dict['final_df'])
 print("scan_data=\n",scan_data,"\n",scan_data.shape)       
 
-# receive a query is a list of tuples. each tuple contains a list of values to filter and a level name as a query
-scan_data=scan_data
-#print("scan_data=1\n",scan_data)
-query=[{'title':"test q title qitle",'second_y':[2,0],'style':['g:','b-','r-','k:'],'reverse':[3]},([2,4],'plot_type'),([1],'variety'),([1],'brand'),([12],"market")]
-q=slice_filter(query,scan_data)
-#print("q=\n",title,"\n", q)
-keep_list=['column_name',"style",'linewidth','stacked','second_y','reverse']
-g,title,sy,style,reverse=decode_query(query,keep_list)
+# a query is one dictionary with the details of the plot and then a list of tuples. each tuple contains a list of values to filter and a level name as a query
 
-print("final g=\n",g.T)
-#ax=g.plot(grid=True,title=title,style=styles1, lw=linewidths,use_index=True)   #,legend=g.index[0][0])a
-ax=g.plot(grid=True,title=title,use_index=True,secondary_y=sy,style=style)   #,legend=g.index[0][0])
+query=[{'title':"test q title qitle",'second_y':[1,3],'style':['g:','b-','r-','k:'],'reverse':[3]},([2,4],'plot_type'),([1],'variety'),([1],'brand'),([12],"market")]
+plot_query(query,scan_data)
 
-ax.tick_params(axis='x', which='major', labelsize=7)
-ax.tick_params(axis='y', which='major', labelsize=7)
 
-#ew_labels = [dt.date.fromordinal(int(item)) for item in ax.get_xticks()]
-  #  print("new_labels=",new_labels)
-#improved_labels = ['{}-{}'.format(calendar.month_abbr[int(m)],y) for y, m , d in map(lambda x: str(x).split('-'), new_labels)]
-  #  print("improved labels",improved_labels)
-#ax.set_xticklabels(fontsize=8)
- 
-#ax.set_xticklabels(fontsize=4)
-ax.legend(title="",fontsize=7)
-print("rev=",reverse)

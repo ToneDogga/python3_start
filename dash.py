@@ -2704,7 +2704,7 @@ def main():
         print("\nColes and WW order Predictions...")
         
         print(p_df.iloc[:,-2:],"\n")
-        
+        m_df=p_df.iloc[:,-2:].copy()
         
         p_df=p_df.T
         now = datetime.utcnow().strftime("%Y%m%d%H%M%S")
@@ -2754,6 +2754,14 @@ def main():
        
         
         p_df.to_excel(writer,sheet_name=sheet_name)    #,engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')
+        
+        writer.save()    
+
+
+
+        writer = pd.ExcelWriter(output_dir+"mini_order_predict_results.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
+       
+        m_df.to_excel(writer,sheet_name=sheet_name)    #,engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')
         
         writer.save()    
 
