@@ -59,6 +59,8 @@ with open(dd.scan_dict_savename, 'rb') as g:
 
 # a plot is described by a query list
 # a plot title name in query[0] 
+# plot details are in a dictionary at query[1]
+# Seconary y columns is in a list of column numbers in query[1]
 # a query list in query[1:]
 # (the column names in the query contain the line plotting information in their multiindex for the y values in each column)
 #
@@ -94,6 +96,7 @@ def slice_filter(query,df):
      #   df.index.get_level_values(0).dtype
         # all(isinstance(n, int) for n in lst)
          # receive a query is a list of tuples of a list of values to filter and a level name as a query
+        #secondary_y_list=query[1] 
         for q in query[1:]: 
             filter_list=q[0]
             level_name=q[1]
@@ -112,7 +115,7 @@ def slice_filter(query,df):
             
                     else:
                        print("types in query are incorrect")
-                       return "",pd.DataFrame() 
+                       return pd.DataFrame() 
                    
      
              #  test_df=df.xs(xrec,level=[0,1,2,3,4],axis=0,drop_level=False)    #.T.to_numpy().astype(np.int32)
@@ -122,22 +125,22 @@ def slice_filter(query,df):
                     df=df[mdf_mask]
             else:
                 print("level name error",q)
-                return "",pd.DataFrame()  
+                return pd.DataFrame()  
                 
                    
                    
         if transposed:           
             df=df.T
         
-        return query[0],df
+        return df
 
     else:    
         print("index is not multilevel")
-        return "",pd.DataFrame()   
+        return pd.DataFrame()   
     
 
-def tidy_up(df,keep_list):
-    
+
+def tidy_up(df,keep_list):    
     level_list=df.columns.names
 #    level_list.sort(inplace=True)
  #   print(level_list)  
@@ -151,6 +154,26 @@ def tidy_up(df,keep_list):
     return df,pd.DataFrame.from_records(df.columns,columns=df.columns.names) 
 
 
+
+def decode_query(query,keep_list):  
+    query_dict=query[0]
+    title=query_dict['title']
+    g,r=tidy_up(q,keep_list)
+    #print("g=\n",g,"\n",g.T)
+    
+    #print("r=\n",r,"\n",r['column_name'])
+    #styles1 = r['style'].tolist()  # ['g:','r:','b-']
+               # styles1 = ['bs-','ro:','y^-']
+    #linewidths = max(r['linewidth'].tolist())   #1  # [2, 1, 4]
+    
+    g.columns=g.columns.droplevel(list(range(1,len(keep_list))))
+    sy=[g.columns[n] for n in query_dict["second_y"]]
+    style=query_dict['style']
+    reverse=query_dict['reverse']
+    return g,title,sy,style,reverse
+ 
+    
+ 
     
  
     
@@ -162,22 +185,16 @@ print("scan_data=\n",scan_data,"\n",scan_data.shape)
 # receive a query is a list of tuples. each tuple contains a list of values to filter and a level name as a query
 scan_data=scan_data
 #print("scan_data=1\n",scan_data)
-query=["tqitle",([2,4],'plot_type'),([1],'variety'),([1],'brand'),([12],"market")]
-title,q,=slice_filter(query,scan_data)
+query=[{'title':"test q title qitle",'second_y':[2,0],'style':['g:','b-','r-','k:'],'reverse':[3]},([2,4],'plot_type'),([1],'variety'),([1],'brand'),([12],"market")]
+q=slice_filter(query,scan_data)
 #print("q=\n",title,"\n", q)
-
 keep_list=['column_name',"style",'linewidth','stacked','second_y','reverse']
-g,r=tidy_up(q,keep_list)
-#print("g=\n",g,"\n",g.T)
+g,title,sy,style,reverse=decode_query(query,keep_list)
 
-#print("r=\n",r,"\n",r['column_name'])
-styles1 = r['style'].tolist()  # ['g:','r:','b-']
-           # styles1 = ['bs-','ro:','y^-']
-linewidths = max(r['linewidth'].tolist())   #1  # [2, 1, 4]
+print("final g=\n",g.T)
+#ax=g.plot(grid=True,title=title,style=styles1, lw=linewidths,use_index=True)   #,legend=g.index[0][0])a
+ax=g.plot(grid=True,title=title,use_index=True,secondary_y=sy,style=style)   #,legend=g.index[0][0])
 
-g.columns=g.columns.droplevel(list(range(1,len(keep_list))))
-print("final g=\n",g)
-ax=g.plot(grid=True,title=title,style=styles1, lw=linewidths,use_index=True)   #,legend=g.index[0][0])
 ax.tick_params(axis='x', which='major', labelsize=7)
 ax.tick_params(axis='y', which='major', labelsize=7)
 
@@ -189,3 +206,4 @@ ax.tick_params(axis='y', which='major', labelsize=7)
  
 #ax.set_xticklabels(fontsize=4)
 ax.legend(title="",fontsize=7)
+print("rev=",reverse)
