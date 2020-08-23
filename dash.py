@@ -2368,6 +2368,7 @@ def main():
         #print(df)
         plt.close()   #"all")
         
+       
 
         df=hdf[['coles_beerenberg_jams_total_scanned','woolworths_beerenberg_jams_total_scanned']].rolling(dd.mat,axis=0).mean()
        # styles1 = ['b-','g:','r:']
@@ -2383,6 +2384,20 @@ def main():
         #print(df)
         plt.close()   #"all")
 
+        ax=df.plot(grid=True,title="Coles vs WW BB units moving total stacked "+str(dd.mat)+" weeks w/c:"+str(latest_date),style=styles1, lw=linewidths,stacked=True)
+        ax.legend(title="")
+        save_fig("Coles_vs_WW_BB_jams_units_stacked_moving_total")
+        #plt.show()
+        #print(df)
+        plt.close()   #"all")
+
+
+
+
+
+
+
+
 
         df=hdf[['coles_st_dalfour_jams_total_scanned','woolworths_st_dalfour_jams_total_scanned']].rolling(dd.mat,axis=0).mean()
        # styles1 = ['b-','g:','r:']
@@ -2394,6 +2409,14 @@ def main():
         ax=df.plot(grid=True,title="Coles vs WW SD units moving total "+str(dd.mat)+" weeks w/c:"+str(latest_date),style=styles1, lw=linewidths)
         ax.legend(title="")
         save_fig("Coles_vs_WW_SD_jams_units_moving_total")
+        #plt.show()
+        #print(df)
+        plt.close()   #"all")
+
+
+        ax=df.plot(grid=True,title="Coles vs WW SD units moving total stacked "+str(dd.mat)+" weeks w/c:"+str(latest_date),style=styles1, lw=linewidths,stacked=True)
+        ax.legend(title="")
+        save_fig("Coles_vs_WW_SD_jams_units_stacked_moving_total")
         #plt.show()
         #print(df)
         plt.close()   #"all")
@@ -2414,6 +2437,14 @@ def main():
         #print(df)
         plt.close()   #"all")
 
+        ax=df.plot(grid=True,title="Coles vs WW BM units moving total stacked "+str(dd.mat)+" weeks w/c:"+str(latest_date),style=styles1, lw=linewidths,stacked=True)
+        ax.legend(title="")
+        save_fig("Coles_vs_WW_BM_jams_units_stacked_moving_total")
+        #plt.show()
+        #print(df)
+        plt.close()   #"all")
+
+
 
 
         df=hdf[['woolworths_beerenberg_jams_total_scanned','woolworths_st_dalfour_jams_total_scanned','woolworths_bonne_maman_jams_total_scanned']].rolling(dd.mat,axis=0).mean()
@@ -2430,6 +2461,14 @@ def main():
         #print(df)
         plt.close()   #"all")
 
+        ax=df.plot(grid=True,title="WW premium jams units moving total stacked "+str(dd.mat)+" weeks w/c:"+str(latest_date),style=styles1, lw=linewidths, stacked=True)
+        ax.legend(title="")
+        save_fig("WW_premium_jams_units_stacked_moving_total")
+        #plt.show()
+        #print(df)
+        plt.close()   #"all")
+
+
 
         df=hdf[['coles_beerenberg_jams_total_scanned','coles_st_dalfour_jams_total_scanned','coles_bonne_maman_jams_total_scanned']].rolling(dd.mat,axis=0).mean()
        # styles1 = ['b-','g:','r:']
@@ -2441,6 +2480,14 @@ def main():
         ax=df.plot(grid=True,title="Coles premium jams units moving total "+str(dd.mat)+" weeks w/c:"+str(latest_date),style=styles1, lw=linewidths)
         ax.legend(title="")
         save_fig("coles_premium_jams_units_moving_total")
+        #plt.show()
+        #print(df)
+        plt.close()   #"all")
+
+
+        ax=df.plot(grid=True,title="Coles premium jams units moving total stacked "+str(dd.mat)+" weeks w/c:"+str(latest_date),style=styles1, lw=linewidths,stacked=True)
+        ax.legend(title="")
+        save_fig("coles_premium_jams_units_stacked_moving_total")
         #plt.show()
         #print(df)
         plt.close()   #"all")
@@ -2466,9 +2513,15 @@ def main():
         save_fig("Ww_BB_jams_units_moving_total")
         #plt.show()
         #print(df)
+        plt.close()
+        
+        ax=df.plot(grid=True,title="ww BB units moving total stacked"+str(dd.mat)+" weeks w/c:"+str(latest_date),style=styles1, lw=linewidths,stacked=True)
+        ax.legend(title="")
+        save_fig("Ww_BB_jams_units_stacked_moving_total")
+        #plt.show()
+        #print(df)
         plt.close("all")
-        
-        
+   
         
         ############################################################33
         # load previous runs coles_predictions
@@ -2646,7 +2699,7 @@ def main():
         joined_df.fillna(0.0,inplace=True)
         p_mask = joined_df.index.get_level_values('type').isin([8])
         p_df=joined_df[p_mask].copy()
-        p_df.index.droplevel(['brand','specialpricecat','productgroup','product','type'])
+        p_df.index=p_df.index.droplevel(['brand','specialpricecat','productgroup','product','type'])
         
         print("\nColes and WW order Predictions...")
         
