@@ -112,7 +112,7 @@ def slice_filter(query,df):
             
                     else:
                        print("types in query are incorrect")
-                       return "",pd.DataFrame(),pd.DataFrame()  
+                       return "",pd.DataFrame() 
                    
      
              #  test_df=df.xs(xrec,level=[0,1,2,3,4],axis=0,drop_level=False)    #.T.to_numpy().astype(np.int32)
@@ -122,30 +122,33 @@ def slice_filter(query,df):
                     df=df[mdf_mask]
             else:
                 print("level name error",q)
-                return "",pd.DataFrame(),pd.DataFrame()  
+                return "",pd.DataFrame()  
                 
                    
                    
         if transposed:           
             df=df.T
         
-        return query[0],df,pd.DataFrame.from_records(df.columns,columns=df.columns.names) 
+        return query[0],df
 
     else:    
         print("index is not multilevel")
-        return "",pd.DataFrame(),pd.DataFrame()     
+        return "",pd.DataFrame()   
     
 
-def tidy_up(df,keep_level_list):
+def tidy_up(df,keep_list):
     
     level_list=df.columns.names
- #   print(level_list)    
-    remove_level_list=[l for l in level_list if l not in keep_level_list]
+#    level_list.sort(inplace=True)
+ #   print(level_list)  
+ #   remove_level_list=[]  
+    remove_level_list=[l for l in level_list if l not in keep_list]
   #  print(remove_level_list)
    # for l in remove_level_list:
     df.columns=df.columns.droplevel(remove_level_list)
-    df=df.reorder_levels(keep_level_list,axis=1)
-    return df
+    if len(keep_list)>1:
+        df=df.reorder_levels(keep_list,axis=1)
+    return df,pd.DataFrame.from_records(df.columns,columns=df.columns.names) 
 
 
     
@@ -160,13 +163,29 @@ print("scan_data=\n",scan_data,"\n",scan_data.shape)
 scan_data=scan_data
 #print("scan_data=1\n",scan_data)
 query=["tqitle",([2,4],'plot_type'),([1],'variety'),([1],'brand'),([12],"market")]
-title,q,r=slice_filter(query,scan_data)
-print("q=\n",title,"\n", q,"\n",r.T)
+title,q,=slice_filter(query,scan_data)
+#print("q=\n",title,"\n", q)
 
-keep_list=['column_name','colour','marker','stacked','second_y','reverse']
-g=tidy_up(q,keep_list)
-print(g,"\n",g.T)
+keep_list=['column_name',"style",'linewidth','stacked','second_y','reverse']
+g,r=tidy_up(q,keep_list)
+#print("g=\n",g,"\n",g.T)
 
-ax=g.plot(legend_off=True)
-ax.legend(title="",fontsize=8)
-ax.xticks(fontsize=4)
+#print("r=\n",r,"\n",r['column_name'])
+styles1 = r['style'].tolist()  # ['g:','r:','b-']
+           # styles1 = ['bs-','ro:','y^-']
+linewidths = max(r['linewidth'].tolist())   #1  # [2, 1, 4]
+
+g.columns=g.columns.droplevel(list(range(1,len(keep_list))))
+print("final g=\n",g)
+ax=g.plot(grid=True,title=title,style=styles1, lw=linewidths,use_index=True)   #,legend=g.index[0][0])
+ax.tick_params(axis='x', which='major', labelsize=7)
+ax.tick_params(axis='y', which='major', labelsize=7)
+
+#ew_labels = [dt.date.fromordinal(int(item)) for item in ax.get_xticks()]
+  #  print("new_labels=",new_labels)
+#improved_labels = ['{}-{}'.format(calendar.month_abbr[int(m)],y) for y, m , d in map(lambda x: str(x).split('-'), new_labels)]
+  #  print("improved labels",improved_labels)
+#ax.set_xticklabels(fontsize=8)
+ 
+#ax.set_xticklabels(fontsize=4)
+ax.legend(title="",fontsize=7)

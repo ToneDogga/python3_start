@@ -378,8 +378,8 @@ def load_IRI(scan_data_files):
     df['plot_with1']=0
     df['plot_with2']=0
     df['plot_with3']=0
-    df['marker']="."
-    df['colour']='g'
+    df['style']="b-"
+    df['linewidth']=1
     df['column_name']=market_name+" "+df.index.get_level_values('product')+" "+df.index.get_level_values('category')+" "+df.index.get_level_values('measure')
 
  
@@ -396,8 +396,8 @@ def load_IRI(scan_data_files):
     df=df.set_index('plot_with1', append=True)
     df=df.set_index('plot_with2', append=True)
     df=df.set_index('plot_with3', append=True)
-    df=df.set_index('marker', append=True)
-    df=df.set_index('colour', append=True)
+    df=df.set_index('style', append=True)
+    df=df.set_index('linewidth', append=True)
     df=df.set_index('column_name', append=True)
  
  
@@ -459,8 +459,8 @@ def load_IRI(scan_data_files):
     df.index.set_names('plot_with1', level=10,inplace=True)  
     df.index.set_names('plot_with2', level=11,inplace=True)  
     df.index.set_names('plot_with3', level=12,inplace=True)  
-    df.index.set_names('marker', level=13,inplace=True)  
-    df.index.set_names('colour', level=14,inplace=True)  
+    df.index.set_names('style', level=13,inplace=True)  
+    df.index.set_names('linewidth', level=14,inplace=True)  
     df.index.set_names('column_name', level=15,inplace=True)  
 
     
@@ -542,7 +542,7 @@ def load_IRI(scan_data_files):
     df['variety']=product_values
     df = df.set_index('variety', append=True)
     #df=df.reorder_levels([4,0,3,5,2,1,6],axis=0)
-    df=df.reorder_levels(['column_no','category','market','brand','variety','plot_type','plot_with1','plot_with2','plot_with3','marker','colour','stacked','second_y','reverse','market_name','product','measure','column_name'],axis=0).T
+    df=df.reorder_levels(['column_no','column_name','category','market','brand','variety','plot_type','plot_with1','plot_with2','plot_with3','style','linewidth','stacked','second_y','reverse','market_name','product','measure'],axis=0).T
     return df,original_df
 
 
@@ -888,7 +888,7 @@ def plot_prediction(df,title,latest_date):
 
 
 
-def train_model(name,X_set,y_set,batch_length,no_of_batches,epochs):
+def train_model(name,X_set,y_set,batch_length,no_of_batches,epochs,count):
    
     X,y=create_X_and_y_batches(X_set,y_set,batch_length,no_of_batches)
     
@@ -905,7 +905,7 @@ def train_model(name,X_set,y_set,batch_length,no_of_batches,epochs):
      
     
     ##########################
-    print("Training with GRU :",name)
+    print(count,"Training with GRU :",name)
     model = keras.models.Sequential([
     #     keras.layers.Conv1D(filters=st.batch_length,kernel_size=4, strides=1, padding='same', input_shape=[None, 1]),  #st.batch_length]), 
       #   keras.layers.BatchNormalization(),
@@ -2606,7 +2606,7 @@ def main():
                     
                #     print("dates=\n",dates,len(dates))
                    #    print("\n\n",ptx+btx+p,mdf.T,X_set.shape,y_set.shape)
-                    model=train_model(clean_up_name(str(rec)),X_set,y_set,dd.batch_length,dd.no_of_batches,dd.epochs)
+                    model=train_model(clean_up_name(str(rec)),X_set,y_set,dd.batch_length,dd.no_of_batches,dd.epochs,c_count)
                  #   if c_count==0:
                #     pmdf=add_a_week(mdf) 
                     joined_df=predict_order(joined_df,X_set_full,y_set_full,predrec,model)
@@ -2645,10 +2645,10 @@ def main():
 
         joined_df.fillna(0.0,inplace=True)
         p_mask = joined_df.index.get_level_values('type').isin([8])
-        p_df=joined_df[p_mask]
+        p_df=joined_df[p_mask].copy()
         p_df.index.droplevel(['brand','specialpricecat','productgroup','product','type'])
         
-        print("/nColes and WW order Predictions...")
+        print("\nColes and WW order Predictions...")
         
         print(p_df.iloc[:,-2:],"\n")
         
