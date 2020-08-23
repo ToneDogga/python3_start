@@ -10,6 +10,26 @@ import BB_data_dict as dd
 import pandas as pd
 import numpy as np
 import pickle
+from matplotlib import pyplot, dates
+import matplotlib.dates as mdates
+import matplotlib as mpl
+from matplotlib.pyplot import plot, draw, ion, show
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import seaborn as sns
+
+
+
+
+
+#plt.ion() # enables interactive mode
+
+#print("matplotlib:",mpl.__version__)
+
+mpl.rc('axes', labelsize=14)
+mpl.rc('xtick', labelsize=12)
+mpl.rc('ytick', labelsize=12)
+
 
 # dd.scan_dict_savename
 with open(dd.scan_dict_savename, 'rb') as g:
@@ -37,6 +57,20 @@ with open(dd.scan_dict_savename, 'rb') as g:
    #              'second_y_axis_conversion_dict':dd.second_y_axis_conversion_dict,
    #              'reverse_conversion_dict':dd.reverse_conversion_dict}
 
+# a plot is described by a query list
+# a plot title name in query[0] 
+# a query list in query[1:]
+# (the column names in the query contain the line plotting information in their multiindex for the y values in each column)
+#
+
+
+
+
+
+
+
+
+
 
 
    
@@ -60,7 +94,7 @@ def slice_filter(query,df):
      #   df.index.get_level_values(0).dtype
         # all(isinstance(n, int) for n in lst)
          # receive a query is a list of tuples of a list of values to filter and a level name as a query
-        for q in query: 
+        for q in query[1:]: 
             filter_list=q[0]
             level_name=q[1]
             if level_name in index_names:  
@@ -78,7 +112,7 @@ def slice_filter(query,df):
             
                     else:
                        print("types in query are incorrect")
-                       return pd.DataFrame(),pd.DataFrame()  
+                       return "",pd.DataFrame(),pd.DataFrame()  
                    
      
              #  test_df=df.xs(xrec,level=[0,1,2,3,4],axis=0,drop_level=False)    #.T.to_numpy().astype(np.int32)
@@ -88,30 +122,32 @@ def slice_filter(query,df):
                     df=df[mdf_mask]
             else:
                 print("level name error",q)
-                return pd.DataFrame(),pd.DataFrame()  
+                return "",pd.DataFrame(),pd.DataFrame()  
                 
                    
                    
         if transposed:           
             df=df.T
         
-        return df,pd.DataFrame.from_records(df.columns,columns=df.columns.names) 
+        return query[0],df,pd.DataFrame.from_records(df.columns,columns=df.columns.names) 
 
     else:    
         print("index is not multilevel")
-        return pd.DataFrame(),pd.DataFrame()     
+        return "",pd.DataFrame(),pd.DataFrame()     
     
- 
+
+def tidy_up(df,keep_level_list):
     
-# def column_properties(df):
-#     # return the df index values in a df 
-#     idf=pd.DataFrame.from_records(df.columns,columns=df.columns.names)   #,columns=df.columns.names)
-    
-#     print(idf)
-    
-    
-    
-#     return
+    level_list=df.columns.names
+ #   print(level_list)    
+    remove_level_list=[l for l in level_list if l not in keep_level_list]
+  #  print(remove_level_list)
+   # for l in remove_level_list:
+    df.columns=df.columns.droplevel(remove_level_list)
+    df=df.reorder_levels(keep_level_list,axis=1)
+    return df
+
+
     
  
     
@@ -121,8 +157,16 @@ scan_data=scan_dict['final_df']
 print("scan_data=\n",scan_data,"\n",scan_data.shape)       
 
 # receive a query is a list of tuples. each tuple contains a list of values to filter and a level name as a query
-scan_data=scan_data.T.T
+scan_data=scan_data
 #print("scan_data=1\n",scan_data)
-query=[([2,4],'plot_type'),([1],'variety'),([1],'brand'),([12],"market")]
-q,r=slice_filter(query,scan_data)
-print("q=\n",q,r.T)
+query=["tqitle",([2,4],'plot_type'),([1],'variety'),([1],'brand'),([12],"market")]
+title,q,r=slice_filter(query,scan_data)
+print("q=\n",title,"\n", q,"\n",r.T)
+
+keep_list=['column_name','colour','marker','stacked','second_y','reverse']
+g=tidy_up(q,keep_list)
+print(g,"\n",g.T)
+
+ax=g.plot(legend_off=True)
+ax.legend(title="",fontsize=8)
+ax.xticks(fontsize=4)

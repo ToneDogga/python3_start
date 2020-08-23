@@ -19,8 +19,11 @@ epochs=6
 
 
 # product appears on low stock report if units stock is below this number
-low_stock_limit=8000
+low_stock_limit=800000   # so high it is unused currently
 
+
+
+dash_verbose=False   #True   #False
 
 
 # filenames in same directory as this programme
@@ -42,7 +45,7 @@ sales_df_savename="sales_trans_df.pkl"
 filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
    
 
-product_groups_only=["10","11","12","13","14","15","16","17","18"]
+product_groups_only=["10"]   #,"11","12","13","14","15","16","17","18"]
 spc_only=["088"]  #,"028"]   #,"038","048","028","080","020","030","040"]
 
 
@@ -51,6 +54,7 @@ mats=7
 
 # moving average for weeks to calculate a rolling average on scanned data
 mat=4
+mat2=52   # weeks mat for customer reports
 
 scan_data_files=["jam_scan_data_2020.xlsx","cond_scan_data_2020.xlsx","sauce_scan_data_2020.xlsx"]
 scan_dict_savename="scan_dict.pkl"
