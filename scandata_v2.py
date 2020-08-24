@@ -323,5 +323,28 @@ scan_data=set_plot_properties(scan_dict['final_df'])
 
 query=[{'title':"Coles BB jam comparison",'second_y':[1],'style':['g-','b-','r-','k-'],'left':"lefty","right":"righty","remove":[]},([2,4],'plot_type'),([1],'variety'),([1],'brand'),([12],"market")]
 plot_query(query,scan_data)
-
+ 
+    # print("final_df shape:",scan_dict['final_df'].shape)
+    # print("\n\n********************************************\n")
+    # print("unknown brands=")
+    # try:
+    #     print(df.xs(0,level='brand',drop_level=False,axis=1))
+    # except:
+    #     print("no unknown brands\n")
+    # #print("unknown variety")
+    # #try:
+    # #    print(df.xs(0,level='variety',drop_level=False,axis=1))
+    # #except:
+    # #    print("no unknown varieis\n")    
+    # print("unknown measure type=")
+    # try:
+    #     print(df.xs(0,level='measure',drop_level=False,axis=1))
+    # except:
+    #     print("no unknown measures")
+    
+    
+    # #
+    # print("\n\n")
+    # print("All scandata dataframe saved to",dd.scan_dict_savename,":\n",scan_dict['final_df'])
+    
 

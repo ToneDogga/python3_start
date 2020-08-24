@@ -261,11 +261,11 @@ def clean_up_name(name):
 
 def load_sales(filenames):  # filenames is a list of xlsx files to load and sort by date
     print("load:",filenames[0])
-    df=pd.read_excel(filenames[0],sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   
+    df=pd.read_excel(filenames[0],sheet_name="AttacheBI_sales_trans",usecols=range(0,17),verbose=False)  # -1 means all rows   
  #   print("df size=",df.shape,df.columns)
     for filename in filenames[1:]:
         print("load:",filename)
-        new_df=pd.read_excel(filename,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows  
+        new_df=pd.read_excel(filename,sheet_name="AttacheBI_sales_trans",usecols=range(0,17),verbose=False)  # -1 means all rows  
         new_df['date'] = pd.to_datetime(new_df.date)  #, format='%d%m%Y')
         print("appending",filename,":size=",new_df.shape)
         df=df.append(new_df)
@@ -1147,10 +1147,11 @@ def main():
     ###################################################    
      
     
-    with open(dd.sales_df_savename,"rb") as f:
-        sales_df=pickle.load(f)
+    #with open(dd.sales_df_savename,"rb") as f:
+    sales_df=pd.read_pickle(dd.sales_df_savename)
+    #    # sales_df=pickle.load(f)
     
-    #print("sales shape df=\n",sales_df.shape)
+    print("sales shape df=\n",sales_df.shape)
     
     first_date=sales_df['date'].iloc[-1]
     last_date=sales_df['date'].iloc[0]
@@ -1159,7 +1160,7 @@ def main():
     
     
     print("Data available:",sales_df.shape[0],"records.\nfirst date:",first_date,"\nlast date:",last_date,"\n")
-    #print("\n\n")   
+    # #print("\n\n")   
 
     answer3="n"
     answer3=input("Create distribution report and sales trends later? (y/n)")
@@ -1173,8 +1174,9 @@ def main():
     answer=input("Refresh salestrans?")
     if answer=="y":
         sales_df=load_sales(dd.filenames)  # filenames is a list of xlsx files to load and sort by date
-        with open(dd.sales_df_savename,"wb") as f:
-              pickle.dump(sales_df, f,protocol=-1)
+  #      with open(dd.sales_df_savename,"wb") as f:
+  #            pickle.dump(sales_df, f,protocol=-1)
+        sales_df.to_pickle(dd.sales_df_savename,protocol=-1)          
     
  #   print("\n")    
     sales_df.sort_values(by=['date'],ascending=True,inplace=True)
@@ -1183,7 +1185,7 @@ def main():
     
     print("Attache sales trans analysis up to date.  New save is:",dd.sales_df_savename)
     print("Data available:",sales_df.shape[0],"records.\nfirst date:",first_date,"\nlast date:",last_date,"\n")
-    
+    #print(sales_df)
     dds=sales_df.groupby(['period'])['salesval'].sum().to_frame() 
     datelen=dds.shape[0]-365
     
@@ -1277,7 +1279,7 @@ def main():
     
     ############################################
     name="WW (010) GSV sales $"
-    
+    #print(sales_df)
     print("\n",name)
     shop_df=sales_df[(sales_df['specialpricecat']==10)]
     dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 

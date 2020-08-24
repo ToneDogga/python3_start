@@ -45,8 +45,8 @@ sales_df_savename="sales_trans_df.pkl"
 filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
    
 
-product_groups_only=["10"]   #,"11","12","13","14","15","16","17","18"]
-spc_only=["088"]  #,"028"]   #,"038","048","028","080","020","030","040"]
+product_groups_only=["10","11","12","13","14","15","16","17","18"]
+spc_only=['080','020','030','040','050','060','070']  #,"028"]   #,"038","048","028","080","020","030","040"]
 
 
 # moving average total days used in prediction
