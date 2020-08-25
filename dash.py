@@ -688,6 +688,10 @@ def glset_GSV(dds,title):
     fig=dds.tail(dds.shape[0]-731)[['date','30_day%','90_day%','365_day%']].plot(x='date',y=['30_day%','90_day%','365_day%'],grid=True,title=title+" w/c:("+str(latest_date)+")")   #),'BB total scanned vs purchased Coles jam units per week')
     figname="Afig_"+title
     save_fig(figname)
+    fig=dds.tail(dds.shape[0]-731)[['date','mat']].plot(x='date',y=['mat'],grid=True,title=title+" w/c:("+str(latest_date)+")")   #),'BB total scanned vs purchased Coles jam units per week')
+    figname="Bfig_"+title
+    save_fig(figname)
+ 
  #   pickle.dump(fig,open(output_dir+figname+".pkl", 'wb'))
     return dds[['date','mat7','diff7','30_day%','90_day%','365_day%','mat']].tail(18),figname
     
@@ -1217,6 +1221,7 @@ def main():
     name="Beerenberg GSV Annual growth rate"
     print("\n",name)
     title=name+" w/c:("+str(latest_date)+")"
+
     dds_mat=dds.groupby(['period'])['salesval'].sum().to_frame() 
     result,figname=glset_GSV(dds_mat,name)
     dd.report_dict[dd.report(name,3,"_*","_*")]=result
@@ -1230,8 +1235,28 @@ def main():
     name="shop GSV sales $"
     
     print("\n",name)
-    shop_df=sales_df[(sales_df['glset']=="SHP")]
+    shop_df=sales_df[(sales_df['glset']=="SHP")].copy()
     dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
+    dds['mat']=dds['salesval'].rolling(365,axis=0).sum()
+    dds['date']=dds.index.tolist()
+
+   # shop_df['mat']=shop_df['salesval'].rolling(365,axis=0).sum()
+ #   print(shop_df)
+   # shop_df['period']=pd.to_datetime(shop_df['date'],format="%d-%m-%Y")
+ #   print("2=\n",shop_df)
+   # shop_df.reset_index(inplace=True)
+   # latest_date=dds['date'].max()
+ #   title=name+" w/c:("+str(latest_date)+")"
+    #shop_df.set_index('date',inplace=True)
+
+#    print(shop_df.tail(shop_df.shape[0]-731)[['period','mat']])
+  #  fig=shop_df.tail(shop_df.shape[0]-731)[['date','mat']].plot(x='date',y='mat',use_index=False,grid=True,title=title)   #),'BB total scanned vs purchased Coles jam units per week')
+  #  fig=shop_df.tail(shop_df.shape[0]-731)[['period','mat']].plot(x='period',y='mat',use_index=False,grid=True,title=title)   #),'BB total scanned vs purchased Coles jam units per week')
+
+#    figname="Bfig_"+name
+#    save_fig(figname)
+    
+   # dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
     result,figname=glset_GSV(dds,name)
     dd.report_dict[dd.report(name,3,"CASHSHOP","_*")]=result
     dd.report_dict[dd.report(name,8,"CASHSHOP","_*")]=figname
@@ -1243,8 +1268,18 @@ def main():
     
     name="ONL GSV sales $"
     print("\n",name)
-    shop_df=sales_df[(sales_df['glset']=="ONL")]
+    shop_df=sales_df[(sales_df['glset']=="ONL")].copy()
     dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
+    dds['mat']=dds['salesval'].rolling(365,axis=0).sum()
+    dds['date']=dds.index.tolist()
+
+    # fig=dds.tail(dds.shape[0]-731)[['date','mat']].plot(x='date',y=['mat'],grid=True,title=title)   #),'BB total scanned vs purchased Coles jam units per week')
+    # figname="Afig_"+name
+    # save_fig(figname)
+
+    
+    
+    
     result,figname=glset_GSV(dds,name)
     dd.report_dict[dd.report(name,3,"_*","_*")]=result
     dd.report_dict[dd.report(name,8,"_*","_*")]=figname
@@ -1257,6 +1292,17 @@ def main():
     print("\n",name)
     shop_df=sales_df[(sales_df['glset']=="EXS")]
     dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
+    dds['mat']=dds['salesval'].rolling(365,axis=0).sum()
+    dds['date']=dds.index.tolist()
+
+    
+ 
+    # fig=dds.tail(dds.shape[0]-731)[['date','mat']].plot(x='date',y=['mat'],grid=True,title=title)   #),'BB total scanned vs purchased Coles jam units per week')
+    # figname="Afig_"+name
+    # save_fig(figname)
+
+    
+    
     result,figname=glset_GSV(dds,name)
     dd.report_dict[dd.report(name,3,"_*","_*")]=result
     dd.report_dict[dd.report(name,8,"_*","_*")]=figname
@@ -1270,6 +1316,15 @@ def main():
     print("\n",name)
     shop_df=sales_df[(sales_df['glset']=="NAT")]
     dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
+    dds['mat']=dds['salesval'].rolling(365,axis=0).sum()
+    dds['date']=dds.index.tolist()
+
+    # fig=dds.tail(dds.shape[0]-731)[['date','mat']].plot(x='date',y=['mat'],grid=True,title=title)   #),'BB total scanned vs purchased Coles jam units per week')
+    # figname="Afig_"+name
+    # save_fig(figname)
+
+    
+    
     result,figname=glset_GSV(dds,name)
     dd.report_dict[dd.report(name,3,"_*","_*")]=result
     dd.report_dict[dd.report(name,8,"_*","_*")]=figname
@@ -1283,6 +1338,14 @@ def main():
     print("\n",name)
     shop_df=sales_df[(sales_df['specialpricecat']==10)]
     dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
+    dds['mat']=dds['salesval'].rolling(365,axis=0).sum()
+    dds['date']=dds.index.tolist()
+
+    
+    # fig=dds.tail(dds.shape[0]-731)[['date','mat']].plot(x='date',y=['mat'],grid=True,title=title)   #),'BB total scanned vs purchased Coles jam units per week')
+    # figname="Afig_"+name
+    # save_fig(figname)
+
     result,figname=glset_GSV(dds,name)
     dd.report_dict[dd.report(name,3,"_*","_*")]=result
     dd.report_dict[dd.report(name,8,"_*","_*")]=figname
@@ -1296,6 +1359,14 @@ def main():
     print("\n",name)
     shop_df=sales_df[(sales_df['specialpricecat']==12)]
     dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
+    dds['mat']=dds['salesval'].rolling(365,axis=0).sum()
+    dds['date']=dds.index.tolist()
+  
+    # fig=dds.tail(dds.shape[0]-731)[['date','mat']].plot(x='date',y=['mat'],grid=True,title=title)   #),'BB total scanned vs purchased Coles jam units per week')
+    # figname="Afig_"+name
+    # save_fig(figname)
+
+    
     result,figname=glset_GSV(dds,name)
     dd.report_dict[dd.report(name,3,"_*","_*")]=result
     dd.report_dict[dd.report(name,8,"_*","_*")]=figname
@@ -1309,6 +1380,15 @@ def main():
     print("\n",name)
     shop_df=sales_df[(sales_df['glset']=="DFS")]
     dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
+    dds['mat']=dds['salesval'].rolling(365,axis=0).sum()
+    dds['date']=dds.index.tolist()
+  
+    # fig=dds.tail(dds.shape[0]-731)[['date','mat']].plot(x='date',y=['mat'],grid=True,title=title)   #),'BB total scanned vs purchased Coles jam units per week')
+    # figname="Afig_"+name
+    # save_fig(figname)
+
+    
+    
     result,figname=glset_GSV(dds,name)
     dd.report_dict[dd.report(name,3,"_*","_*")]=result
     dd.report_dict[dd.report(name,8,"_*","_*")]=figname
