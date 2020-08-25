@@ -15,7 +15,7 @@ import numpy as np
 batch_length=4
 no_of_batches=1000
 no_of_repeats=4
-epochs=6
+epochs=8
 
 
 # product appears on low stock report if units stock is below this number
