@@ -685,10 +685,10 @@ def glset_GSV(dds,title):
     #dds=dds.tail(365)
     dds.tail(365)[['date','mat']].plot(x='date',y='mat',grid=True,title=title+" w/c:("+str(latest_date)+")")   #),'BB total scanned vs purchased Coles jam units per week')
     print(dds[['date','mat7','diff7','30_day%','90_day%','365_day%','mat']].tail(8)) 
-    fig=dds.tail(dds.shape[0]-731)[['date','30_day%','90_day%','365_day%']].plot(x='date',y=['30_day%','90_day%','365_day%'],grid=True,title=title+" w/c:("+str(latest_date)+")")   #),'BB total scanned vs purchased Coles jam units per week')
+    fig=dds.tail(dds.shape[0]-731)[['date','30_day%','90_day%','365_day%']].plot(x='date',y=['30_day%','90_day%','365_day%'],xlabel="",grid=True,title=title+" w/c:("+str(latest_date)+")")   #),'BB total scanned vs purchased Coles jam units per week')
     figname="Afig_"+title
     save_fig(figname)
-    fig=dds.tail(dds.shape[0]-731)[['date','mat']].plot(x='date',y=['mat'],grid=True,title=title+" w/c:("+str(latest_date)+")")   #),'BB total scanned vs purchased Coles jam units per week')
+    fig=dds.tail(dds.shape[0]-731)[['date','mat']].plot(x='date',y=['mat'],grid=True,xlabel="",title=title+" w/c:("+str(latest_date)+")")   #),'BB total scanned vs purchased Coles jam units per week')
     figname="Bfig_"+title
     save_fig(figname)
  
@@ -1211,7 +1211,7 @@ def main():
      #print(dds)
     #dds.drop(['period'],axis=1,inplace=True)
      
-    fig=dds.tail(dds.shape[0]-731)[['date','mat']].plot(x='date',y=['mat'],grid=True,title=title)   #),'BB total scanned vs purchased Coles jam units per week')
+    fig=dds.tail(dds.shape[0]-731)[['date','mat']].plot(x='date',y=['mat'],grid=True,xlabel="",title=title)   #),'BB total scanned vs purchased Coles jam units per week')
     figname="Afig_"+name
     save_fig(figname)
     dds[['date','mat']].to_excel(output_dir+name+".xlsx") 
