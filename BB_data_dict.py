@@ -45,8 +45,8 @@ sales_df_savename="sales_trans_df.pkl"
 filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
    
 
-product_groups_only=["10","11","12","13","14","15","16","17","18"]
-spc_only=['080','020','030','040','050','060','070']  #,"028"]   #,"038","048","028","080","020","030","040"]
+product_groups_only=["10"]   #,"11","12","13","14","15","16","17","18"]
+spc_only=['080',"088"]  #,'020',"028",'030',"038",'040',"048",'050','060','070']  #,"028"]   #,"038","048","028","080","020","030","040"]
 
 
 # moving average total days used in prediction
@@ -76,7 +76,8 @@ productgroup_dict={"01":"30g glass",
                    "16":"Traditional condiments 150ml glass jar",
                    "17":"Mustards 150ml glass jar",
                    "18":"Olive Oil 500ml",
-                   "31":"2 Litre"}
+                   "31":"2 Litre",
+                   "999":""}
 
 productgroups_dict={1:"30g glass",
                    2:"40g glass",
@@ -93,7 +94,8 @@ productgroups_dict={1:"30g glass",
                    16:"Traditional condiments 150ml glass jar",
                    17:"Mustards 150ml glass jar",
                    18:"Olive Oil 500ml",
-                   31:"2 Litre"}
+                   31:"2 Litre",
+                   999:""}
 
 
 series_type_dict={0:0, #"0 baseline",
@@ -117,8 +119,9 @@ salesrep_dict={"14":"Brendan Selby",
                "36":"Annette Paech",
                "37":"Miles Rafferty",
                "39":"Sophia Simos",
-               "11":"Coles and WW"
-               }
+               "11":"Coles and WW",
+               "999":""}
+               
 
 
 spc_dict={122:"Harris farms",
@@ -136,7 +139,8 @@ spc_dict={122:"Harris farms",
           50:"WA distributors",
           70:"TAS distributors",
           92:"Shop",
-          95:"Online shop"}
+          95:"Online shop",
+          999:""}
 
 
 report = namedtuple("report", ["name", "report_type","cust","prod"])

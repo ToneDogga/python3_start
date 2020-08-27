@@ -75,6 +75,7 @@ import matplotlib.cm as cm
 import seaborn as sns
 
 
+import time
 
 
 
@@ -1167,15 +1168,21 @@ def main():
     # #print("\n\n")   
 
     answer3="n"
-    answer3=input("Create distribution report and sales trends later? (y/n)")
+    answer3=input("Create distribution report and sales trends? (y/n)")
     #answer3="y"
     
     
     answer2="n"
-    answer2=input("Predict next weeks Coles and WW orders from scan data later? (y/n)")
+    answer2=input("Predict next weeks Coles and WW orders from scan data? (y/n)")
     
     answer="y"
     answer=input("Refresh salestrans?")
+    
+    start_timer = time.time()
+
+    
+    
+    
     if answer=="y":
         sales_df=load_sales(dd.filenames)  # filenames is a list of xlsx files to load and sort by date
   #      with open(dd.sales_df_savename,"wb") as f:
@@ -1834,9 +1841,12 @@ def main():
         #print("cist dict=\n",cust_dict)
        # print("prod dict=\n",prod_dict)
         dist_df=pd.DataFrame.from_dict(cust_dict,orient='index',dtype=object)  
+        distdollars_df=pd.DataFrame.from_dict(cust_dict,orient='index',dtype=np.int32)  
+  
         for p in prod_dict.keys():
         #    print pd.to_datetime(dict(year=df.Y, month=df.M, day=df.D))
             dist_df[p]= df.apply(lambda row : pd.to_datetime(dict(year=[2000],month=[1],day=[1])), axis=1)
+            distdollars_df[p]=df.apply(lambda row : 0, axis=1)
         #    dist_df[p]=0 #pd.to_datetime({'year': 2000,'month':1,'day':1})   #0  #False #np.nan  #False#,columns=prod_list)
         
         dist_df.drop(0,inplace=True,axis=1)
@@ -1847,7 +1857,18 @@ def main():
         dist_df.index=pd.MultiIndex.from_tuples(dist_df.index,sortorder=0,names=['salesrep','specialpricecat','code'])
         
         dist_df.sort_index(level=0,ascending=True,inplace=True)
+  
+        distdollars_df.drop(0,inplace=True,axis=1)
+        distdollars_df=distdollars_df.T
+        distdollars_df.index=pd.MultiIndex.from_tuples(distdollars_df.index,sortorder=0,names=['productgroup','product'])
+        distdollars_df.sort_index(level=0,ascending=True,inplace=True)
+        distdollars_df=distdollars_df.T
+        distdollars_df.index=pd.MultiIndex.from_tuples(distdollars_df.index,sortorder=0,names=['salesrep','specialpricecat','code'])
         
+        distdollars_df.sort_index(level=0,ascending=True,inplace=True)
+      
+  
+    
         #df.index = pd.MultiIndex.from_tuples(df.index,names=["brand","specialpricecat","productgroup","product","on_promo","names"])
         #print("df level (0)=\n",df.index.get_level_values(0))
         
@@ -1872,16 +1893,21 @@ def main():
         
         #    product_list=find_active_products(new_sales_df,age=90)  # 90 days
         for cust in cust_list:
+        
             for prod in prod_list:
                 r=ninetyday_sales_df[(ninetyday_sales_df['code']==cust[2]) & (ninetyday_sales_df['product']==prod[1]) & (ninetyday_sales_df['salesval']>0.0) & (ninetyday_sales_df['qty']>0.0)].copy(deep=True)
               #  r=r.astype(np.datetime64)
                 #   s['counter']=s.shape[0]
      
                 s=year_sales_df[(year_sales_df['code']==cust[2]) & (year_sales_df['product']==prod[1]) & (year_sales_df['salesval']>0.0) & (year_sales_df['qty']>0.0)].copy(deep=True)
+                dollars=s['salesval'].sum()
+            #    print("4:",dollars)
                 s['counter']=s.shape[0]
                 if r.shape[0]>0:
               #      dist_df.loc[cust,prod]=r['date'].dt.strftime('%d/%m/%Y').max()      #pd.to_datetime({'year': 2020,'month': 1,'day': 1})  #  r.shape[0] #s.date.max()
-                    dist_df.loc[cust,prod]=pd.to_datetime(r['date'].max(),utc=False).floor('d')    #pd.to_datetime({'year': 2020,'month': 1,'day': 1})  #  r.shape[0] #s.date.max()
+                    dist_df.loc[cust,prod]=pd.to_datetime(r['date'].max(),utc=False).floor('d')  #,round(dollars,0)]
+                    distdollars_df.loc[cust,prod]=np.round(dollars,0)
+                  #  dist_df.loc[dollar_cust,prod]=round(dollars,0)   #pd.to_datetime({'year': 2020,'month': 1,'day': 1})  #  r.shape[0] #s.date.max()
 
                     #dist_df.loc[cust,prod]=r['date'].dt.strftime('%d/%m/%Y').max()      #pd.to_datetime({'year': 2020,'month': 1,'day': 1})  #  r.shape[0] #s.date.max()
 
@@ -1912,6 +1938,35 @@ def main():
         dist_df=dist_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
         dist_df=dist_df.rename(dd.productgroups_dict,level='productgroup',axis='columns')
     
+   
+    # add totals to distdollars_df
+        xlen=distdollars_df.columns.nlevels+distdollars_df.shape[1]
+        ylen=distdollars_df.index.nlevels+distdollars_df.shape[0]
+     #   print("\n\ndistdollars size=",xlen,ylen)
+        
+     #   print("cust total=\n",distdollars_df.sum(axis=1))
+     #   print("prod total=\n",distdollars_df.sum(axis=0))
+        distdollars_df[("999",'total')]=distdollars_df.sum(axis=1)   # prod
+     #   print("1\n",distdollars_df)
+        distdollars_df=distdollars_df.T
+        distdollars_df[("999",999,'total')]=distdollars_df.sum(axis=1)   # cust
+        distdollars_df=distdollars_df.T
+      #  print("2\n",distdollars_df)
+ 
+        distdollars_df=distdollars_df.iloc[np.lexsort((distdollars_df.index, distdollars_df[("999",'total')]))]
+        distdollars_df=distdollars_df.iloc[::-1].T
+        distdollars_df=distdollars_df.iloc[np.lexsort((distdollars_df.index, distdollars_df[("999",999,'total')]))]
+        distdollars_df=distdollars_df.iloc[::-1].T
+
+     #   distdollars_df.sort_index(axis='index',kind = 'mergesort').sort_values(by=[("999",'total')],axis='index',ascending=False,inplace=True)
+     #   print("4\n",distdollars_df)
+       
+        distdollars_df=distdollars_df.rename(dd.salesrep_dict,level='salesrep',axis='index')
+        distdollars_df=distdollars_df.rename(dd.spc_dict,level='specialpricecat',axis='index')
+
+        distdollars_df=distdollars_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
+        distdollars_df=distdollars_df.rename(dd.productgroups_dict,level='productgroup',axis='columns')
+ 
     
     
       #  print(dist_df,"\n",dist_df.T)
@@ -1924,8 +1979,12 @@ def main():
         sheet_name = 'Sheet1'
 
         writer = pd.ExcelWriter(output_dir+"distribution_report.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
+        writer2 = pd.ExcelWriter(output_dir+"distribution_report_with_dollars.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
+
 #df.to_excel(writer, sheet_name=sheet_name)
         dist_df.to_excel(writer, sheet_name=sheet_name)
+        distdollars_df.to_excel(writer2, sheet_name=sheet_name)
+
 # Access the XlsxWriter workbook and worksheet objects from the dataframe.
 # This is equivalent to the following using XlsxWriter on its own:
 #
@@ -1942,7 +2001,17 @@ def main():
         # Close the Pandas Excel writer and output the Excel file.
         writer.save()      
     
-    
+        workbook2 = writer2.book
+        worksheet2 = writer2.sheets[sheet_name]
+        money_fmt = workbook2.add_format({'num_format': '$#,##0', 'bold': False})
+        worksheet2.set_column('D:ZZ', 12, money_fmt)
+            # Apply a conditional format to the cell range.
+   #     worksheet.conditional_format('B2:B8', {'type': '3_color_scale'})
+        worksheet2.conditional_format('D4:ZZ1000', {'type': '3_color_scale'})
+
+        # Close the Pandas Excel writer and output the Excel file.
+        writer2.save()      
+   
     
 
         #print("\nysdf3=",new_sales_df[['date','code','product','counter','slope']],new_sales_df.shape)
@@ -2850,7 +2919,9 @@ def main():
 
     
     plt.close("all")
-    
+    end_timer = time.time()
+    print("\nDash total runtime:",round(end_timer - start_timer,2),"seconds.\n")
+
     return
 
 
