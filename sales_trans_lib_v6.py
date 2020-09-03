@@ -69,6 +69,21 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off trac
 
 #s
   
+# create a dictionary example
+#  id_to_word = {id_ + 3: word for word, id_ in word_index.items()}
+# if in a print statement
+#          print("Label:", label, "= Positive" if label else "= Negative")
+# create a numpy array
+# 
+#  [encoded] = np.array(tokenizer.texts_to_sequences([shakespeare_text])) - 1
+#  train_size = dataset_size * 90 // 100
+#  dataset = tf.data.Dataset.from_tensor_slices(encoded[:train_size])
+#
+# installing packages on ubuntu
+#  python3 -m pip install --user <package> 
+
+
+
 
 class salestrans:
     def __init__(self):   
@@ -144,11 +159,11 @@ class salestrans:
 
     def load_sales(self,filenames):  # filenames is a list of xlsx files to load and sort by date
         print("load:",filenames[0])
-        df=pd.read_excel(filenames[0],sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   
+        df=pd.read_excel(filenames[0],sheet_name="AttacheBI_sales_trans",usecols=range(0,17),verbose=True)  # -1 means all rows   
         print("df size=",df.shape,df.columns)
         for filename in filenames[1:]:
             print("load:",filename)
-            new_df=pd.read_excel(filename,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows  
+            new_df=pd.read_excel(filename,sheet_name="AttacheBI_sales_trans",usecols=range(0,17),verbose=True)  # -1 means all rows  
             new_df['date'] = pd.to_datetime(new_df.date)  #, format='%d%m%Y')
          #   new_df=new_df.set_index('date')
         #    print("cols:",new_df.columns)

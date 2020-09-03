@@ -2004,10 +2004,15 @@ def main():
         workbook2 = writer2.book
         worksheet2 = writer2.sheets[sheet_name]
         money_fmt = workbook2.add_format({'num_format': '$#,##0', 'bold': False})
-        worksheet2.set_column('D:ZZ', 12, money_fmt)
+        total_fmt = workbook2.add_format({'num_format': '$#,##0', 'bold': True})
+
+        worksheet2.set_column('E:ZZ', 12, money_fmt)
+        worksheet2.set_column('D:D', 12, total_fmt)
+        worksheet2.set_row(3, 12, total_fmt)
+
             # Apply a conditional format to the cell range.
    #     worksheet.conditional_format('B2:B8', {'type': '3_color_scale'})
-        worksheet2.conditional_format('D4:ZZ1000', {'type': '3_color_scale'})
+        worksheet2.conditional_format('E5:ZZ1000', {'type': '3_color_scale'})
 
         # Close the Pandas Excel writer and output the Excel file.
         writer2.save()      
