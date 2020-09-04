@@ -93,13 +93,17 @@ with open(dd.scan_dict_savename, 'rb') as g:
 
 
 
+def write_excel(df,filename):
+        sheet_name = 'Sheet1'
+        writer = pd.ExcelWriter(filename,engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')     
+        df.to_excel(writer,sheet_name=sheet_name,header=False,index=False)    #,engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')     
+        writer.save()
+        return
 
 
 
 
-
-
-def load_data(scan_data_files): 
+def load_data(scan_data_files,scan_data_filesT): 
     np.random.seed(42)
   #  tf.random.set_seed(42)
     
@@ -107,51 +111,35 @@ def load_data(scan_data_files):
          
     
     count=1
-    for scan_file in scan_data_files:
+    for scan_file,scan_fileT in zip(scan_data_files,scan_data_filesT):
       #  column_count=pd.read_excel(scan_file,-1).shape[1]   #count(axis='columns')
         #if dd.dash_verbose:
-        print("Loading...",scan_file)   #,"->",column_count,"columns")
+        print("Loading...",scan_file,scan_fileT)   #,"->",column_count,"columns")
       
        # convert_dict={col: np.float64 for col in range(1,column_count-1)}   #1619
        # convert_dict['index']=np.datetime64
     
         if count==1:
  #           df=pd.read_excel(scan_file,-1,dtype=convert_dict,index_col=0)   #,header=[0,1,2])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
-            df=pd.read_excel(scan_file,-1,header=None,index_col=[1,2,3,4,5,6,7,8,9,10,11])  #,na_values={"nan":0})   #index_col=0)   #,header=[0,1,2])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+            dfT=pd.read_excel(scan_file,-1,header=None)    #,index_col=[1,2,3,4,5,6,7,8,9,10,11])  #,na_values={"nan":0})   #index_col=0)   #,header=[0,1,2])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
 
-    #         print(count,df)
-            #   df=df.T
-         #   df['category']=[dd.category_dict[count]]*(column_count-1)
-      #      df = df.reset_index()   #'row', append=True)
-         #   df=df.T
-  #          print("df=\n",df)
+            write_excel(dfT.T,scan_fileT)
+
+            df=pd.read_excel(scan_fileT,-1,header=None,index_col=[1,2,3,4,5,6,7,8,9,10,11])  #,na_values={"nan":0})   #index_col=0)   #,header=[0,1,2])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
         else:
        #     print(convert_dict)
          #   del df2
-            df2=pd.read_excel(scan_file,-1,header=None,index_col=[1,2,3,4,5,6,7,8,9,10,11]) #,na_values={"nan":0}) 
-       #     df2=df2.iloc[2:,:]#,skiprows=11)   #,index_col=0)   #,header=[0,1,2])
-   #         print("df2=\n",df2)
-          #  df2=df2.T
-          #  df2['category']=[dd.category_dict[count]]*(column_count-1)
-         #   df2 = df2.reset_index()   #'row', append=True)
-          #  df2=df2.T
-       #     print(df2)
-       
+            dfT=pd.read_excel(scan_file,-1,header=None)    #,index_col=[1,2,3,4,5,6,7,8,9,10,11])  #,na_values={"nan":0})   #index_col=0)   #,header=[0,1,2])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+            
+            write_excel(dfT.T,scan_fileT)
+
+     
+            df2=pd.read_excel(scan_fileT,-1,header=None,index_col=[1,2,3,4,5,6,7,8,9,10,11]) #,na_values={"nan":0}) 
+        
             df=pd.concat([df,df2],axis=0)   #,ignore_index=True)   #levels=['plotnumber','retailer','brand','productgroup','product','variety','plottype','yaxis','stacked'])   #,keys=[df['index']])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
           #  del df2
        # print(df)
         count+=1 
- #   print(df)    
- #   df.index.set_names('date',inplace=True)        
- #   print("raw df=",df,df.index)  
-  #  tlist=[tuple(df.index.tolist())]   #,tuple(df.iloc[0,:11])]
-  #  df=df.T 
-  #  print("df col1=",df.columns)
-  #  df=df.dropna(how='all',axis=1)
- #   print(df.index.names)
-  #  df=df.T
-#    df.rename(columns={0:'date'},inplace=True)
- #   df.index.set_names('date', level=0,inplace=True)
     df.index.set_names('plotnumber', level=0,inplace=True)
     df.index.set_names('retailer', level=1,inplace=True)
     df.index.set_names('brand', level=2,inplace=True)
@@ -164,81 +152,23 @@ def load_data(scan_data_files):
     df.index.set_names('colname', level=9,inplace=True)
     df.index.set_names('measure', level=10,inplace=True)
    
-    
-    
-    
-  #  df=df.T
-  #  df.index.set_names('plotnumber', level=1,inplace=True)
-  #  df.index = df.index.fillna("")     
- #   df.index=df.index.fillna("")  #,inplace=True)    
-    print("df1=\n",df.head(20),df.index.nlevels)
-  #  df.set_index(mlist,inplace=True)
-  
+     
     df=df.T
-   #index.set_names('plotnumber', level=1,inplace=True)
-    df.rename(columns={0:'date'},inplace=True)
-    print("df2=\n",df.head(20),df.index.nlevels)
-
- #   df.index.set_names('date',inplace=True)
- 
-  #  df.set_index('date',inplace=True)
-
-  #  df.index.set_names('plotnumber', level=1,inplace=True)
-  #  df.index = df.index.fillna("")     
- #   df.index=df.index.fillna("")  #,inplace=True)    
-  #  print("df3=\n",df.head(20),df.index.nlevels)
-  #  df.set_index(mlist,inplace=True)
-    df=df.T
-  
-  #  mlist=df.iloc[0,:11].tolist()
-  #  tlist=tuple(df.index.tolist())
-  #  print("tlist=",len(tlist))
-   # dlist=df.columns[13:].tolist()
-   # clist=tuple(mlist+dlist)
-  #  new_df=pd.MultiIndex.from_frame(df)
-   # print("mlist=",mlist)
- #  print("dlist=",dlist)
- #  clist=mlist+dlist
- #  print("clist=",clist)
-
-   # mlist_dict={k:mlist[k] for k in range(len(mlist))}
-   # print("df col2=",df.columns)
+    df['date']=df.iloc[:,1]
+    colnames=df.columns.levels[0].tolist()
+  #  print("colnames=",colnames)
     
-    print("df.xs=\n",df.xs("3",level='plotnumber',drop_level=False))
-  #  df=df.T
-  #  print("df2=\n",df.head(20),df.index.nlevels)
 
- #   df.index.set_names('plotnumber',level=2,inplace=True)
-  #  df=df.T
- #   print("new df3=\n",new_df,new_df.shape)
-  #  df=df.T
-    #print("df1=\n",df,"\nmlidst=",mlist_dict)   #.iloc[1:,0])
-    #df.rename(columns=mlist_dict,inplace=True)
-   # df.columns=clist
-  #  new_df=new_df.T
+    colnames = colnames[-1:] + colnames[:-3]
+    df = df[colnames]
+    df = df[df.index != 0]
+    df.set_index('date',drop=False,append=True,inplace=True)
+    df=df.reorder_levels([1,0])
+    df=df.droplevel(1)
+  #  print("df4=\n",df)
+    return df.T
 
-   # print("new df4=\n",new_df,"\n",new_df.T)
-    
-  #  mlist=[pd.to_datetime("2018-01-01")]*11
-    #dlist=df.columns[11:].tolist()
- #   clist=mlist+dlist
- #   df.columns=clist
 
-  #  print("df col names=",df.columns.names)
-  #  print("df cols=",df.columns)
-    #print("new= df=\n",df)
- #   df.set_index(mlist,inplace=True)
- #   df.drop('plotnumber',axis=0,inplace=True)
- #   print("df2=\n",df,df.index.nlevels,df.columns.names,df.columns.nlevels,df.index.names,df.index.nlevels)
-
-#    df=df.T
-  #  print("df3=\n",df,df.index.nlevels,df.columns.names,df.columns.nlevels,df.index.names,df.index.nlevels)
-
-   # print("df2=\n",df,df.columns.nlevels)
-
-  #  print("df3=\n",df,df.index.names,df.columns.names,df.index.nlevels,df.columns.nlevels)
-    return new_df
-  
 
 # create a query language for a multiindex scan data df
  # a plot is described by a query list
@@ -450,13 +380,21 @@ def reverse_rankings(df):
  
     
  
-scandatalist=["coles_scan_data_enhanced_sept2020T.xlsx","ww_scan_data_enhanced_sept2020T.xlsx"]  
-df=load_data(scandatalist)
-print("df=\n",df,"\n",df.index, df.shape,df.index.nlevels)
-print("df7=\n",df,"df.index.nlevels",df.index.nlevels,"df.col.names",df.columns.names,"df.cols.nlevles",df.columns.nlevels,"df.index.names",df.index.names,"df.index.nlevles=",df.index.nlevels)
-df=df.T
+scandatalist=["coles_scan_data_enhanced_sept2020.xlsx","ww_scan_data_enhanced_sept2020.xlsx"] 
+transposed_datalist=["coles_scan_dataT.xlsx","ww_scan_dataT.xlsx"]  
+ 
+df=load_data(scandatalist,transposed_datalist)
+#print("df=\n",df,"\n",df.index, df.shape,df.index.nlevels)
+#print("df7=\n",df,"df.index.nlevels",df.index.nlevels,"df.col.names",df.columns.names,"df.cols.nlevles",df.columns.nlevels,"df.index.names",df.index.names,"df.index.nlevles=",df.index.nlevels)
 
-print("df8=\n",df,"df.index.nlevels",df.index.nlevels,"df.col.names",df.columns.names,"df.cols.nlevles",df.columns.nlevels,"df.index.names",df.index.names,"df.index.nlevles=",df.index.nlevels)
+
+#print("df8=\n",df,"df.index.nlevels",df.index.nlevels,"df.col.names",df.columns.names,"df.cols.nlevles",df.columns.nlevels,"df.index.names",df.index.names,"df.index.nlevles=",df.index.nlevels)
+
+
+
+new_df=df.xs("3",level='plotnumber',drop_level=False)
+print("new_df=",new_df,new_df.T) 
+
 
 
 # #print("All scandata dataframe saved to",dd.scan_dict_savename)   #,":\n",scan_dict['final_df'])
