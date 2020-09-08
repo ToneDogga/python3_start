@@ -40,6 +40,9 @@ scandatalist=["Coles_scan_data_300620.xlsx","Ww_scan_data_300620.xlsx"]
   #  report_savename="sales_trans_report_dict.pkl"
 savepkl="coles_and_ww_invoiced_and_scanned_sales.pkl"
 
+ 
+e_scandatalist=["coles_scan_data_enhanced_sept2020.xlsx","ww_scan_data_enhanced_sept2020.xlsx"] 
+transposed_datalist=["coles_scan_dataT.xlsx","ww_scan_dataT.xlsx"]  
 
 sales_df_savename="sales_trans_df.pkl"
 filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]

@@ -53,8 +53,10 @@ from datetime import timedelta
 import calendar
 import xlsxwriter
 
-from pathlib import Path,WindowsPath
+import xlrd
 
+from pathlib import Path,WindowsPath
+from random import randrange
 
 import pickle
 import multiprocessing
@@ -73,6 +75,7 @@ from matplotlib.pyplot import plot, draw, ion, show
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import seaborn as sns
+import matplotlib.ticker as ticker
 
 
 import time
@@ -151,7 +154,7 @@ def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
   #  print("Saving figure", fig_id)
     if tight_layout:
         plt.tight_layout()
-    plt.savefig(path, format=fig_extension, dpi=resolution)
+    plt.savefig(path, format=fig_extension, dpi=resolution,bbox_inches='tight')
     return
 
 
@@ -721,6 +724,382 @@ def find_in_dict(dictname,name):
     return m    
 
     
+
+
+
+def write_excel(df,filename):
+        sheet_name = 'Sheet1'
+        writer = pd.ExcelWriter(filename,engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')     
+        df.to_excel(writer,sheet_name=sheet_name,header=False,index=False)    #,engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')     
+        writer.save()
+        return
+
+
+def write_excel2(df,filename):
+        sheet_name = 'Sheet1'
+        writer = pd.ExcelWriter(filename,engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')     
+        df.to_excel(writer,sheet_name=sheet_name,header=True,index=True)    #,engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')     
+        writer.save()
+        return
+
+
+
+
+
+
+
+def load_data(scan_data_files,scan_data_filesT): 
+    np.random.seed(42)
+  #  tf.random.set_seed(42)
+    
+    print("\n\nLoad scan data spreadsheets...\n")
+         
+    
+    count=1
+    for scan_file,scan_fileT in zip(scan_data_files,scan_data_filesT):
+      #  column_count=pd.read_excel(scan_file,-1).shape[1]   #count(axis='columns')
+        #if dd.dash_verbose:
+        print("Loading...",scan_file,scan_fileT)   #,"->",column_count,"columns")
+      
+       # convert_dict={col: np.float64 for col in range(1,column_count-1)}   #1619
+       # convert_dict['index']=np.datetime64
+    
+        if count==1:
+ #           df=pd.read_excel(scan_file,-1,dtype=convert_dict,index_col=0)   #,header=[0,1,2])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+            dfT=pd.read_excel(scan_file,-1,header=None,engine='xlrd',dtype=object)    #,index_col=[1,2,3,4,5,6,7,8,9,10,11])  #,na_values={"nan":0})   #index_col=0)   #,header=[0,1,2])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+
+            write_excel(dfT.T,scan_fileT)
+
+            df=pd.read_excel(scan_fileT,-1,header=None,index_col=[1,2,3,4,5,6,7,8,9,10,11],engine='xlrd',dtype=object)  #,na_values={"nan":0})   #index_col=0)   #,header=[0,1,2])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+        else:
+       #     print(convert_dict)
+         #   del df2
+            dfT=pd.read_excel(scan_file,-1,header=None,engine='xlrd',dtype=object)    #,index_col=[1,2,3,4,5,6,7,8,9,10,11])  #,na_values={"nan":0})   #index_col=0)   #,header=[0,1,2])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+            
+            write_excel(dfT.T,scan_fileT)
+
+     
+            df2=pd.read_excel(scan_fileT,-1,header=None,index_col=[1,2,3,4,5,6,7,8,9,10,11],engine='xlrd',dtype=object) #,na_values={"nan":0}) 
+        
+            df=pd.concat([df,df2],axis=0)   #,ignore_index=True)   #levels=['plotnumber','retailer','brand','productgroup','product','variety','plottype','yaxis','stacked'])   #,keys=[df['index']])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+          #  del df2
+       # print(df)
+        count+=1 
+    df.index.set_names('plotnumber', level=0,inplace=True)
+    df.index.set_names('retailer', level=1,inplace=True)
+    df.index.set_names('brand', level=2,inplace=True)
+    df.index.set_names('productgroup', level=3,inplace=True)
+    df.index.set_names('product', level=4,inplace=True)
+    df.index.set_names('variety', level=5,inplace=True)
+    df.index.set_names('plottype', level=6,inplace=True)
+    df.index.set_names('plottype1', level=7,inplace=True)
+    df.index.set_names('sortorder', level=8,inplace=True)
+    df.index.set_names('colname', level=9,inplace=True)
+    df.index.set_names('measure', level=10,inplace=True)
+   
+    
+   # a = df.index.get_level_values(0).astype(str)
+   # b = df.index.get_level_values(6).astype(str)
+
+   # df.index = [a,b]
+    
+   
+     
+    df=df.T
+ #   print("df0=\n",df)
+    df['date']=df.iloc[:,1]
+ #   print("df1=\n",df)
+    colnames=df.columns.levels[0].tolist()
+  #  print("colnames=",colnames)
+    
+
+    colnames = colnames[-1:] + colnames[:-3]
+    df = df[colnames]
+ #   print("df2=\n",df)
+
+    df = df[df.index != 0]
+  #  print("df3=\n",df)
+
+    df.set_index('date',drop=False,append=True,inplace=True)
+    df=df.reorder_levels([1,0])
+   # print("df4=\n",df)
+ 
+    df=df.droplevel(1)
+    #print("df5=\n",df)
+    df=df.drop('date',level='plotnumber',axis=1)
+   # print("df6=\n",df)
+
+    df.fillna(0.0,inplace=True)
+     #   df=df.drop('date',level='plotnumber')
+
+   # print("df6.cols=\n",df.columns)
+    df=df.T
+    write_excel2(df,"testdf.xlsx")
+  #  print("df4=\n",df)
+    return df
+
+
+
+
+
+
+def multiple_slice_scandata(df,query):
+    new_df=df.copy(deep=True)
+    for q in query:
+        
+        criteria=q[1]
+     #   print("key=",key)
+     #   print("criteria=",criteria)
+        ix = new_df.index.get_level_values(criteria).isin(q)
+        new_df=new_df[ix]    #.loc[:,(slice(None),(criteria))]
+    new_df=new_df.sort_index(level=['sortorder'],ascending=[True],sort_remaining=True)   #,axis=1)
+
+  #  write_excel2(new_df,"testdf2.xlsx")
+    return new_df
+
+
+
+
+
+def plot_type1(df):
+    # first column is unit sales off proro  (stacked)
+    # second column is unit sales on promo  (stacked)
+    # third is price (second y acis)
+   
+      
+    week_freq=8
+   # print("plot type1 df=\n",df)
+    df=df.droplevel([0,1,2,3,4,5,6,7,8])
+    
+    df=df.T
+    df['date']=pd.to_datetime(df.index).strftime("%Y-%m").to_list()
+    newdates = pd.to_datetime(df['date']).apply(lambda date: date.toordinal()).to_list()
+    df=df.T
+    df.iloc[0:2]*=1000
+    #print("plot type1 df=\n",df)
+    fig, ax = pyplot.subplots()
+    fig.autofmt_xdate()
+ 
+    df.iloc[0:2].T.plot(xlabel="",use_index=False,kind='bar',color=['blue','red'],secondary_y=False,stacked=True,fontsize=9,ax=ax,legend=False)
+    ax.set_ylabel('Units/week',fontsize=9)
+
+    line=df.iloc[2].T.plot(use_index=False,xlabel="",kind='line',rot=0,style="g-",secondary_y=True,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
+    ax.right_ax.set_ylabel('$ price',fontsize=9)
+    fig.legend(title="Units/week vs $ price",title_fontsize=9,fontsize=7,loc='upper center', bbox_to_anchor=(0.4, 1.1))
+  #  print(df.shape,"xticks=",ax.get_xticks(),df.iloc[:,ax.get_xticks()])
+    new_labels = [dt.date.fromordinal(int(item)) for item in newdates]   #ax.get_xticks()]
+    improved_labels = ['{}\n{}'.format(calendar.month_abbr[int(m)],y) for y, m , d in map(lambda x: str(x).split('-'), new_labels)]
+    
+ #   print("improived labels=",improved_labels[0])
+    improved_labels=improved_labels[:1]+improved_labels[::week_freq]
+    
+    
+  
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(week_freq))
+    ax.set_xticklabels(improved_labels,fontsize=6)
+
+    return
+
+
+
+
+def plot_type2(df):
+    # first column is total units sales
+    # second column is distribution 
+    
+   
+      
+    week_freq=8
+   # print("plot type1 df=\n",df)
+    df=df.droplevel([0,1,2,3,4,5,6,7,8])
+    
+  #  df=df.T
+  #  df['date']=pd.to_datetime(df.index).strftime("%Y-%m-%d").to_list()
+  #  newdates = pd.to_datetime(df['date']).apply(lambda date: date.toordinal()).to_list()
+  #  df=df.T
+    df.iloc[:1]*=1000
+    #print("plot type1 df=\n",df)
+    fig, ax = pyplot.subplots()
+    fig.autofmt_xdate()
+ 
+ #   df.iloc[0:2].T.plot(xlabel="",use_index=False,kind='bar',color=['blue','red'],secondary_y=False,stacked=True,fontsize=9,ax=ax,legend=False)
+    ax.set_ylabel('Units/week',fontsize=9)
+
+    line=df.iloc[:1].T.plot(use_index=True,xlabel="",kind='line',style=["r-"],secondary_y=False,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
+
+    if df.shape[0]>=2:
+        line=df.iloc[1:2].T.plot(use_index=True,xlabel="",kind='line',style=['b-'],secondary_y=True,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
+
+   # if df.shape[0]>=3:
+   #     line=df.iloc[2:3].T.plot(use_index=True,xlabel="",kind='line',style=['g:'],secondary_y=True,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
+    
+#  ax.set_ylabel('Units/week',fontsize=9)
+
+        ax.right_ax.set_ylabel('Distribution',fontsize=9)
+    fig.legend(title="Units/week vs distribution",title_fontsize=9,fontsize=7,loc='upper center', bbox_to_anchor=(0.4, 1.1))
+  #  print(df.shape,"xticks=",ax.get_xticks(),df.iloc[:,ax.get_xticks()])
+  #  new_labels = [dt.date.fromordinal(int(item)) for item in newdates]   #ax.get_xticks()]
+  #  improved_labels = ['{}-{}'.format(calendar.month_abbr[int(m)],y) for y, m , d in map(lambda x: str(x).split('-'), new_labels)]
+  #  improved_labels=improved_labels[::week_freq]
+  
+  #  ax.xaxis.set_major_locator(ticker.MultipleLocator(week_freq))
+  #  ax.set_xticklabels(improved_labels,fontsize=8)
+
+    return
+
+
+
+
+
+def plot_type3(df):
+       # first column is total units sales
+    # second column is distribution 
+    
+   
+      
+    week_freq=8
+   # print("plot type1 df=\n",df)
+    df=df.droplevel([0,1,2,3,4,5,6,7,8])
+    
+  #  df=df.T
+  #  df['date']=pd.to_datetime(df.index).strftime("%Y-%m-%d").to_list()
+  #  newdates = pd.to_datetime(df['date']).apply(lambda date: date.toordinal()).to_list()
+  #  df=df.T
+ #   df.iloc[:1]*=1000
+ #   print("plot type3 df=\n",df)
+    fig, ax = pyplot.subplots()
+    fig.autofmt_xdate()
+ 
+ #   df.iloc[0:2].T.plot(xlabel="",use_index=False,kind='bar',color=['blue','red'],secondary_y=False,stacked=True,fontsize=9,ax=ax,legend=False)
+    ax.set_ylabel('$ Price',fontsize=9)
+
+    line=df.T.plot(use_index=True,xlabel="",kind='line',style=["g-"],secondary_y=False,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
+
+  #  if df.shape[0]>=2:
+   # line=df.iloc[1:2].T.plot(use_index=True,xlabel="",kind='line',style=['b-'],secondary_y=True,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
+
+   # if df.shape[0]>=3:
+   #     line=df.iloc[2:3].T.plot(use_index=True,xlabel="",kind='line',style=['g:'],secondary_y=True,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
+    
+#  ax.set_ylabel('Units/week',fontsize=9)
+
+ #   ax.right_ax.set_ylabel('Units/week',fontsize=9)
+    fig.legend(title="$ Price",title_fontsize=9,fontsize=7,loc='upper center', bbox_to_anchor=(0.4, 1.1))
+  #  print(df.shape,"xticks=",ax.get_xticks(),df.iloc[:,ax.get_xticks()])
+  #  new_labels = [dt.date.fromordinal(int(item)) for item in newdates]   #ax.get_xticks()]
+  #  improved_labels = ['{}-{}'.format(calendar.month_abbr[int(m)],y) for y, m , d in map(lambda x: str(x).split('-'), new_labels)]
+  #  improved_labels=improved_labels[::week_freq]
+  
+  #  ax.xaxis.set_major_locator(ticker.MultipleLocator(week_freq))
+  #  ax.set_xticklabels(improved_labels,fontsize=8)
+
+   # return
+
+
+   # print("plot 3")
+    return
+
+
+
+
+def plot_type4(df):
+          # first column is total units sales
+    # second column is distribution 
+    
+   
+      
+    week_freq=8
+   # print("plot type1 df=\n",df)
+    df=df.droplevel([0,1,2,3,4,5,6,7,8])
+    
+  #  df=df.T
+  #  df['date']=pd.to_datetime(df.index).strftime("%Y-%m-%d").to_list()
+  #  newdates = pd.to_datetime(df['date']).apply(lambda date: date.toordinal()).to_list()
+  #  df=df.T
+    df.iloc[:]*=1000
+ #   print("plot type3 df=\n",df)
+    fig, ax = pyplot.subplots()
+    fig.autofmt_xdate()
+ 
+ #   df.iloc[0:2].T.plot(xlabel="",use_index=False,kind='bar',color=['blue','red'],secondary_y=False,stacked=True,fontsize=9,ax=ax,legend=False)
+    ax.set_ylabel('Units/week',fontsize=9)
+
+    line=df.T.plot(use_index=True,xlabel="",kind='line',style=["b-"],secondary_y=False,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
+
+  #  if df.shape[0]>=2:
+  #  line=df.iloc[1:2].T.plot(use_index=True,xlabel="",kind='line',style=['b-'],secondary_y=True,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
+
+   # if df.shape[0]>=3:
+   #     line=df.iloc[2:3].T.plot(use_index=True,xlabel="",kind='line',style=['g:'],secondary_y=True,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
+    
+#  ax.set_ylabel('Units/week',fontsize=9)
+
+  #  ax.right_ax.set_ylabel('Units/week',fontsize=9)
+    fig.legend(title="Units/week",title_fontsize=9,fontsize=7,loc='upper center', bbox_to_anchor=(0.4, 1.1))
+  #  print(df.shape,"xticks=",ax.get_xticks(),df.iloc[:,ax.get_xticks()])
+  #  new_labels = [dt.date.fromordinal(int(item)) for item in newdates]   #ax.get_xticks()]
+  #  improved_labels = ['{}-{}'.format(calendar.month_abbr[int(m)],y) for y, m , d in map(lambda x: str(x).split('-'), new_labels)]
+  #  improved_labels=improved_labels[::week_freq]
+  
+  #  ax.xaxis.set_major_locator(ticker.MultipleLocator(week_freq))
+  #  ax.set_xticklabels(improved_labels,fontsize=8)
+
+   # return
+
+
+
+    return
+
+
+
+
+
+
+
+
+def plot_slices(df):
+ #   df.replace(0.0,np.nan,inplace=True)
+        
+      #   print(new_df)
+    plottypes=list(set(list(set(df.index.get_level_values('plottype').astype(str).tolist()))+list(set(df.index.get_level_values('plottype1').astype(str).tolist()))))
+   #     plottypes=list(set([p for p in plottypes if p!='0']))
+   #     print("plotypes=",plottypes)
+    for pt in plottypes:  
+        plotnumbers=list(set(df.index.get_level_values('plotnumber').astype(str).tolist()))
+        new_df=pd.concat((multiple_slice_scandata(df,[(pt,'plottype')]) ,multiple_slice_scandata(df,[(pt,'plottype1')])),axis=0)   #,(pt,'plottype1')])
+
+ #   print("plotn",plotnumbers)
+        for pn in plotnumbers:
+            if (pt=='3') | (pt=='4'):
+                plot_df=new_df
+            else:
+                plot_df=multiple_slice_scandata(new_df,[(pn,'plotnumber')])
+
+    #        print("plot_df=\n",plot_df)
+            plot_df.replace(0.0,np.nan,inplace=True)
+        
+            if str(pt)=='1':   #standard plot type
+                plot_type1(plot_df)
+            elif str(pt)=='2':   #stacked bars plus right axis price
+                plot_type2(plot_df)
+            elif str(pt)=='3':   # 
+                plot_type3(plot_df)
+            elif str(pt)=='4':   #unused 
+                plot_type4(plot_df)
+            elif str(pt)=='0':
+                pass
+            save_fig(pn+"_"+pt+"_"+str(randrange(999)))
+      #      plt.show()
+            
+             
+    plt.close('all')
+    return
+  
+    
+  
+
+
+
      
    
 class MCDropout(keras.layers.Dropout):
@@ -1067,12 +1446,72 @@ def main():
     production_planned_df=production_planned_df[['to_date','jobid','code','qtybatches','qtyunits']].sort_values('to_date',ascending=True)
     print("\nProduction planned:\n",production_planned_df.head(50))
     
+    ######################################################################
+    
+    #  load enhanced
+    
+    
+    if dd.dash_verbose:
+        print("\n============================================================================")  
+    # Big IRI scan data spreadsheets 
+        print("\nLoad enhanced scan data:",dd.e_scandatalist,"......")
+     
+         
+    df=load_data(dd.e_scandatalist,dd.transposed_datalist)
+    #print(df)
+    #new_df=slice_scandata(df,key='1',criteria='brand')
+    #print("ss=",new_df)
+    #new_df=multiple_slice_scandata(df,key=['1'],criteria='brand')
+    #print("ms-",new_df)
+    new_df=multiple_slice_scandata(df,query=[('1','brand'),('10','productgroup')]) #   key=['1'],criteria='brand')
+    #print("ms2",new_df)
+    
+    #print(new_df.columns,"\n",new_df.index)
+          
+    plot_slices(new_df)
+       
+    
+    new_df=multiple_slice_scandata(df,query=[('10','retailer'),('0','variety')]) #   key=['1'],criteria='brand')
+  # print("ms2",new_df)
+    
+    #print(new_df.columns,"\n",new_df.index)
+          
+    plot_slices(new_df)
+    new_df=multiple_slice_scandata(df,query=[('12','retailer'),('0','variety')]) #   key=['1'],criteria='brand')
+  # print("ms3",new_df)
+    
+    #print(new_df.columns,"\n",new_df.index)
+          
+    plot_slices(new_df)
+ 
+    
+    new_df=multiple_slice_scandata(df,query=[('10','retailer'),('1','variety')]) #   key=['1'],criteria='brand')
+  # print("ms2",new_df)
+    
+    #print(new_df.columns,"\n",new_df.index)
+          
+    plot_slices(new_df)
+    new_df=multiple_slice_scandata(df,query=[('12','retailer'),('1','variety')]) #   key=['1'],criteria='brand')
+  # print("ms3",new_df)
+    
+    #print(new_df.columns,"\n",new_df.index)
+          
+    plot_slices(new_df)
+
+    
+ 
+    print("Enhanced scandata graphing finished...\n\n")
+       
+
+    
+    
+    
     
     #######################################
     if dd.dash_verbose:
         print("\n============================================================================")  
     # Big IRI scan data spreadsheets 
-        print("\nLoad IRI all scan data:",dd.scan_data_files,"......")
+        print("\nLoad IRI all scan data2:",dd.scan_data_files,"......")
     
     
     df,original_df=load_IRI(dd.scan_data_files)
