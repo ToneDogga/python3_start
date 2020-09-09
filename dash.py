@@ -1524,7 +1524,32 @@ def main():
  # ('Coles St Dalfour all jams',  'Wks on Promotion >= 5% 6 wks')
  # ('Coles Bonne Maman all jams','Units (000) Sold off Promotion >= 5 % 6 wks' )
  # ('Coles Bonne Maman all jams', 'Wks on Promotion >= 5% 6 wks')
- 
+    pdf=df.copy(deep=True)
+  #  print("graphing scan data...")
+  #  print("pdf=\n",pdf)
+    new_pdf=multiple_slice_scandata(pdf,query=[('4','plottype1'),('1','brand')])
+    
+  #  print("new_pdf1=\n",new_pdf)
+    new_pdf=new_pdf.droplevel([0,1,2,3,4,5,6,7,8,9,10])
+    #column_names=['-'.join(tup) for tup in new_pdf.index]
+    column_names=[tup[0]+" total scanned" for tup in new_pdf.index]
+
+ #   print("colnames=",column_names)
+ #   print("new_pdf2=\n",new_pdf)
+   # new_pdf=new_pdf.T
+   # new_pdf['name']=str(new_pdf.columns.get_level_values('colname')) + " "+str(new_pdf.columns.get_level_values('measure'))
+    #new_pdf=new_pdf.T
+    new_pdf = new_pdf.reset_index(level=[0,1],drop=True)  #'sortorder'])
+   # new_pdf=new_pdf.set_index('sortorder')
+     #new_pdf=new_pdf.droplevel([0])
+    scan_sales_df=new_pdf.T
+  #  print("newpdf2=\n",new_pdf.columns)
+    newcols_dict={k:v for k,v in zip(scan_sales_df.columns,column_names)}
+  #  print("newcols dict=\n",newcols_dict)
+   # new_pdf.rename(columns={1001: '1001', 1010: '1010', 1012:'1012',1018:'1018'}, inplace=True)
+    scan_sales_df.rename(columns=newcols_dict, inplace=True)
+    print("scan sales df=\n",scan_sales_df)  #,"\n",new_pdf.T)
+
  
  
  
@@ -1598,18 +1623,19 @@ def main():
     
     # new_level_name = "brand"
     # new_level_labels = ['p']
-    # df1 = pd.DataFrame(data=1,index=df.index, columns=new_level_labels).stack()
-    # df1.index.names = [new_level_name,'market','product','measure']
-    # #df=df.T.index.names=['brand','market','product','measure']
+    #df1 = pd.DataFrame(data=1,index=df.index, columns=new_level_labels).stack()
+    #df1.index.names = [new_level_name,'market','product','measure']
+    #df=df.T.index.names=['brand','market','product','measure']
     
   #  print(df)
   #  print("\n",df.T)
-    
+  #  original_df=pd.DataFrame([])
     #full_index_df=recreate_full_index(df)
     #print(full_index_df)
     
     scan_dict={"original_df":original_df,
                 "final_df":df,
+                'scan_sales_df':scan_sales_df,
       #          "full_index_df":full_index_df,
            #     "market_rename_dict":dd.market_rename_dict,
             #   "product_dict":product_dict,
@@ -2800,24 +2826,24 @@ def main():
  
     df=df.T
  
-    df[1,12,10,"jams",2,'coles_beerenberg_jams_total_scanned']=df[1,12,10,"jams",0,'coles_beerenberg_jams_off_promo_scanned']+df[1,12,10,"jams",1,'coles_beerenberg_jams_on_promo_scanned']
-    df[2,12,10,"jams",2,'coles_st_dalfour_jams_total_scanned']=df[2,12,10,"jams",0,'coles_st_dalfour_jams_off_promo_scanned']+df[2,12,10,"jams",1,'coles_st_dalfour_jams_on_promo_scanned']
-    df[3,12,10,"jams",2,'coles_bonne_maman_jams_total_scanned']=df[3,12,10,"jams",0,'coles_bonne_maman_jams_off_promo_scanned']+df[3,12,10,"jams",1,'coles_bonne_maman_jams_on_promo_scanned']
+#     df[1,12,10,"jams",2,'coles_beerenberg_jams_total_scanned']=df[1,12,10,"jams",0,'coles_beerenberg_jams_off_promo_scanned']+df[1,12,10,"jams",1,'coles_beerenberg_jams_on_promo_scanned']
+#     df[2,12,10,"jams",2,'coles_st_dalfour_jams_total_scanned']=df[2,12,10,"jams",0,'coles_st_dalfour_jams_off_promo_scanned']+df[2,12,10,"jams",1,'coles_st_dalfour_jams_on_promo_scanned']
+#     df[3,12,10,"jams",2,'coles_bonne_maman_jams_total_scanned']=df[3,12,10,"jams",0,'coles_bonne_maman_jams_off_promo_scanned']+df[3,12,10,"jams",1,'coles_bonne_maman_jams_on_promo_scanned']
     
  
-    df[1,12,10,"jams",9,'coles_beerenberg_jams_on_promo']=(df[1,12,10,"jams",1,'coles_beerenberg_jams_on_promo_scanned']>0)
-    df[2,12,10,"jams",9,'coles_st_dalfour_jams_on_promo']=(df[2,12,10,"jams",1,'coles_st_dalfour_jams_on_promo_scanned']>0)
-    df[3,12,10,"jams",9,'coles_bonne_maman_jams_on_promo']=(df[3,12,10,"jams",1,'coles_bonne_maman_jams_on_promo_scanned']>0)
+#     df[1,12,10,"jams",9,'coles_beerenberg_jams_on_promo']=(df[1,12,10,"jams",1,'coles_beerenberg_jams_on_promo_scanned']>0)
+#     df[2,12,10,"jams",9,'coles_st_dalfour_jams_on_promo']=(df[2,12,10,"jams",1,'coles_st_dalfour_jams_on_promo_scanned']>0)
+#     df[3,12,10,"jams",9,'coles_bonne_maman_jams_on_promo']=(df[3,12,10,"jams",1,'coles_bonne_maman_jams_on_promo_scanned']>0)
     
-    # df[0,10,10,"jams",0,'woolworths_jams_total_scanned']=df[0,10,10,"jams",0,'woolworths_total_jam_curd_marm_off_promo_scanned']+df[0,10,10,"jams",1,'woolworths_total_jam_curd_marm_on_promo_scanned']
+#     # df[0,10,10,"jams",0,'woolworths_jams_total_scanned']=df[0,10,10,"jams",0,'woolworths_total_jam_curd_marm_off_promo_scanned']+df[0,10,10,"jams",1,'woolworths_total_jam_curd_marm_on_promo_scanned']
     
-    df[1,10,10,"jams",2,'woolworths_beerenberg_jams_total_scanned']=df[1,10,10,"jams",0,'woolworths_beerenberg_jams_off_promo_scanned']+df[1,10,10,"jams",1,'woolworths_beerenberg_jams_on_promo_scanned']
-    df[2,10,10,"jams",2,'woolworths_st_dalfour_jams_total_scanned']=df[2,10,10,"jams",0,'woolworths_st_dalfour_jams_off_promo_scanned']+df[2,10,10,"jams",1,'woolworths_st_dalfour_jams_on_promo_scanned']
-    df[3,10,10,"jams",2,'woolworths_bonne_maman_jams_total_scanned']=df[3,10,10,"jams",0,'woolworths_bonne_maman_jams_off_promo_scanned']+df[3,10,10,"jams",1,'woolworths_bonne_maman_jams_on_promo_scanned']
+#     df[1,10,10,"jams",2,'woolworths_beerenberg_jams_total_scanned']=df[1,10,10,"jams",0,'woolworths_beerenberg_jams_off_promo_scanned']+df[1,10,10,"jams",1,'woolworths_beerenberg_jams_on_promo_scanned']
+#     df[2,10,10,"jams",2,'woolworths_st_dalfour_jams_total_scanned']=df[2,10,10,"jams",0,'woolworths_st_dalfour_jams_off_promo_scanned']+df[2,10,10,"jams",1,'woolworths_st_dalfour_jams_on_promo_scanned']
+#     df[3,10,10,"jams",2,'woolworths_bonne_maman_jams_total_scanned']=df[3,10,10,"jams",0,'woolworths_bonne_maman_jams_off_promo_scanned']+df[3,10,10,"jams",1,'woolworths_bonne_maman_jams_on_promo_scanned']
      
-    df[1,10,10,"jams",9,'woolworths_beerenberg_jams_on_promo']=(df[1,10,10,"jams",1,'woolworths_beerenberg_jams_on_promo_scanned']>0)
-    df[2,10,10,"jams",9,'woolworths_st_dalfour_jams_on_promo']=(df[2,10,10,"jams",1,'woolworths_st_dalfour_jams_on_promo_scanned']>0)
-    df[3,10,10,"jams",9,'woolworths_bonne_maman_jams_on_promo']=(df[3,10,10,"jams",1,'woolworths_bonne_maman_jams_on_promo_scanned']>0)
+#     df[1,10,10,"jams",9,'woolworths_beerenberg_jams_on_promo']=(df[1,10,10,"jams",1,'woolworths_beerenberg_jams_on_promo_scanned']>0)
+#     df[2,10,10,"jams",9,'woolworths_st_dalfour_jams_on_promo']=(df[2,10,10,"jams",1,'woolworths_st_dalfour_jams_on_promo_scanned']>0)
+#     df[3,10,10,"jams",9,'woolworths_bonne_maman_jams_on_promo']=(df[3,10,10,"jams",1,'woolworths_bonne_maman_jams_on_promo_scanned']>0)
     
     
  
@@ -2825,52 +2851,52 @@ def main():
 
 
 
-##########################################################################################33
-   # brand index graphs
+# ##########################################################################################33
+#    # brand index graphs
 
     
-    # coles beerenberg jams 1
-    plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_bonne_maman_jams_on_promo','coles_st_dalfour_jams_on_promo'],savename="coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
-    # coles beerenberg jams 2
-  #  plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_st_dalfour_jams_on_promo','coles_bonne_maman_jams_on_promo'],savename="coles2")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
-    # coles beerenberg jams 3
-    # plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_beerenberg_jams_on_promo','coles_st_dalfour_jams_on_promo'],savename="coles3")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
-    # # coles beerenberg jams 4
-    # plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_st_dalfour_jams_on_promo','coles_beerenberg_jams_on_promo'],savename="coles4")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
-    #  # coles beerenberg jams 5
-    # plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_beerenberg_jams_on_promo','coles_bonne_maman_jams_on_promo'],savename="coles5")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
-    # # coles beerenberg jams 6
-    # plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_bonne_maman_jams_on_promo','coles_beerenberg_jams_on_promo'],savename="coles6")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
-    # # coles beerenberg jams 7   
-    # plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_st_dalfour_jams_off_promo_scanned',col_and_hue=['coles_bonne_maman_jams_on_promo','coles_beerenberg_jams_on_promo'],savename="coles7")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
-    # # coles beerenberg jams 8
-    # plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_st_dalfour_jams_off_promo_scanned',col_and_hue=['coles_beerenberg_jams_on_promo','coles_bonne_maman_jams_on_promo'],savename="coles8")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
-    # # coles beerenberg jams 9
-    # plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_bonne_maman_jams_off_promo_scanned',col_and_hue=['coles_st_dalfour_jams_on_promo','coles_beerenberg_jams_on_promo'],savename="coles9")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
-    # # coles beerenberg jams 10
-    # plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_bonne_maman_jams_off_promo_scanned',col_and_hue=['coles_beerenberg_jams_on_promo','coles_st_dalfour_jams_on_promo'],savename="coles10")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+#     # coles beerenberg jams 1
+#     plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_bonne_maman_jams_on_promo','coles_st_dalfour_jams_on_promo'],savename="coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+#     # coles beerenberg jams 2
+#   #  plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_st_dalfour_jams_on_promo','coles_bonne_maman_jams_on_promo'],savename="coles2")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+#     # coles beerenberg jams 3
+#     # plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_beerenberg_jams_on_promo','coles_st_dalfour_jams_on_promo'],savename="coles3")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+#     # # coles beerenberg jams 4
+#     # plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_st_dalfour_jams_on_promo','coles_beerenberg_jams_on_promo'],savename="coles4")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+#     #  # coles beerenberg jams 5
+#     # plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_beerenberg_jams_on_promo','coles_bonne_maman_jams_on_promo'],savename="coles5")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+#     # # coles beerenberg jams 6
+#     # plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_bonne_maman_jams_on_promo','coles_beerenberg_jams_on_promo'],savename="coles6")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+#     # # coles beerenberg jams 7   
+#     # plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_st_dalfour_jams_off_promo_scanned',col_and_hue=['coles_bonne_maman_jams_on_promo','coles_beerenberg_jams_on_promo'],savename="coles7")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+#     # # coles beerenberg jams 8
+#     # plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_st_dalfour_jams_off_promo_scanned',col_and_hue=['coles_beerenberg_jams_on_promo','coles_bonne_maman_jams_on_promo'],savename="coles8")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+#     # # coles beerenberg jams 9
+#     # plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_bonne_maman_jams_off_promo_scanned',col_and_hue=['coles_st_dalfour_jams_on_promo','coles_beerenberg_jams_on_promo'],savename="coles9")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+#     # # coles beerenberg jams 10
+#     # plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_bonne_maman_jams_off_promo_scanned',col_and_hue=['coles_beerenberg_jams_on_promo','coles_st_dalfour_jams_on_promo'],savename="coles10")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
  
    
-    # woolworths beerenberg jams 1
-    plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_bonne_maman_jams_on_promo','woolworths_st_dalfour_jams_on_promo'],savename="woolworths1")
-    # woolworths beerenberg jams 2
-  #  plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_st_dalfour_jams_on_promo','woolworths_bonne_maman_jams_on_promo'],savename="woolworths2")   
-    # woolworths beerenberg jams 3
-    # plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_beerenberg_jams_on_promo','woolworths_st_dalfour_jams_on_promo'],savename="woolworths3")
-    # # woolworths beerenberg jams 4
-    # plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_st_dalfour_jams_on_promo','woolworths_beerenberg_jams_on_promo'],savename="woolworths4")   
-    # # woolworths beerenberg jams 5
-    # plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_bonne_maman_jams_on_promo','woolworths_beerenberg_jams_on_promo'],savename="woolworths5")
-    # # woolworths beerenberg jams 6
-    # plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_beerenberg_jams_on_promo','woolworths_bonne_maman_jams_on_promo'],savename="woolworths6")   
-    # # woolworths beerenberg jams 7
-    # plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_st_dalfour_jams_off_promo_scanned',col_and_hue=['woolworths_bonne_maman_jams_on_promo','woolworths_beerenberg_jams_on_promo'],savename="woolworths7")   
-    # # woolworths beerenberg jams 8
-    # plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_st_dalfour_jams_off_promo_scanned',col_and_hue=['woolworths_beerenberg_jams_on_promo','woolworths_bonne_maman_jams_on_promo'],savename="woolworths8")
-    # # woolworths beerenberg jams 9
-    # plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_bonne_maman_jams_off_promo_scanned',col_and_hue=['woolworths_st_dalfour_jams_on_promo','woolworths_beerenberg_jams_on_promo'],savename="woolworths9")   
-    # # woolworths beerenberg jams 10
-    # plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_bonne_maman_jams_off_promo_scanned',col_and_hue=['woolworths_beerenberg_jams_on_promo','woolworths_st_dalfour_jams_on_promo'],savename="woolworths10")
+#     # woolworths beerenberg jams 1
+#     plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_bonne_maman_jams_on_promo','woolworths_st_dalfour_jams_on_promo'],savename="woolworths1")
+#     # woolworths beerenberg jams 2
+#   #  plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_st_dalfour_jams_on_promo','woolworths_bonne_maman_jams_on_promo'],savename="woolworths2")   
+#     # woolworths beerenberg jams 3
+#     # plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_beerenberg_jams_on_promo','woolworths_st_dalfour_jams_on_promo'],savename="woolworths3")
+#     # # woolworths beerenberg jams 4
+#     # plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_st_dalfour_jams_on_promo','woolworths_beerenberg_jams_on_promo'],savename="woolworths4")   
+#     # # woolworths beerenberg jams 5
+#     # plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_bonne_maman_jams_on_promo','woolworths_beerenberg_jams_on_promo'],savename="woolworths5")
+#     # # woolworths beerenberg jams 6
+#     # plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_beerenberg_jams_on_promo','woolworths_bonne_maman_jams_on_promo'],savename="woolworths6")   
+#     # # woolworths beerenberg jams 7
+#     # plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_st_dalfour_jams_off_promo_scanned',col_and_hue=['woolworths_bonne_maman_jams_on_promo','woolworths_beerenberg_jams_on_promo'],savename="woolworths7")   
+#     # # woolworths beerenberg jams 8
+#     # plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_st_dalfour_jams_off_promo_scanned',col_and_hue=['woolworths_beerenberg_jams_on_promo','woolworths_bonne_maman_jams_on_promo'],savename="woolworths8")
+#     # # woolworths beerenberg jams 9
+#     # plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_bonne_maman_jams_off_promo_scanned',col_and_hue=['woolworths_st_dalfour_jams_on_promo','woolworths_beerenberg_jams_on_promo'],savename="woolworths9")   
+#     # # woolworths beerenberg jams 10
+#     # plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_bonne_maman_jams_off_promo_scanned',col_and_hue=['woolworths_beerenberg_jams_on_promo','woolworths_st_dalfour_jams_on_promo'],savename="woolworths10")
     
    
  
