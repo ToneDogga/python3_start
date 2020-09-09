@@ -178,11 +178,22 @@ def plot_brand_index(tdf,y_col,col_and_hue,savename):
  #   print("tdf=\n",tdf.columns.to_list())
    # plot_query2(tdf,['coles_beerenberg_jams_total_scanned','coles_st_dalfour_jams_total_scanned','coles_bonne_maman_jams_total_scanned'],'beerenberg total scanned Coles jam units per week')
    # plot_query2(tdf,['woolworths_beerenberg_jams_total_scanned','woolworths_st_dalfour_jams_total_scanned','woolworths_bonne_maman_jams_total_scanned'],'BB total scanned ww jam units per week')
-    
-    #tdf['coles_scan_week']=tdf.index
     tdf=tdf.astype(np.float64)
+ 
+    
+
+   # tdf.columns.type=np.str
+ #   print(tdf.columns)
+ #   print(tdf.columns.nlevels)
+ #   print(tdf.columns.names)
+    #tdf['coles_scan_week']=tdf.index
+   #  tdf.index=tdf.index.astype(str)
+    #print("tdf=\n",tdf,"\ny_col=",y_col)
+  #  print(tdf.loc[:,'6'])
    # tdf=add_trues_and_falses(tdf,['coles_bonne_maman_jams_on_promo','coles_st_dalfour_jams_on_promo'])
-    tdf=add_trues_and_falses(tdf,col_and_hue)
+    tdf=add_trues_and_falses(tdf,col_and_hue[0])
+    tdf=add_trues_and_falses(tdf,col_and_hue[1])
+  #  tdf=add_trues_and_falses(tdf,'7')
 
  #   tdf[['coles_bonne_maman_jams_on_promo','coles_st_dalfour_jams_on_promo']]=tdf[['coles_bonne_maman_jams_on_promo','coles_st_dalfour_jams_on_promo']].replace(1.0,True)
  #   tdf[['coles_bonne_maman_jams_on_promo','coles_st_dalfour_jams_on_promo']]=tdf[['coles_bonne_maman_jams_on_promo','coles_st_dalfour_jams_on_promo']].replace(0.0,False)
@@ -190,9 +201,9 @@ def plot_brand_index(tdf,y_col,col_and_hue,savename):
   #  tdf[['coles_bonne_maman_jams_off_promo_scanned']]=tdf[['coles_bonne_maman_jams_off_promo_scanned']].clip(lower=1000.0,axis=1)
   #  tdf[['coles_bonne_maman_jams_off_promo_scanned']]=tdf[['coles_bonne_maman_jams_off_promo_scanned']].replace(1000.0, np.nan)
    # tdf=take_out_zeros(tdf,['coles_beerenberg_jams_off_promo_scanned'])
-    tdf=take_out_zeros(tdf,[y_col])
+    #tdf=take_out_zeros(tdf,[y_col])
  
-  #  print("tdf2=\n",tdf)
+   # print("tdf2=\n",tdf,type(y_col),type(col_and_hue[0]),type(col_and_hue[1]))
     
     date=pd.to_datetime(tdf.index).strftime("%Y-%m-%d").to_list()
  #   print("date=",date)
@@ -200,6 +211,8 @@ def plot_brand_index(tdf,y_col,col_and_hue,savename):
     tdf['dates'] = pd.to_datetime(tdf['date']).apply(lambda date: date.toordinal())
     #tdf['date_ordinal'] = date.apply(lambda date: date.toordinal())
 
+
+    
   #  tdf['datenum']=dates.datestr2num(date)
    # tdf.reset_index('scan_week',drop=True,inplace=True)
  #   print("tdf=",tdf.T)
@@ -223,9 +236,10 @@ def plot_brand_index(tdf,y_col,col_and_hue,savename):
    # ax.tick_params(labelrotation=45)
 
    # ax.legend(loc='upper left')
-
+  
    # ax=plt.gca()
     # just use regplot if you don't need a FacetGrid\
+    sns.set(font_scale=0.6)
  #   sns.lmplot(x='date_ordinal', y='coles_beerenberg_jams_off_promo_scanned', col='coles_bonne_maman_jams_on_promo',hue='coles_st_dalfour_jams_on_promo',data=tdf)   #,color="green",label="")
     sns.lmplot(x='dates', y=y_col, col=col_and_hue[0],hue=col_and_hue[1],data=tdf,legend=False)   #,color="green",label="")
     ax=plt.gca()
@@ -234,7 +248,7 @@ def plot_brand_index(tdf,y_col,col_and_hue,savename):
    # ax.tick_params(labelrotation=45)
 
    # plt.legend(loc='upper left',title='coles st dalfour jams on promo',fontsize=10)
-    plt.legend(loc='upper left',title=col_and_hue[1],fontsize=10)
+    plt.legend(loc='upper left',title=col_and_hue[1],fontsize=8,title_fontsize=8)
 
    # save_fig("coles00") 
 
@@ -759,7 +773,7 @@ def load_data(scan_data_files,scan_data_filesT):
     for scan_file,scan_fileT in zip(scan_data_files,scan_data_filesT):
       #  column_count=pd.read_excel(scan_file,-1).shape[1]   #count(axis='columns')
         #if dd.dash_verbose:
-        print("Loading...",scan_file,scan_fileT)   #,"->",column_count,"columns")
+        print("Loading...",scan_file)   #,scan_fileT)   #,"->",column_count,"columns")
       
        # convert_dict={col: np.float64 for col in range(1,column_count-1)}   #1619
        # convert_dict['index']=np.datetime64
@@ -770,7 +784,7 @@ def load_data(scan_data_files,scan_data_filesT):
 
             write_excel(dfT.T,scan_fileT)
 
-            df=pd.read_excel(scan_fileT,-1,header=None,index_col=[1,2,3,4,5,6,7,8,9,10,11],engine='xlrd',dtype=object)  #,na_values={"nan":0})   #index_col=0)   #,header=[0,1,2])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+            df=pd.read_excel(scan_fileT,-1,header=None,index_col=[1,2,3,4,5,6,7,8,9,10,11,12,13],engine='xlrd',dtype=object)  #,na_values={"nan":0})   #index_col=0)   #,header=[0,1,2])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
         else:
        #     print(convert_dict)
          #   del df2
@@ -779,7 +793,7 @@ def load_data(scan_data_files,scan_data_filesT):
             write_excel(dfT.T,scan_fileT)
 
      
-            df2=pd.read_excel(scan_fileT,-1,header=None,index_col=[1,2,3,4,5,6,7,8,9,10,11],engine='xlrd',dtype=object) #,na_values={"nan":0}) 
+            df2=pd.read_excel(scan_fileT,-1,header=None,index_col=[1,2,3,4,5,6,7,8,9,10,11,12,13],engine='xlrd',dtype=object) #,na_values={"nan":0}) 
         
             df=pd.concat([df,df2],axis=0)   #,ignore_index=True)   #levels=['plotnumber','retailer','brand','productgroup','product','variety','plottype','yaxis','stacked'])   #,keys=[df['index']])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
           #  del df2
@@ -793,9 +807,11 @@ def load_data(scan_data_files,scan_data_filesT):
     df.index.set_names('variety', level=5,inplace=True)
     df.index.set_names('plottype', level=6,inplace=True)
     df.index.set_names('plottype1', level=7,inplace=True)
-    df.index.set_names('sortorder', level=8,inplace=True)
-    df.index.set_names('colname', level=9,inplace=True)
-    df.index.set_names('measure', level=10,inplace=True)
+    df.index.set_names('plottype2', level=8,inplace=True)
+    df.index.set_names('plottype3', level=9,inplace=True)
+    df.index.set_names('sortorder', level=10,inplace=True)
+    df.index.set_names('colname', level=11,inplace=True)
+    df.index.set_names('measure', level=12,inplace=True)
    
     
    # a = df.index.get_level_values(0).astype(str)
@@ -869,7 +885,7 @@ def plot_type1(df):
       
     week_freq=8
    # print("plot type1 df=\n",df)
-    df=df.droplevel([0,1,2,3,4,5,6,7,8])
+    df=df.droplevel([0,1,2,3,4,5,6,7,8,9,10])
     
     df=df.T
     df['date']=pd.to_datetime(df.index).strftime("%Y-%m").to_list()
@@ -911,7 +927,7 @@ def plot_type2(df):
       
     week_freq=8
    # print("plot type1 df=\n",df)
-    df=df.droplevel([0,1,2,3,4,5,6,7,8])
+    df=df.droplevel([0,1,2,3,4,5,6,7,8,9,10])
     
   #  df=df.T
   #  df['date']=pd.to_datetime(df.index).strftime("%Y-%m-%d").to_list()
@@ -959,7 +975,7 @@ def plot_type3(df):
       
     week_freq=8
    # print("plot type1 df=\n",df)
-    df=df.droplevel([0,1,2,3,4,5,6,7,8])
+    df=df.droplevel([0,1,2,3,4,5,6,7,8,9,10])
     
   #  df=df.T
   #  df['date']=pd.to_datetime(df.index).strftime("%Y-%m-%d").to_list()
@@ -1010,7 +1026,7 @@ def plot_type4(df):
       
     week_freq=8
    # print("plot type1 df=\n",df)
-    df=df.droplevel([0,1,2,3,4,5,6,7,8])
+    df=df.droplevel([0,1,2,3,4,5,6,7,8,9,10])
     
   #  df=df.T
   #  df['date']=pd.to_datetime(df.index).strftime("%Y-%m-%d").to_list()
@@ -1061,16 +1077,16 @@ def plot_slices(df):
  #   df.replace(0.0,np.nan,inplace=True)
         
       #   print(new_df)
-    plottypes=list(set(list(set(df.index.get_level_values('plottype').astype(str).tolist()))+list(set(df.index.get_level_values('plottype1').astype(str).tolist()))))
+    plottypes=list(set(list(set(df.index.get_level_values('plottype').astype(str).tolist()))+list(set(df.index.get_level_values('plottype1').astype(str).tolist()))+list(set(df.index.get_level_values('plottype2').astype(str).tolist()))+list(set(df.index.get_level_values('plottype3').astype(str).tolist()))))
    #     plottypes=list(set([p for p in plottypes if p!='0']))
    #     print("plotypes=",plottypes)
     for pt in plottypes:  
         plotnumbers=list(set(df.index.get_level_values('plotnumber').astype(str).tolist()))
-        new_df=pd.concat((multiple_slice_scandata(df,[(pt,'plottype')]) ,multiple_slice_scandata(df,[(pt,'plottype1')])),axis=0)   #,(pt,'plottype1')])
+        new_df=pd.concat((multiple_slice_scandata(df,[(pt,'plottype')]) ,multiple_slice_scandata(df,[(pt,'plottype1')]),multiple_slice_scandata(df,[(pt,'plottype2')]),multiple_slice_scandata(df,[(pt,'plottype3')])),axis=0)   #,(pt,'plottype1')])
 
  #   print("plotn",plotnumbers)
         for pn in plotnumbers:
-            if (pt=='3') | (pt=='4'):
+            if (pt=='3') | (pt=='4') | (pt=='5') | (pt=='9'):
                 plot_df=new_df
             else:
                 plot_df=multiple_slice_scandata(new_df,[(pn,'plotnumber')])
@@ -1458,45 +1474,107 @@ def main():
      
          
     df=load_data(dd.e_scandatalist,dd.transposed_datalist)
-    #print(df)
+    
+  #  print("df=\n",df)
+####
+
+    pdf=df.copy(deep=True)
+    print("graphing scan data...")
+  #  print("pdf=\n",pdf)
+    new_pdf=multiple_slice_scandata(pdf,query=[('9','plottype3')])
+    
+  #  print("new_pdf1=\n",new_pdf)
+    new_pdf=new_pdf.droplevel([0,1,2,3,4,5,6,7,8,9,10])
+    column_names=['-'.join(tup) for tup in new_pdf.index]
+ #   print("colnames=",column_names)
+ #   print("new_pdf2=\n",new_pdf)
+   # new_pdf=new_pdf.T
+   # new_pdf['name']=str(new_pdf.columns.get_level_values('colname')) + " "+str(new_pdf.columns.get_level_values('measure'))
+    #new_pdf=new_pdf.T
+    new_pdf = new_pdf.reset_index(level=[0,1],drop=True)  #'sortorder'])
+   # new_pdf=new_pdf.set_index('sortorder')
+     #new_pdf=new_pdf.droplevel([0])
+    new_pdf=new_pdf.T
+  #  print("newpdf2=\n",new_pdf.columns)
+    newcols_dict={k:v for k,v in zip(new_pdf.columns,column_names)}
+  #  print("newcols dict=\n",newcols_dict)
+   # new_pdf.rename(columns={1001: '1001', 1010: '1010', 1012:'1012',1018:'1018'}, inplace=True)
+    new_pdf.rename(columns=newcols_dict, inplace=True)
+
+
+  #  print("new_pdf3=\n",new_pdf)
+ #   plot_brand_index(new_pdf,y_col=('Coles Beerenberg all jams','Units (000) Sold off Promotion >= 5 % 6 wks'),col_and_hue=[('Coles Bonne Maman all jams','Wks on Promotion >= 5 % 6 wks'),('Coles St Dalfour all jams','Wks on Promotion >= 5 % 6 wks')],savename="coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+    plot_brand_index(new_pdf,y_col='Coles Beerenberg all jams-Units (000) Sold off Promotion >= 5 % 6 wks',col_and_hue=['Coles Bonne Maman all jams-Wks on Promotion >= 5 % 6 wks','Coles St Dalfour all jams-Wks on Promotion >= 5 % 6 wks'],savename="coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+
+  #  plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_bonne_maman_jams_on_promo','coles_st_dalfour_jams_on_promo'],savename="coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+    plot_brand_index(new_pdf,y_col='Woolworths Beerenberg all jams-Units (000) Sold off Promotion >= 5 % 6 wks',col_and_hue=['Woolworths Bonne Maman all jams-Wks on Promotion >= 5 % 6 wks','Woolworths St Dalfour all jams-Wks on Promotion >= 5 % 6 wks'],savename="woolworths1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+
+  #  plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_bonne_maman_jams_on_promo','woolworths_st_dalfour_jams_on_promo'],savename="woolworths1")
+
+ #('Woolworths Beerenberg all jams','Units (000) Sold off Promotion >= 5 % 6 wks')
+ # ('Woolworths Beerenberg all jams',  'Wks on Promotion >= 5 % 6 wks')
+ # ('Woolworths St Dalfour all jams',  'Units (000) Sold off Promotion >= 5 % 6 wks' )
+ # ('Woolworths St Dalfour all jams',  'Wks on Promotion >= 5 % 6 wks')
+ # ('Woolworths Bonne Maman all jams','Units (000) Sold off Promotion >= 5 % 6 wks' )
+ # ('Woolworths Bonne Maman all jams', 'Wks on Promotion >= 5%  6 wks')
+ 
+  #('Coles Beerenberg all jams','Units (000) Sold off Promotion >= 5 % 6 wks')
+ # ('Coles Beerenberg all jams',  'Wks on Promotion >= 5% 6 wks')
+ # ('Coles St Dalfour all jams',  'Units (000) Sold off Promotion >= 5 % 6 wks' )
+ # ('Coles St Dalfour all jams',  'Wks on Promotion >= 5% 6 wks')
+ # ('Coles Bonne Maman all jams','Units (000) Sold off Promotion >= 5 % 6 wks' )
+ # ('Coles Bonne Maman all jams', 'Wks on Promotion >= 5% 6 wks')
+ 
+ 
+ 
+ 
+####
+
+    
+    if dd.e_scandata_number_of_weeks>0 & dd.e_scandata_number_of_weeks<df.shape[1]:
+        df=df.iloc[:,-dd.e_scandata_number_of_weeks:]
+   #     print("df=\n",df)
     #new_df=slice_scandata(df,key='1',criteria='brand')
     #print("ss=",new_df)
     #new_df=multiple_slice_scandata(df,key=['1'],criteria='brand')
     #print("ms-",new_df)
-    new_df=multiple_slice_scandata(df,query=[('1','brand'),('10','productgroup')]) #   key=['1'],criteria='brand')
+    
+        for q in dd.e_scandata_plotqueries:
+            plot_slices(multiple_slice_scandata(df,query=q)) #   key=['1'],criteria='brand')
     #print("ms2",new_df)
     
     #print(new_df.columns,"\n",new_df.index)
-          
-    plot_slices(new_df)
+        #       plot_slices(multiple_slice_scandata(df,query=[('1','brand'),('10','productgroup')])) #   key=['1'],criteria='brand')
+   
+  #   plot_slices(new_df)
        
     
-    new_df=multiple_slice_scandata(df,query=[('10','retailer'),('0','variety')]) #   key=['1'],criteria='brand')
-  # print("ms2",new_df)
+  #   new_df=multiple_slice_scandata(df,query=[('10','retailer'),('0','variety')]) #   key=['1'],criteria='brand')
+  # # print("ms2",new_df)
     
-    #print(new_df.columns,"\n",new_df.index)
+  #   #print(new_df.columns,"\n",new_df.index)
           
-    plot_slices(new_df)
-    new_df=multiple_slice_scandata(df,query=[('12','retailer'),('0','variety')]) #   key=['1'],criteria='brand')
-  # print("ms3",new_df)
+  #   plot_slices(new_df)
+  #   new_df=multiple_slice_scandata(df,query=[('12','retailer'),('0','variety')]) #   key=['1'],criteria='brand')
+  # # print("ms3",new_df)
     
-    #print(new_df.columns,"\n",new_df.index)
+  #   #print(new_df.columns,"\n",new_df.index)
           
-    plot_slices(new_df)
+  #   plot_slices(new_df)
  
     
-    new_df=multiple_slice_scandata(df,query=[('10','retailer'),('1','variety')]) #   key=['1'],criteria='brand')
-  # print("ms2",new_df)
+  #   new_df=multiple_slice_scandata(df,query=[('10','retailer'),('1','variety')]) #   key=['1'],criteria='brand')
+  # # print("ms2",new_df)
     
-    #print(new_df.columns,"\n",new_df.index)
+  #   #print(new_df.columns,"\n",new_df.index)
           
-    plot_slices(new_df)
-    new_df=multiple_slice_scandata(df,query=[('12','retailer'),('1','variety')]) #   key=['1'],criteria='brand')
-  # print("ms3",new_df)
+  #   plot_slices(new_df)
+  #   new_df=multiple_slice_scandata(df,query=[('12','retailer'),('1','variety')]) #   key=['1'],criteria='brand')
+  # # print("ms3",new_df)
     
-    #print(new_df.columns,"\n",new_df.index)
+  #   #print(new_df.columns,"\n",new_df.index)
           
-    plot_slices(new_df)
+  #   plot_slices(new_df)
 
     
  

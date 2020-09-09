@@ -43,13 +43,15 @@ savepkl="coles_and_ww_invoiced_and_scanned_sales.pkl"
  
 e_scandatalist=["coles_scan_data_enhanced_sept2020.xlsx","ww_scan_data_enhanced_sept2020.xlsx"] 
 transposed_datalist=["coles_scan_dataT.xlsx","ww_scan_dataT.xlsx"]  
+e_scandata_plotqueries=[[('10','retailer'),('0','variety')],[('12','retailer'),('0','variety')],[('10','retailer'),('1','variety')],[('12','retailer'),('1','variety')]]
+e_scandata_number_of_weeks=54  # number of weeks back from latest week
 
 sales_df_savename="sales_trans_df.pkl"
 filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
    
 
 product_groups_only=["10","11","12","13","14","15","16","17","18"]
-spc_only=['080',"088",'020',"028",'030',"038",'040',"048",'050','060','070']  #,"028"]   #,"038","048","028","080","020","030","040"]
+spc_only=['088']    #'080',"088",'020',"028",'030',"038",'040',"048",'050','060','070']  #,"028"]   #,"038","048","028","080","020","030","040"]
 
 
 # moving average total days used in prediction
