@@ -167,8 +167,8 @@ def take_out_zeros(df,cols):
 
 
 def add_trues_and_falses(df,cols):
-    df[cols]=df[cols].replace(1.0,True)
-    df[cols]=df[cols].replace(0.0,False)
+    df[cols]=df[cols].replace(1,True)
+    df[cols]=df[cols].replace(0,False)
     return df
 
 
@@ -193,6 +193,7 @@ def plot_brand_index(tdf,y_col,col_and_hue,savename):
    # tdf=add_trues_and_falses(tdf,['coles_bonne_maman_jams_on_promo','coles_st_dalfour_jams_on_promo'])
     tdf=add_trues_and_falses(tdf,col_and_hue[0])
     tdf=add_trues_and_falses(tdf,col_and_hue[1])
+  #  print("tdf=\n",tdf,"\n",tdf.T)
   #  tdf=add_trues_and_falses(tdf,'7')
 
  #   tdf[['coles_bonne_maman_jams_on_promo','coles_st_dalfour_jams_on_promo']]=tdf[['coles_bonne_maman_jams_on_promo','coles_st_dalfour_jams_on_promo']].replace(1.0,True)
@@ -899,7 +900,7 @@ def plot_type1(df):
     df.iloc[0:2].T.plot(xlabel="",use_index=False,kind='bar',color=['blue','red'],secondary_y=False,stacked=True,fontsize=9,ax=ax,legend=False)
     ax.set_ylabel('Units/week',fontsize=9)
 
-    line=df.iloc[2].T.plot(use_index=False,xlabel="",kind='line',rot=0,style="g-",secondary_y=True,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
+    line=df.iloc[2].T.plot(use_index=False,xlabel="",kind='line',rot=0,style=["g-","k-"],secondary_y=True,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
     ax.right_ax.set_ylabel('$ price',fontsize=9)
     fig.legend(title="Units/week vs $ price",title_fontsize=9,fontsize=7,loc='upper center', bbox_to_anchor=(0.4, 1.1))
   #  print(df.shape,"xticks=",ax.get_xticks(),df.iloc[:,ax.get_xticks()])
@@ -919,40 +920,60 @@ def plot_type1(df):
 
 
 
-def plot_type2(df):
+def plot_type2(df,this_year_df,last_year_df):
     # first column is total units sales
     # second column is distribution 
     
-   
+    
+   #3 print("plotdf.T=\n",df.T)
+   # pv = pd.pivot_table(df.T, index=df.index, columns=df.index,
+   #                 values='value', aggfunc='sum')
+   # print("pv=\n",pv)
+   # pv.plot()
+   # plt.show()
       
     week_freq=8
    # print("plot type1 df=\n",df)
-    df=df.droplevel([0,1,2,3,4,5,6,7,8,9,10])
-    
+    this_year_df=this_year_df.droplevel([0,1,2,3,4,5,6,7,8,9,10])
+    last_year_df=last_year_df.droplevel([0,1,2,3,4,5,6,7,8,9,10])
+   
   #  df=df.T
   #  df['date']=pd.to_datetime(df.index).strftime("%Y-%m-%d").to_list()
   #  newdates = pd.to_datetime(df['date']).apply(lambda date: date.toordinal()).to_list()
   #  df=df.T
-    df.iloc[:1]*=1000
+    this_year_df.iloc[:1]*=1000
+    last_year_df.iloc[:1]*=1000
+
     #print("plot type1 df=\n",df)
     fig, ax = pyplot.subplots()
+    
+    
+#    fig = plt.figure()
+#ax1 = fig.add_subplot(111)
+    ax2 = ax.twiny()
+
+
+
     fig.autofmt_xdate()
  
  #   df.iloc[0:2].T.plot(xlabel="",use_index=False,kind='bar',color=['blue','red'],secondary_y=False,stacked=True,fontsize=9,ax=ax,legend=False)
-    ax.set_ylabel('Units/week',fontsize=9)
+    ax.set_ylabel('Units/week this year vs LY',fontsize=9)
+    
+    
 
-    line=df.iloc[:1].T.plot(use_index=True,xlabel="",kind='line',style=["r-"],secondary_y=False,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
+    line=this_year_df.iloc[:1].T.plot(use_index=True,grid=True,xlabel="",kind='line',style=["r-"],secondary_y=False,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
+    line=last_year_df.iloc[:1].T.plot(use_index=True,grid=False,xlabel="",kind='line',style=["r:"],secondary_y=False,fontsize=9,legend=False,ax=ax2)   #,ax=ax2)
 
-    if df.shape[0]>=2:
-        line=df.iloc[1:2].T.plot(use_index=True,xlabel="",kind='line',style=['b-'],secondary_y=True,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
-
+    if this_year_df.shape[0]>=2:
+     #   line=last_year_df.iloc[1:2].T.plot(use_index=True,xlabel="",kind='line',style=['b:'],secondary_y=False,fontsize=9,legend=False,ax=ax2)   #,ax=ax2)
+        line=this_year_df.iloc[1:2].T.plot(use_index=True,grid=False,xlabel="",kind='line',style=['b-'],secondary_y=True,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
    # if df.shape[0]>=3:
    #     line=df.iloc[2:3].T.plot(use_index=True,xlabel="",kind='line',style=['g:'],secondary_y=True,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
     
 #  ax.set_ylabel('Units/week',fontsize=9)
 
-        ax.right_ax.set_ylabel('Distribution',fontsize=9)
-    fig.legend(title="Units/week vs distribution",title_fontsize=9,fontsize=7,loc='upper center', bbox_to_anchor=(0.4, 1.1))
+        ax.right_ax.set_ylabel('Distribution this year',fontsize=9)
+    fig.legend(title="Units/week TY vs LY",title_fontsize=9,fontsize=7,loc='upper center', bbox_to_anchor=(0.4, 1.1))
   #  print(df.shape,"xticks=",ax.get_xticks(),df.iloc[:,ax.get_xticks()])
   #  new_labels = [dt.date.fromordinal(int(item)) for item in newdates]   #ax.get_xticks()]
   #  improved_labels = ['{}-{}'.format(calendar.month_abbr[int(m)],y) for y, m , d in map(lambda x: str(x).split('-'), new_labels)]
@@ -989,7 +1010,7 @@ def plot_type3(df):
  #   df.iloc[0:2].T.plot(xlabel="",use_index=False,kind='bar',color=['blue','red'],secondary_y=False,stacked=True,fontsize=9,ax=ax,legend=False)
     ax.set_ylabel('$ Price',fontsize=9)
 
-    line=df.T.plot(use_index=True,xlabel="",kind='line',style=["g-"],secondary_y=False,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
+    line=df.T.plot(use_index=True,xlabel="",kind='line',style=["g-","r-","b-","k-","c-","m-"],secondary_y=False,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
 
   #  if df.shape[0]>=2:
    # line=df.iloc[1:2].T.plot(use_index=True,xlabel="",kind='line',style=['b-'],secondary_y=True,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
@@ -1040,7 +1061,7 @@ def plot_type4(df):
  #   df.iloc[0:2].T.plot(xlabel="",use_index=False,kind='bar',color=['blue','red'],secondary_y=False,stacked=True,fontsize=9,ax=ax,legend=False)
     ax.set_ylabel('Units/week',fontsize=9)
 
-    line=df.T.plot(use_index=True,xlabel="",kind='line',style=["b-"],secondary_y=False,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
+    line=df.T.plot(use_index=True,xlabel="",kind='line',style=["b-","r-","g-","k-","c-","m-"],secondary_y=False,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
 
   #  if df.shape[0]>=2:
   #  line=df.iloc[1:2].T.plot(use_index=True,xlabel="",kind='line',style=['b-'],secondary_y=True,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
@@ -1091,13 +1112,16 @@ def plot_slices(df):
             else:
                 plot_df=multiple_slice_scandata(new_df,[(pn,'plotnumber')])
 
-    #        print("plot_df=\n",plot_df)
+         #   print("plot_df=\n",plot_df)
             plot_df.replace(0.0,np.nan,inplace=True)
-        
+            last_year_plot_df=plot_df.iloc[:,-(dd.e_scandata_number_of_weeks+52):-(dd.e_scandata_number_of_weeks-1)]
+            this_year_plot_df=plot_df.iloc[:,-dd.e_scandata_number_of_weeks:]    
+         #   print("this year plot df=",this_year_plot_df)
+         #   print("last year plot df=",last_year_plot_df)
             if str(pt)=='1':   #standard plot type
                 plot_type1(plot_df)
             elif str(pt)=='2':   #stacked bars plus right axis price
-                plot_type2(plot_df)
+                plot_type2(df,this_year_plot_df,last_year_plot_df)
             elif str(pt)=='3':   # 
                 plot_type3(plot_df)
             elif str(pt)=='4':   #unused 
@@ -1463,6 +1487,65 @@ def main():
     print("\nProduction planned:\n",production_planned_df.head(50))
     
     ######################################################################
+    if dd.dash_verbose:
+        print("\n============================================================================\n")  
+      
+     
+    ###################################################    
+     
+    
+    #with open(dd.sales_df_savename,"rb") as f:
+    sales_df=pd.read_pickle(dd.sales_df_savename)
+    #    # sales_df=pickle.load(f)
+    
+    print("\n\nsales shape df=\n",sales_df.shape)
+    
+    first_date=sales_df['date'].iloc[-1]
+    last_date=sales_df['date'].iloc[0]
+    
+    print("\nAttache sales trans analysis.  Current save is:")
+    
+    
+    print("Data available:",sales_df.shape[0],"records.\nfirst date:",first_date,"\nlast date:",last_date,"\n")
+  
+    
+    answer3="n"
+    answer3=input("\nCreate distribution report and sales trends? (y/n)")
+    #answer3="y"
+    
+    
+    answer2="n"
+    answer2=input("Predict next weeks Coles and WW orders from scan data? (y/n)")
+    
+    answer="y"
+    answer=input("Refresh salestrans?")
+    
+    start_timer = time.time()
+
+############################################################################    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     #  load enhanced
     
@@ -1478,12 +1561,33 @@ def main():
   #  print("df=\n",df)
 ####
 
-    pdf=df.copy(deep=True)
+ #   pdf=df.copy(deep=True)
     print("graphing scan data...")
   #  print("pdf=\n",pdf)
-    new_pdf=multiple_slice_scandata(pdf,query=[('9','plottype3')])
+#    print(pdf.loc[multiple_slice_scandata(pdf,query=[('12','retailer'),('9','plottype3'),('11','plottype2'),('Wks on Promotion >= 5 % 6 wks','measure')])==1])
+   # df.loc[df['a'] == 1,'b']
+    #  we need to nan out vlaues where Beerenberg is on promotion
+#
+ #   print("coles new_pdf1=\n",new_pdf)
+  
     
-  #  print("new_pdf1=\n",new_pdf)
+    pdf=df.copy(deep=True)
+  #  print("graphing scan data...")
+  #  print("pdf=\n",)
+    pdf=pdf.iloc[:,-dd.brand_index_weeks_going_back:]      # remove first 20 weeks
+    
+ 
+    
+ #  print("pdf=\n",pdf)
+    new_pdf=multiple_slice_scandata(pdf,query=[('9','plottype3')])
+    #  we need to nan out vlaues where Beerenberg is on promotion
+
+  #  print("new_pdf2=\n",new_pdf)
+ 
+ #   new_pdf=multiple_slice_scandata(pdf,query=[('11','plottype2')])
+    #print(new_pdf.xs('11',axis=0,level='plottype2',drop_level=False))
+   # print("new_pdf2=\n",new_pdf)
+    
     new_pdf=new_pdf.droplevel([0,1,2,3,4,5,6,7,8,9,10])
     column_names=['-'.join(tup) for tup in new_pdf.index]
  #   print("colnames=",column_names)
@@ -1501,13 +1605,16 @@ def main():
    # new_pdf.rename(columns={1001: '1001', 1010: '1010', 1012:'1012',1018:'1018'}, inplace=True)
     new_pdf.rename(columns=newcols_dict, inplace=True)
 
+    
 
-  #  print("new_pdf3=\n",new_pdf)
+
+
+  #  print("new_pdf3.T=\n",new_pdf.T)
  #   plot_brand_index(new_pdf,y_col=('Coles Beerenberg all jams','Units (000) Sold off Promotion >= 5 % 6 wks'),col_and_hue=[('Coles Bonne Maman all jams','Wks on Promotion >= 5 % 6 wks'),('Coles St Dalfour all jams','Wks on Promotion >= 5 % 6 wks')],savename="coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
-    plot_brand_index(new_pdf,y_col='Coles Beerenberg all jams-Units (000) Sold off Promotion >= 5 % 6 wks',col_and_hue=['Coles Bonne Maman all jams-Wks on Promotion >= 5 % 6 wks','Coles St Dalfour all jams-Wks on Promotion >= 5 % 6 wks'],savename="coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+    plot_brand_index(new_pdf,y_col='Coles Beerenberg all jams-Units Sold off Promotion >= 5 % 6 wks',col_and_hue=['Coles Bonne Maman all jams-Wks on Promotion >= 5 % 6 wks','Coles St Dalfour all jams-Wks on Promotion >= 5 % 6 wks'],savename="coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
 
   #  plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_bonne_maman_jams_on_promo','coles_st_dalfour_jams_on_promo'],savename="coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
-    plot_brand_index(new_pdf,y_col='Woolworths Beerenberg all jams-Units (000) Sold off Promotion >= 5 % 6 wks',col_and_hue=['Woolworths Bonne Maman all jams-Wks on Promotion >= 5 % 6 wks','Woolworths St Dalfour all jams-Wks on Promotion >= 5 % 6 wks'],savename="woolworths1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+    plot_brand_index(new_pdf,y_col='Woolworths Beerenberg all jams-Units Sold off Promotion >= 5 % 6 wks',col_and_hue=['Woolworths Bonne Maman all jams-Wks on Promotion >= 5 % 6 wks','Woolworths St Dalfour all jams-Wks on Promotion >= 5 % 6 wks'],savename="woolworths1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
 
   #  plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_bonne_maman_jams_on_promo','woolworths_st_dalfour_jams_on_promo'],savename="woolworths1")
 
@@ -1548,7 +1655,7 @@ def main():
   #  print("newcols dict=\n",newcols_dict)
    # new_pdf.rename(columns={1001: '1001', 1010: '1010', 1012:'1012',1018:'1018'}, inplace=True)
     scan_sales_df.rename(columns=newcols_dict, inplace=True)
-    print("scan sales df=\n",scan_sales_df)  #,"\n",new_pdf.T)
+  #  print("scan sales df=\n",scan_sales_df)  #,"\n",new_pdf.T)
 
  
  
@@ -1556,8 +1663,8 @@ def main():
 ####
 
     
-    if dd.e_scandata_number_of_weeks>0 & dd.e_scandata_number_of_weeks<df.shape[1]:
-        df=df.iloc[:,-dd.e_scandata_number_of_weeks:]
+    if dd.e_scandata_number_of_weeks>0 & dd.e_scandata_number_of_weeks+53<df.shape[1]:
+        df=df.iloc[:,-(dd.e_scandata_number_of_weeks+53):]
    #     print("df=\n",df)
     #new_df=slice_scandata(df,key='1',criteria='brand')
     #print("ss=",new_df)
@@ -1688,40 +1795,40 @@ def main():
     # print("All scandata dataframe saved to",dd.scan_dict_savename,":\n",scan_dict['final_df'])
     
     
-    if dd.dash_verbose:
-        print("\n============================================================================\n")  
+    # if dd.dash_verbose:
+    #     print("\n============================================================================\n")  
       
      
-    ###################################################    
+    # ###################################################    
      
     
-    #with open(dd.sales_df_savename,"rb") as f:
-    sales_df=pd.read_pickle(dd.sales_df_savename)
-    #    # sales_df=pickle.load(f)
+    # #with open(dd.sales_df_savename,"rb") as f:
+    # sales_df=pd.read_pickle(dd.sales_df_savename)
+    # #    # sales_df=pickle.load(f)
     
-    print("sales shape df=\n",sales_df.shape)
+    # print("sales shape df=\n",sales_df.shape)
     
-    first_date=sales_df['date'].iloc[-1]
-    last_date=sales_df['date'].iloc[0]
+    # first_date=sales_df['date'].iloc[-1]
+    # last_date=sales_df['date'].iloc[0]
     
-    print("\nAttache sales trans analysis.  Current save is:")
+    # print("\nAttache sales trans analysis.  Current save is:")
     
     
-    print("Data available:",sales_df.shape[0],"records.\nfirst date:",first_date,"\nlast date:",last_date,"\n")
-    # #print("\n\n")   
+    # print("Data available:",sales_df.shape[0],"records.\nfirst date:",first_date,"\nlast date:",last_date,"\n")
+    # # #print("\n\n")   
 
-    answer3="n"
-    answer3=input("Create distribution report and sales trends? (y/n)")
-    #answer3="y"
+    # answer3="n"
+    # answer3=input("Create distribution report and sales trends? (y/n)")
+    # #answer3="y"
     
     
-    answer2="n"
-    answer2=input("Predict next weeks Coles and WW orders from scan data? (y/n)")
+    # answer2="n"
+    # answer2=input("Predict next weeks Coles and WW orders from scan data? (y/n)")
     
-    answer="y"
-    answer=input("Refresh salestrans?")
+    # answer="y"
+    # answer=input("Refresh salestrans?")
     
-    start_timer = time.time()
+    # start_timer = time.time()
 
     
     
@@ -2330,10 +2437,16 @@ def main():
         #print("\nSales performace start=\n",sales_df)
         
         end_date=sales_df['date'].iloc[-1]- pd.Timedelta(366, unit='d')
+        startend_date=sales_df['date'].iloc[-1]- pd.Timedelta(721, unit='d')
+
         #print(end_date)
         year_sales_df=sales_df[sales_df['date']>end_date]
+     #   last_year_sales_df=sales_df[sales_df['date']>startend_date & sales_df['date']<=end_date]
+ 
         #print("ysdf1=",year_sales_df)
         year_sales_df=year_sales_df[year_sales_df['productgroup'].isin(dd.product_groups_only) & year_sales_df['specialpricecat'].isin(dd.spc_only)]   
+      #  last_year_sales_df=last_year_sales_df[last_year_sales_df['productgroup'].isin(dd.product_groups_only) & last_year_sales_df['specialpricecat'].isin(dd.spc_only)]   
+ 
         #print("ysdf2=",year_sales_df[['date','code','product']])
           
         #cust_list=year_sales_df.code.unique()
@@ -2420,7 +2533,12 @@ def main():
         year_sales_df['counter']=0
         new_sales_df=year_sales_df.copy(deep=True)
         new_sales_df=new_sales_df.iloc[0:0]
-        
+ 
+    #    last_year_new_sales_df=last_year_year_sales_df.copy(deep=True)
+    #    last_year_new_sales_df=last_year_new_sales_df.iloc[0:0]
+    
+ 
+    
         newninety_sales_df=ninetyday_sales_df.copy(deep=True)
         newninety_sales_df=newninety_sales_df.iloc[0:0]
         
@@ -2611,10 +2729,23 @@ def main():
             styles1 = ['b-']
            # styles1 = ['bs-','ro:','y^-']
             linewidths = 1  # [2, 1, 4]
-    
+            fig, ax = pyplot.subplots()
+        
+            #    fig = plt.figure()
+                #ax1 = fig.add_subplot(111)
+            ax2 = ax.twiny()
 
+
+            print("prod sales=\m",prod_sales)
+            last_years_prod_sales=prod_sales.iloc[:-52]
+            prod_sales=prod_sales.iloc[-53:]
+            
+            
+            
            # prod_sales['period']=prod_sales.index
             ax=prod_sales[['mat']].plot(grid=True,title=prod[1]+" units/week moving total "+str(dd.mat)+" weeks @w/c:"+str(latest_date),style=styles1, lw=linewidths)
+            last_years_prod_sales[['mat']].plot(grid=False,style=styles1, lw=linewidths,ax=ax2)
+
             ax.legend(title="")
             ax.set_xlabel("",fontsize=8)
 
