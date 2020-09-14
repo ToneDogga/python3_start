@@ -1939,7 +1939,7 @@ def main():
     #sales_df['year']=sales_df.date.year()
     yearly_sales_df.set_index('date',inplace=True)
   #  print("yearly sales df1=\n",yearly_sales_df)   #,sales_df.T) 
-    graph_sales_year_on_year(yearly_sales_df,"YonY Total $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df,"A YonY Total $ sales per week","$/week")
     graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['glset']=='EXS'],"A YonY Export $ sales per week","$/week")
     graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['glset']=='ONL'],"A YonY Online $ sales per week","$/week")
     graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['glset']=='NAT'],"A YonY National $ sales per week","$/week")
