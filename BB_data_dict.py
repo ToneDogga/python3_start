@@ -47,6 +47,7 @@ e_scandata_plotqueries=[[('10','retailer'),('0','variety')],
                         [('12','retailer'),('0','variety')],
                         [('10','retailer'),('1','variety')],
                         [('12','retailer'),('1','variety')],
+                        [('10','retailer'),('11','productgroup')],
                         [('12','retailer'),('11','productgroup')],
                         [('10','retailer'),('90','variety')],
                         [('12','retailer'),('90','variety')],
@@ -55,7 +56,10 @@ e_scandata_plotqueries=[[('10','retailer'),('0','variety')],
                         [('10','retailer'),('91','variety')],
                         [('12','retailer'),('91','variety')],
                         [('10','retailer'),('92','variety')],
-                        [('12','retailer'),('92','variety')]]
+                        [('12','retailer'),('92','variety')],
+                     #   [('10','retailer'),('12','productgroup')],
+                        [('12','retailer'),('14','productgroup')]]
+
 
 
 
@@ -69,7 +73,7 @@ filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"
    
 
 product_groups_only=["10"]   #,"11","12","13","14","15","16","17","18"]
-spc_only=['088']    #'080',"088",'020',"028",'030',"038",'040',"048",'050','060','070']  #,"028"]   #,"038","048","028","080","020","030","040"]
+spc_only=['048']    #'080',"088",'020',"028",'030',"038",'040',"048",'050','060','070']  #,"028"]   #,"038","048","028","080","020","030","040"]
 
 
 # moving average total days used in prediction
