@@ -309,260 +309,260 @@ def load_sales(filenames):  # filenames is a list of xlsx files to load and sort
 
     df['period'] = df['period'].astype('category')
   #  print("load sales df=\n",df)
-    
+    df.set_index('date',inplace=True,drop=False)
  
     return df           
  
 
 
-def load_IRI(scan_data_files): 
-    np.random.seed(42)
-    tf.random.set_seed(42)
+# def load_IRI(scan_data_files): 
+#     np.random.seed(42)
+#     tf.random.set_seed(42)
     
-    if dd.dash_verbose:
-        print("\n\nLoad scan data spreadsheets...\n")
-    # scan_data_files=["jam_scan_data_2020.xlsx","cond_scan_data_2020.xlsx","sauce_scan_data_2020.xlsx"]
-    # #total_columns_count=1619+797
-    # scan_dict_savename="scan_dict.pkl"
+#     if dd.dash_verbose:
+#         print("\n\nLoad scan data spreadsheets...\n")
+#     # scan_data_files=["jam_scan_data_2020.xlsx","cond_scan_data_2020.xlsx","sauce_scan_data_2020.xlsx"]
+#     # #total_columns_count=1619+797
+#     # scan_dict_savename="scan_dict.pkl"
     
-    #output_dir = log_dir("scandata")
-    #os.makedirs(output_dir, exist_ok=True)
+#     #output_dir = log_dir("scandata")
+#     #os.makedirs(output_dir, exist_ok=True)
     
         
       
-    # tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
+#     # tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
     
     
-    #
+#     #
       
         
-    np.random.seed(42)
-    tf.random.set_seed(42)
+#     np.random.seed(42)
+#     tf.random.set_seed(42)
             
-    #column_list=list(["coles_scan_week","bb_total_units","bb_promo_disc","sd_total_units","sd_promo_disc","bm_total_units","bm_promo_disc"])      
-    #rename_dict=dict({"qty":"BB_total_invoiced_sales"})
-    #df=df.astype(convert_dict)    
+#     #column_list=list(["coles_scan_week","bb_total_units","bb_promo_disc","sd_total_units","sd_promo_disc","bm_total_units","bm_promo_disc"])      
+#     #rename_dict=dict({"qty":"BB_total_invoiced_sales"})
+#     #df=df.astype(convert_dict)    
         
     
-    count=1
-    for scan_file in scan_data_files:
-        column_count=pd.read_excel(scan_file,-1).shape[1]   #count(axis='columns')
-        if dd.dash_verbose:
-            print("Loading...",scan_file,"->",column_count,"columns")
-        convert_dict={col: np.float64 for col in range(1,column_count-1)}   #1619
-        convert_dict['index']=np.datetime64
+#     count=1
+#     for scan_file in scan_data_files:
+#         column_count=pd.read_excel(scan_file,-1).shape[1]   #count(axis='columns')
+#         if dd.dash_verbose:
+#             print("Loading...",scan_file,"->",column_count,"columns")
+#         convert_dict={col: np.float64 for col in range(1,column_count-1)}   #1619
+#         convert_dict['index']=np.datetime64
     
-        if count==1:
-            df=pd.read_excel(scan_file,-1,dtype=convert_dict,index_col=0,header=[0,1,2])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
-            df=df.T
-            df['category']=[dd.category_dict[count]]*(column_count-1)
-            df = df.set_index('category', append=True)
-            df=df.T
+#         if count==1:
+#             df=pd.read_excel(scan_file,-1,dtype=convert_dict,index_col=0,header=[0,1,2])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+#             df=df.T
+#             df['category']=[dd.category_dict[count]]*(column_count-1)
+#             df = df.set_index('category', append=True)
+#             df=df.T
     
-        else:
-       #     print(convert_dict)
-         #   del df2
-            df2=pd.read_excel(scan_file,-1,index_col=0,header=[0,1,2])
-         #   print(df2)
-            df2=df2.T
-            df2['category']=[dd.category_dict[count]]*(column_count-1)
-            df2 = df2.set_index('category', append=True)
-            df2=df2.T
-       #     print(df2)
-            df=pd.concat([df,df2],axis=1)   #,keys=[df['index']])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
-          #  del df2
-       # print(df)
-        count+=1 
+#         else:
+#        #     print(convert_dict)
+#          #   del df2
+#             df2=pd.read_excel(scan_file,-1,index_col=0,header=[0,1,2])
+#          #   print(df2)
+#             df2=df2.T
+#             df2['category']=[dd.category_dict[count]]*(column_count-1)
+#             df2 = df2.set_index('category', append=True)
+#             df2=df2.T
+#        #     print(df2)
+#             df=pd.concat([df,df2],axis=1)   #,keys=[df['index']])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+#           #  del df2
+#        # print(df)
+#         count+=1 
         
         
     
-    if dd.dash_verbose:
-        print("\n")
-    df=df.reorder_levels([3,0,1,2],axis=1)
+#     if dd.dash_verbose:
+#         print("\n")
+#     df=df.reorder_levels([3,0,1,2],axis=1)
     
-    df=df.T
-    df.index.set_names('market', level=1,inplace=True)
+#     df=df.T
+#     df.index.set_names('market', level=1,inplace=True)
     
-    df.index.set_names('product', level=2,inplace=True)
-    df.index.set_names('measure', level=3,inplace=True)
-    plot_type=df.index.get_level_values(3)
-    market_name=df.index.get_level_values(1)
+#     df.index.set_names('product', level=2,inplace=True)
+#     df.index.set_names('measure', level=3,inplace=True)
+#     plot_type=df.index.get_level_values(3)
+#     market_name=df.index.get_level_values(1)
     
-    df['plot_type']=plot_type
-    df['market_name']=market_name
-    df['stacked']=plot_type
-    df['second_y']=plot_type
-    df['reverse']=plot_type
-    df['column_no']= np.arange(1, len(df.index)+1)
-    df['plot_with1']=0
-    df['plot_with2']=0
-    df['plot_with3']=0
-    df['style']="b-"
-    df['linewidth']=1
-    df['column_name']=market_name+" "+df.index.get_level_values('product')+" "+df.index.get_level_values('category')+" "+df.index.get_level_values('measure')
+#     df['plot_type']=plot_type
+#     df['market_name']=market_name
+#     df['stacked']=plot_type
+#     df['second_y']=plot_type
+#     df['reverse']=plot_type
+#     df['column_no']= np.arange(1, len(df.index)+1)
+#     df['plot_with1']=0
+#     df['plot_with2']=0
+#     df['plot_with3']=0
+#     df['style']="b-"
+#     df['linewidth']=1
+#     df['column_name']=market_name+" "+df.index.get_level_values('product')+" "+df.index.get_level_values('category')+" "+df.index.get_level_values('measure')
 
  
     
-    #print(df)
-    #df=df.T
-    df=df.set_index('market_name', append=True)
+#     #print(df)
+#     #df=df.T
+#     df=df.set_index('market_name', append=True)
     
-    df=df.set_index('plot_type', append=True)
-    df=df.set_index('stacked', append=True)
-    df=df.set_index('second_y', append=True)
-    df=df.set_index('reverse', append=True)
-    df=df.set_index('column_no', append=True)
-    df=df.set_index('plot_with1', append=True)
-    df=df.set_index('plot_with2', append=True)
-    df=df.set_index('plot_with3', append=True)
-    df=df.set_index('style', append=True)
-    df=df.set_index('linewidth', append=True)
-    df=df.set_index('column_name', append=True)
+#     df=df.set_index('plot_type', append=True)
+#     df=df.set_index('stacked', append=True)
+#     df=df.set_index('second_y', append=True)
+#     df=df.set_index('reverse', append=True)
+#     df=df.set_index('column_no', append=True)
+#     df=df.set_index('plot_with1', append=True)
+#     df=df.set_index('plot_with2', append=True)
+#     df=df.set_index('plot_with3', append=True)
+#     df=df.set_index('style', append=True)
+#     df=df.set_index('linewidth', append=True)
+#     df=df.set_index('column_name', append=True)
  
  
-    #df=df.rename_levels(['category','market','product','measure'],axis=1)
+#     #df=df.rename_levels(['category','market','product','measure'],axis=1)
     
-    df=df.T
-    #print(df)
-    #df = df.set_index('category', append=True)
+#     df=df.T
+#     #print(df)
+#     #df = df.set_index('category', append=True)
     
-    #print("dc=\n",df,df.columns,df.shape)
-    #convert_dict={col: np.float64 for col in range(1,sheet_cols)}
-    #convert_dict['index']=np.datetime64
-    #df=df.astype(convert_dict)    
+#     #print("dc=\n",df,df.columns,df.shape)
+#     #convert_dict={col: np.float64 for col in range(1,sheet_cols)}
+#     #convert_dict['index']=np.datetime64
+#     #df=df.astype(convert_dict)    
         
-    df.fillna(0.0,inplace=True)
-    #print("convert dict",convert_dict.items())
-    #df = df.astype(convert_dict) 
+#     df.fillna(0.0,inplace=True)
+#     #print("convert dict",convert_dict.items())
+#     #df = df.astype(convert_dict) 
     
-    market_list=list(set(list(df.columns.levels[1])))
-    if dd.dash_verbose:
-        print(market_list)
-    #market_dict={k:market_list[k] for k in range(len(market_list))}
-    #market_rename_dict={market_list[k]:k for k in range(len(market_list))}
+#     market_list=list(set(list(df.columns.levels[1])))
+#     if dd.dash_verbose:
+#         print(market_list)
+#     #market_dict={k:market_list[k] for k in range(len(market_list))}
+#     #market_rename_dict={market_list[k]:k for k in range(len(market_list))}
     
-    #print("\nmd=",market_dict)
-    #market_dict{0:}
-    #product_list=list(set(list(df.columns.levels[1])))
-    #print(product_list)
+#     #print("\nmd=",market_dict)
+#     #market_dict{0:}
+#     #product_list=list(set(list(df.columns.levels[1])))
+#     #print(product_list)
     
-    #product_dict={k:product_list[k] for k in range(len(product_list))}
-    #product_rename_dict={product_list[k]:k for k in range(len(product_list))}
+#     #product_dict={k:product_list[k] for k in range(len(product_list))}
+#     #product_rename_dict={product_list[k]:k for k in range(len(product_list))}
     
-    #print("\npd=",product_dict)
-    
-    
-    measure_list=list(df.columns.levels[3])
-    #stacked_list=list(df.columns.levels[3])
-    #print("measure list=\n",measure_list)
-    
-    #measure_dict={k:measure_list[k] for k in range(len(measure_list))}
-    measure_rename_dict={measure_list[k]:k for k in range(len(measure_list))}
-    
-    #print("\nmsd=",measure_dict)
-    #print("\nm rename d=",measure_rename_dict)
-    #print("\nm conversion d=",measure_conversion_dict)
+#     #print("\npd=",product_dict)
     
     
-    df=df.T
-    #df.index.set_names('market', level=0,inplace=True)
-    #df.index.set_names('product', level=1,inplace=True)
-    #df.index.set_names('measure', level=2,inplace=True)
-    df.index.set_names('market_name', level=4,inplace=True)
+#     measure_list=list(df.columns.levels[3])
+#     #stacked_list=list(df.columns.levels[3])
+#     #print("measure list=\n",measure_list)
     
-    df.index.set_names('plot_type', level=5,inplace=True)
-    df.index.set_names('stacked', level=6,inplace=True)
-    df.index.set_names('second_y', level=7,inplace=True)
-    df.index.set_names('reverse', level=8,inplace=True)
-    df.index.set_names('column_no', level=9,inplace=True)
-    df.index.set_names('plot_with1', level=10,inplace=True)  
-    df.index.set_names('plot_with2', level=11,inplace=True)  
-    df.index.set_names('plot_with3', level=12,inplace=True)  
-    df.index.set_names('style', level=13,inplace=True)  
-    df.index.set_names('linewidth', level=14,inplace=True)  
-    df.index.set_names('column_name', level=15,inplace=True)  
+#     #measure_dict={k:measure_list[k] for k in range(len(measure_list))}
+#     measure_rename_dict={measure_list[k]:k for k in range(len(measure_list))}
+    
+#     #print("\nmsd=",measure_dict)
+#     #print("\nm rename d=",measure_rename_dict)
+#     #print("\nm conversion d=",measure_conversion_dict)
+    
+    
+#     df=df.T
+#     #df.index.set_names('market', level=0,inplace=True)
+#     #df.index.set_names('product', level=1,inplace=True)
+#     #df.index.set_names('measure', level=2,inplace=True)
+#     df.index.set_names('market_name', level=4,inplace=True)
+    
+#     df.index.set_names('plot_type', level=5,inplace=True)
+#     df.index.set_names('stacked', level=6,inplace=True)
+#     df.index.set_names('second_y', level=7,inplace=True)
+#     df.index.set_names('reverse', level=8,inplace=True)
+#     df.index.set_names('column_no', level=9,inplace=True)
+#     df.index.set_names('plot_with1', level=10,inplace=True)  
+#     df.index.set_names('plot_with2', level=11,inplace=True)  
+#     df.index.set_names('plot_with3', level=12,inplace=True)  
+#     df.index.set_names('style', level=13,inplace=True)  
+#     df.index.set_names('linewidth', level=14,inplace=True)  
+#     df.index.set_names('column_name', level=15,inplace=True)  
 
     
  
-    #df = df.set_index('category', append=True)
+#     #df = df.set_index('category', append=True)
              
-    #print(df)
-    df=df.T
-    #print(df)
-    #product_columns=list(df.columns.levels[1])
+#     #print(df)
+#     df=df.T
+#     #print(df)
+#     #product_columns=list(df.columns.levels[1])
     
-    original_df=df.copy(deep=True)
-    #print("orig df=\n",original_df)
-    
-    
+#     original_df=df.copy(deep=True)
+#     #print("orig df=\n",original_df)
     
     
     
     
     
     
-    #s=scan_data(market_list,product_list,measure_list)
-    #print("s=",s)    
-    # call a x-section of the database out with a tuple (type,y)
     
     
-    #df=df.xs(product_list[2],level=1,drop_level=False,axis=1)
-    #print(df)
+#     #s=scan_data(market_list,product_list,measure_list)
+#     #print("s=",s)    
+#     # call a x-section of the database out with a tuple (type,y)
+    
+    
+#     #df=df.xs(product_list[2],level=1,drop_level=False,axis=1)
+#     #print(df)
     
     
     
     
-    df.rename(columns=dd.market_rename_dict,level='market',inplace=True)
+#     df.rename(columns=dd.market_rename_dict,level='market',inplace=True)
     
-    df.rename(columns=dd.market_rename_dict2,level='market_name',inplace=True)
+#     df.rename(columns=dd.market_rename_dict2,level='market_name',inplace=True)
     
-    #print("1",df.T)
-    #df.rename(columns=product_rename_dict,level='product',inplace=True)
-    df.rename(columns=measure_rename_dict,level='plot_type',inplace=True)
-    #print("2",df.T)
-    df.rename(columns=dd.measure_conversion_dict,level='plot_type',inplace=True)
+#     #print("1",df.T)
+#     #df.rename(columns=product_rename_dict,level='product',inplace=True)
+#     df.rename(columns=measure_rename_dict,level='plot_type',inplace=True)
+#     #print("2",df.T)
+#     df.rename(columns=dd.measure_conversion_dict,level='plot_type',inplace=True)
     
-    df.rename(columns=measure_rename_dict,level='stacked',inplace=True)
+#     df.rename(columns=measure_rename_dict,level='stacked',inplace=True)
     
-    df.rename(columns=dd.stacked_conversion_dict,level='stacked',inplace=True)
+#     df.rename(columns=dd.stacked_conversion_dict,level='stacked',inplace=True)
     
-    df.rename(columns=measure_rename_dict,level='second_y',inplace=True)
+#     df.rename(columns=measure_rename_dict,level='second_y',inplace=True)
     
-    df.rename(columns=dd.second_y_axis_conversion_dict,level='second_y',inplace=True)
+#     df.rename(columns=dd.second_y_axis_conversion_dict,level='second_y',inplace=True)
     
-    df.rename(columns=measure_rename_dict,level='reverse',inplace=True)
+#     df.rename(columns=measure_rename_dict,level='reverse',inplace=True)
     
-    df.rename(columns=dd.reverse_conversion_dict,level='reverse',inplace=True)
+#     df.rename(columns=dd.reverse_conversion_dict,level='reverse',inplace=True)
     
-    #df.rename(columns=df.columns,level='column_no',inplace=True)
+#     #df.rename(columns=df.columns,level='column_no',inplace=True)
 
-    #print("3",df.T)
+#     #print("3",df.T)
     
     
-    #######################################################
-    # add brand, variety and catoery to multiindex index
-      #  print(c,"=",variety_type_dict[c])
-    #    print(c,find_in_dict(brand_dict,c),find_in_dict(variety_type_dict,c))  
-     #   print(df.loc[find_in_dict(brand_dict,c)])
+#     #######################################################
+#     # add brand, variety and catoery to multiindex index
+#       #  print(c,"=",variety_type_dict[c])
+#     #    print(c,find_in_dict(brand_dict,c),find_in_dict(variety_type_dict,c))  
+#      #   print(df.loc[find_in_dict(brand_dict,c)])
     
-    brand_values=[find_in_dict(dd.brand_dict,c) for c in original_df.columns.get_level_values('product')]
-    #print("brands:",brand_values)
-    product_values=[find_in_dict(dd.variety_type_dict,c) for c in original_df.columns.get_level_values('product')]
-    #print("products:",product_values)
-      #  print(c,"=",variety_type_dict[c])
-       # print(c,find_in_dict(brand_dict,c),find_in_dict(variety_type_dict,c))  
-    #print(brand_values,product_values)
+#     brand_values=[find_in_dict(dd.brand_dict,c) for c in original_df.columns.get_level_values('product')]
+#     #print("brands:",brand_values)
+#     product_values=[find_in_dict(dd.variety_type_dict,c) for c in original_df.columns.get_level_values('product')]
+#     #print("products:",product_values)
+#       #  print(c,"=",variety_type_dict[c])
+#        # print(c,find_in_dict(brand_dict,c),find_in_dict(variety_type_dict,c))  
+#     #print(brand_values,product_values)
     
-    df=df.T
-    df['brand']=brand_values
-    df = df.set_index('brand', append=True)
-    #df['category']=['c']*df.shape[0]
-    #df = df.set_index('category', append=True)
-    df['variety']=product_values
-    df = df.set_index('variety', append=True)
-    #df=df.reorder_levels([4,0,3,5,2,1,6],axis=0)
-    df=df.reorder_levels(['column_no','column_name','category','market','brand','variety','plot_type','plot_with1','plot_with2','plot_with3','style','linewidth','stacked','second_y','reverse','market_name','product','measure'],axis=0).T
-    return df,original_df
+#     df=df.T
+#     df['brand']=brand_values
+#     df = df.set_index('brand', append=True)
+#     #df['category']=['c']*df.shape[0]
+#     #df = df.set_index('category', append=True)
+#     df['variety']=product_values
+#     df = df.set_index('variety', append=True)
+#     #df=df.reorder_levels([4,0,3,5,2,1,6],axis=0)
+#     df=df.reorder_levels(['column_no','column_name','category','market','brand','variety','plot_type','plot_with1','plot_with2','plot_with3','style','linewidth','stacked','second_y','reverse','market_name','product','measure'],axis=0).T
+#     return df,original_df
 
 
 
@@ -715,11 +715,11 @@ def glset_GSV(dds,title):
 #    fig=dds.tail(dds.shape[0]-731)[['dates','30_day%','90_day%','365_day%']].plot(x='dates',y=['30_day%','90_day%','365_day%'],xlabel="",grid=True,title=title+" w/c:("+str(latest_date)+")",ax=ax)   #),'BB total scanned vs purchased Coles jam units per week')
 #    fig=dds.tail(dds.shape[0]-731)[['dates']].plot(x='dates',y=['30_day%','90_day%','365_day%'],xlabel="",grid=True,title=title+" w/c:("+str(latest_date)+")",ax=ax)   #),'BB total scanned vs purchased Coles jam units per week')
  
-    figname="B1fig_"+title
+    figname="AAaa mat graphs_"+title
     save_fig(figname)
     fig=dds.tail(dds.shape[0]-731)[['dates','mat']].plot(x='dates',y=['mat'],grid=True,xlabel="",title=title+" w/c:("+str(latest_date)+")",ax=ax)   #),'BB total scanned vs purchased Coles jam units per week')
-    figname="B2fig_"+title
-    save_fig(figname)
+   # figname="B2fig_"+title
+   # save_fig(figname)
  
  #   pickle.dump(fig,open(output_dir+figname+".pkl", 'wb'))
     return dds[['dates','mat7','diff7','30_day%','90_day%','365_day%','mat']].tail(18),figname
@@ -884,6 +884,44 @@ def multiple_slice_scandata(df,query):
   #  write_excel2(new_df,"testdf2.xlsx")
     return new_df
 
+
+
+
+
+def multiple_slice_salesdata(df,query):
+    new_df=df.copy(deep=True)
+   # print("len query=",len(query))
+    
+    q= [x for t in range(0,2) for x in query[t]]
+    spc=q[0]
+    pc=q[2]
+ #   print("sales query=",spc,pc)
+ #   print("new_df=\n",new_df)
+  #  print("q=",q)
+    v=new_df.query('specialpricecat==@spc & product==@pc')[['date','qty']]
+    return v.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+    #print("v=",v)
+     #   print("criteria=",criteria)
+       #ix = new_df.index.get_level_values(criteria).isin(q)
+       #new_df=new_df[ix]    #.loc[:,(slice(None),(criteria))]
+  #  new_df=new_df.sort_index(level=['sortorder'],ascending=[True],sort_remaining=True)   #,axis=1)
+     #      v=sales_df.query('specialpricecat==@spc & productgroup==@pg')[['date','qty']]
+      #  else: 
+        #    v=sales_df.query('specialpricecat==@spc & product==@pc')[['date','qty']]
+ 
+  #  write_excel2(new_df,"testdf2.xlsx")
+   # return new_df
+
+
+
+
+def change_multiple_slice_scandata_values(scan_df,query,new_sales_values):    
+    new_scan_df=scan_df.copy()   #deep=True)   
+    q= [x for t in range(0,2) for x in query[t]]
+    index = new_scan_df[(new_scan_df.index.get_level_values('retailer')==q[0]) & (new_scan_df.index.get_level_values('product')==q[2]) & (new_scan_df.index.get_level_values('plottype')=='99') & (new_scan_df.index.get_level_values('plottype1')=='1')].index
+    new_scan_df.loc[index]=[new_sales_values]
+    return new_scan_df
+ 
 
 
 
@@ -1161,7 +1199,7 @@ def plot_slices(df):
                 plot_type4(plot_df)
             elif str(pt)=='0':
                 pass
-            save_fig("slice_",pn+"_"+pt+"_"+str(randrange(999)))
+            save_fig("ZZ slice_"+pn+"_"+pt+"_"+str(randrange(999)))
       #      plt.show()
             
              
@@ -1381,7 +1419,7 @@ def plot_prediction(df,title,latest_date):
     #plt.show()
     
     
-    save_fig(title+"_order_predictions")   #,images_path)
+    save_fig("ZZZ_order_predictions_"+title)   #,images_path)
       
    # plt.show()
 
@@ -1578,7 +1616,7 @@ def main():
     sales_df=pd.read_pickle(dd.sales_df_savename)
     #    # sales_df=pickle.load(f)
     
-    print("\n\nsales shape df=\n",sales_df.shape)
+    #print("\n\nsales shape df=\n",sales_df.shape)
     
     first_date=sales_df['date'].iloc[-1]
     last_date=sales_df['date'].iloc[0]
@@ -1636,11 +1674,13 @@ def main():
         print("\nLoad enhanced scan data:",dd.e_scandatalist,"......")
      
          
-    df=load_data(dd.e_scandatalist,dd.transposed_datalist)
+    scan_df=load_data(dd.e_scandatalist,dd.transposed_datalist)
     
-  #  print("df=\n",df)
-####
+   # print("enhanced scan df=\n",scan_df.iloc[30:60])   #,"\n",df.T)
+   # print(multiple_slice_scandata(df,query=[('99','plottype')]))
 
+####
+    scan_df.to_pickle(dd.save_scan_df_pkl,protocol=-1)
  #   pdf=df.copy(deep=True)
     print("graphing scan data...")
   #  print("pdf=\n",pdf)
@@ -1651,7 +1691,7 @@ def main():
  #   print("coles new_pdf1=\n",new_pdf)
   
     
-    pdf=df.copy(deep=True)
+    pdf=scan_df.copy(deep=True)
   #  print("graphing scan data...")
   #  print("pdf=\n",)
     pdf=pdf.iloc[:,-dd.brand_index_weeks_going_back:]      # remove first 20 weeks
@@ -1691,10 +1731,10 @@ def main():
 
   #  print("new_pdf3.T=\n",new_pdf.T)
  #   plot_brand_index(new_pdf,y_col=('Coles Beerenberg all jams','Units (000) Sold off Promotion >= 5 % 6 wks'),col_and_hue=[('Coles Bonne Maman all jams','Wks on Promotion >= 5 % 6 wks'),('Coles St Dalfour all jams','Wks on Promotion >= 5 % 6 wks')],savename="coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
-    plot_brand_index(new_pdf,y_col='Coles Beerenberg all jams-Units Sold off Promotion >= 5 % 6 wks',col_and_hue=['Coles Bonne Maman all jams-Wks on Promotion >= 5 % 6 wks','Coles St Dalfour all jams-Wks on Promotion >= 5 % 6 wks'],savename="brand index coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+    plot_brand_index(new_pdf,y_col='Coles Beerenberg all jams-Units Sold off Promotion >= 5 % 6 wks',col_and_hue=['Coles Bonne Maman all jams-Wks on Promotion >= 5 % 6 wks','Coles St Dalfour all jams-Wks on Promotion >= 5 % 6 wks'],savename="AAab brand index coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
 
   #  plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_bonne_maman_jams_on_promo','coles_st_dalfour_jams_on_promo'],savename="coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
-    plot_brand_index(new_pdf,y_col='Woolworths Beerenberg all jams-Units Sold off Promotion >= 5 % 6 wks',col_and_hue=['Woolworths Bonne Maman all jams-Wks on Promotion >= 5 % 6 wks','Woolworths St Dalfour all jams-Wks on Promotion >= 5 % 6 wks'],savename="brand index woolworths1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+    plot_brand_index(new_pdf,y_col='Woolworths Beerenberg all jams-Units Sold off Promotion >= 5 % 6 wks',col_and_hue=['Woolworths Bonne Maman all jams-Wks on Promotion >= 5 % 6 wks','Woolworths St Dalfour all jams-Wks on Promotion >= 5 % 6 wks'],savename="AAab brand index woolworths1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
 
   #  plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_bonne_maman_jams_on_promo','woolworths_st_dalfour_jams_on_promo'],savename="woolworths1")
 
@@ -1711,7 +1751,7 @@ def main():
  # ('Coles St Dalfour all jams',  'Wks on Promotion >= 5% 6 wks')
  # ('Coles Bonne Maman all jams','Units (000) Sold off Promotion >= 5 % 6 wks' )
  # ('Coles Bonne Maman all jams', 'Wks on Promotion >= 5% 6 wks')
-    pdf=df.copy(deep=True)
+    pdf=scan_df.copy(deep=True)
   #  print("graphing scan data...")
   #  print("pdf=\n",pdf)
     new_pdf=multiple_slice_scandata(pdf,query=[('4','plottype1'),('1','brand')])
@@ -1729,32 +1769,93 @@ def main():
     new_pdf = new_pdf.reset_index(level=[0,1],drop=True)  #'sortorder'])
    # new_pdf=new_pdf.set_index('sortorder')
      #new_pdf=new_pdf.droplevel([0])
-    scan_sales_df=new_pdf.T
+    new_scan_sales_df=new_pdf.T
   #  print("newpdf2=\n",new_pdf.columns)
-    newcols_dict={k:v for k,v in zip(scan_sales_df.columns,column_names)}
+    newcols_dict={k:v for k,v in zip(new_scan_sales_df.columns,column_names)}
   #  print("newcols dict=\n",newcols_dict)
    # new_pdf.rename(columns={1001: '1001', 1010: '1010', 1012:'1012',1018:'1018'}, inplace=True)
-    scan_sales_df.rename(columns=newcols_dict, inplace=True)
-  #  print("scan sales df=\n",scan_sales_df)  #,"\n",new_pdf.T)
+    new_scan_sales_df.rename(columns=newcols_dict, inplace=True)
+  #  print("new scan sales df=\n",new_scan_sales_df)  #,"\n",new_pdf.T)
 
  
  
  
-####
+########################33
 
+
+    if answer=="y":
+        sales_df=load_sales(dd.filenames)  # filenames is a list of xlsx files to load and sort by date
+     #      with open(dd.sales_df_savename,"wb") as f:
+  #            pickle.dump(sales_df, f,protocol=-1)
+        sales_df.sort_index(ascending=False,inplace=True)
+        sales_df.to_pickle(dd.sales_df_savename,protocol=-1)          
+ 
+
+
+
+    scan_df=pd.read_pickle(dd.save_scan_df_pkl)
+   # print("scan_df=\n",scan_df)
     
-    if dd.e_scandata_number_of_weeks>0 & dd.e_scandata_number_of_weeks+53<df.shape[1]:
-        df=df.iloc[:,-(dd.e_scandata_number_of_weeks+53):]
+    
+    new_pdf=multiple_slice_scandata(scan_df,query=[('99','plottype'),('1','plottype1')])
+  #  print("new pdf=\n",new_pdf)
+    
+    r=[(n,'retailer') for n in new_pdf.index.get_level_values('retailer')]  # retailer
+ #   print(r)
+    p=[(n,'product') for n in new_pdf.index.get_level_values('product')]  # retailer
+ #   print(p)
+    sales_query = [[tuple(i),tuple(j)] for i, j in zip(r, p)] 
+  
+    
+ #   print(sales_query)
+   # print(new_pdf.index.get_level_values('product'))  # retailer
+             
+             
+    #    spc=new_pdf.iloc[[row].level='retailer'
+    #    df.loc[(df.index.get_level_values('A') > 0.5) & (df.index.get_level_values('A') < 2.1)]
+        
+        
+    
+#    if dd.e_scandata_number_of_weeks>0 & dd.e_scandata_number_of_weeks+53<scan_df.shape[1]:
+#        scan_df=scan_df.iloc[:,-(dd.e_scandata_number_of_weeks+53):]
    #     print("df=\n",df)
     #new_df=slice_scandata(df,key='1',criteria='brand')
     #print("ss=",new_df)
     #new_df=multiple_slice_scandata(df,key=['1'],criteria='brand')
     #print("ms-",new_df)
-    
-        for q in dd.e_scandata_plotqueries:
-            plot_slices(multiple_slice_scandata(df,query=q)) #   key=['1'],criteria='brand')
+#    print("sales_df=\n",sales_df)
+    for q in sales_query:
+        new_sales_values=multiple_slice_salesdata(sales_df,q).to_numpy().reshape(1,-1)/1000 #   key=['1'],criteria='brand')
+        if new_sales_values.shape[1]<scan_df.shape[1]:
+            fill=scan_df.shape[1]-new_sales_values.shape[1]-1
+            if fill>=dd.weeks_offset:
+                new_sales_values=np.concatenate([np.zeros(fill+dd.weeks_offset),new_sales_values[0]])[-(scan_df.shape[1]-1):]
+                new_sales_values=np.concatenate([new_sales_values,np.zeros(1)])
+            else:
+                print("\nFILL ERROR\n")
+        
+ #   print("new sales values for ",q,"=\n",new_sales_values,new_sales_values.shape)
+   #     print("sales slice on",q,"\n",multiple_slice_salesdata(sales_df,query=q)) #   key=['1'],criteria='brand')
+        plot_slices(multiple_slice_scandata(scan_df,q)) #   key=['1'],criteria='brand')
+ 
+        q.append(('99','plottype'))  
+        q.append(('1','plottype1'))  
+
+     #   print("before new q=",q)           
+        scan_df=change_multiple_slice_scandata_values(scan_df,q,new_sales_values)    
+        del q[-1:]
+        q.append(('2','plottype1'))  
+
+      #  print("new q=",q)           
+        scan_df=change_multiple_slice_scandata_values(scan_df,q,new_sales_values)    
+        
+     #   print("after change scan_df=\n",scan_df)
     #print("ms2",new_df)
-    
+  #  print("new scan_df=\n",scan_df)
+    scan_df=scan_df.T  
+    scan_df.sort_index(axis=1,ascending=[True,True],level=['sortorder','plotnumber'],inplace=True)
+    scan_df.to_excel('scan_df_testexcel.xlsx')
+    scan_df.to_pickle('test new scan_df.pkl',protocol=-1)
     #print(new_df.columns,"\n",new_df.index)
         #       plot_slices(multiple_slice_scandata(df,query=[('1','brand'),('10','productgroup')])) #   key=['1'],criteria='brand')
    
@@ -1798,16 +1899,18 @@ def main():
     
     
     #######################################
-    if dd.dash_verbose:
-        print("\n============================================================================")  
-    # Big IRI scan data spreadsheets 
-        print("\nLoad IRI all scan data2:",dd.scan_data_files,"......")
+    # if dd.dash_verbose:
+    #     print("\n============================================================================")  
+    # # Big IRI scan data spreadsheets 
+    #     print("\nLoad IRI all scan data2:",dd.scan_data_files,"......")
     
     
-    df,original_df=load_IRI(dd.scan_data_files)
-    if dd.dash_verbose:
-        print("IRI shape=",df.shape,"\n")
+    # df,original_df=load_IRI(dd.scan_data_files)
+    # if dd.dash_verbose:
+    #     print("IRI shape=",df.shape,"\n")
     
+    
+     
     # new_level_name = "brand"
     # new_level_labels = ['p']
     #df1 = pd.DataFrame(data=1,index=df.index, columns=new_level_labels).stack()
@@ -1820,34 +1923,34 @@ def main():
     #full_index_df=recreate_full_index(df)
     #print(full_index_df)
     
-    scan_dict={"original_df":original_df,
-                "final_df":df,
-                'scan_sales_df':scan_sales_df,
+  #  scan_dict={#"original_df":original_df,
+   #             "final_df":df,
+   #             'scan_sales_df':scan_sales_df}
       #          "full_index_df":full_index_df,
            #     "market_rename_dict":dd.market_rename_dict,
             #   "product_dict":product_dict,
-                "measure_conversion_dict":dd.measure_conversion_dict,
-                "stacked_conversion_dict":dd.stacked_conversion_dict,
-                'plot_type_dict':dd.plot_type_dict,
-                'brand_dict':dd.brand_dict,
-                'category_dict':dd.category_dict,
-                'spc_dict':dd.spc_dict,
-                'salesrep_dict':dd.salesrep_dict,
-                'series_type_dict':dd.series_type_dict,
-                'productgroups_dict':dd.productgroups_dict,
-                'productgroup_dict':dd.productgroup_dict,
-                'variety_type_dict':dd.variety_type_dict,
-                'second_y_axis_conversion_dict':dd.second_y_axis_conversion_dict,
-                'reverse_conversion_dict':dd.reverse_conversion_dict}
+              #  "measure_conversion_dict":dd.measure_conversion_dict,
+             #   "stacked_conversion_dict":dd.stacked_conversion_dict,
+             #   'plot_type_dict':dd.plot_type_dict,
+             #   'brand_dict':dd.brand_dict,
+             #   'category_dict':dd.category_dict,
+             #   'spc_dict':dd.spc_dict,
+             #   'salesrep_dict':dd.salesrep_dict,
+             #   'series_type_dict':dd.series_type_dict,
+             #   'productgroups_dict':dd.productgroups_dict,
+             #   'productgroup_dict':dd.productgroup_dict,
+             #   'variety_type_dict':dd.variety_type_dict,
+             #   'second_y_axis_conversion_dict':dd.second_y_axis_conversion_dict,
+             #   'reverse_conversion_dict':dd.reverse_conversion_dict}
     
     
-    with open(dd.scan_dict_savename,"wb") as f:
-        pickle.dump(scan_dict,f,protocol=-1)
+  #  with open(dd.scan_dict_savename,"wb") as f:
+  #      pickle.dump(scan_dict,f,protocol=-1)
         
     ##############################################################    
     
-    with open(dd.scan_dict_savename, 'rb') as g:
-        scan_dict = pickle.load(g)
+  #  with open(dd.scan_dict_savename, 'rb') as g:
+  #      scan_dict = pickle.load(g)
     
     
     
@@ -1913,20 +2016,17 @@ def main():
     
     
     
-    if answer=="y":
-        sales_df=load_sales(dd.filenames)  # filenames is a list of xlsx files to load and sort by date
-  #      with open(dd.sales_df_savename,"wb") as f:
-  #            pickle.dump(sales_df, f,protocol=-1)
-        sales_df.to_pickle(dd.sales_df_savename,protocol=-1)          
     
- #   print("\n")    
-    sales_df.sort_values(by=['date'],ascending=True,inplace=True)
+ #   print("\n")  
+    sales_df=pd.read_pickle(dd.sales_df_savename)   #,protocol=-1)          
+    sales_df.reset_index(drop=True,inplace=True)
+  #  print("sales_df=\n",sales_df)
     last_date=sales_df['date'].iloc[-1]
     first_date=sales_df['date'].iloc[0]
     
     print("Attache sales trans analysis up to date.  New save is:",dd.sales_df_savename)
     print("Data available:",sales_df.shape[0],"records.\nfirst date:",first_date,"\nlast date:",last_date,"\n")
-    #print(sales_df)
+ #   print("\nsales_df=\n",sales_df)
     
     
    #####################################################################     
@@ -1939,16 +2039,16 @@ def main():
     #sales_df['year']=sales_df.date.year()
     yearly_sales_df.set_index('date',inplace=True)
   #  print("yearly sales df1=\n",yearly_sales_df)   #,sales_df.T) 
-    graph_sales_year_on_year(yearly_sales_df,"A YonY Total $ sales per week","$/week")
-    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['glset']=='EXS'],"A YonY Export $ sales per week","$/week")
-    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['glset']=='ONL'],"A YonY Online $ sales per week","$/week")
-    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['glset']=='NAT'],"A YonY National $ sales per week","$/week")
-    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['glset']=='SHP'],"A YonY Shop $ sales per week","$/week")
-    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['glset']=='DFS'],"A YonY DFS $ sales per week","$/week")
-    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['specialpricecat']==10.00],"A YonY Woolworths (10) $ sales per week","$/week")
-    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['specialpricecat']==12.00],"A YonY Coles (12) $ sales per week","$/week")
-    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['specialpricecat']==88.00],"A YonY (088) $ sales per week","$/week")
-    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['specialpricecat']==122.00],"A YonY Harris farm (122) $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df,"Aaa Year on Year Total $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['glset']=='EXS'],"Aaa Year on Year Export $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['glset']=='ONL'],"Aaa Year on Year Online $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['glset']=='NAT'],"Aaa Year on Year National $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['glset']=='SHP'],"Aaa Year on Year Shop $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['glset']=='DFS'],"Aaa Year on Year DFS $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['specialpricecat']==10.00],"Aaa Year on Year Woolworths (10) $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['specialpricecat']==12.00],"Aaa Year on Year Coles (12) $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['specialpricecat']==88.00],"Aaa Year on Year (088) $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['specialpricecat']==122.00],"Aaa Year on Year Harris farm (122) $ sales per week","$/week")
     
 
     
@@ -1974,9 +2074,9 @@ def main():
      #print(dds)
     #dds.drop(['period'],axis=1,inplace=True)
      
-    fig=dds.tail(dds.shape[0]-731)[['dates','mat']].plot(x='dates',y=['mat'],grid=True,xlabel="",title=title)   #),'BB total scanned vs purchased Coles jam units per week')
-    figname="Bfig1_"+name
-    save_fig(figname)
+  #  fig=dds.tail(dds.shape[0]-731)[['dates','mat']].plot(x='dates',y=['mat'],grid=True,xlabel="",title=title)   #),'BB total scanned vs purchased Coles jam units per week')
+  #  figname="Bfig1_"+name
+  #  save_fig(figname)
     dds[['dates','mat']].to_excel(output_dir+name+".xlsx") 
     
     #dds=sales_df.groupby(['period'])['salesval'].sum().to_frame() 
@@ -1987,9 +2087,9 @@ def main():
 
     dds_mat=dds.groupby(['dates'])['salesval'].sum().to_frame() 
     result,figname=glset_GSV(dds_mat,name)
-    dd.report_dict[dd.report(name,3,"_*","_*")]=result
-    dd.report_dict[dd.report(name,8,"_*","_*")]=figname
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+   # dd.report_dict[dd.report(name,3,"_*","_*")]=result
+   # dd.report_dict[dd.report(name,8,"_*","_*")]=figname
+   # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     result.to_excel(output_dir+name+".xlsx",engine='xlsxwriter') 
     
@@ -2021,9 +2121,9 @@ def main():
     
    # dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
     result,figname=glset_GSV(dds,name)
-    dd.report_dict[dd.report(name,3,"CASHSHOP","_*")]=result
-    dd.report_dict[dd.report(name,8,"CASHSHOP","_*")]=figname
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,3,"CASHSHOP","_*")]=result
+    # dd.report_dict[dd.report(name,8,"CASHSHOP","_*")]=figname
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     result.to_excel(output_dir+name+".xlsx",engine='xlsxwriter') 
     
@@ -2044,9 +2144,9 @@ def main():
     
     
     result,figname=glset_GSV(dds,name)
-    dd.report_dict[dd.report(name,3,"_*","_*")]=result
-    dd.report_dict[dd.report(name,8,"_*","_*")]=figname
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,3,"_*","_*")]=result
+    # dd.report_dict[dd.report(name,8,"_*","_*")]=figname
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     result.to_excel(output_dir+name+".xlsx") 
     
@@ -2067,9 +2167,9 @@ def main():
     
     
     result,figname=glset_GSV(dds,name)
-    dd.report_dict[dd.report(name,3,"_*","_*")]=result
-    dd.report_dict[dd.report(name,8,"_*","_*")]=figname
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,3,"_*","_*")]=result
+    # dd.report_dict[dd.report(name,8,"_*","_*")]=figname
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     result.to_excel(output_dir+name+".xlsx") 
     
@@ -2089,9 +2189,9 @@ def main():
     
     
     result,figname=glset_GSV(dds,name)
-    dd.report_dict[dd.report(name,3,"_*","_*")]=result
-    dd.report_dict[dd.report(name,8,"_*","_*")]=figname
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,3,"_*","_*")]=result
+    # dd.report_dict[dd.report(name,8,"_*","_*")]=figname
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     result.to_excel(output_dir+name+".xlsx") 
     
@@ -2110,9 +2210,9 @@ def main():
     # save_fig(figname)
 
     result,figname=glset_GSV(dds,name)
-    dd.report_dict[dd.report(name,3,"_*","_*")]=result
-    dd.report_dict[dd.report(name,8,"_*","_*")]=figname
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,3,"_*","_*")]=result
+    # dd.report_dict[dd.report(name,8,"_*","_*")]=figname
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     result.to_excel(output_dir+name+".xlsx") 
     
@@ -2131,9 +2231,9 @@ def main():
 
     
     result,figname=glset_GSV(dds,name)
-    dd.report_dict[dd.report(name,3,"_*","_*")]=result
-    dd.report_dict[dd.report(name,8,"_*","_*")]=figname
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,3,"_*","_*")]=result
+    # dd.report_dict[dd.report(name,8,"_*","_*")]=figname
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     result.to_excel(output_dir+name+".xlsx") 
     
@@ -2153,9 +2253,9 @@ def main():
     
     
     result,figname=glset_GSV(dds,name)
-    dd.report_dict[dd.report(name,3,"_*","_*")]=result
-    dd.report_dict[dd.report(name,8,"_*","_*")]=figname
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,3,"_*","_*")]=result
+    # dd.report_dict[dd.report(name,8,"_*","_*")]=figname
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     result.to_excel(output_dir+name+".xlsx") 
     
@@ -2192,8 +2292,8 @@ def main():
 
     name="pivot_table_units"
     pivot_df.to_excel(output_dir+name+".xlsx") 
-    dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     
     
@@ -2203,9 +2303,9 @@ def main():
 
     name="pivot_table_dollars"
     pivot_df.to_excel(output_dir+name+".xlsx") 
-    dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
-    #report_dict[report(name,5,"*","*")]=name+".xlsx"
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
+    # #report_dict[report(name,5,"*","*")]=name+".xlsx"
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     
     pivot_df=pd.pivot_table(sales_df[sales_df['productgroup']<"40"], values='qty', index=['productgroup'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
@@ -2215,10 +2315,10 @@ def main():
     
     
     pivot_df.to_excel(output_dir+name+".xlsx") 
-    dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
-    #report_dict[report(name,5,"*","*")]=name+".xlsx"
-    dd.report_dict[dd.report(name,8,"_*","_*")]=figname
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
+    # #report_dict[report(name,5,"*","*")]=name+".xlsx"
+    # dd.report_dict[dd.report(name,8,"_*","_*")]=figname
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     
     
@@ -2227,9 +2327,9 @@ def main():
 
     name="pivot_table_customers_x_glset_x_spc"
     pivot_df.to_excel(output_dir+name+".xlsx")
-    dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
-    #report_dict[report(name,5,"*","*")]=name+".xlsx"
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
+    # #report_dict[report(name,5,"*","*")]=name+".xlsx"
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     
     pivot_df=pd.pivot_table(sales_df, values='salesval', index=['glset'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
@@ -2238,9 +2338,9 @@ def main():
     #print(pivot_df)  
     name="pivot_table_customers_x_glset"
     pivot_df.to_excel(output_dir+name+".xlsx")
-    dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
-    #report_dict[report(name,5,"*","*")]=name+".xlsx"
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
+    # #report_dict[report(name,5,"*","*")]=name+".xlsx"
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     
     pivot_df=pd.pivot_table(sales_df, values='salesval', index=['specialpricecat'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
@@ -2249,10 +2349,10 @@ def main():
 
     name="Dollar sales per month by spc"
     figname=plot_stacked_line_pivot(pivot_df,name,False)   #,number=6)
-    dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
-    #report_dict[report(name,5,"*","*")]=name+".xlsx"
-    dd.report_dict[dd.report(name,8,"_*","_*")]=figname
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
+    # #report_dict[report(name,5,"*","*")]=name+".xlsx"
+    # dd.report_dict[dd.report(name,8,"_*","_*")]=figname
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     pivot_df.to_excel(output_dir+name+".xlsx")
     
@@ -2263,10 +2363,10 @@ def main():
    
     name="pivot_table_customers_spc_nocodes"
     pivot_df.to_excel(output_dir+name+".xlsx")
-    dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
-    #report_dict[report(name,5,"*","*")]=name+".xlsx"
-    dd.report_dict[dd.report(name,8,"_*","_*")]=figname
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
+    # #report_dict[report(name,5,"*","*")]=name+".xlsx"
+    # dd.report_dict[dd.report(name,8,"_*","_*")]=figname
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     
     pivot_df=pd.pivot_table(sales_df, values='salesval', index=['specialpricecat','code'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
@@ -2278,9 +2378,9 @@ def main():
     #print(pivot_df) 
     name="pivot_table_customers_x_spc"
     pivot_df.to_excel(output_dir+name+".xlsx") 
-    dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
-    #report_dict[report(name,5,"*","*")]=name+".xlsx"
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
+    # #report_dict[report(name,5,"*","*")]=name+".xlsx"
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     
     pivot_df=pd.pivot_table(sales_df, values='salesval', index=['cat','code'],columns=['year','month'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
@@ -2288,9 +2388,9 @@ def main():
     #print(pivot_df) 
     name="pivot_table_customers"
     pivot_df.to_excel(output_dir+name+".xlsx") 
-    dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
-    #report_dict[report(name,5,"*","*")]=name+".xlsx"
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
+    # #report_dict[report(name,5,"*","*")]=name+".xlsx"
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     
     ##################################################################3
@@ -2299,27 +2399,27 @@ def main():
     if dd.dash_verbose:
         print("\nUpdate and save the qty reports from the coles_and_ww_pkl_dict\n")
     #print("dict keys=\n",dd.coles_and_ww_pkl_dict.keys())
-    sales_df=saved_sales_df
+   # sales_df=saved_sales_df
     
     
-    for key in dd.coles_and_ww_pkl_dict.keys():
-        brand=dd.coles_and_ww_pkl_dict[key][0]
-        spc=dd.coles_and_ww_pkl_dict[key][1]
-        pg=str(dd.coles_and_ww_pkl_dict[key][2])
-        pc=dd.coles_and_ww_pkl_dict[key][3]
-        if (pc=="jams") | (pc=="_*") | (pc=="_t") | (pc=="_T"):
+    #for key in dd.coles_and_ww_pkl_dict.keys():
+    #    brand=dd.coles_and_ww_pkl_dict[key][0]
+    #    spc=dd.coles_and_ww_pkl_dict[key][1]
+    #    pg=str(dd.coles_and_ww_pkl_dict[key][2])
+    #    pc=dd.coles_and_ww_pkl_dict[key][3]
+     #   if (pc=="jams") | (pc=="_*") | (pc=="_t") | (pc=="_T"):
         #    print("pc=",pc,pg,spc)
-            v=sales_df.query('specialpricecat==@spc & productgroup==@pg')[['date','qty']]
-        else: 
-            v=sales_df.query('specialpricecat==@spc & product==@pc')[['date','qty']]
+      #      v=sales_df.query('specialpricecat==@spc & productgroup==@pg')[['date','qty']]
+      #  else: 
+        #    v=sales_df.query('specialpricecat==@spc & product==@pc')[['date','qty']]
      #   v.index = pd.to_datetime('date')  #, format='%Y')
   #      v.set_index('date')
       #  v=v.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
-        if dd.dash_verbose:
-            print("saving",key)   #,"v=\v",v)  #,"v=\n",v)  #,"=\n",v)      
+      #  if dd.dash_verbose:
+      #      print("saving",key)   #,"v=\v",v)  #,"v=\n",v)  #,"=\n",v)      
         #print(v)
-        with open(key,"wb") as f:
-              pickle.dump(v, f,protocol=-1)
+      #  with open(key,"wb") as f:
+      #        pickle.dump(v, f,protocol=-1)
     
     
     
@@ -2328,6 +2428,9 @@ def main():
     #
     
     
+    sales_df.reset_index(drop=True,inplace=True)
+ #   print("sales_df=\n",sales_df)
+
     latest_date=sales_df['date'].max()
     
     end_date=sales_df['date'].iloc[-1]- pd.Timedelta(2, unit='d')
@@ -2343,8 +2446,8 @@ def main():
     name="Top 20 customers by $purchases in the last 2 days"
     print("\n",name)
     print(unique_code_pivot_df[['code','total_dollars']].head(20))
-    dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     unique_code_pivot_df[['code','total_dollars']].head(20).to_excel(output_dir+name+".xlsx") 
     
@@ -2369,8 +2472,8 @@ def main():
     name="Top 30 customers by $purchases in the last 7 days"
     print("\n",name)
     print(unique_code_pivot_df[['code','total_dollars']].head(30))
-    dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     unique_code_pivot_df[['code','total_dollars']].head(30).to_excel(output_dir+name+".xlsx") 
     
@@ -2393,8 +2496,8 @@ def main():
     name="Top 50 customers by $purchases in the last 30 days"
     print("\n",name)
     print(unique_code_pivot_df[['code','total_dollars']].head(50))
-    dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     unique_code_pivot_df[['code','total_dollars']].head(50).to_excel(output_dir+name+".xlsx") 
     
@@ -2409,8 +2512,8 @@ def main():
     #unique_code_pivot_df=pd.unique(pivot_df['code'])
     print("\n",name)
     print(unique_code_pivot_df[['specialpricecat','total_dollars']].head(50))
-    dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
-    dd.report_dict[dd.report(name,5,"_*","-*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
+    # dd.report_dict[dd.report(name,5,"_*","-*")]=output_dir+name+".xlsx"
     
     unique_code_pivot_df[['specialpricecat','total_dollars']].head(50).to_excel(output_dir+name+".xlsx") 
     
@@ -2425,10 +2528,10 @@ def main():
     #unique_code_pivot_df=pd.unique(pivot_df['code'])
     print("\n",name)
     print(unique_code_pivot_df[['salesrep','total_dollars']].head(50))
-    dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
-    dd.report_dict[dd.report(name,5,"_*","-*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
+    # dd.report_dict[dd.report(name,5,"_*","-*")]=output_dir+name+".xlsx"
     
-    unique_code_pivot_df[['salesrep','total_dollars']].head(50).to_excel(output_dir+name+".xlsx") 
+    # unique_code_pivot_df[['salesrep','total_dollars']].head(50).to_excel(output_dir+name+".xlsx") 
     
     latest_date=sales_df['date'].max()
     
@@ -2446,8 +2549,8 @@ def main():
     #unique_code_pivot_df=pd.unique(pivot_df['code'])
     print("\n",name)
     print(unique_code_pivot_df[['salesrep','total_dollars']].head(50))
-    dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
-    dd.report_dict[dd.report(name,5,"_*","-*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
+    # dd.report_dict[dd.report(name,5,"_*","-*")]=output_dir+name+".xlsx"
     
     unique_code_pivot_df[['salesrep','total_dollars']].head(50).to_excel(output_dir+name+".xlsx") 
     
@@ -2471,8 +2574,8 @@ def main():
     print("\n",name)
     print(unique_code_pivot_df[['product','total_units','total_dollars']].head(50))
     #pivot_df.to_excel("pivot_table_customers_ranking.xlsx") 
-    dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     unique_code_pivot_df[['product','total_units','total_dollars']].head(50).to_excel(output_dir+name+".xlsx") 
     
@@ -2490,8 +2593,8 @@ def main():
     print("\n",name)
     print(unique_pg_pivot_df[['productgroup','total_units','total_dollars']].head(20))
     #pivot_df.to_excel("pivot_table_customers_ranking.xlsx") 
-    dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     unique_pg_pivot_df[['productgroup','total_units','total_dollars']].head(20).to_excel(output_dir+name+".xlsx") 
     
@@ -2508,14 +2611,14 @@ def main():
     credit_df=credit_df.sort_values(by=["salesval"],ascending=[True])
     
     print(credit_df.tail(50)[['date','code','glset','qty','salesval']])
-    dd.report_dict[dd.report(name,3,"_*","_*")]=credit_df
-    dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
+    # dd.report_dict[dd.report(name,3,"_*","_*")]=credit_df
+    # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"
     
     credit_df[['date','code','glset','qty','salesval']].tail(50).to_excel(output_dir+name+".xlsx") 
     
     
     
-    sales_df=saved_sales_df
+  #  sales_df=saved_sales_df
    
     
     
@@ -2523,7 +2626,7 @@ def main():
     # Create distribution report and find all the good performing and poor performing outliers in retail sales
     if answer3=="y":
 
-      #  print("\nChecking sales trends by customers and products of past year.....")
+    #    print("\nChecking sales trends by customers and products of past year.....")
         
         # find all the good performing and poor performing outliers in retail sales
         #  limit product groups
@@ -2541,7 +2644,11 @@ def main():
         # 20 losers
         #
         #print("\nSales performace start=\n",sales_df)
-        
+        sales_df=pd.read_pickle(dd.sales_df_savename)   #,protocol=-1)          
+  #  sales_df=pd.read_pickle(dd.sales_df_savename)   #,protocol=-1)          
+        sales_df.reset_index(drop=True,inplace=True)
+  #      print("sales_df=\n",sales_df)
+ 
         end_date=sales_df['date'].iloc[-1]- pd.Timedelta(366, unit='d')
         startend_date=sales_df['date'].iloc[-1]- pd.Timedelta(721, unit='d')
 
@@ -2578,8 +2685,8 @@ def main():
         #print("\nnew cust_list=",cust_list,len(cust_list))
         
         
-        #print("prod_list=\n",prod_list)
-        #print("cust_list=\n",cust_list)
+   #     print("prod_list=\n",prod_list)
+   #     print("cust_list=\n",cust_list)
         #prod_list.sort()
         #print("prod_list=",prod_list)
         #print("c=",cust_list,len(cust_list))
@@ -2600,16 +2707,20 @@ def main():
         
         cust_dict={k: v for v, k in enumerate(cust_list)}
         prod_dict={k: v for v, k in enumerate(prod_list)}
-        #print("cist dict=\n",cust_dict)
-       # print("prod dict=\n",prod_dict)
+     #   print("cist dict=\n",cust_dict)
+     #   print("prod dict=\n",prod_dict)
         dist_df=pd.DataFrame.from_dict(cust_dict,orient='index',dtype=object)  
         distdollars_df=pd.DataFrame.from_dict(cust_dict,orient='index',dtype=np.int32)  
-  
-        for p in prod_dict.keys():
-        #    print pd.to_datetime(dict(year=df.Y, month=df.M, day=df.D))
-            dist_df[p]= df.apply(lambda row : pd.to_datetime(dict(year=[2000],month=[1],day=[1])), axis=1)
-            distdollars_df[p]=df.apply(lambda row : 0, axis=1)
-        #    dist_df[p]=0 #pd.to_datetime({'year': 2000,'month':1,'day':1})   #0  #False #np.nan  #False#,columns=prod_list)
+     #   print("dist_df=\n",dist_df)
+     #   print("dist dolars=\n",distdollars_df)
+     #   print("cust_dict=",cust_dict)
+     #   print("dist_df=\n",dist_df)  
+        # for p in prod_dict.keys():
+        #     print("p=",p)
+        # #    print pd.to_datetime(dict(year=df.Y, month=df.M, day=df.D))
+        #     dist_df[p]= scan_df.apply(lambda row : pd.to_datetime(dict(year=[2000],month=[1],day=[1])), axis=1)
+        #     distdollars_df[p]=sales_df.apply(lambda row : 0, axis=1)
+        # #    dist_df[p]=0 #pd.to_datetime({'year': 2000,'month':1,'day':1})   #0  #False #np.nan  #False#,columns=prod_list)
         
         dist_df.drop(0,inplace=True,axis=1)
         dist_df=dist_df.T
@@ -2694,8 +2805,8 @@ def main():
                    # s['figure']=figure
                   #  figure_list.append(figure)
                     new_sales_df=new_sales_df.append(s)
-                    if (figname!="") & (name!=""):
-                        dd.report_dict[dd.report(name,8,cust[2],prod[1])]=figname
+                 #   if (figname!="") & (name!=""):
+                 #       dd.report_dict[dd.report(name,8,cust[2],prod[1])]=figname
         if dd.dash_verbose: 
             print("\n\n")
         #print("distribution matrix =\n",dist_df)
@@ -2795,15 +2906,15 @@ def main():
             print("\nbest growth=",new_sales_df[['code','product','slope']].head(100).to_string())
             print("\nworst growth=",new_sales_df[['code','product','slope']].tail(50).to_string())
             print(new_sales_df.shape)
-        dd.report_dict[dd.report(name,3,"_*","_*")]=new_sales_df
+      #  dd.report_dict[dd.report(name,3,"_*","_*")]=new_sales_df
         new_sales_df[['code','product','slope']].to_excel(output_dir+name+".xlsx",merge_cells=False,freeze_panes=(2,2),engine='xlsxwriter') 
         
         
         #print("\n\nreport dict=\n",report_dict.keys())
-        if dd.dash_verbose:
-            print("reports being pickled and saved to",dd.report_savename)
-        with open(dd.report_savename,"wb") as f:
-            pickle.dump(dd.report_dict, f,protocol=-1)
+     #   if dd.dash_verbose:
+     #       print("reports being pickled and saved to",dd.report_savename)
+     #   with open(dd.report_savename,"wb") as f:
+     #       pickle.dump(dd.report_dict, f,protocol=-1)
           
         #plt.pause(0.001) 
         #plt.show()
@@ -2902,177 +3013,177 @@ def main():
     
     #############################
     # load scan data from excel reports into a df and add multiindexes for graphing options
-    if dd.dash_verbose:
-        print("\nLoad prediction and brand index scan data....",dd.scandatalist,"\n")
+ #    if dd.dash_verbose:
+ #        print("\nLoad prediction and brand index scan data....",dd.scandatalist,"\n")
        
-    np.random.seed(42)
-    tf.random.set_seed(42)
+ #    np.random.seed(42)
+ #    tf.random.set_seed(42)
             
-    df=pd.read_excel(dd.scandatalist[0],-1,skiprows=[0,1,2],dtype=object).T.reset_index(drop=True)  #,index_col=None)   #n,index_col=None)  #.T.reset_index()  #,header=[0,1,2])  #,skip_rows=0)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
-    #print("start df=\n",df)
-    for n in range(1,len(dd.scandatalist)):
-        df2=pd.read_excel(dd.scandatalist[n],-1,skiprows=[0,1,2],dtype=object,index_col=None).T.reset_index(drop=True)   #,index_col=None)  #.T   #.reset_index()  #,header=[0,1,2])  #,skip_rows=0)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+ #    df=pd.read_excel(dd.scandatalist[0],-1,skiprows=[0,1,2],dtype=object).T.reset_index(drop=True)  #,index_col=None)   #n,index_col=None)  #.T.reset_index()  #,header=[0,1,2])  #,skip_rows=0)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+ #    #print("start df=\n",df)
+ #    for n in range(1,len(dd.scandatalist)):
+ #        df2=pd.read_excel(dd.scandatalist[n],-1,skiprows=[0,1,2],dtype=object,index_col=None).T.reset_index(drop=True)   #,index_col=None)  #.T   #.reset_index()  #,header=[0,1,2])  #,skip_rows=0)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
     
-        df2.drop(df2.index[0],inplace=True)
-        df=pd.concat((df,df2),axis=0)
+ #        df2.drop(df2.index[0],inplace=True)
+ #        df=pd.concat((df,df2),axis=0)
     
-    df.reset_index(drop=True,inplace=True)
+ #    df.reset_index(drop=True,inplace=True)
     
- #   print("df1=\n",df,"\n",df.T)
-    df = df.rename({0:"scan_week"})
-    df=df.T
-    #print("df2=\n",df,"\n",df.T)
-    df = df.dropna(subset=['scan_week'])
-    df.fillna(0.0,inplace=True)
-  #  print("df3=\n",df,"\n",df.T)
-    df = df.astype(dd.coles_and_ww_convert_dict) 
-    df['scan_week']=pd.to_datetime(df['scan_week'],format="%d/%m/%Y",exact=False)   #,yearfirst=True)
+ # #   print("df1=\n",df,"\n",df.T)
+ #    df = df.rename({0:"scan_week"})
+ #    df=df.T
+ #    #print("df2=\n",df,"\n",df.T)
+ #    df = df.dropna(subset=['scan_week'])
+ #    df.fillna(0.0,inplace=True)
+ #  #  print("df3=\n",df,"\n",df.T)
+ #    df = df.astype(dd.coles_and_ww_convert_dict) 
+ #    df['scan_week']=pd.to_datetime(df['scan_week'],format="%d/%m/%Y",exact=False)   #,yearfirst=True)
     
-    df = df.rename(dd.coles_and_ww_col_dict,axis='columns')
-    #print("after rename2=\n",df.index)
-    df.drop_duplicates(keep='first', inplace=True)
-    # delete weeks with all zeros
-    #print("df before delete=\n",df)  #.to_string())  #.tail(10),"\n",df.T,"\n",df.columns,df.T.columns)
-    #df = df[(df.iloc[:,2:] != 0.0).any()]
-    df=df[df.sum(axis=1)!=0]
-    #print("empty1 df=\n",df.iloc[:,1:])
-    #df2=df.iloc[:,1:]
-    #print("df2=\n",df2)
-    #print("df2.sum=\n",df2.sum(axis=1))
+ #    df = df.rename(dd.coles_and_ww_col_dict,axis='columns')
+ #    #print("after rename2=\n",df.index)
+ #    df.drop_duplicates(keep='first', inplace=True)
+ #    # delete weeks with all zeros
+ #    #print("df before delete=\n",df)  #.to_string())  #.tail(10),"\n",df.T,"\n",df.columns,df.T.columns)
+ #    #df = df[(df.iloc[:,2:] != 0.0).any()]
+ #    df=df[df.sum(axis=1)!=0]
+ #    #print("empty1 df=\n",df.iloc[:,1:])
+ #    #df2=df.iloc[:,1:]
+ #    #print("df2=\n",df2)
+ #    #print("df2.sum=\n",df2.sum(axis=1))
     
-    #print("nonempty df=\n",df,"\n",df.T)  #df[df.sum(axis=1)==0])
-    #print("empty3 df=\n",df[(df.iloc[:,2:]!=0).any()])
+ #    #print("nonempty df=\n",df,"\n",df.T)  #df[df.sum(axis=1)==0])
+ #    #print("empty3 df=\n",df[(df.iloc[:,2:]!=0).any()])
     
-    #print("df after delete=\n",df)  #to_string())  #tail(10),"\n",df.T,"\n",df.columns,df.T.columns)
+ #    #print("df after delete=\n",df)  #to_string())  #tail(10),"\n",df.T,"\n",df.columns,df.T.columns)
     
     
     
-    df.reset_index(drop=True,inplace=True)
+ #    df.reset_index(drop=True,inplace=True)
     
-    df=df.T
-    #print("df5=\n",df)
-    df.index = pd.MultiIndex.from_tuples(df.index,names=["brand","specialpricecat","productgroup","product","type","names"])
-    #print("df level (0)=\n",df.index.get_level_values(0))
+ #    df=df.T
+ #    #print("df5=\n",df)
+ #    df.index = pd.MultiIndex.from_tuples(df.index,names=["brand","specialpricecat","productgroup","product","type","names"])
+ #    #print("df level (0)=\n",df.index.get_level_values(0))
     
-    df=df.T
+ #    df=df.T
     
-    #print("final loaded df=\n",df)
-    df.drop_duplicates(keep='first', inplace=True)
-    df=df.set_index(list(df.columns[[0]]))   #.dt.strftime('%d/%m/%Y')
-    df.index.name = 'scan_week'
-    df.index = pd.to_datetime(df.index, format = '%d/%m/%Y',infer_datetime_format=True)
-    df=df.sort_index()
-    df=df.astype(np.float32)  #,inplace=True)
+ #    print("final loaded df=\n",df)
+ #    df.drop_duplicates(keep='first', inplace=True)
+ #    df=df.set_index(list(df.columns[[0]]))   #.dt.strftime('%d/%m/%Y')
+ #    df.index.name = 'scan_week'
+ #    df.index = pd.to_datetime(df.index, format = '%d/%m/%Y',infer_datetime_format=True)
+ #    df=df.sort_index()
+ #    df=df.astype(np.float32)  #,inplace=True)
     
-    #print("after6=\n",df)
-    #print(df.columns)
-    df.replace(np.nan, 0.0,inplace=True)
-    df=df*1000
-    #test=get_xs_name(df,3,0)
-  #  print("final loaded df=\n",df,"\n",df.T)
+ #    #print("after6=\n",df)
+ #    #print(df.columns)
+ #    df.replace(np.nan, 0.0,inplace=True)
+ #    df=df*1000
+ #    #test=get_xs_name(df,3,0)
+ #  #  print("final loaded df=\n",df,"\n",df.T)
   #  print("ddcpkl=\n",dd.coles_and_ww_pkl_dict.keys())
 #    print("cpkl=\n",coles_and_ww_pkl_dict.keys())
     
     ##################################################################################
      
-    before_joined_list=df.columns.to_list()
+#     before_joined_list=df.columns.to_list()
     
     
-           #joined_list=joined_df.index.to_list()
-      #  print("joined list=\n",joined_list)
-    before_joined_list_df=pd.DataFrame(before_joined_list,columns=df.columns.names)
-    #    print("jldf=\n",joined_list_df)
-    before_joined_list_df = before_joined_list_df[(before_joined_list_df['type'] == 0) | (before_joined_list_df['type'] == 1)]
-    before_joined_list_df = before_joined_list_df[before_joined_list_df['brand'] != 0].iloc[:,:]
+#            #joined_list=joined_df.index.to_list()
+#       #  print("joined list=\n",joined_list)
+#     before_joined_list_df=pd.DataFrame(before_joined_list,columns=df.columns.names)
+#     #    print("jldf=\n",joined_list_df)
+#     before_joined_list_df = before_joined_list_df[(before_joined_list_df['type'] == 0) | (before_joined_list_df['type'] == 1)]
+#     before_joined_list_df = before_joined_list_df[before_joined_list_df['brand'] != 0].iloc[:,:]
         
-    before_joined_list_df.drop_duplicates(keep='first',inplace=True)
-    #records = list(before_joined_list_df.iloc[:,:4].to_records(index=False))
-       # df.drop(df.columns[0], axis=1)
- #   print("\nbefore joined list df=\n",before_joined_list_df.to_string())
- #   print("records=",records,len(records))
-    unique_records = list(before_joined_list_df.iloc[:,:4].drop_duplicates(keep='first').to_records(index=False))
+#     before_joined_list_df.drop_duplicates(keep='first',inplace=True)
+#     #records = list(before_joined_list_df.iloc[:,:4].to_records(index=False))
+#        # df.drop(df.columns[0], axis=1)
+#  #   print("\nbefore joined list df=\n",before_joined_list_df.to_string())
+#  #   print("records=",records,len(records))
+#     unique_records = list(before_joined_list_df.iloc[:,:4].drop_duplicates(keep='first').to_records(index=False))
 
-   # records2=list(set(records))
-   # print("unique records=",unique_records,len(unique_records))
+#    # records2=list(set(records))
+#    # print("unique records=",unique_records,len(unique_records))
    
-    ############################################
-    # total all other on_promo and off_promo on matching productcodes (level 3)
-    # and level 4 is either 0 or 1
-    # get a list of products
-    #products=list(set(list(df.columns.get_level_values(3))))
-    #print("products=",products)
- #   print("df.columns=\n",df.columns.to_list()) 
-    df=df.T
- #   print("before df=\n",df)   
+#     ############################################
+#     # total all other on_promo and off_promo on matching productcodes (level 3)
+#     # and level 4 is either 0 or 1
+#     # get a list of products
+#     #products=list(set(list(df.columns.get_level_values(3))))
+#     #print("products=",products)
+#  #   print("df.columns=\n",df.columns.to_list()) 
+#     df=df.T
+#  #   print("before df=\n",df)   
 
-#    pred_count=0 
-    for rec in unique_records:
-   #     print("rec=",rec)
-       # cc=list(df.loc[rec].name)
-        cc=list(rec)
-        cc2=list(rec)
-        cc3=list(rec)
-        cc4=list(rec)
-      #  print("starting cc=",cc)
-
-        
-        brand=dd.brand_dict[cc[0]]
-        cust=dd.spc_dict[cc[1]]
-          #customer=cc[1]
-         #p=cc[3]    # product name
-        cc.append(2)  # cc[4]   # type is total                 
-        cc.append(str(cust)+"_"+str(brand)+"_"+str(cc[3])+"_total_scanned")   # cc[5]= new name
-        cc=tuple(cc)
-        
-        
-        
-
-     #   cc2=list(rec)
-      #  print("starting cc=",cc)
+# #    pred_count=0 
+#     for rec in unique_records:
+#    #     print("rec=",rec)
+#        # cc=list(df.loc[rec].name)
+#         cc=list(rec)
+#         cc2=list(rec)
+#         cc3=list(rec)
+#         cc4=list(rec)
+#       #  print("starting cc=",cc)
 
         
-       # brand=dd.brand_dict[cc2[0]]
-       # cust=dd.spc_dict[cc2[1]]
-          #customer=cc[1]
-         #p=cc[3]    # product name
-        cc2.append(6)  # cc[4]   # type is moving total                 
-        cc2.append(str(cust)+"_"+str(brand)+"_"+str(cc2[3])+"_4wk_moving_total_scanned")   # cc[5]= new name
-        cc2=tuple(cc2)
+#         brand=dd.brand_dict[cc[0]]
+#         cust=dd.spc_dict[cc[1]]
+#           #customer=cc[1]
+#          #p=cc[3]    # product name
+#         cc.append(2)  # cc[4]   # type is total                 
+#         cc.append(str(cust)+"_"+str(brand)+"_"+str(cc[3])+"_total_scanned")   # cc[5]= new name
+#         cc=tuple(cc)
+        
+        
+        
 
-        # cc3.append(4)  # cc[4]   # type is total                 
-        # cc3.append(str(cust)+"_"+str(brand)+"_"+str(cc3[3])+"_invoiced_shifted_3wks")   # cc[5]= new name
-        # cc3=tuple(cc3)
+#      #   cc2=list(rec)
+#       #  print("starting cc=",cc)
 
-        # cc4.append(7)  # cc[4]   # type is moving total                 
-        # cc4.append(str(cust)+"_"+str(brand)+"_"+str(cc4[3])+"_4wk_moving_total_invoiced_shifted_3wks")   # cc[5]= new name
-        # cc4=tuple(cc4)
+        
+#        # brand=dd.brand_dict[cc2[0]]
+#        # cust=dd.spc_dict[cc2[1]]
+#           #customer=cc[1]
+#          #p=cc[3]    # product name
+#         cc2.append(6)  # cc[4]   # type is moving total                 
+#         cc2.append(str(cust)+"_"+str(brand)+"_"+str(cc2[3])+"_4wk_moving_total_scanned")   # cc[5]= new name
+#         cc2=tuple(cc2)
+
+#         # cc3.append(4)  # cc[4]   # type is total                 
+#         # cc3.append(str(cust)+"_"+str(brand)+"_"+str(cc3[3])+"_invoiced_shifted_3wks")   # cc[5]= new name
+#         # cc3=tuple(cc3)
+
+#         # cc4.append(7)  # cc[4]   # type is moving total                 
+#         # cc4.append(str(cust)+"_"+str(brand)+"_"+str(cc4[3])+"_4wk_moving_total_invoiced_shifted_3wks")   # cc[5]= new name
+#         # cc4=tuple(cc4)
 
 
         
         
-      #  print("finishing cc=",cc)
-    #     df[cc]=df.T.xs(cc[5],level=5).sum()
-        testslice=df.xs(rec,level=[0,1,2,3],axis=0,drop_level=False)
+#       #  print("finishing cc=",cc)
+#     #     df[cc]=df.T.xs(cc[5],level=5).sum()
+#         testslice=df.xs(rec,level=[0,1,2,3],axis=0,drop_level=False)
         
     
-      #  print("rec=",rec,"row count=",row_count,"test=\n",testslice)
-        df=df.T
-     #   print("cc=",cc,"cc2=",cc2)  #"before df=\n",df)
-        df[cc]=testslice.sum(axis=0)
-     #   print("cc2 mat=",cc2,df[cc].rolling(4,axis=0).mean())   # 4weeks
+#       #  print("rec=",rec,"row count=",row_count,"test=\n",testslice)
+#         df=df.T
+#      #   print("cc=",cc,"cc2=",cc2)  #"before df=\n",df)
+#         df[cc]=testslice.sum(axis=0)
+#      #   print("cc2 mat=",cc2,df[cc].rolling(4,axis=0).mean())   # 4weeks
 
-        df[cc2]=df[cc].rolling(dd.mat,axis=0).mean()   # 4weeks
+#         df[cc2]=df[cc].rolling(dd.mat,axis=0).mean()   # 4weeks
         
-     #   df[cc4]=df[cc3].rolling(dd.mat,axis=0).mean()   # 4weeks
+#      #   df[cc4]=df[cc3].rolling(dd.mat,axis=0).mean()   # 4weeks
           
     
-      #  print("df[cc]=",cc,"\n",df[cc])
-        df=df.T
+#       #  print("df[cc]=",cc,"\n",df[cc])
+#         df=df.T
 
-    df=df.sort_index()
-   # print("after df=\n",df,"\n",df.T)
+#     df=df.sort_index()
+# #    print("after df=\n",df,"\n",df.T)
  
-    df=df.T
+#     df=df.T
  
 #     df[1,12,10,"jams",2,'coles_beerenberg_jams_total_scanned']=df[1,12,10,"jams",0,'coles_beerenberg_jams_off_promo_scanned']+df[1,12,10,"jams",1,'coles_beerenberg_jams_on_promo_scanned']
 #     df[2,12,10,"jams",2,'coles_st_dalfour_jams_total_scanned']=df[2,12,10,"jams",0,'coles_st_dalfour_jams_off_promo_scanned']+df[2,12,10,"jams",1,'coles_st_dalfour_jams_on_promo_scanned']
@@ -3161,8 +3272,8 @@ def main():
         # coles_pkl_dict contains a list of files names as keys to run as the actual sales in the prediction vs actual df
         #
         
-        with open(dd.report_savename,"rb") as f:
-            report_dict=pickle.load(f)
+    #    with open(dd.report_savename,"rb") as f:
+    #        report_dict=pickle.load(f)
         
         #print("report dict=",report_dict.keys())
        # coles_and_ww_pkl_dict=report_dict[dd.report('coles_and_ww_pkl_dict',0,"","")]
@@ -3170,6 +3281,8 @@ def main():
         
         ###########################################3
         
+        scan_df=pd.read_pickle(dd.save_scan_df_pkl)
+       # print("df=\n",df)
         joined_df=df.copy(deep=True)
         if dd.dash_verbose:
             print("resampling by week.")
@@ -3215,7 +3328,7 @@ def main():
 
 
         joined_df=joined_df.T
-      #  print("\njoined_df before=\n",joined_df)
+        print("\njoined_df before=\n",joined_df)
 
         
         #joined_df.index=joined_df.index.rename(columns={4:dd.series_type_dict})
@@ -3460,11 +3573,11 @@ def main():
         save_fig("Ww_BB_jams_units_moving_total")
         #plt.show()
         #print(df)
-        plt.close()
+      #  plt.close()
         
-        ax=df.plot(grid=True,title="ww BB units moving total stacked"+str(dd.mat)+" weeks w/c:"+str(latest_date),style=styles1, lw=linewidths,stacked=True)
-        ax.legend(title="")
-        save_fig("Ww_BB_jams_units_stacked_moving_total")
+     #   ax=df.plot(grid=True,title="ww BB units moving total stacked"+str(dd.mat)+" weeks w/c:"+str(latest_date),style=styles1, lw=linewidths,stacked=True)
+     #   ax.legend(title="")
+     #   save_fig("Ww_BB_jams_units_stacked_moving_total")
         #plt.show()
         #print(df)
         plt.close("all")
