@@ -14,8 +14,8 @@ import numpy as np
 #  tf model hyper parameters for order prediction based on scan sales data
 batch_length=4
 no_of_batches=1000
-no_of_repeats=4
-epochs=8
+no_of_repeats=1
+epochs=2
 
 
 # product appears on low stock report if units stock is below this number
@@ -38,7 +38,7 @@ predictions_only_savename="_predictions.pkl"
 #woolscan="Ww_scan_data_300620.xlsx"
 #candatalist=["Coles_scan_data_300620.xlsx","Ww_scan_data_300620.xlsx"]
   #  report_savename="sales_trans_report_dict.pkl"
-save_scan_df_pkl="coles_and_ww_invoiced_and_scanned_sales.pkl"
+scan_df_save="coles_and_ww_invoiced_and_scanned_sales.pkl"
 
  
 e_scandatalist=["coles_scan_data_enhanced_sept2020.xlsx","ww_scan_data_enhanced_sept2020.xlsx"] 
@@ -47,19 +47,19 @@ e_scandata_plotqueries=[[('10','retailer'),('0','variety')],
                         [('12','retailer'),('0','variety')],
                         [('10','retailer'),('1','variety')],
                         [('12','retailer'),('1','variety')],
-                   #    [('10','retailer'),('11','productgroup')],
-                   #   [('12','retailer'),('11','productgroup')],
-                   #  [('10','retailer'),('90','variety')],
-                   #    [('12','retailer'),('90','variety')],
-                   #    [('10','retailer'),('93','variety')],
-                   #    [('12','retailer'),('93','variety')],
-                   #    [('10','retailer'),('91','variety')],
-                   #    [('12','retailer'),('91','variety')],
-                   #    [('10','retailer'),('92','variety')],
-                   #    [('12','retailer'),('92','variety')],
+                        [('10','retailer'),('11','productgroup')],
+                        [('12','retailer'),('11','productgroup')],
+                        [('10','retailer'),('90','variety')],
+                        [('12','retailer'),('90','variety')],
+                        [('10','retailer'),('93','variety')],
+                        [('12','retailer'),('93','variety')],
+                        [('10','retailer'),('91','variety')],
+                        [('12','retailer'),('91','variety')],
+                        [('10','retailer'),('92','variety')],
+                        [('12','retailer'),('92','variety')],
                    #     [('1','brand')],
-                   #    [('2','brand')],
-                   #    [('3','brand')],
+                        [('2','brand')],
+                        [('3','brand')],
                    #    [('4','brand')],
                    #    [('7','brand')],
                    #    [('8','brand')],
@@ -77,14 +77,19 @@ brand_index_weeks_going_back=104   # for brand index
 
 weeks_offset=3   # weeks to shift invoiced sales to align with scanned sALES
 
-
+weeks_rolling_mean=4
 
 sales_df_savename="sales_trans_df.pkl"
 filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
    
 
-product_groups_only=["10","11","12","13","14","15","16","17","18"]
-spc_only=['080',"088",'020',"028",'030',"038",'040',"048",'050','060','070']  #,"028"]   #,"038","048","028","080","020","030","040']
+product_groups_only=["10"]  #,"11","12","13","14","15","16","17","18"]
+spc_only=['080',"088"]   #,'020',"028",'030',"038",'040',"048",'050','060','070']  #,"028"]   #,"038","048","028","080","020","030","040']
+
+max_slope=0.15
+min_slope=-0.05
+
+min_size_for_trend_plot=7
 
 # moving average total days used in prediction
 mats=7
