@@ -1083,7 +1083,7 @@ def plot_learning_curves(loss, val_loss,epochs,title):
 
  
 
-@tf.function
+#@tf.function
 def sequential_indices(start_points,length_of_indices): 
       grid_indices=tf.meshgrid(tf.range(0,length_of_indices),start_points)   #int((end_point-start_point)/batch_length)+1)) #   print("gt=",gridtest)
       return tf.add(grid_indices[0],grid_indices[1])   #[:,:,np.newaxis
@@ -1094,7 +1094,7 @@ def sequential_indices(start_points,length_of_indices):
   # for step_ahead in range(1, predict_ahead_length + 1):
   #     Y[...,step_ahead - 1] = series[..., step_ahead:step_ahead+batch_length-predict_ahead_length, 0]  #+1
 
-@tf.function
+#@tf.function
 def create_X_batches(series,batch_length,no_of_batches,start_point,end_point):
       start_points=tf.random.uniform(shape=[no_of_batches],minval=start_point,
                   maxval=end_point-batch_length,dtype=tf.int32)
@@ -1102,7 +1102,7 @@ def create_X_batches(series,batch_length,no_of_batches,start_point,end_point):
  
  
 
-@tf.function
+#@tf.function
 def create_X_and_y_batches(X_set,y_set,batch_length,no_of_batches):
       indices=create_X_batches(X_set,batch_length,no_of_batches,0,X_set.shape[0])
   #   print("X indices shape",X_indices.shape)
