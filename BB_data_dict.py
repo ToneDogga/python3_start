@@ -15,7 +15,7 @@ import numpy as np
 batch_length=4
 no_of_batches=1000
 no_of_repeats=4
-epochs=8
+epochs=11
 
 
 # product appears on low stock report if units stock is below this number
@@ -63,7 +63,7 @@ e_scandata_plotqueries=[[('10','retailer'),('0','variety')],
                    #    [('4','brand')],
                    #    [('7','brand')],
                    #    [('8','brand')],
-                   #    [('13','brand')],
+                   print(gpus)#    [('13','brand')],
                        
                      #   [('10','retailer'),('12','productgroup')],
                         [('12','retailer'),('14','productgroup')]]
