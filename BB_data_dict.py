@@ -63,7 +63,7 @@ e_scandata_plotqueries=[[('10','retailer'),('0','variety')],
                    #    [('4','brand')],
                    #    [('7','brand')],
                    #    [('8','brand')],
-                   print(gpus)#    [('13','brand')],
+                   #    [('13','brand')],
                        
                      #   [('10','retailer'),('12','productgroup')],
                         [('12','retailer'),('14','productgroup')]]
