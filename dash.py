@@ -1211,6 +1211,129 @@ def plot_prediction(df,title,latest_date):
 
 
 
+
+def compare_customers_on_plot(sales_df,latest_date,prod):
+    styles1 = ['r-',"b-","g-","k-","y-"]
+       # styles1 = ['bs-','ro:','y^-']
+    linewidths = 1  # [2, 1, 4]
+    latest_date=pd.to_datetime(latest_date).strftime("%d/%m/%Y")
+    
+    fig, ax = pyplot.subplots()
+    fig.autofmt_xdate()
+    
+    start_point=[]
+
+#       print("\n")    
+    t_count=0
+    for cust in dd.customers_to_plot_together:
+    #    print("\rCustomer dollar sales graphs:",t_count,"/",ctotrun,end="\r",flush=True)
+  #      print("customers to plot together",cust,"product",prod)
+        if prod=="":
+            print("customers to plot together",cust)
+            cust_sales=sales_df[sales_df['code']==cust].copy()
+        else:
+            print("product",prod,"-customers to plot together",cust)
+            cust_sales=sales_df[(sales_df['code']==cust) & (sales_df['product']==prod)].copy()
+        
+        print("cust_sause=\n",cust_sales)
+        if cust_sales.shape[0]>0: 
+            
+            cust_sales.set_index('date',inplace=True)
+            
+            cust_sales=cust_sales.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+    
+            cust_sales['mat']=cust_sales['salesval'].rolling(dd.mat2,axis=0).mean()
+            try:
+                start_point.append(cust_sales['mat'].iloc[dd.scaling_point_week_no])
+            #cust_sales.index = pd.to_datetime('period', format='%d-%m-%Y',exact=False)
+     
+            # styles1 = ['b-','g:','r:']
+            
+                cust_sales=cust_sales.iloc[dd.scaling_point_week_no-1:,:]
+            except:
+                print("not enough sales data",cust,prod)
+            else:    
+                cust_sales[['mat']].plot(grid=True,use_index=True,title=str(prod)+" Dollars/week moving total comparison "+str(dd.mat2)+" weeks @w/c:"+str(latest_date),style=styles1[t_count], lw=linewidths,ax=ax)
+        ax.legend(dd.customers_to_plot_together,title="")
+        ax.set_xlabel("",fontsize=8)
+
+        t_count+=1            
+
+    save_fig("cust_"+str(dd.customers_to_plot_together[0])+"prod_"+str(prod)+"_together_dollars_moving_total")
+        
+  #  print("start point",start_point) 
+    scaling=[100/start_point[i] for i in range(0,len(start_point))]
+ #   print("scaling",scaling)
+    
+    print("\n")
+  
+    fig, ax = pyplot.subplots()
+    fig.autofmt_xdate()
+ 
+
+#    print("cust sales=\n",cust_sales)
+
+    t_count=0
+    for cust in dd.customers_to_plot_together:
+    #    print("\rCustomer dollar sales graphs:",t_count,"/",ctotrun,end="\r",flush=True)
+ #       print("customers to plot together",cust)
+        if prod=="":
+            cust_sales=sales_df[sales_df['code']==cust].copy()
+        else:
+            cust_sales=sales_df[(sales_df['code']==cust) & (sales_df['product']==prod)].copy()
+ 
+ #       cust_sales=sales_df[sales_df['code']==cust].copy()
+        if cust_sales.shape[0]>0: 
+            cust_sales.set_index('date',inplace=True)
+            
+            cust_sales=cust_sales.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+    
+            cust_sales['mat']=cust_sales['salesval'].rolling(dd.mat2,axis=0).mean()
+            try:
+                cust_sales['scaled_mat']=cust_sales['mat']*scaling[t_count]
+            #cust_sales.index = pd.to_datetime('period', format='%d-%m-%Y',exact=False)
+     
+            # styles1 = ['b-','g:','r:']
+           # try:
+                cust_sales=cust_sales.iloc[dd.scaling_point_week_no-1:,:]
+            except:
+                print("not enough data2",cust,prod)
+            else:    
+                cust_sales[['scaled_mat']].plot(grid=True,use_index=True,title=str(prod)+" Scaled Sales/week moving total comparison "+str(dd.mat2)+" weeks @w/c:"+str(latest_date),style=styles1[t_count], lw=linewidths,ax=ax)
+ 
+        t_count+=1  
+        
+    ax.legend(dd.customers_to_plot_together,title="")
+    ax.set_xlabel("",fontsize=8)
+
+
+#    ax.axvline(dd.scaling_point_week_no, ls='--')
+#
+    save_fig("cust_"+str(dd.customers_to_plot_together[0])+"prod_"+str(prod)+"_scaled_together_dollars_moving_total")
+#    print("cust sales2=\n",cust_sales,cust_sales.T)
+  
+        
+    print("\n")
+    return    
+ 
+    
+ 
+    
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
 def train_model(name,X_set,y_set,batch_length,no_of_batches,epochs,count,total):
    
     X,y=create_X_and_y_batches(X_set,y_set,batch_length,no_of_batches)
@@ -2818,7 +2941,8 @@ def main():
             save_fig("prod_"+prod[1]+"_units_moving_total")
             
             graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['product']==prod[1]],"prod_"+str(prod[1])+" units per week","Units/week")
-                
+            compare_customers_on_plot(sales_df,latest_date,prod[1])
+               
 
             
             
@@ -2856,8 +2980,10 @@ def main():
             t_count+=1
     
         print("\n")
+        compare_customers_on_plot(sales_df,latest_date,"")
         plt.close("all")
-  
+ 
+ 
     
     
     #############################
