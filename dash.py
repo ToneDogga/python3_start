@@ -1295,7 +1295,43 @@ def main():
         print("\n=================================================================================================\n")       
        
     
-   
+ #############################################################
+    
+    #with open(dd.sales_df_savename,"rb") as f:
+    sales_df=pd.read_pickle(dd.sales_df_savename)
+    #    # sales_df=pickle.load(f)
+    
+    #print("\n\nsales shape df=\n",sales_df.shape)
+    
+    first_date=sales_df['date'].iloc[-1]
+    last_date=sales_df['date'].iloc[0]
+    
+    print("Attache sales trans analysis.  Current save is:")
+    
+    
+    print("Data available:",sales_df.shape[0],"records.\nfirst date:",first_date,"\nlast date:",last_date,"\n")
+  
+    
+    answer4="n"
+    answer4=input("\nPlot scan data? (y/n)")
+    #answer3="y"
+
+    
+    answer3="n"
+    answer3=input("Create distribution report and sales trends? (y/n)")
+    #answer3="y"
+    
+    
+    answer2="n"
+    answer2=input("Predict next weeks Coles and WW orders from scan data? (y/n)")
+    
+    answer="y"
+    answer=input("Refresh salestrans?")
+    
+    print("\n")
+    start_timer = time.time()
+
+############################################################33
        
     np.random.seed(42)
     tf.random.set_seed(42)
@@ -1341,7 +1377,8 @@ def main():
     
     stock_report_df.replace({'productgroup':dd.productgroups_dict},inplace=True)
     
-    print("Low stock report (below",dd.low_stock_limit,"units)\n",stock_report_df.to_string())
+  #  print("Low stock report (below",dd.low_stock_limit,"units)\n",stock_report_df.to_string())
+    print("Low stock report:\n",stock_report_df.to_string())
     
     #####################################
     
@@ -1397,38 +1434,38 @@ def main():
     ###################################################    
      
     
-    #with open(dd.sales_df_savename,"rb") as f:
-    sales_df=pd.read_pickle(dd.sales_df_savename)
-    #    # sales_df=pickle.load(f)
+    # #with open(dd.sales_df_savename,"rb") as f:
+    # sales_df=pd.read_pickle(dd.sales_df_savename)
+    # #    # sales_df=pickle.load(f)
     
-    #print("\n\nsales shape df=\n",sales_df.shape)
+    # #print("\n\nsales shape df=\n",sales_df.shape)
     
-    first_date=sales_df['date'].iloc[-1]
-    last_date=sales_df['date'].iloc[0]
+    # first_date=sales_df['date'].iloc[-1]
+    # last_date=sales_df['date'].iloc[0]
     
-    print("\nAttache sales trans analysis.  Current save is:")
+    # print("\nAttache sales trans analysis.  Current save is:")
     
     
-    print("Data available:",sales_df.shape[0],"records.\nfirst date:",first_date,"\nlast date:",last_date,"\n")
+    # print("Data available:",sales_df.shape[0],"records.\nfirst date:",first_date,"\nlast date:",last_date,"\n")
   
     
-    answer4="n"
-    answer4=input("\nPlot scan data? (y/n)")
-    #answer3="y"
+    # answer4="n"
+    # answer4=input("\nPlot scan data? (y/n)")
+    # #answer3="y"
 
     
-    answer3="n"
-    answer3=input("Create distribution report and sales trends? (y/n)")
-    #answer3="y"
+    # answer3="n"
+    # answer3=input("Create distribution report and sales trends? (y/n)")
+    # #answer3="y"
     
     
-    answer2="n"
-    answer2=input("Predict next weeks Coles and WW orders from scan data? (y/n)")
+    # answer2="n"
+    # answer2=input("Predict next weeks Coles and WW orders from scan data? (y/n)")
     
-    answer="y"
-    answer=input("Refresh salestrans?")
+    # answer="y"
+    # answer=input("Refresh salestrans?")
     
-    start_timer = time.time()
+    # start_timer = time.time()
 
 ############################################################################    
     
@@ -1825,7 +1862,7 @@ def main():
     last_date=sales_df['date'].iloc[-1]
     first_date=sales_df['date'].iloc[0]
     
-    print("Attache sales trans analysis up to date.  New save is:",dd.sales_df_savename)
+    print("\nAttache sales trans analysis up to date.  New save is:",dd.sales_df_savename)
     print("Data available:",sales_df.shape[0],"records.\nfirst date:",first_date,"\nlast date:",last_date,"\n")
  #   print("\nsales_df=\n",sales_df)
     
@@ -2866,18 +2903,29 @@ def main():
         
         saved_new_df=new_df.copy()
         new_df=new_df.T
-        colnames=new_df.columns.get_level_values('colname').to_list()[::2]     
-        plotnumbers=new_df.columns.get_level_values('plotnumber').to_list()[::2]        
+        colnames=new_df.columns.get_level_values('colname').to_list()[::3]     
+        plotnumbers=new_df.columns.get_level_values('plotnumber').to_list()[::3]        
       #  print("colnames",colnames,len(colnames))
       #  print("plotnumbers",plotnumbers,len(plotnumbers))
              #   newpred=np.concatenate((X_fill,X_full,pred))
 
         
-  
+        print("\n")
         for row,name in zip(plotnumbers,colnames):
-           # print("row=",row)
+            sales_corr=new_df.xs(row,level='plotnumber',drop_level=False,axis=1).corr(method='pearson')
+            sales_corr=sales_corr.droplevel([0,1])
+        #    print("sales corr",sales_corr.shape)
+            shifted_vs_scanned_off_promo_corr=round(sales_corr.iloc[0,2],3)
+            shifted_vs_scanned_corr=round(sales_corr.iloc[1,2],3)
+
+            print(name,"-shifted vs scanned total sales correlation=",shifted_vs_scanned_corr)
+        #    print(name,"-shifted vs scanned off promo correlation=",shifted_vs_scanned_off_promo_corr)
+
+            #   print("Correlations:\n",sales_corr)
+ 
+            # print("row=",row)
             new_df.xs(row,level='plotnumber',drop_level=False,axis=1).plot(xlabel="",ylabel="Units/week")
-            plt.legend(title="Invoiced units vs scanned units per week",loc='best',fontsize=8,title_fontsize=9)
+            plt.legend(title="Invoiced vs scan units (total,off_promo)/wk correlation:("+str(shifted_vs_scanned_corr)+" , "+str(shifted_vs_scanned_off_promo_corr)+")",loc='best',fontsize=8,title_fontsize=8)
          #   plt.show()
             save_fig("pred_align_"+name)
           #  plt.show()
@@ -2902,6 +2950,7 @@ def main():
         r=1
         totalr=len(plotnumbers)
         pred_dict={}
+        inv_dict={}
         
         for row,name in zip(plotnumbers,colnames):
            # print("row=",row)
@@ -2920,7 +2969,7 @@ def main():
             model=train_model(clean_up_name(str(name)),X,y,dd.batch_length,dd.no_of_batches,dd.epochs,r,totalr)
             pred=predict_order(X_full,y_full,name,model)
             pred_dict[name]=pred[0]
-        
+            inv_dict[name]=y_full[-2]       
          #   print(name,"predictions:",int(pred[0]))
           #  new_df=new_df.T
          #   print("level=",new_df.index.nlevels,"pred=",pred)
@@ -2943,9 +2992,13 @@ def main():
             r+=1
             
    
-       # print("final pred_dict=",pred_dict)   
+     #   print("final pred_dict=",pred_dict,"\ninv dict=",inv_dict)   
         pred_output_df=pd.DataFrame.from_dict(pred_dict,orient='index',columns=[next_week],dtype=np.int32)
-        print("\nOrder predictions for next week=\n",pred_output_df) #,"\n",pred_output_df.T)
+        inv_output_df=pd.DataFrame.from_dict(inv_dict,orient='index',columns=["invoiced_w/e_"+str(latest_date)],dtype=np.int32)
+        pred_output_df=pd.concat((inv_output_df,pred_output_df),axis=1)
+        #pred_output['invoiced_last_week']=new_df.xs('75',level='plottype3',drop_level=False,axis=1)[-1:].to_numpy().T[0]
+
+        print("\nOrder predictions for next week (date is end of week)=\n",pred_output_df) #,"\n",pred_output_df.T)
     #    print("scan df=\n",scan_df)
         
    #     new_df=saved_new_df
@@ -2977,7 +3030,7 @@ def main():
         for row,name in zip(plotnumbers,colnames):
            # print("row=",row)
  
-            new_df.iloc[-16:,:].xs(row,level='plotnumber',drop_level=False,axis=1).plot(xlabel="",sort_columns=True,style=['b-','g:','r:'],ylabel="Units/week")
+            new_df.iloc[-16:,:].xs(row,level='plotnumber',drop_level=False,axis=1).plot(xlabel="",sort_columns=True,style=['b-','b:','g:','r:'],ylabel="Units/week")
         #    plt.autofmt_xdate()
  
             plt.legend(title="Invoiced units vs scanned units per week + next weeks prediction",loc='best',fontsize=8,title_fontsize=9)

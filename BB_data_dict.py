@@ -15,7 +15,7 @@ import numpy as np
 batch_length=4
 no_of_batches=1000
 no_of_repeats=4
-epochs=11
+epochs=10
 
 
 # product appears on low stock report if units stock is below this number
@@ -77,7 +77,7 @@ brand_index_weeks_going_back=104   # for brand index
 
 weeks_offset=3   # weeks to shift invoiced sales to align with scanned sALES
 
-weeks_rolling_mean=4
+weeks_rolling_mean=3  # week mrolling ean on invoiced sales
 
 sales_df_savename="sales_trans_df.pkl"
 filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
@@ -86,16 +86,16 @@ filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"
 product_groups_only=["10","11","12","13","14","15","16","17","18"]
 spc_only=['080',"088",'020',"028",'030',"038",'040',"048",'050','060','070']  #,"028"]   #,"038","048","028","080","020","030","040']
 
-max_slope=0.15
-min_slope=-0.05
+max_slope=0.2
+min_slope=-0.1
 
 min_size_for_trend_plot=7
 
 # moving average total days used in prediction
-mats=7
+#mats=7
 
 # moving average for weeks to calculate a rolling average on scanned data
-mat=4
+mat=4      # weeks mat for product sales smoothing
 mat2=52   # weeks mat for customer reports
 
 #can_data_files=["jam_scan_data_2020.xlsx","cond_scan_data_2020.xlsx","sauce_scan_data_2020.xlsx"]
