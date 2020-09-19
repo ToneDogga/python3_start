@@ -1229,10 +1229,12 @@ def compare_customers_on_plot(sales_df,latest_date,prod):
     #    print("\rCustomer dollar sales graphs:",t_count,"/",ctotrun,end="\r",flush=True)
   #      print("customers to plot together",cust,"product",prod)
         if prod=="":
-            print("customers to plot together",cust)
+            if dd.dash_verbose:
+                print("customers to plot together",cust)
             cust_sales=sales_df[sales_df['code']==cust].copy()
         else:
-            print("product",prod,"-customers to plot together",cust)
+            if dd.dash_verbose:
+                print("product",prod,"-customers to plot together",cust)
             cust_sales=sales_df[(sales_df['code']==cust) & (sales_df['product']==prod)].copy()
         
       #  print("cust_sause=\n",cust_sales)
@@ -1265,7 +1267,7 @@ def compare_customers_on_plot(sales_df,latest_date,prod):
     scaling=[100/start_point[i] for i in range(0,len(start_point))]
  #   print("scaling",scaling)
     
-    print("\n")
+ #   print("\n")
   
     fig, ax = pyplot.subplots()
     fig.autofmt_xdate()
@@ -1313,7 +1315,7 @@ def compare_customers_on_plot(sales_df,latest_date,prod):
 #    print("cust sales2=\n",cust_sales,cust_sales.T)
   
         
-    print("\n")
+ #   print("\n")
     return    
  
     
