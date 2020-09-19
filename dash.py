@@ -1235,7 +1235,7 @@ def compare_customers_on_plot(sales_df,latest_date,prod):
             print("product",prod,"-customers to plot together",cust)
             cust_sales=sales_df[(sales_df['code']==cust) & (sales_df['product']==prod)].copy()
         
-        print("cust_sause=\n",cust_sales)
+      #  print("cust_sause=\n",cust_sales)
         if cust_sales.shape[0]>0: 
             
             cust_sales.set_index('date',inplace=True)
