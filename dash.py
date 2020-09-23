@@ -293,6 +293,10 @@ def clean_up_name(name):
 def load_sales(filenames):  # filenames is a list of xlsx files to load and sort by date
     print("load:",filenames[0])
     df=pd.read_excel(filenames[0],sheet_name="AttacheBI_sales_trans",usecols=range(0,17),verbose=False)  # -1 means all rows   
+    price_df=pd.read_excel("salestrans.xlsx",sheet_name="prices",usecols=range(0,dd.price_width),header=0,skiprows=[0,2,3],index_col=0,verbose=False)  # -1 means all rows  
+   # price_df.columns=price_df.columns.astype(str)
+    price_df=price_df.iloc[:-2]
+    price_df = price_df.rename_axis("product")
  #   print("df size=",df.shape,df.columns)
     for filename in filenames[1:]:
         print("load:",filename)
@@ -323,7 +327,7 @@ def load_sales(filenames):  # filenames is a list of xlsx files to load and sort
   #  print("load sales df=\n",df)
     df.set_index('date',inplace=True,drop=False)
  
-    return df           
+    return df,price_df           
  
 
 
@@ -1035,7 +1039,57 @@ def graph_sales_year_on_year(sales_df,title,left_y_axis_title):
     #  save_fig
     return
    
-  
+ 
+    
+def promo_flags(sales_df,price_df):
+#     sales_df=pd.read_pickle(dd.sales_df_savename)   #,protocol=-1)          
+#    # sales_df.reset_index(drop=True,inplace=True)
+#     sales_df.set_index('date',drop=False,inplace=True)
+#  #   sales_df.sort_values('date',ascending=True,inplace=True)
+# #    promo_df=sales_df[(sales_df['code']=="OFFINV") | (sales_df['product']=="OFFINV")]
+#     promo_df=sales_df[sales_df['product']=="OFFINV"]
+
+#     promo_df['weekno']=promo_df['date'].dt.week
+#     promo_df['monthno']=promo_df['date'].dt.month
+#     promo_df['year']=promo_df['date'].dt.year
+#  #   print("promo df =\n",promo_df,promo_df.shape)
+
+#  #   promo_df['month']=[lambda x: calendar.month_abbr[int(x)] in promo_df.monthno]
+
+#  #   promo_df=promo_df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+#     pivot_df=pd.pivot_table(promo_df, values='salesval', columns=['specialpricecat','product'],index=['code','year','monthno'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
+    sales_df['qty'].replace(0,np.nan,inplace=True)   # prevent divid by zero
+    price_df=price_df.T
+    price_df.index=price_df.index.astype(np.float64)
+    print(price_df)
+    unique_spc=list(pd.unique(sales_df['specialpricecat']))
+    print("unique spc=",unique_spc)
+    for spc in unique_spc:
+        if spc!=0:
+     #   sspc=str(spc)
+            print("spc",spc)  #,sspc)
+    
+            try:
+                price_list=price_df.loc[spc]
+            except:
+                print("key not found",spc)
+            else:    
+           #     print("pril=\n",price_list)
+                sales_idx=(sales_df['specialpricecat']==spc)
+
+                sales_df.loc[sales_idx,'price']=sales_df.loc[sales_idx,'salesval']/sales_df.loc[sales_idx,'qty']
+                print("spc=",spc,price_list)
+                sales_df.loc[sales_idx,'price_sb']=price_list
+           
+#    name="pivot_table_units"
+    print("sales df=\n",sales_df)
+
+    return sales_df
+ #   print("OFFINV pivot df=\n",pivot_df)    
+            #prod_sales['mat']=prod_sales['qty'].rolling(dd.mat,axis=0).mean()
+ 
+
+
 
 
 
@@ -1053,6 +1107,13 @@ class MCAlphaDropout(keras.layers.AlphaDropout):
 
 def last_time_step_mse(Y_true, Y_pred):
     return keras.metrics.mean_squared_error(Y_true[:, -1], Y_pred[:, -1])
+
+
+
+
+
+
+
 
 
 def plot_learning_curves(loss, val_loss,epochs,title):
@@ -1233,18 +1294,23 @@ def compare_customers_on_plot(sales_df,latest_date,prod):
                 print("customers to plot together",cust)
             cust_sales=sales_df[sales_df['code']==cust].copy()
         else:
-            if dd.dash_verbose:
-                print("product",prod,"-customers to plot together",cust)
+           # if dd.dash_verbose:
+       #     print("product",prod,"-customers to plot together",cust)
             cust_sales=sales_df[(sales_df['code']==cust) & (sales_df['product']==prod)].copy()
         
-      #  print("cust_sause=\n",cust_sales)
+        #    print("cust_sause=\n",cust_sales)
         if cust_sales.shape[0]>0: 
             
             cust_sales.set_index('date',inplace=True)
             
             cust_sales=cust_sales.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
-    
+         #   print("cust_sause2=\n",cust_sales)
+
+  #          cust_sales['mat']=cust_sales['salesval'].rolling(dd.mat2,axis=0).mean()
             cust_sales['mat']=cust_sales['salesval'].rolling(dd.mat2,axis=0).mean()
+
+     #       print("cust_sause3=\n",cust_sales)
+
             try:
                 start_point.append(cust_sales['mat'].iloc[dd.scaling_point_week_no])
             #cust_sales.index = pd.to_datetime('period', format='%d-%m-%Y',exact=False)
@@ -1312,6 +1378,120 @@ def compare_customers_on_plot(sales_df,latest_date,prod):
 #    ax.axvline(dd.scaling_point_week_no, ls='--')
 #
     save_fig("cust_"+str(dd.customers_to_plot_together[0])+"prod_"+str(prod)+"_scaled_together_dollars_moving_total")
+#    print("cust sales2=\n",cust_sales,cust_sales.T)
+  
+        
+ #   print("\n")
+    return    
+ 
+    
+ 
+    
+def compare_customers_by_product_group_on_plot(sales_df,latest_date,prod_list,pg_number):
+    styles1 = ['r-',"b-","g-","k-","y-"]
+       # styles1 = ['bs-','ro:','y^-']
+    linewidths = 1  # [2, 1, 4]
+    latest_date=pd.to_datetime(latest_date).strftime("%d/%m/%Y")
+    
+    fig, ax = pyplot.subplots()
+    fig.autofmt_xdate()
+    
+    start_point=[]
+
+#       print("\n")    
+    t_count=0
+    for cust in dd.customers_to_plot_together:
+    #    print("\rCustomer dollar sales graphs:",t_count,"/",ctotrun,end="\r",flush=True)
+  #      print("customers to plot together",cust,"product",prod)
+        if prod_list[0]=="":
+            if dd.dash_verbose:
+                print("customers to plot together",cust)
+            cust_sales=sales_df[sales_df['code']==cust].copy()
+        else:
+           # if dd.dash_verbose:
+        #    print("product",prod_list,"-customers to plot together",cust)
+            cust_sales=sales_df[(sales_df['code']==cust) & (sales_df['product'].isin(prod_list))].copy()
+        
+       #     print("cust_sause=\n",cust_sales,"pg=",pg_number)
+        if cust_sales.shape[0]>0: 
+            
+            cust_sales.set_index('date',inplace=True)
+            
+            cust_sales=cust_sales.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+      #      print("cust_sause2=\n",cust_sales)
+
+  #          cust_sales['mat']=cust_sales['salesval'].rolling(dd.mat2,axis=0).mean()
+            cust_sales['mat']=cust_sales['salesval'].rolling(dd.mat2,axis=0).mean()
+
+     #       print("cust_sause3=\n",cust_sales)
+
+            try:
+                start_point.append(cust_sales['mat'].iloc[dd.scaling_point_week_no])
+            #cust_sales.index = pd.to_datetime('period', format='%d-%m-%Y',exact=False)
+     
+            # styles1 = ['b-','g:','r:']
+            
+                cust_sales=cust_sales.iloc[dd.scaling_point_week_no-1:,:]
+            except:
+                print("not enough sales data",cust,prod_list,"product group=",pg_number)
+            else:    
+                cust_sales[['mat']].plot(grid=True,use_index=True,title="Product group-"+str(pg_number)+" Dollars/week moving total comparison "+str(dd.mat2)+" weeks @w/c:"+str(latest_date),style=styles1[t_count], lw=linewidths,ax=ax)
+        ax.legend(dd.customers_to_plot_together,title="")
+        ax.set_xlabel("",fontsize=8)
+
+        t_count+=1            
+
+    save_fig("cust_"+str(dd.customers_to_plot_together[0])+"prodgroup_"+str(pg_number)+"_together_dollars_moving_total")
+        
+  #  print("start point",start_point) 
+    scaling=[100/start_point[i] for i in range(0,len(start_point))]
+ #   print("scaling",scaling)
+    
+ #   print("\n")
+  
+    fig, ax = pyplot.subplots()
+    fig.autofmt_xdate()
+ 
+
+#    print("cust sales=\n",cust_sales)
+
+    t_count=0
+    for cust in dd.customers_to_plot_together:
+    #    print("\rCustomer dollar sales graphs:",t_count,"/",ctotrun,end="\r",flush=True)
+ #       print("customers to plot together",cust)
+        if prod_list[0]=="":
+            cust_sales=sales_df[sales_df['code']==cust].copy()
+        else:
+            cust_sales=sales_df[(sales_df['code']==cust) & (sales_df['product'].isin(prod_list))].copy()
+ 
+ #       cust_sales=sales_df[sales_df['code']==cust].copy()
+        if cust_sales.shape[0]>0: 
+            cust_sales.set_index('date',inplace=True)
+            
+            cust_sales=cust_sales.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+    
+            cust_sales['mat']=cust_sales['salesval'].rolling(dd.mat2,axis=0).mean()
+            try:
+                cust_sales['scaled_mat']=cust_sales['mat']*scaling[t_count]
+            #cust_sales.index = pd.to_datetime('period', format='%d-%m-%Y',exact=False)
+     
+            # styles1 = ['b-','g:','r:']
+           # try:
+                cust_sales=cust_sales.iloc[dd.scaling_point_week_no-1:,:]
+            except:
+                print("not enough data2",cust,prod_list)
+            else:    
+                cust_sales[['scaled_mat']].plot(grid=True,use_index=True,title="Product group "+str(pg_number)+" Scaled Sales/week moving total comparison "+str(dd.mat2)+" weeks @w/c:"+str(latest_date),style=styles1[t_count], lw=linewidths,ax=ax)
+ 
+        t_count+=1  
+        
+    ax.legend(dd.customers_to_plot_together,title="")
+    ax.set_xlabel("",fontsize=8)
+
+
+#    ax.axvline(dd.scaling_point_week_no, ls='--')
+#
+    save_fig("cust_"+str(dd.customers_to_plot_together[0])+"prodgroup_"+str(pg_number)+"_scaled_together_dollars_moving_total")
 #    print("cust sales2=\n",cust_sales,cust_sales.T)
   
         
@@ -1735,20 +1915,31 @@ def main():
 
 
     if answer=="y":
-        sales_df=load_sales(dd.filenames)  # filenames is a list of xlsx files to load and sort by date
+        sales_df,price_df=load_sales(dd.filenames)  # filenames is a list of xlsx files to load and sort by date
      #      with open(dd.sales_df_savename,"wb") as f:
   #            pickle.dump(sales_df, f,protocol=-1)
         sales_df.sort_index(ascending=False,inplace=True)
         sales_df.to_pickle(dd.sales_df_savename,protocol=-1)          
+        price_df.to_pickle(dd.price_df_savename,protocol=-1)          
  
 
 
-    
+    price_df=pd.read_pickle(dd.price_df_savename)
     #print("Load and plot scan data...")
 
  #   scan_df=pd.read_pickle(dd.save_scan_df_pkl)
    # print("scan_df=\n",scan_df)
+   
+   
+   #  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++===
+   
+   
+  #  sales_df=promo_flags(sales_df,price_df)
     
+  
+    
+  # =============================================================
+   ####################################333
     
     new_pdf=multiple_slice_scandata(scan_df,query=[('99','plottype'),('61','plottype1')])
   #  print("new pdf=\n",new_pdf)
@@ -2658,9 +2849,9 @@ def main():
    #     print("prod_list=\n",prod_list)
    #     print("cust_list=\n",cust_list)
         #prod_list.sort()
-        #print("prod_list=",prod_list)
+       # print("prod_list=",prod_list)
         #print("c=",cust_list,len(cust_list))
-        #print("p=",prod_list,len(prod_list))
+   #     print("p=",prod_list,len(prod_list))
         
         
         #spc_text=dd.spc_only.replace(dd.spc_dict,inplace=True)
@@ -2900,8 +3091,9 @@ def main():
        # latest_date=pd.to_datetime(latest_date).strftime("%d/%m/%Y")
         t_count=1
         for prod in prod_list:
+            prod_n=prod[1]
             print("\rProduct unit sales graphs:",t_count,"/",ptotrun,end="\r",flush=True)
-            prod_sales=sales_df[sales_df['product']==prod[1]].copy()
+            prod_sales=sales_df[sales_df['product']==prod_n].copy()
            # prod_sales['period2'] = pd.to_datetime('date')  #, format='%Y-%m-%d',exact=False)
          #   print("ps1=",prod_sales)
             prod_sales.set_index('date',inplace=True)
@@ -2934,22 +3126,38 @@ def main():
             
             
            # prod_sales['period']=prod_sales.index
-            ax=prod_sales[['mat']].plot(grid=True,title=prod[1]+" units/week moving total "+str(dd.mat)+" weeks @w/c:"+str(latest_date),style=styles1, lw=linewidths)
+            ax=prod_sales[['mat']].plot(grid=True,title=prod_n+" units/week moving total "+str(dd.mat)+" weeks @w/c:"+str(latest_date),style=styles1, lw=linewidths)
             last_years_prod_sales[['mat']].plot(grid=False,style=styles1, lw=linewidths,ax=ax2)
 
             ax.legend(title="")
             ax.set_xlabel("",fontsize=8)
 
-            save_fig("prod_"+prod[1]+"_units_moving_total")
-            
-            graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['product']==prod[1]],"prod_"+str(prod[1])+" units per week","Units/week")
-            compare_customers_on_plot(sales_df,latest_date,prod[1])
+            save_fig("prod_"+prod_n+"_units_moving_total")
+           # print("prod_n=",prod_n,prod_list)    
+            graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['product']==prod_n],"prod_"+str(prod_n)+" units per week","Units/week")
+            compare_customers_on_plot(sales_df,latest_date,prod_n)
                
 
             
             
             t_count+=1
+         
             
+# =============================================================================
+          
+        #  product groups
+        for pg in dd.product_groups_only:
+            products=sales_df[sales_df['productgroup']==pg].copy()
+            prod_unique=list(pd.unique(products['product']))
+          #   print("pg=",pg,prod_unique)
+            #for p in prod_unique:
+              #    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['product']==p],"prod_"+str(p)+" units per week","Units/week")
+            compare_customers_by_product_group_on_plot(sales_df,latest_date,prod_unique,pg)
+      
+          
+# =============================================================================
+            
+         
         print("\n")    
         t_count=1
         for cust in cust_list:

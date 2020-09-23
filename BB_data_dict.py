@@ -69,7 +69,8 @@ e_scandata_plotqueries=[[('10','retailer'),('0','variety')],
                         [('12','retailer'),('14','productgroup')]]
 
 
-
+customers_to_plot_together=['FLNOR',"FLFRE","FLPAS","FLMIT","FLBRI"]
+scaling_point_week_no=51
 
 e_scandata_number_of_weeks=53  # number of weeks back from latest week
 
@@ -80,11 +81,13 @@ weeks_offset=3   # weeks to shift invoiced sales to align with scanned sALES
 weeks_rolling_mean=3  # week mrolling ean on invoiced sales
 
 sales_df_savename="sales_trans_df.pkl"
+price_df_savename="price_df.pkl"
+
 filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
    
 
-product_groups_only=["10","11","12","13","14","15","16","17","18"]
-spc_only=['080',"088",'020',"028",'030',"038",'040',"048",'050','060','070']  #,"028"]   #,"038","048","028","080","020","030","040']
+product_groups_only=["12","14"]
+spc_only=['088']  #,"088",'020',"028",'030',"038",'040',"048",'050','060','070']  #,"028"]   #,"038","048","028","080","020","030","040']
 
 max_slope=0.2
 min_slope=-0.1
@@ -101,6 +104,8 @@ mat2=52   # weeks mat for customer reports
 #can_data_files=["jam_scan_data_2020.xlsx","cond_scan_data_2020.xlsx","sauce_scan_data_2020.xlsx"]
 #can_dict_savename="scan_dict.pkl"
 
+
+price_width=60  # columns to import from salestrans.xlsx on price sheet
 
 
 productgroup_dict={"01":"30g glass",
