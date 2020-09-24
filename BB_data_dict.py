@@ -15,7 +15,7 @@ import numpy as np
 batch_length=4
 no_of_batches=1000
 no_of_repeats=4
-epochs=10
+epochs=8
 
 
 # product appears on low stock report if units stock is below this number
@@ -47,26 +47,88 @@ e_scandata_plotqueries=[[('10','retailer'),('0','variety')],
                         [('12','retailer'),('0','variety')],
                         [('10','retailer'),('1','variety')],
                         [('12','retailer'),('1','variety')],
-                        [('10','retailer'),('11','productgroup')],
-                        [('12','retailer'),('11','productgroup')],
+                        [('1','variety')],
+                        [('2','variety')],
+                        [('3','variety')],
+
+                        [('10','retailer'),('2','variety')],
+                        [('12','retailer'),('2','variety')],
+                        [('10','retailer'),('3','variety')],
+                        [('12','retailer'),('3','variety')],
+                        [('10','retailer'),('4','variety')],
+                        [('12','retailer'),('4','variety')],
+                        
+                        [('10','retailer'),('9','variety')],
+                        [('12','retailer'),('9','variety')],
+                        [('10','retailer'),('10','variety')],
+                        [('12','retailer'),('10','variety')],
+                        [('10','retailer'),('11','variety')],
+                        [('12','retailer'),('11','variety')],
+                        [('10','retailer'),('14','variety')],
+                        [('12','retailer'),('14','variety')],
+                        [('10','retailer'),('15','variety')],
+                        [('12','retailer'),('15','variety')],
+                        [('10','retailer'),('16','variety')],
+                        [('12','retailer'),('16','variety')],
+ 
+                        
+                   #     [('10','retailer'),('3','variety')],
+                   #     [('12','retailer'),('4','variety')],
+                        
+                        [('10','retailer'),('30','variety')],
+                        [('12','retailer'),('30','variety')],
+                        [('10','retailer'),('31','variety')],
+                        [('12','retailer'),('31','variety')],
+                        
+                        [('10','retailer'),('50','variety')],
+                        [('12','retailer'),('50','variety')],
+                        [('10','retailer'),('51','variety')],
+                        [('12','retailer'),('51','variety')],
+                        [('10','retailer'),('52','variety')],
+                        [('12','retailer'),('52','variety')],
+                        [('10','retailer'),('53','variety')],
+                        [('12','retailer'),('53','variety')],
+
                         [('10','retailer'),('90','variety')],
                         [('12','retailer'),('90','variety')],
-                        [('10','retailer'),('93','variety')],
-                        [('12','retailer'),('93','variety')],
                         [('10','retailer'),('91','variety')],
                         [('12','retailer'),('91','variety')],
                         [('10','retailer'),('92','variety')],
-                        [('12','retailer'),('92','variety')],
-                   #     [('1','brand')],
+                        [('12','retailer'),('93','variety')],
+                        [('10','retailer'),('93','variety')],
+                        [('12','retailer'),('93','variety')],
+ 
+         
+
+              
+                        [('10','retailer'),('10','productgroup')],
+                        [('12','retailer'),('10','productgroup')],
+
+                        [('10','retailer'),('11','productgroup')],
+                        [('12','retailer'),('11','productgroup')],
+
+                        [('10','retailer'),('12','productgroup')],
+                        [('12','retailer'),('12','productgroup')],
+
+                        [('10','retailer'),('13','productgroup')],
+                        [('12','retailer'),('13','productgroup')],
+
+                        [('10','retailer'),('14','productgroup')],
+                        [('12','retailer'),('14','productgroup')],
+
+
+  
+
+                        [('1','brand')],
                         [('2','brand')],
                         [('3','brand')],
-                   #    [('4','brand')],
-                   #    [('7','brand')],
-                   #    [('8','brand')],
-                   #    [('13','brand')],
+                        [('4','brand')],
+                        [('7','brand')],
+                        [('8','brand')],
+                        [('13','brand')]]
                        
                      #   [('10','retailer'),('12','productgroup')],
-                        [('12','retailer'),('14','productgroup')]]
+                  #      [('12','retailer'),('14','productgroup')]]
 
 
 customers_to_plot_together=['FLNOR',"FLFRE","FLPAS","FLMIT","FLBRI"]
@@ -81,13 +143,15 @@ weeks_offset=3   # weeks to shift invoiced sales to align with scanned sALES
 weeks_rolling_mean=3  # week mrolling ean on invoiced sales
 
 sales_df_savename="sales_trans_df.pkl"
+sales_df_augmented_savename="sales_trans_df_augmented.pkl"
+
 price_df_savename="price_df.pkl"
 
 filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
    
 
-product_groups_only=["12","14"]
-spc_only=['088']  #,"088",'020',"028",'030',"038",'040',"048",'050','060','070']  #,"028"]   #,"038","048","028","080","020","030","040']
+product_groups_only=["10","11","12","13","14"]  #,"15","16","17","18"]
+spc_only=['088']   #,"080",'020',"028",'030',"038",'040',"048",'050','060','070']  #,"028"]   #,"038","048","028","080","020","030","040']
 
 max_slope=0.2
 min_slope=-0.1

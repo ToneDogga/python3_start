@@ -863,7 +863,7 @@ def plot_type3(df):
     ax.ticklabel_format(style='plain')
    
  #   df.iloc[0:2].T.plot(xlabel="",use_index=False,kind='bar',color=['blue','red'],secondary_y=False,stacked=True,fontsize=9,ax=ax,legend=False)
-    ax.set_ylabel('$ Price',fontsize=9)
+    ax.set_ylabel('Total units/week',fontsize=9)
 
     line=df.T.plot(use_index=True,xlabel="",kind='line',style=["g-","r-","b-","k-","c-","m-"],secondary_y=False,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
 
@@ -876,7 +876,7 @@ def plot_type3(df):
 #  ax.set_ylabel('Units/week',fontsize=9)
 
  #   ax.right_ax.set_ylabel('Units/week',fontsize=9)
-    fig.legend(title="$ Price",title_fontsize=9,fontsize=7,loc='upper center', bbox_to_anchor=(0.3, 1.1))
+    fig.legend(title="Total units/week",title_fontsize=9,fontsize=7,loc='upper center', bbox_to_anchor=(0.3, 1.1))
   #  print(df.shape,"xticks=",ax.get_xticks(),df.iloc[:,ax.get_xticks()])
   #  new_labels = [dt.date.fromordinal(int(item)) for item in newdates]   #ax.get_xticks()]
   #  improved_labels = ['{}-{}'.format(calendar.month_abbr[int(m)],y) for y, m , d in map(lambda x: str(x).split('-'), new_labels)]
@@ -898,50 +898,50 @@ def plot_type4(df):
           # first column is total units sales
     # second column is distribution 
     
-   
-      
-    week_freq=8
-   # print("plot type1 df=\n",df)
-    df=df.droplevel([0,1,2,3,4,5,6,7,8,9,10])
-    
-  #  df=df.T
-  #  df['date']=pd.to_datetime(df.index).strftime("%Y-%m-%d").to_list()
-  #  newdates = pd.to_datetime(df['date']).apply(lambda date: date.toordinal()).to_list()
-  #  df=df.T
-    df.iloc[:]*=1000
- #   print("plot type3 df=\n",df)
-    fig, ax = pyplot.subplots()
-    fig.autofmt_xdate()
-    ax.ticklabel_format(style='plain')
-   
- #   df.iloc[0:2].T.plot(xlabel="",use_index=False,kind='bar',color=['blue','red'],secondary_y=False,stacked=True,fontsize=9,ax=ax,legend=False)
-    ax.set_ylabel('Units/week',fontsize=9)
-
-    line=df.T.plot(use_index=True,xlabel="",kind='line',style=["b-","r-","g-","k-","c-","m-"],secondary_y=False,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
-
-  #  if df.shape[0]>=2:
-  #  line=df.iloc[1:2].T.plot(use_index=True,xlabel="",kind='line',style=['b-'],secondary_y=True,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
-
-   # if df.shape[0]>=3:
-   #     line=df.iloc[2:3].T.plot(use_index=True,xlabel="",kind='line',style=['g:'],secondary_y=True,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
-    
-#  ax.set_ylabel('Units/week',fontsize=9)
-
-  #  ax.right_ax.set_ylabel('Units/week',fontsize=9)
-    fig.legend(title="Units/week",title_fontsize=9,fontsize=7,loc='upper center', bbox_to_anchor=(0.3, 1.1))
-  #  print(df.shape,"xticks=",ax.get_xticks(),df.iloc[:,ax.get_xticks()])
-  #  new_labels = [dt.date.fromordinal(int(item)) for item in newdates]   #ax.get_xticks()]
-  #  improved_labels = ['{}-{}'.format(calendar.month_abbr[int(m)],y) for y, m , d in map(lambda x: str(x).split('-'), new_labels)]
-  #  improved_labels=improved_labels[::week_freq]
-  
-  #  ax.xaxis.set_major_locator(ticker.MultipleLocator(week_freq))
-  #  ax.set_xticklabels(improved_labels,fontsize=8)
-
-   # return
-
-
-
     return
+      
+#     week_freq=8
+#    # print("plot type1 df=\n",df)
+#     df=df.droplevel([0,1,2,3,4,5,6,7,8,9,10])
+    
+#   #  df=df.T
+#   #  df['date']=pd.to_datetime(df.index).strftime("%Y-%m-%d").to_list()
+#   #  newdates = pd.to_datetime(df['date']).apply(lambda date: date.toordinal()).to_list()
+#   #  df=df.T
+#     df.iloc[:]*=1000
+#  #   print("plot type3 df=\n",df)
+#     fig, ax = pyplot.subplots()
+#     fig.autofmt_xdate()
+#     ax.ticklabel_format(style='plain')
+   
+#  #   df.iloc[0:2].T.plot(xlabel="",use_index=False,kind='bar',color=['blue','red'],secondary_y=False,stacked=True,fontsize=9,ax=ax,legend=False)
+#     ax.set_ylabel('Units/week',fontsize=9)
+
+#     line=df.T.plot(use_index=True,xlabel="",kind='line',style=["b-","r-","g-","k-","c-","m-"],secondary_y=False,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
+
+#   #  if df.shape[0]>=2:
+#   #  line=df.iloc[1:2].T.plot(use_index=True,xlabel="",kind='line',style=['b-'],secondary_y=True,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
+
+#    # if df.shape[0]>=3:
+#    #     line=df.iloc[2:3].T.plot(use_index=True,xlabel="",kind='line',style=['g:'],secondary_y=True,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
+    
+# #  ax.set_ylabel('Units/week',fontsize=9)
+
+#   #  ax.right_ax.set_ylabel('Units/week',fontsize=9)
+#     fig.legend(title="Units/week",title_fontsize=9,fontsize=7,loc='upper center', bbox_to_anchor=(0.3, 1.1))
+#   #  print(df.shape,"xticks=",ax.get_xticks(),df.iloc[:,ax.get_xticks()])
+#   #  new_labels = [dt.date.fromordinal(int(item)) for item in newdates]   #ax.get_xticks()]
+#   #  improved_labels = ['{}-{}'.format(calendar.month_abbr[int(m)],y) for y, m , d in map(lambda x: str(x).split('-'), new_labels)]
+#   #  improved_labels=improved_labels[::week_freq]
+  
+#   #  ax.xaxis.set_major_locator(ticker.MultipleLocator(week_freq))
+#   #  ax.set_xticklabels(improved_labels,fontsize=8)
+
+#    # return
+
+
+
+#     return
 
 
 
@@ -954,16 +954,20 @@ def plot_slices(df):
  #   df.replace(0.0,np.nan,inplace=True)
         
       #   print(new_df)
-    plottypes=list(set(list(set(df.index.get_level_values('plottype').astype(str).tolist()))+list(set(df.index.get_level_values('plottype1').astype(str).tolist()))+list(set(df.index.get_level_values('plottype2').astype(str).tolist()))+list(set(df.index.get_level_values('plottype3').astype(str).tolist()))))
+    plottypes=list(set(list(set(df.index.get_level_values('plottype').astype(str).tolist()))+list(set(df.index.get_level_values('plottype1').astype(str).tolist()))))   #+list(set(df.index.get_level_values('plottype2').astype(str).tolist()))+list(set(df.index.get_level_values('plottype3').astype(str).tolist()))))
    #     plottypes=list(set([p for p in plottypes if p!='0']))
    #     print("plotypes=",plottypes)
     for pt in plottypes:  
         plotnumbers=list(set(df.index.get_level_values('plotnumber').astype(str).tolist()))
-        new_df=pd.concat((multiple_slice_scandata(df,[(pt,'plottype')]) ,multiple_slice_scandata(df,[(pt,'plottype1')]),multiple_slice_scandata(df,[(pt,'plottype2')]),multiple_slice_scandata(df,[(pt,'plottype3')])),axis=0)   #,(pt,'plottype1')])
+        colnames=list(set(df.index.get_level_values('colname').astype(str).tolist()))
 
- #   print("plotn",plotnumbers)
+        new_df=pd.concat((multiple_slice_scandata(df,[(pt,'plottype')]) ,multiple_slice_scandata(df,[(pt,'plottype1')])),axis=0)   #,(pt,'plottype1')])
+
+        print("pt=",pt)   #,"plotnumbdsers",plotnumbers)
         for pn in plotnumbers:
-            if (pt=='3') | (pt=='4') | (pt=='5') | (pt=='9'):
+            print("pn",pn)
+
+            if (pt=='3') :  #| (pt=='4') | (pt=='5') | (pt=='9'):
                 plot_df=new_df
             else:
                 plot_df=multiple_slice_scandata(new_df,[(pn,'plotnumber')])
@@ -972,19 +976,28 @@ def plot_slices(df):
             plot_df.replace(0.0,np.nan,inplace=True)
             last_year_plot_df=plot_df.iloc[:,-(dd.e_scandata_number_of_weeks+52):-(dd.e_scandata_number_of_weeks-1)]
             this_year_plot_df=plot_df.iloc[:,-dd.e_scandata_number_of_weeks:]    
-         #   print("this year plot df=",this_year_plot_df)
+        #   print("this year plot df=",this_year_plot_df)
          #   print("last year plot df=",last_year_plot_df)
             if str(pt)=='1':   #standard plot type
                 plot_type1(plot_df)
+                save_fig("ZZ_scandata_plot_"+str(colnames[0])+"_"+str(pt)+"_"+pn)
+                plt.close()    
             elif str(pt)=='2':   #stacked bars plus right axis price
                 plot_type2(df,this_year_plot_df,last_year_plot_df)
-            elif str(pt)=='3':   # 
+                save_fig("ZZ_scandata_plot_"+str(colnames[0])+"_"+str(pt)+"_"+pn)
+                plt.close()
+            elif str(pt)=='3':   # total units only
                 plot_type3(plot_df)
-            elif str(pt)=='4':   #unused 
-                plot_type4(plot_df)
-            elif str(pt)=='0':
+                save_fig("ZZ_scandata_plot_"+str(colnames[0])+"_"+str(pt)+"_"+pn)
+                plt.close()
+
+            else:    
                 pass
-            save_fig("ZZ slice_"+pn+"_"+pt+"_"+str(randrange(999)))
+            #elif str(pt)=='4':   #unused 
+            #    plot_type4(plot_df)
+            #elif str(pt)=='0':
+            #    pass
+   #         save_fig("ZZ_scandata_plot_"+str(colnames[0])+"_"+str(pt)+"_"+pn)
       #      plt.show()
             
              
@@ -1364,11 +1377,13 @@ def compare_customers_on_plot(sales_df,latest_date,prod):
             # styles1 = ['b-','g:','r:']
            # try:
                 cust_sales=cust_sales.iloc[dd.scaling_point_week_no-1:,:]
+                cust_sales[['scaled_mat']].plot(grid=True,use_index=True,title=str(prod)+" Scaled Sales/week moving total comparison "+str(dd.mat2)+" weeks @w/c:"+str(latest_date),style=styles1[t_count], lw=linewidths,ax=ax)
+
             except:
                 print("not enough data2",cust,prod)
             else:    
-                cust_sales[['scaled_mat']].plot(grid=True,use_index=True,title=str(prod)+" Scaled Sales/week moving total comparison "+str(dd.mat2)+" weeks @w/c:"+str(latest_date),style=styles1[t_count], lw=linewidths,ax=ax)
- 
+ #               cust_sales[['scaled_mat']].plot(grid=True,use_index=True,title=str(prod)+" Scaled Sales/week moving total comparison "+str(dd.mat2)+" weeks @w/c:"+str(latest_date),style=styles1[t_count], lw=linewidths,ax=ax)
+                 pass
         t_count+=1  
         
     ax.legend(dd.customers_to_plot_together,title="")
