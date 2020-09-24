@@ -116,6 +116,15 @@ e_scandata_plotqueries=[[('10','retailer'),('0','variety')],
                         [('10','retailer'),('14','productgroup')],
                         [('12','retailer'),('14','productgroup')],
 
+                        [('10','retailer'),('15','productgroup')],
+                        [('12','retailer'),('15','productgroup')],
+
+                        [('10','retailer'),('16','productgroup')],
+                        [('12','retailer'),('16','productgroup')],
+
+                        [('10','retailer'),('17','productgroup')],
+                        [('12','retailer'),('17','productgroup')],
+
 
   
 

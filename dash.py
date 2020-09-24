@@ -716,11 +716,11 @@ def plot_type1(df):
     # second column is unit sales on promo  (stacked)
     # third is price (second y acis)
    
-      
+    weeks_back=80  
     week_freq=8
    # print("plot type1 df=\n",df)
     df=df.droplevel([0,1,2,3,4,5,6,7,8,9,10])
-    
+    df=df.iloc[:,-weeks_back:]
     df=df.T
     df['date']=pd.to_datetime(df.index).strftime("%Y-%m").to_list()
     newdates = pd.to_datetime(df['date']).apply(lambda date: date.toordinal()).to_list()
@@ -959,40 +959,68 @@ def plot_slices(df):
    #     print("plotypes=",plottypes)
     for pt in plottypes:  
         plotnumbers=list(set(df.index.get_level_values('plotnumber').astype(str).tolist()))
-        colnames=list(set(df.index.get_level_values('colname').astype(str).tolist()))
+    #    colnames=list(set(df.index.get_level_values('colname').astype(str).tolist()))
+    #    retailer=list(set(df.index.get_level_values('retailer').astype(str).tolist()))
+    #    variety=list(set(df.index.get_level_values('variety').astype(str).tolist()))
 
         new_df=pd.concat((multiple_slice_scandata(df,[(pt,'plottype')]) ,multiple_slice_scandata(df,[(pt,'plottype1')])),axis=0)   #,(pt,'plottype1')])
+ 
+    #    colnames=list(set(new_df.index.get_level_values('colname').astype(str).tolist()))
+    #    retailer=list(set(new_df.index.get_level_values('retailer').astype(str).tolist()))
+    #    variety=list(set(new_df.index.get_level_values('variety').astype(str).tolist()))
+    #    brand=list(set(new_df.index.get_level_values('brand').astype(str).tolist()))
 
-        print("pt=",pt)   #,"plotnumbdsers",plotnumbers)
-        for pn in plotnumbers:
-            print("pn",pn)
 
-            if (pt=='3') :  #| (pt=='4') | (pt=='5') | (pt=='9'):
-                plot_df=new_df
-            else:
+   #     print("pt=",pt,colnames,retailer,variety,brand)
+
+
+        if (pt=='3') :  #| (pt=='4') | (pt=='5') | (pt=='9'):
+            
+            plot_df=new_df.replace(0.0,np.nan)
+  
+            colnames=list(set(plot_df.index.get_level_values('colname').astype(str).tolist()))
+            retailer=list(set(plot_df.index.get_level_values('retailer').astype(str).tolist()))
+            variety=list(set(plot_df.index.get_level_values('variety').astype(str).tolist()))
+            brand=list(set(plot_df.index.get_level_values('brand').astype(str).tolist()))
+
+            plot_type3(plot_df)
+            save_fig("ZZ_scandata_plot_"+str(retailer[0])+"_"+str(variety[0])+"_"+str(brand[0])+"_"+str(colnames[0])+"_3")
+         #   plt.close()
+ 
+        else:
+
+       #     print("pt=",pt)   #,"plotnumbdsers",plotnumbers)
+            for pn in plotnumbers:
                 plot_df=multiple_slice_scandata(new_df,[(pn,'plotnumber')])
+                plot_df.replace(0.0,np.nan,inplace=True)
+                 
+                colnames=list(set(plot_df.index.get_level_values('colname').astype(str).tolist()))
+                retailer=list(set(plot_df.index.get_level_values('retailer').astype(str).tolist()))
+                variety=list(set(plot_df.index.get_level_values('variety').astype(str).tolist()))
+                brand=list(set(plot_df.index.get_level_values('brand').astype(str).tolist()))
 
-         #   print("plot_df=\n",plot_df)
-            plot_df.replace(0.0,np.nan,inplace=True)
-            last_year_plot_df=plot_df.iloc[:,-(dd.e_scandata_number_of_weeks+52):-(dd.e_scandata_number_of_weeks-1)]
-            this_year_plot_df=plot_df.iloc[:,-dd.e_scandata_number_of_weeks:]    
-        #   print("this year plot df=",this_year_plot_df)
-         #   print("last year plot df=",last_year_plot_df)
-            if str(pt)=='1':   #standard plot type
-                plot_type1(plot_df)
-                save_fig("ZZ_scandata_plot_"+str(colnames[0])+"_"+str(pt)+"_"+pn)
-                plt.close()    
-            elif str(pt)=='2':   #stacked bars plus right axis price
-                plot_type2(df,this_year_plot_df,last_year_plot_df)
-                save_fig("ZZ_scandata_plot_"+str(colnames[0])+"_"+str(pt)+"_"+pn)
-                plt.close()
-            elif str(pt)=='3':   # total units only
-                plot_type3(plot_df)
-                save_fig("ZZ_scandata_plot_"+str(colnames[0])+"_"+str(pt)+"_"+pn)
-                plt.close()
+                
 
-            else:    
-                pass
+
+                last_year_plot_df=plot_df.iloc[:,-(dd.e_scandata_number_of_weeks+52):-(dd.e_scandata_number_of_weeks-1)]
+                this_year_plot_df=plot_df.iloc[:,-dd.e_scandata_number_of_weeks:]    
+
+        #        print("pn",pn)
+    
+             #   print("plot_df=\n",plot_df)
+            #   print("this year plot df=",this_year_plot_df)
+             #   print("last year plot df=",last_year_plot_df)
+                if str(pt)=='1':   #standard plot type
+                    plot_type1(plot_df)
+                    save_fig("ZZ_scandata_plot_"+str(retailer[0])+"_"+str(variety[0])+"_"+str(brand[0])+"_"+str(colnames[0])+"_"+str(pn)+"_"+str(pt))
+                    plt.close()    
+                elif str(pt)=='2':   #stacked bars plus right axis price
+                    plot_type2(df,this_year_plot_df,last_year_plot_df)
+                    save_fig("ZZ_scandata_plot_"+str(retailer[0])+"_"+str(variety[0])+"_"+str(brand[0])+"_"+str(colnames[0])+"_"+str(pn)+"_"+str(pt))
+                    plt.close()
+     
+                else:    
+                    pass
             #elif str(pt)=='4':   #unused 
             #    plot_type4(plot_df)
             #elif str(pt)=='0':
