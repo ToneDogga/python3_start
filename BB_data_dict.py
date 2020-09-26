@@ -40,6 +40,9 @@ predictions_only_savename="_predictions.pkl"
   #  report_savename="sales_trans_report_dict.pkl"
 scan_df_save="coles_and_ww_invoiced_and_scanned_sales.pkl"
 
+
+price_discrepencies_summary="30_day_underpriced_summary.xlsx"
+
  
 e_scandatalist=["coles_scan_data_enhanced_sept2020.xlsx","ww_scan_data_enhanced_sept2020.xlsx"] 
 transposed_datalist=["coles_scan_dataT.xlsx","ww_scan_dataT.xlsx"]  
@@ -99,6 +102,12 @@ e_scandata_plotqueries=[[('10','retailer'),('0','variety')],
                         [('12','retailer'),('93','variety')],
  
          
+                        [('10','productgroup')],
+                        [('11','productgroup')],
+                        [('12','productgroup')],
+                        [('13','productgroup')],
+
+                    #    [('12','retailer'),('10','productgroup')],
 
               
                         [('10','retailer'),('10','productgroup')],
@@ -134,7 +143,8 @@ e_scandata_plotqueries=[[('10','retailer'),('0','variety')],
                         [('4','brand')],
                         [('7','brand')],
                         [('8','brand')],
-                        [('13','brand')]]
+                        [('13','brand')],
+                        [('18','brand')]]
                        
                      #   [('10','retailer'),('12','productgroup')],
                   #      [('12','retailer'),('14','productgroup')]]
@@ -159,8 +169,8 @@ price_df_savename="price_df.pkl"
 filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
    
 
-product_groups_only=["10","11","12","13","14"]  #,"15","16","17","18"]
-spc_only=['088']   #,"080",'020',"028",'030',"038",'040',"048",'050','060','070']  #,"028"]   #,"038","048","028","080","020","030","040']
+product_groups_only=["10","11","12","13","14","15","16","17"]   #,"18"]
+spc_only=['088',"080",'020',"028",'030',"038",'040',"048",'050','060','070']  #,"028"]   #,"038","048","028","080","020","030","040']
 
 max_slope=0.2
 min_slope=-0.1

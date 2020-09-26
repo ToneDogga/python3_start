@@ -26,8 +26,8 @@ else:
 # TensorFlow ≥2.0 is required
 import tensorflow as tf
 
-gpus = tf.config.list_physical_devices('GPU')
-tf.config.experimental.set_memory_growth(gpus[0], True)
+#gpus = tf.config.list_physical_devices('GPU')
+#tf.config.experimental.set_memory_growth(gpus[0], True)
 
 # =============================================================================
 # if dd.dash_verbose==False:
@@ -633,7 +633,8 @@ def load_data(scan_data_files,scan_data_filesT):
 
    # print("df6.cols=\n",df.columns)
     df=df.T
-    write_excel2(df,"testdf.xlsx")
+ #   write_excel2(df,"testdf.xlsx")
+    print("\n")
   #  print("df4=\n",df)
     return df
 
@@ -856,7 +857,8 @@ def plot_type3(df):
   #  df['date']=pd.to_datetime(df.index).strftime("%Y-%m-%d").to_list()
   #  newdates = pd.to_datetime(df['date']).apply(lambda date: date.toordinal()).to_list()
   #  df=df.T
- #   df.iloc[:1]*=1000
+    #df.iloc[:1]*=1000
+    df*=1000
  #   print("plot type3 df=\n",df)
     fig, ax = pyplot.subplots()
     fig.autofmt_xdate()
@@ -1083,51 +1085,144 @@ def graph_sales_year_on_year(sales_df,title,left_y_axis_title):
  
     
 def promo_flags(sales_df,price_df):
-#     sales_df=pd.read_pickle(dd.sales_df_savename)   #,protocol=-1)          
-#    # sales_df.reset_index(drop=True,inplace=True)
-#     sales_df.set_index('date',drop=False,inplace=True)
-#  #   sales_df.sort_values('date',ascending=True,inplace=True)
-# #    promo_df=sales_df[(sales_df['code']=="OFFINV") | (sales_df['product']=="OFFINV")]
-#     promo_df=sales_df[sales_df['product']=="OFFINV"]
-
-#     promo_df['weekno']=promo_df['date'].dt.week
-#     promo_df['monthno']=promo_df['date'].dt.month
-#     promo_df['year']=promo_df['date'].dt.year
-#  #   print("promo df =\n",promo_df,promo_df.shape)
-
-#  #   promo_df['month']=[lambda x: calendar.month_abbr[int(x)] in promo_df.monthno]
-
-#  #   promo_df=promo_df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
-#     pivot_df=pd.pivot_table(promo_df, values='salesval', columns=['specialpricecat','product'],index=['code','year','monthno'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
-    sales_df['qty'].replace(0,np.nan,inplace=True)   # prevent divid by zero
-    price_df=price_df.T
-    price_df.index=price_df.index.astype(np.float64)
-    print(price_df)
-    unique_spc=list(pd.unique(sales_df['specialpricecat']))
-    print("unique spc=",unique_spc)
-    for spc in unique_spc:
-        if spc!=0:
-     #   sspc=str(spc)
-            print("spc",spc)  #,sspc)
     
-            try:
-                price_list=price_df.loc[spc]
-            except:
-                print("key not found",spc)
-            else:    
-           #     print("pril=\n",price_list)
-                sales_idx=(sales_df['specialpricecat']==spc)
+        
+    price_df.reset_index(inplace=True)
+    #print(price_df,price_df.shape)
+    
+    new_price_df= pd.melt(price_df, 
+                id_vars='product', 
+                value_vars=list(price_df.columns[1:]), # list of days of the week
+                var_name='specialpricecat', 
+                value_name='price_sb')
+    #print("npdf cols=",pd.unique(new_price_df['specialpricecat']))
+    
+    #print(new_price_df)
+    new_price_df['specialpricecat']=new_price_df['specialpricecat'].astype(np.float32)
+    #print("npdf cols2=",pd.unique(new_price_df['specialpricecat']))
+    
+    #print("npdf1=\n",new_price_df)
+    
+    
+    new_price_df = new_price_df.set_index(['specialpricecat','product'],drop=False)
+    
+    #print("npdf2=\n",new_price_df)
+    #print(sales_df.columns.dtype)
+    sales_df['specialpricecat']=sales_df['specialpricecat'].astype(np.float32)
+    sales_df['product']=sales_df['product'].astype(np.str)
+    
+    #print("nsdf1=\n",sales_df)
+    
+    
+    sales_df.loc[:,'price']=np.around(sales_df.loc[:,'salesval']/sales_df.loc[:,'qty'],2)
+    #print("nsdf`=\n",sales_df)
+    
+    
+    
+    new_sales_df = sales_df.set_index(['specialpricecat','product'],drop=False)
+    
+    #print("nsdf2=\n",new_sales_df)
+    
+    test_df=new_sales_df.join(new_price_df,how='inner',lsuffix="l",rsuffix='r')   #,sort=True)
+    #test_df=pd.concat((new_sales_df,new_price_df),axis=1,join='outer')   #keys=('specialpricecat','product'))   #,on=['specialpricecat','product'])
+    
+    #print("tdf1=\n",test_df)
+    
+    test_df.drop(["productr",'specialpricecatr'],axis=1,inplace=True)
+    test_df=test_df.rename(columns={'productl':'product','specialpricecatl':'specialpricecat'})
+    test_df.set_index('date',drop=True,inplace=True)
+    test_df.sort_index(ascending=False,inplace=True)
+    
+    
+    
+    test_df['discrep']=np.round(test_df['price_sb']-test_df['price'],2)
+    
+    return test_df
+    
+    # print("tdf2=\n",test_df)
+    
+    # test_df=test_df[(test_df['discrep']!=0)] # & (test_df['productgroup']=='10')]
+    # #print("tdf3=\n",test_df)
+    
+    # test_df.dropna(axis=0,subset=['price','price_sb'],inplace=True)
+    # test_df.sort_values(inplace=True,ascending=False,by='discrep')
+    # #print("tdf4=\n",test_df)
+    
+    # summ_df=pd.pivot_table(test_df, values='discrep',index='code',columns='productgroup',aggfunc=np.sum, margins=True,dropna=True,observed=True)
+    # summ_df.fillna(0,inplace=True)
+    # print(summ_df)
 
-                sales_df.loc[sales_idx,'price']=sales_df.loc[sales_idx,'salesval']/sales_df.loc[sales_idx,'qty']
-                print("spc=",spc,price_list)
-                sales_df.loc[sales_idx,'price_sb']=price_list
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+# #     sales_df=pd.read_pickle(dd.sales_df_savename)   #,protocol=-1)          
+# #    # sales_df.reset_index(drop=True,inplace=True)
+# #     sales_df.set_index('date',drop=False,inplace=True)
+# #  #   sales_df.sort_values('date',ascending=True,inplace=True)
+# # #    promo_df=sales_df[(sales_df['code']=="OFFINV") | (sales_df['product']=="OFFINV")]
+# #     promo_df=sales_df[sales_df['product']=="OFFINV"]
+
+# #     promo_df['weekno']=promo_df['date'].dt.week
+# #     promo_df['monthno']=promo_df['date'].dt.month
+# #     promo_df['year']=promo_df['date'].dt.year
+# #  #   print("promo df =\n",promo_df,promo_df.shape)
+
+# #  #   promo_df['month']=[lambda x: calendar.month_abbr[int(x)] in promo_df.monthno]
+
+# #  #   promo_df=promo_df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+# #     pivot_df=pd.pivot_table(promo_df, values='salesval', columns=['specialpricecat','product'],index=['code','year','monthno'], aggfunc=np.sum, margins=True,dropna=True,observed=True)
+#     sales_df['qty'].replace(0,np.nan,inplace=True)   # prevent divid by zero
+#     price_df=price_df.T
+#     price_df.index=price_df.index.astype(np.float64)
+#     print(price_df)
+#     unique_spc=list(pd.unique(sales_df['specialpricecat']))
+#     print("unique spc=",unique_spc)
+#     for spc in unique_spc:
+#         if spc!=0:
+#      #   sspc=str(spc)
+#             print("spc",spc)  #,sspc)
+    
+#             try:
+#                 price_list=price_df.loc[spc]
+#             except:
+#                 print("key not found",spc)
+#             else:    
+#                 print("pril=\n",price_list)
+#                 sales_idx=(sales_df['specialpricecat']==spc)
+#        #         price_list_idx=(sales_df.loc[sales_idx]==price_list.index)
+
+#                 sales_df.loc[sales_idx,'price']=sales_df.loc[sales_idx,'salesval']/sales_df.loc[sales_idx,'qty']
+#                 print("spc=",spc,price_list)
+#                 print("sales_df= spc\n",sales_df.loc[sales_idx])
+                
+#                 for p in sales_df['product'].loc[sales_idx]:
+#                     print("p=",p)
+#                     try:
+#                         price_list_idx=((sales_df['specialpricecat']==spc) & (sales_df['product']==p))
+#                     except:
+#                         pass
+#                     else:    
+#                         sales_df.loc[price_list_idx,'price_sb']=price_list.loc[p]
+#                 print("pricelist=\n",price_list)
+#                 print("pl indx",price_list_idx)
+                
+#              #   sales_df.loc[sales_idx,'price_sb']=sales_df.loc[sales_idx,price_list_idx]
            
-#    name="pivot_table_units"
-    print("sales df=\n",sales_df)
+# #    name="pivot_table_units"
+#                 print("augmented sales df=\n",sales_df)
 
-    return sales_df
- #   print("OFFINV pivot df=\n",pivot_df)    
-            #prod_sales['mat']=prod_sales['qty'].rolling(dd.mat,axis=0).mean()
+#     return sales_df
+#  #   print("OFFINV pivot df=\n",pivot_df)    
+#             #prod_sales['mat']=prod_sales['qty'].rolling(dd.mat,axis=0).mean()
  
 
 
@@ -1360,7 +1455,8 @@ def compare_customers_on_plot(sales_df,latest_date,prod):
             
                 cust_sales=cust_sales.iloc[dd.scaling_point_week_no-1:,:]
             except:
-                print("not enough sales data",cust,prod)
+                pass
+                #print("not enough sales data",cust,prod)
             else:    
                 cust_sales[['mat']].plot(grid=True,use_index=True,title=str(prod)+" Dollars/week moving total comparison "+str(dd.mat2)+" weeks @w/c:"+str(latest_date),style=styles1[t_count], lw=linewidths,ax=ax)
         ax.legend(dd.customers_to_plot_together,title="")
@@ -1408,7 +1504,8 @@ def compare_customers_on_plot(sales_df,latest_date,prod):
                 cust_sales[['scaled_mat']].plot(grid=True,use_index=True,title=str(prod)+" Scaled Sales/week moving total comparison "+str(dd.mat2)+" weeks @w/c:"+str(latest_date),style=styles1[t_count], lw=linewidths,ax=ax)
 
             except:
-                print("not enough data2",cust,prod)
+                pass
+                #print("not enough data2",cust,prod)
             else:    
  #               cust_sales[['scaled_mat']].plot(grid=True,use_index=True,title=str(prod)+" Scaled Sales/week moving total comparison "+str(dd.mat2)+" weeks @w/c:"+str(latest_date),style=styles1[t_count], lw=linewidths,ax=ax)
                  pass
@@ -1476,7 +1573,8 @@ def compare_customers_by_product_group_on_plot(sales_df,latest_date,prod_list,pg
             
                 cust_sales=cust_sales.iloc[dd.scaling_point_week_no-1:,:]
             except:
-                print("not enough sales data",cust,prod_list,"product group=",pg_number)
+                pass
+               # print("not enough sales data",cust,prod_list,"product group=",pg_number)
             else:    
                 cust_sales[['mat']].plot(grid=True,use_index=True,title="Product group-"+str(pg_number)+" Dollars/week moving total comparison "+str(dd.mat2)+" weeks @w/c:"+str(latest_date),style=styles1[t_count], lw=linewidths,ax=ax)
         ax.legend(dd.customers_to_plot_together,title="")
@@ -1484,7 +1582,7 @@ def compare_customers_by_product_group_on_plot(sales_df,latest_date,prod_list,pg
 
         t_count+=1            
 
-    save_fig("cust_"+str(dd.customers_to_plot_together[0])+"prodgroup_"+str(pg_number)+"_together_dollars_moving_total")
+    save_fig("cust_"+str(dd.customers_to_plot_together[0])+"group_"+str(pg_number)+"_together_dollars_moving_total")
         
   #  print("start point",start_point) 
     scaling=[100/start_point[i] for i in range(0,len(start_point))]
@@ -1522,7 +1620,8 @@ def compare_customers_by_product_group_on_plot(sales_df,latest_date,prod_list,pg
            # try:
                 cust_sales=cust_sales.iloc[dd.scaling_point_week_no-1:,:]
             except:
-                print("not enough data2",cust,prod_list)
+                pass
+               # print("not enough data2",cust,prod_list)
             else:    
                 cust_sales[['scaled_mat']].plot(grid=True,use_index=True,title="Product group "+str(pg_number)+" Scaled Sales/week moving total comparison "+str(dd.mat2)+" weeks @w/c:"+str(latest_date),style=styles1[t_count], lw=linewidths,ax=ax)
  
@@ -1534,7 +1633,7 @@ def compare_customers_by_product_group_on_plot(sales_df,latest_date,prod_list,pg
 
 #    ax.axvline(dd.scaling_point_week_no, ls='--')
 #
-    save_fig("cust_"+str(dd.customers_to_plot_together[0])+"prodgroup_"+str(pg_number)+"_scaled_together_dollars_moving_total")
+    save_fig("cust_"+str(dd.customers_to_plot_together[0])+"group_"+str(pg_number)+"_scaled_together_dollars_moving_total")
 #    print("cust sales2=\n",cust_sales,cust_sales.T)
   
         
@@ -1976,11 +2075,34 @@ def main():
    
    #  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++===
    
+    end_date=sales_df['date'].iloc[-1]- pd.Timedelta(30, unit='d')
+    #print(end_date)
+    #print("ysdf=",sales_df)
+    recent_sales_df=sales_df[sales_df['date']>end_date]
+    augmented_sales_df=promo_flags(recent_sales_df,price_df)
+    augmented_sales_df.to_pickle(dd.sales_df_augmented_savename,protocol=-1)          
    
-  #  sales_df=promo_flags(sales_df,price_df)
+    test_df=pd.read_pickle(dd.sales_df_augmented_savename)
+   # print("augmented testdf=\n",test_df)
+       # print("tdf2=\n",test_df)
     
-  
+    # test_df=test_df[(test_df['discrep']!=0)] # & (test_df['productgroup']=='10')]
+    # #print("tdf3=\n",test_df)
     
+    test_df.dropna(axis=0,subset=['price','price_sb'],inplace=True)
+    test_df.sort_values(inplace=True,ascending=False,by='discrep')
+    # #print("tdf4=\n",test_df)
+    
+    summ_df=pd.pivot_table(test_df, values='discrep',index='code',columns='product',aggfunc=np.sum, margins=True,dropna=True,observed=True)
+    summ_df=summ_df.dropna(axis=0,how='all')
+    summ_df=summ_df.dropna(axis=1,how='all')
+
+    summ_df.fillna(0,inplace=True)
+    summ_df = summ_df.sort_values('All', axis=1, ascending=False)
+    summ_df = summ_df.sort_values('All', axis=0, ascending=False)
+    print("Last 30 days underpriced summary:\n",summ_df.iloc[:,10:20])
+    summ_df.to_excel(output_dir+dd.price_discrepencies_summary)
+
   # =============================================================
    ####################################333
     
@@ -2246,8 +2368,23 @@ def main():
     graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['specialpricecat']==12.00],"Aaa Year on Year Coles (12) $ sales per week","$/week")
     graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['specialpricecat']==88.00],"Aaa Year on Year (088) $ sales per week","$/week")
     graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['specialpricecat']==122.00],"Aaa Year on Year Harris farm (122) $ sales per week","$/week")
-    
+    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['productgroup']=='10'],"Aaa Year on Year (10-jams) $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['productgroup']=='11'],"Aaa Year on Year (11-sauces) $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['productgroup']=='12'],"Aaa Year on Year (12-dressings) $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['productgroup']=='13'],"Aaa Year on Year (13-condiments) $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['productgroup']=='14'],"Aaa Year on Year (14-meal bases) $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['productgroup']=='15'],"Aaa Year on Year (15-cheese pastes) $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['productgroup']=='16'],"Aaa Year on Year (16-150g traditional cond) $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['productgroup']=='17'],"Aaa Year on Year (17-150g mustards) $ sales per week","$/week")
 
+    graph_sales_year_on_year(yearly_sales_df[(yearly_sales_df['product']=='BM220') | (yearly_sales_df['product']=='HM220') | (yearly_sales_df['product']=='RBM240') | (yearly_sales_df['productgroup']=='17')],"Aaa Year on Year (17-150g vs 220g mustards) $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[(yearly_sales_df['product']=='TAS260') | (yearly_sales_df['product']=='RCJ300') | (yearly_sales_df['product']=='MIN290') | (yearly_sales_df['product']=='SEA250') | (yearly_sales_df['product']=='AS250') | (yearly_sales_df['product']=='CRN280')| (yearly_sales_df['productgroup']=='16')],"Aaa Year on Year (16-150g vs 220g trad cond) $ sales per week","$/week")
+
+
+
+ #      compare_customers_by_product_group_on_plot(sales_df,latest_date,['TAS260','RCJ300','MIN290','SEA250','AS250','CRN280','TAS155','RCJ195','MIN185','SEA150','AS160','CRN175'],"")
+    
+ 
     
     
     
@@ -3053,7 +3190,45 @@ def main():
         distdollars_df=distdollars_df.rename(dd.productgroups_dict,level='productgroup',axis='columns')
  
     
-    
+        plt.close('all')
+     #######################################################################3
+ # pandas distrribution sales pareto chart
+  
+        distdollars_df.to_pickle("dd_df.pkl",protocol=-1) 
+     #   print("did=\n",distdollars_df)
+        
+        
+          
+        distdollars_df=distdollars_df.droplevel([0],axis=1)
+        distdollars_df=distdollars_df.droplevel([0,1],axis=0)
+        
+        cust_tot=distdollars_df['total']
+        distdollars_df=distdollars_df.T
+        prod_tot=distdollars_df['total']
+        distdollars_df=distdollars_df.T
+        pt=prod_tot[1:80].to_frame()
+        ptot=prod_tot.sum()
+        pt['cumulative']=np.cumsum(pt)/ptot
+    #    print("pt",pt)
+        ct=cust_tot[1:80].to_frame()
+        ctot=cust_tot.sum()
+        ct['cumulative']=np.cumsum(ct)/ctot
+     #   print("ct",ct)
+      
+        ax=pt['total'].plot.bar(x='product',ylabel="$",fontsize=5,title="Last 90 day $ product sales ranking top 80 (within groups supplied)")
+        pt.plot(y='cumulative',xlabel="",rot=90,ax=ax,style=["r-"],secondary_y=True)
+        save_fig("pareto_product")
+        plt.close('all')
+          
+        ax2=ct['total'].plot.bar(x='code',ylabel="$",fontsize=5,title="Last 90 day $ customer sales ranking top 80 (within groups supplied)")
+        ct.plot(y='cumulative',xlabel="",rot=90,style=["r-"],ax=ax2,secondary_y=True)
+        save_fig("pareto_customer")
+
+
+        plt.close('all')
+
+
+#########################################################################################  
       #  print(dist_df,"\n",dist_df.T)
 #  list_data=pd.date_range(start='1/1/2018', end='1/08/2018').to_list()
 # Create a Pandas dataframe from the data.
@@ -3102,7 +3277,10 @@ def main():
         # Close the Pandas Excel writer and output the Excel file.
         writer2.save()      
    
-    
+
+   
+   
+   ##################################################################33
 
         #print("\nysdf3=",new_sales_df[['date','code','product','counter','slope']],new_sales_df.shape)
         new_sales_df.drop_duplicates(['code','product'],keep='first',inplace=True)
@@ -3184,7 +3362,17 @@ def main():
             
             
             t_count+=1
-         
+  
+            
+  
+    
+  
+    
+     
+  
+    
+  
+    
             
 # =============================================================================
           
@@ -3197,7 +3385,16 @@ def main():
               #    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['product']==p],"prod_"+str(p)+" units per week","Units/week")
             compare_customers_by_product_group_on_plot(sales_df,latest_date,prod_unique,pg)
       
-          
+      
+        compare_customers_by_product_group_on_plot(sales_df,latest_date,['BM220','HM220','RWG220','HM150','RBM150','BM150','SHM155','BQM165'],"")
+        compare_customers_by_product_group_on_plot(sales_df,latest_date,['TAS260','RCJ300','MIN290','SEA250','AS250','CRN280','TAS155','RCJ195','MIN185','SEA150','AS160','CRN175'],"")
+    
+      
+      
+      
+      
+      
+      
 # =============================================================================
             
          
