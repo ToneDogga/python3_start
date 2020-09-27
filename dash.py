@@ -1130,13 +1130,14 @@ def promo_flags(sales_df,price_df):
     
     test_df.drop(["productr",'specialpricecatr'],axis=1,inplace=True)
     test_df=test_df.rename(columns={'productl':'product','specialpricecatl':'specialpricecat'})
-    test_df.set_index('date',drop=True,inplace=True)
+    test_df.set_index('date',drop=False,inplace=True)
     test_df.sort_index(ascending=False,inplace=True)
     
-    
-    
+     
     test_df['discrep']=np.round(test_df['price_sb']-test_df['price'],2)
-    
+  #  test_df['on_promo_guess']=False
+    test_df['on_promo_guess']=(((test_df['specialpricecat']==88) & (test_df['discrep']>0.09)) & ((test_df['productgroup']=='10') | (test_df['productgroup']=='11') | (test_df['productgroup']=='12') | (test_df['productgroup']=='13') | (test_df['productgroup']=='14') | (test_df['productgroup']=='15') |(test_df['productgroup']=='16') |(test_df['productgroup']=='17')))
+   
     return test_df
     
     # print("tdf2=\n",test_df)
@@ -2105,6 +2106,7 @@ def main():
         price_df.to_pickle(dd.price_df_savename,protocol=-1)          
  
 
+    print("Flagging promotions...")
 
     price_df=pd.read_pickle(dd.price_df_savename)
     #print("Load and plot scan data...")
@@ -2121,7 +2123,40 @@ def main():
     recent_sales_df=sales_df[sales_df['date']>end_date]
     augmented_sales_df=promo_flags(recent_sales_df,price_df)
     augmented_sales_df.to_pickle(dd.sales_df_augmented_savename,protocol=-1)          
-   
+    on_promo_sales_df=augmented_sales_df[augmented_sales_df['on_promo_guess']==True]    #.copy(deep=True)
+    
+  #  print(on_promo_sales_df)
+    on_promo_sales_df["month"] = pd.to_datetime(on_promo_sales_df['date']).dt.strftime('%b')
+    on_promo_sales_df["year"] = pd.to_datetime(on_promo_sales_df['date']).dt.strftime('%Y')
+    
+    on_promo_sales_df.replace({'productgroup':dd.productgroup_dict},inplace=True)
+    on_promo_sales_df.replace({'productgroup':dd.productgroups_dict},inplace=True)
+    on_promo_sales_df.replace({'specialpricecat':dd.spc_dict},inplace=True)
+    on_promo_sales_df.replace({'salesrep':dd.salesrep_dict},inplace=True)
+
+    promo_pivot_df=pd.pivot_table(on_promo_sales_df, values='discrep',index=['salesrep','code','productgroup','product'], columns=['year','month'],aggfunc=np.sum, margins=True,dropna=True)  # fill_value=0)
+  #  print(promo_pivot_df) 
+    promo_pivot_df.to_excel(output_dir+"088 promotions summary4.xlsx") 
+    
+    promo_pivot_df=pd.pivot_table(on_promo_sales_df, values='discrep',index=['salesrep','code','productgroup'], columns=['year','month'],aggfunc=np.sum, margins=True,dropna=True)  # fill_value=0)
+  #  print(promo_pivot_df) 
+    promo_pivot_df.to_excel(output_dir+"088 promotions summary3.xlsx") 
+
+    promo_pivot_df=pd.pivot_table(on_promo_sales_df, values='discrep',index=['salesrep','code'], columns=['year','month'],aggfunc=np.sum, margins=True,dropna=True)  # fill_value=0)
+  #  print(promo_pivot_df) 
+    promo_pivot_df.to_excel(output_dir+"088 promotions summary2.xlsx") 
+ 
+    promo_pivot_df=pd.pivot_table(on_promo_sales_df, values='discrep',index=['salesrep'], columns=['year','month'],aggfunc=np.sum, margins=True,dropna=True)  # fill_value=0)
+    print(promo_pivot_df) 
+    promo_pivot_df.to_excel(output_dir+"088 promotions summary1.xlsx") 
+
+
+
+    print("Promotions flagged",promo_pivot_df.shape,"to 088 promotions summary 1 to 4.xlsx")
+
+    
+    
+    
     test_df=pd.read_pickle(dd.sales_df_augmented_savename)
    # print("augmented testdf=\n",test_df)
        # print("tdf2=\n",test_df)
@@ -2140,7 +2175,8 @@ def main():
     summ_df.fillna(0,inplace=True)
     summ_df = summ_df.sort_values('All', axis=1, ascending=False)
     summ_df = summ_df.sort_values('All', axis=0, ascending=False)
-    print("Sample of last 30 days underpriced summary, check excel report:\n",summ_df.iloc[10:20,10:20])
+ #   print("Sample of last 30 days underpriced summary, check excel report:\n",summ_df.iloc[10:20,10:20])
+    print('Underpriced?? summary report completed:',dd.price_discrepencies_summary) 
     summ_df.to_excel(output_dir+dd.price_discrepencies_summary)
 
   # =============================================================
