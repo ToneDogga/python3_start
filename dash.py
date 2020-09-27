@@ -1408,6 +1408,46 @@ def plot_prediction(df,title,latest_date):
 
 
 
+def distribution_report_counts(days_back_to_start,days_back_to_end):
+    
+    sales_df=pd.read_pickle('sales_trans_df.pkl')    #.head(40000)
+    #print(sales_df.shape)
+    
+    print("\nCreating distribution count table from sales",sales_df.shape)
+    
+    end_date=sales_df.index[0]- pd.Timedelta(days_back_to_end, unit='d')
+    startend_date=sales_df.index[0]- pd.Timedelta(days_back_to_start, unit='d')
+    
+    #print(startend_date,end_date)
+    
+    sales_df = sales_df.drop(sales_df[(sales_df['productgroup']==0)].index)
+    
+    sales_df["month"] = pd.to_datetime(sales_df["date"]).dt.strftime('%m-%b')
+    sales_df['quarter'] = sales_df['date'].dt.quarter
+    
+    #sales_df["qtr"] = pd.to_datetime(sales_df["date"]).dt.strftime('%m-%b')
+    sales_df["year"] = pd.to_datetime(sales_df["date"]).dt.strftime('%Y')
+    
+    new_sales_df=sales_df[(sales_df.index<end_date) & (sales_df.index>=startend_date)]
+    #year_sales_df.sort_values(['date'],ascending=[True],inplace=True)
+    
+    new_sales_df=new_sales_df[new_sales_df['productgroup'].isin(dd.product_groups_only) & new_sales_df['specialpricecat'].isin(dd.spc_only)]   
+    new_sales_df=new_sales_df[(new_sales_df['qty']>0) & (new_sales_df['salesval']>0)]   
+     
+    new_sales_df.replace({'productgroup':dd.productgroup_dict},inplace=True)
+    new_sales_df.replace({'productgroup':dd.productgroups_dict},inplace=True)
+    new_sales_df.replace({'specialpricecat':dd.spc_dict},inplace=True)
+    new_sales_df.replace({'salesrep':dd.salesrep_dict},inplace=True)
+    
+    pivot_df=pd.pivot_table(new_sales_df, values=['product'],index=['salesrep','code','productgroup'], columns=['year','quarter'],aggfunc=pd.Series.nunique, margins=True,dropna=True)  # fill_value=0)
+    
+    pivot_df.to_excel(output_dir+"distribution_report_counts.xlsx") 
+    print("Distribution report count completed",pivot_df.shape)
+        # dd.report_dict[dd.report(name,6,"_*","_*")]=pivot_df
+    return
+
+
+
 
 def compare_customers_on_plot(sales_df,latest_date,prod):
     styles1 = ['r-',"b-","g-","k-","y-"]
@@ -2100,7 +2140,7 @@ def main():
     summ_df.fillna(0,inplace=True)
     summ_df = summ_df.sort_values('All', axis=1, ascending=False)
     summ_df = summ_df.sort_values('All', axis=0, ascending=False)
-    print("Last 30 days underpriced summary:\n",summ_df.iloc[:,10:20])
+    print("Sample of last 30 days underpriced summary, check excel report:\n",summ_df.iloc[10:20,10:20])
     summ_df.to_excel(output_dir+dd.price_discrepencies_summary)
 
   # =============================================================
@@ -2959,6 +2999,7 @@ def main():
     #################################################################################################
     # Create distribution report and find all the good performing and poor performing outliers in retail sales
     if answer3=="y":
+        distribution_report_counts(days_back_to_start=732,days_back_to_end=0)
 
     #    print("\nChecking sales trends by customers and products of past year.....")
         
