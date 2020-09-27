@@ -40,8 +40,8 @@ import tensorflow as tf
 
 
 
-
-tf.config.experimental_run_functions_eagerly(False)   #True)   # false
+tf.config.run_functions_eagerly(False)
+#tf.config.experimental_run_functions_eagerly(False)   #True)   # false
 
 #gpus = tf.config.list_physical_devices('GPU')
 #tf.config.experimental.set_memory_growth(gpus[0], True)
@@ -3532,10 +3532,11 @@ def main():
             sales_corr=new_df.xs(row,level='plotnumber',drop_level=False,axis=1).corr(method='pearson')
             sales_corr=sales_corr.droplevel([0,1])
         #    print("sales corr",sales_corr.shape)
-            shifted_vs_scanned_off_promo_corr=round(sales_corr.iloc[0,2],3)
-            shifted_vs_scanned_corr=round(sales_corr.iloc[1,2],3)
+            if sales_corr.shape[1]>=3:
+                shifted_vs_scanned_off_promo_corr=round(sales_corr.iloc[0,2],3)
+                shifted_vs_scanned_corr=round(sales_corr.iloc[1,2],3)
 
-            print(name,"-shifted vs scanned total sales correlation=",shifted_vs_scanned_corr)
+                print(name,"-shifted vs scanned total sales correlation=",shifted_vs_scanned_corr)
         #    print(name,"-shifted vs scanned off promo correlation=",shifted_vs_scanned_off_promo_corr)
 
             #   print("Correlations:\n",sales_corr)
