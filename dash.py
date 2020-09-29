@@ -26,8 +26,8 @@ else:
 # TensorFlow ≥2.0 is required
 import tensorflow as tf
 
-#gpus = tf.config.list_physical_devices('GPU')
-#tf.config.experimental.set_memory_growth(gpus[0], True)
+gpus = tf.config.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(gpus[0], True)
 
 # =============================================================================
 # if dd.dash_verbose==False:
@@ -1685,6 +1685,131 @@ def compare_customers_by_product_group_on_plot(sales_df,latest_date,prod_list,pg
  
     
  
+def plot_chart(scan_pass,count):
+    scan_df=scan_pass.copy(deep=True)
+ #   print("sd=\n",scan_df)
+    week_freq=8
+  #  scan_df['changedate']=pd.to_datetime(scan_df['date']).strftime("%Y-%m").to_list()
+ #   scan_df['date']=pd.to_datetime(scan_df.index).strftime("%Y-%m").to_list()
+    scan_df['date']=pd.to_datetime(scan_df.index,format="%Y-%m",exact=False).to_list()
+
+    newdates = pd.to_datetime(scan_df['date']).apply(lambda date: date.toordinal()).to_list()
+  #  print("nd=",newdates)   
+ 
+    
+    fig, ax = pyplot.subplots()
+    fig.autofmt_xdate()
+    ax.ticklabel_format(style='plain')
+    scan_df=scan_df.iloc[:,:-1]
+    scan_df.plot(xlabel="",grid=True,ylabel="UPSPW index smoothed",ax=ax)
+
+    plt.legend(loc='upper left',title="",fontsize=6,title_fontsize=5, bbox_to_anchor=(0.3, 1.1))
+    plt.title("Scanned_"+str(count), x=0, y=1)
+    new_labels = [dt.date.fromordinal(int(item)) for item in newdates]   #[::week_freq] ]  #ax.get_xticks()]
+  #  print("new labels=",new_labels)
+    improved_labels = ['{}-{}'.format(calendar.month_abbr[int(m)],y) for y, m , d in map(lambda x: str(x).split('-'), new_labels)]
+    
+  #  improved_labels=improved_labels[:1]+improved_labels[::week_freq]
+  #  print("scan_df=\n",scan_df)
+
+    improved_labels=improved_labels[:1]+improved_labels[week_freq+1::week_freq]
+ #   print("improived labels=",improved_labels)
+   
+    save_fig("Scanned_"+str(count))
+  
+ #   ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
+ #   ax.set_xticklabels(improved_labels,fontsize=7)
+  #  plt.show()
+    plt.close()
+ #   plt.close()       
+   # plt.tight_layout()
+
+
+    return
+
+
+
+def scale(scan_df):
+ #   print(scan_df)
+    smooth_weeks=6
+    scan_df.replace(0,np.nan,inplace=True)
+    scan_df=scan_df.rolling(smooth_weeks,axis=0).mean()
+  #  print(scan_df)
+    scaling=(100/scan_df.iloc[smooth_weeks-1,:]).to_list() 
+    i=0
+    for s in scaling:
+        scan_df.iloc[:,i]*=s
+        i+=1
+ #   scan_df.iloc[:,column]=scan_df.iloc[:,column]*scaling
+ #       column+=1
+ #   print("s;=:",scaling,len(scaling))
+    return scan_df
+
+
+
+
+def write_excel(df,filename):
+        sheet_name = 'Sheet1'
+        writer = pd.ExcelWriter(filename,engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')     
+        df.to_excel(writer,sheet_name=sheet_name,header=False,index=False)    #,engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')     
+        writer.save()
+        return
+
+
+
+
+def load_extra_scan_data(scan_data_files,weeks_back):
+    count=1
+    for scan_file in scan_data_files:
+       #  column_count=pd.read_excel(scan_file,-1).shape[1]   #count(axis='columns')
+     #if dd.dash_verbose:
+        print("Loading...",scan_file)   #,scan_fileT)   #,"->",column_count,"columns")
+     
+     # convert_dict={col: np.float64 for col in range(1,column_count-1)}   #1619
+     # convert_dict['index']=np.datetime64
+     
+        if count==1:
+          #           df=pd.read_excel(scan_file,-1,dtype=convert_dict,index_col=0)   #,header=[0,1,2])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+             dfT=pd.read_excel(scan_file,-1,header=None,engine='xlrd',dtype=object)    #,index_col=[1,2,3,4,5,6,7,8,9,10,11])  #,na_values={"nan":0})   #index_col=0)   #,header=[0,1,2])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+        
+             write_excel(dfT.T,"T"+scan_file)
+        
+             df=pd.read_excel("T"+scan_file,-1,header=None,index_col=[0,1,2],engine='xlrd',dtype=object)  #,na_values={"nan":0})   #index_col=0)   #,header=[0,1,2])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+ 
+    
+  #           print("1 df=\n",df)    
+        else:
+         #     print(convert_dict)
+          #   del df2
+             dfT=pd.read_excel(scan_file,-1,header=None,engine='xlrd',dtype=object)    #,index_col=[1,2,3,4,5,6,7,8,9,10,11])  #,na_values={"nan":0})   #index_col=0)   #,header=[0,1,2])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+             
+             write_excel(dfT.T,"T"+scan_file)
+        
+        
+             df2=pd.read_excel("T"+scan_file,-1,header=None,index_col=[0,1,2],engine='xlrd',dtype=object) #,na_values={"nan":0}) 
+             df2=df2.iloc[1:,:]
+         #    print("df2=\n",df2)
+             df=pd.concat([df,df2],axis=0)   #,ignore_index=True)   #levels=['plotnumber','retailer','brand','productgroup','product','variety','plottype','yaxis','stacked'])   #,keys=[df['index']])  #,skip_rows=3)  #[column_list]   #,names=column_list)   #,sheet_name="AttacheBI_sales_trans",use_cols=range(0,16),verbose=True)  # -1 means all rows   #print(df)
+           #  del df2
+        # print(df)
+        count+=1 
+  
+    df.index.set_names('retailer', level=0,inplace=True)
+    df.index.set_names('product', level=1,inplace=True)
+    df.index.set_names('measure', level=2,inplace=True)
+    df=df.T
+    df = df.loc[:,~df.columns.duplicated()]
+  #  print("df2=\n",df)
+    df.index=df.iloc[:,0]
+    df.index.set_names('date',inplace=True)
+
+     
+    df = df.iloc[-weeks_back:,1:]
+ 
+    df.fillna(0.0,inplace=True)
+    df=df.loc[:, (df != 0.0).any(axis=0)]
+    return df
+
  
 
 
@@ -1738,8 +1863,7 @@ def train_model(name,X_set,y_set,batch_length,no_of_batches,epochs,count,total):
      
     #callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=self.patience),self.MyCustomCallback()]
      
-    history = model.fit(train_set ,verbose=verbosity, epochs=epochs,
-                         validation_data=(valid_set))  #, callbacks=callbacks)
+    history = model.fit(train_set ,verbose=verbosity, epochs=epochs,validation_data=(valid_set))  #, callbacks=callbacks)
     if dd.dash_verbose:     
         print("\nsave model :"+name+"_predict_model.h5\n")
     model.save(output_dir+name+"_sales_predict_model.h5", include_optimizer=True)
@@ -2147,14 +2271,31 @@ def main():
     promo_pivot_df.to_excel(output_dir+"088 promotions summary2.xlsx") 
  
     promo_pivot_df=pd.pivot_table(on_promo_sales_df, values='discrep',index=['salesrep'], columns=['year','month'],aggfunc=np.sum, margins=True,dropna=True)  # fill_value=0)
-    print(promo_pivot_df) 
+    print("Promotional retail spending in SA stores:")
+    print(promo_pivot_df.iloc[:,-5:]) 
     promo_pivot_df.to_excel(output_dir+"088 promotions summary1.xlsx") 
 
 
 
-    print("Promotions flagged",promo_pivot_df.shape,"to 088 promotions summary 1 to 4.xlsx")
+    print("\nPromotions flagged",promo_pivot_df.shape,"to 088 promotions summary 1 to 4.xlsx")
 
-    
+   ####################################################33
+   
+   
+    print("\nLoad extra scan data: chutmeys")
+         
+    extra_scan_df=load_extra_scan_data(["chutneys_UPSPW.xlsx","sauces_UPSPW.xlsx","jams_UPSPW.xlsx"],weeks_back=33)
+    print("Plotting UPSPW indexes for all scanned products....")
+    scale_df=scale(extra_scan_df)
+    jump=5
+    for r in range(0,scale_df.shape[1],jump):
+        plot_chart(scale_df.iloc[:,r:r+jump],int(r/jump))
+    print("Finished plotting.")
+       
+   
+   
+   
+   ########################################################
     
     
     test_df=pd.read_pickle(dd.sales_df_augmented_savename)
@@ -2443,6 +2584,11 @@ def main():
     graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['specialpricecat']==10.00],"Aaa Year on Year Woolworths (10) $ sales per week","$/week")
     graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['specialpricecat']==12.00],"Aaa Year on Year Coles (12) $ sales per week","$/week")
     graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['specialpricecat']==88.00],"Aaa Year on Year (088) $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['specialpricecat']==28.00],"Aaa Year on Year (028) $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['specialpricecat']==38.00],"Aaa Year on Year (038) $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['specialpricecat']==48.00],"Aaa Year on Year (048) $ sales per week","$/week")
+
+    
     graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['specialpricecat']==122.00],"Aaa Year on Year Harris farm (122) $ sales per week","$/week")
     graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['productgroup']=='10'],"Aaa Year on Year (10-jams) $ sales per week","$/week")
     graph_sales_year_on_year(yearly_sales_df[yearly_sales_df['productgroup']=='11'],"Aaa Year on Year (11-sauces) $ sales per week","$/week")
@@ -2456,7 +2602,11 @@ def main():
     graph_sales_year_on_year(yearly_sales_df[(yearly_sales_df['product']=='BM220') | (yearly_sales_df['product']=='HM220') | (yearly_sales_df['product']=='RBM240') | (yearly_sales_df['productgroup']=='17')],"Aaa Year on Year (17-150g vs 220g mustards) $ sales per week","$/week")
     graph_sales_year_on_year(yearly_sales_df[(yearly_sales_df['product']=='TAS260') | (yearly_sales_df['product']=='RCJ300') | (yearly_sales_df['product']=='MIN290') | (yearly_sales_df['product']=='SEA250') | (yearly_sales_df['product']=='AS250') | (yearly_sales_df['product']=='CRN280')| (yearly_sales_df['productgroup']=='16')],"Aaa Year on Year (16-150g vs 220g trad cond) $ sales per week","$/week")
 
-
+    graph_sales_year_on_year(yearly_sales_df[(yearly_sales_df['specialpricecat']==88.00) & (yearly_sales_df['product']=="FC290")],"Aaa Year on Year FC290 (088) $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[(yearly_sales_df['specialpricecat']==28.00) & (yearly_sales_df['product']=="FC290")],"Aaa Year on Year FC290 (028) $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[(yearly_sales_df['specialpricecat']==38.00) & (yearly_sales_df['product']=="FC290")],"Aaa Year on Year FC290 (038) $ sales per week","$/week")
+    graph_sales_year_on_year(yearly_sales_df[(yearly_sales_df['specialpricecat']==48.00) & (yearly_sales_df['product']=="FC290")],"Aaa Year on Year FC290 (048) $ sales per week","$/week")
+ 
 
  #      compare_customers_by_product_group_on_plot(sales_df,latest_date,['TAS260','RCJ300','MIN290','SEA250','AS250','CRN280','TAS155','RCJ195','MIN185','SEA150','AS160','CRN175'],"")
     
@@ -3283,26 +3433,55 @@ def main():
         distdollars_df=distdollars_df.T
         prod_tot=distdollars_df['total']
         distdollars_df=distdollars_df.T
+        
+        ptt=prod_tot[1:].to_frame()
+        ptott=prod_tot[1:].sum()
+        ptt['cumulative']=np.cumsum(ptt)/ptott
+        ax=ptt['total'].plot.bar(x='product',ylabel="$",fontsize=5,title="Last 90 day $ All product sales ranking (within customer groups supplied) cust=["+'.'.join(str(x) for x in dd.spc_only)+"]")
+#        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
+
+        ptt.plot(y='cumulative',xlabel="",rot=90,ax=ax,style=["r-"],secondary_y=True)
+        save_fig("pareto_product_all")
+        plt.close('all')
+
+        ctt=cust_tot[1:].to_frame()
+        ctott=cust_tot[1:].sum()
+        ctt['cumulative']=np.cumsum(ctt)/ctott
+#        ax=ctt['total'].plot.bar(x='code',ylabel="$",fontsize=5,title="Last 90 day $ customer sales ranking (within customer groups supplied)")
+        ax=ctt['total'].plot(x='code',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ All customer sales ranking (Within product groups supplied) pg=["+'.'.join(str(x) for x in dd.product_groups_only)+"]")
+
+        ctt.plot(y='cumulative',xlabel="",rot=90,ax=ax,style=["r-"],secondary_y=True)
+        save_fig("pareto_customer_all")
+        plt.close('all')
+    
+        
+        cust_tot=distdollars_df['total']
+        distdollars_df=distdollars_df.T
+        prod_tot=distdollars_df['total']
+        distdollars_df=distdollars_df.T
+
+    
+    
+        
         pt=prod_tot[1:80].to_frame()
-        ptot=prod_tot.sum()
-        pt['cumulative']=np.cumsum(pt)/ptot
+        pt['cumulative']=np.cumsum(pt)/ptott
     #    print("pt",pt)
         ct=cust_tot[1:80].to_frame()
-        ctot=cust_tot.sum()
-        ct['cumulative']=np.cumsum(ct)/ctot
+        ct['cumulative']=np.cumsum(ct)/ctott
      #   print("ct",ct)
       
-        ax=pt['total'].plot.bar(x='product',ylabel="$",fontsize=5,title="Last 90 day $ product sales ranking top 80 (within groups supplied)")
+        ax=pt['total'].plot.bar(x='product',ylabel="$",fontsize=5,title="Last 90 day $ product sales ranking top 80 (within product & cust groups supplied) pg=["+'.'.join(str(x) for x in dd.product_groups_only)+"], cust=["+'.'.join(str(x) for x in dd.spc_only)+"]")
+
         pt.plot(y='cumulative',xlabel="",rot=90,ax=ax,style=["r-"],secondary_y=True)
         save_fig("pareto_product")
         plt.close('all')
           
-        ax2=ct['total'].plot.bar(x='code',ylabel="$",fontsize=5,title="Last 90 day $ customer sales ranking top 80 (within groups supplied)")
-        ct.plot(y='cumulative',xlabel="",rot=90,style=["r-"],ax=ax2,secondary_y=True)
+        ax=ct['total'].plot.bar(x='code',ylabel="$",fontsize=5,title="Last 90 day $ customer sales ranking top 80 (within customer & prod groups supplied) cust=["+'.'.join(str(x) for x in dd.spc_only)+"], pg=["+'.'.join(str(x) for x in dd.product_groups_only)+"]")   #+dd.product_groups_only+","+dd.spc_only)
+        ct.plot(y='cumulative',xlabel="",rot=90,ax=ax,style=["r-"],secondary_y=True)
         save_fig("pareto_customer")
-
-
         plt.close('all')
+
+        #plt.close('all')
 
 
 #########################################################################################  
@@ -3568,11 +3747,11 @@ def main():
             sales_corr=new_df.xs(row,level='plotnumber',drop_level=False,axis=1).corr(method='pearson')
             sales_corr=sales_corr.droplevel([0,1])
         #    print("sales corr",sales_corr.shape)
-            if sales_corr.shape[1]>=3:
-                shifted_vs_scanned_off_promo_corr=round(sales_corr.iloc[0,2],3)
-                shifted_vs_scanned_corr=round(sales_corr.iloc[1,2],3)
+        #    if sales_corr.shape[1]>=3:
+            shifted_vs_scanned_off_promo_corr=round(sales_corr.iloc[0,2],3)
+            shifted_vs_scanned_corr=round(sales_corr.iloc[1,2],3)
 
-                print(name,"-shifted vs scanned total sales correlation=",shifted_vs_scanned_corr)
+            print(name,"-shifted vs scanned total sales correlation=",shifted_vs_scanned_corr)
         #    print(name,"-shifted vs scanned off promo correlation=",shifted_vs_scanned_off_promo_corr)
 
             #   print("Correlations:\n",sales_corr)
@@ -3723,7 +3902,7 @@ def main():
     
     plt.close("all")
     end_timer = time.time()
-    print("\nDash total runtime:",round(end_timer - start_timer,2),"seconds.\n")
+    print("\nFinished. Dash total runtime:",round(end_timer - start_timer,2),"seconds.\n")
 
     return
 
