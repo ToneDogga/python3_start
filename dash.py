@@ -2136,43 +2136,56 @@ def main():
     
  
     
+ 
+ ##################################################################3
+#  jams brand index    Beerenberg vs st Dalfour (and Bonne Maman) 
+ 
  #  print("pdf=\n",pdf)
     new_pdf=multiple_slice_scandata(pdf,query=[('9','plottype3')])
-    #  we need to nan out vlaues where Beerenberg is on promotion
-
-  #  print("new_pdf2=\n",new_pdf)
- 
- #   new_pdf=multiple_slice_scandata(pdf,query=[('11','plottype2')])
-    #print(new_pdf.xs('11',axis=0,level='plottype2',drop_level=False))
-   # print("new_pdf2=\n",new_pdf)
-    
+     
     new_pdf=new_pdf.droplevel([0,1,2,3,4,5,6,7,8,9,10])
     column_names=['-'.join(tup) for tup in new_pdf.index]
- #   print("colnames=",column_names)
- #   print("new_pdf2=\n",new_pdf)
-   # new_pdf=new_pdf.T
-   # new_pdf['name']=str(new_pdf.columns.get_level_values('colname')) + " "+str(new_pdf.columns.get_level_values('measure'))
-    #new_pdf=new_pdf.T
     new_pdf = new_pdf.reset_index(level=[0,1],drop=True)  #'sortorder'])
-   # new_pdf=new_pdf.set_index('sortorder')
-     #new_pdf=new_pdf.droplevel([0])
     new_pdf=new_pdf.T
-  #  print("newpdf2=\n",new_pdf.columns)
     newcols_dict={k:v for k,v in zip(new_pdf.columns,column_names)}
-  #  print("newcols dict=\n",newcols_dict)
-   # new_pdf.rename(columns={1001: '1001', 1010: '1010', 1012:'1012',1018:'1018'}, inplace=True)
     new_pdf.rename(columns=newcols_dict, inplace=True)
 
-    
-
-
-
-  #  print("new_pdf3.T=\n",new_pdf.T)
- #   plot_brand_index(new_pdf,y_col=('Coles Beerenberg all jams','Units (000) Sold off Promotion >= 5 % 6 wks'),col_and_hue=[('Coles Bonne Maman all jams','Wks on Promotion >= 5 % 6 wks'),('Coles St Dalfour all jams','Wks on Promotion >= 5 % 6 wks')],savename="coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
-    plot_brand_index(new_pdf,y_col='Coles Beerenberg all jams-Units Sold off Promotion >= 5 % 6 wks',col_and_hue=['Coles Bonne Maman all jams-Wks on Promotion >= 5 % 6 wks','Coles St Dalfour all jams-Wks on Promotion >= 5 % 6 wks'],savename="AAab brand index coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+#   plot_brand_index(new_pdf,y_col=('Coles Beerenberg all jams','Units (000) Sold off Promotion >= 5 % 6 wks'),col_and_hue=[('Coles Bonne Maman all jams','Wks on Promotion >= 5 % 6 wks'),('Coles St Dalfour all jams','Wks on Promotion >= 5 % 6 wks')],savename="coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+    plot_brand_index(new_pdf,y_col='Coles Beerenberg all jams-Units Sold off Promotion >= 5 % 6 wks',col_and_hue=['Coles Bonne Maman all jams-Wks on Promotion >= 5 % 6 wks','Coles St Dalfour all jams-Wks on Promotion >= 5 % 6 wks'],savename="AAab brand index jams coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
 
   #  plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_bonne_maman_jams_on_promo','coles_st_dalfour_jams_on_promo'],savename="coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
-    plot_brand_index(new_pdf,y_col='Woolworths Beerenberg all jams-Units Sold off Promotion >= 5 % 6 wks',col_and_hue=['Woolworths Bonne Maman all jams-Wks on Promotion >= 5 % 6 wks','Woolworths St Dalfour all jams-Wks on Promotion >= 5 % 6 wks'],savename="AAab brand index woolworths1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+    plot_brand_index(new_pdf,y_col='Woolworths Beerenberg all jams-Units Sold off Promotion >= 5 % 6 wks',col_and_hue=['Woolworths Bonne Maman all jams-Wks on Promotion >= 5 % 6 wks','Woolworths St Dalfour all jams-Wks on Promotion >= 5 % 6 wks'],savename="AAab brand index jams woolworths1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+
+
+
+
+ 
+ ##################################################################3
+#  condimants brand index   Beerenberg vs Baxters (and Whitlock or Jills)
+ 
+ #  print("pdf=\n",pdf)
+    new_pdf=multiple_slice_scandata(pdf,query=[('10','plottype1')])
+     
+    new_pdf=new_pdf.droplevel([0,1,2,3,4,5,6,7,8,9,10])
+    column_names=['-'.join(tup) for tup in new_pdf.index]
+    new_pdf = new_pdf.reset_index(level=[0,1],drop=True)  #'sortorder'])
+    new_pdf=new_pdf.T
+    newcols_dict={k:v for k,v in zip(new_pdf.columns,column_names)}
+    new_pdf.rename(columns=newcols_dict, inplace=True)
+
+#   plot_brand_index(new_pdf,y_col=('Coles Beerenberg all jams','Units (000) Sold off Promotion >= 5 % 6 wks'),col_and_hue=[('Coles Bonne Maman all jams','Wks on Promotion >= 5 % 6 wks'),('Coles St Dalfour all jams','Wks on Promotion >= 5 % 6 wks')],savename="coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+    plot_brand_index(new_pdf,y_col='Coles Beerenberg Tomato chutney 260g-Units Sold off Promotion >= 5 % 6 wks',col_and_hue=['Coles Jills Tomato chutney 400g-Wks on Promotion >= 5 % 6 wks','Coles Baxters Tomato chutney 225g-Wks on Promotion >= 5 % 6 wks'],savename="AAab brand index Tomato chutney coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+
+  #  plot_brand_index(get_xs_name(df,("jams",3)).iloc[24:],y_col='coles_beerenberg_jams_off_promo_scanned',col_and_hue=['coles_bonne_maman_jams_on_promo','coles_st_dalfour_jams_on_promo'],savename="coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+    plot_brand_index(new_pdf,y_col='Woolworths Beerenberg Tomato chutney 260g-Units Sold off Promotion >= 5 % 6 wks',col_and_hue=['Woolworths Whitlock Tomato chutney 275g-Wks on Promotion >= 5 % 6 wks','Woolworths Baxters Tomato chutney 225g-Wks on Promotion >= 5 % 6 wks'],savename="AAab brand index Tomato chutney woolworths1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
+
+
+
+
+
+
+
+###############################################################################3
 
   #  plot_brand_index(get_xs_name(df,("jams",3)).iloc[:],y_col='woolworths_beerenberg_jams_off_promo_scanned',col_and_hue=['woolworths_bonne_maman_jams_on_promo','woolworths_st_dalfour_jams_on_promo'],savename="woolworths1")
 
@@ -2286,11 +2299,16 @@ def main():
          
     extra_scan_df=load_extra_scan_data(["chutneys_UPSPW.xlsx","sauces_UPSPW.xlsx","jams_UPSPW.xlsx"],weeks_back=33)
     print("Plotting UPSPW indexes for all scanned products....")
+    jump=5
+    for r in range(0,extra_scan_df.shape[1],jump):
+        plot_chart(extra_scan_df.iloc[:,r:r+jump],int(r/jump))
+    print("Finished plotting absolute.")
+    
     scale_df=scale(extra_scan_df)
     jump=5
     for r in range(0,scale_df.shape[1],jump):
-        plot_chart(scale_df.iloc[:,r:r+jump],int(r/jump))
-    print("Finished plotting.")
+        plot_chart(scale_df.iloc[:,r:r+jump],int(r/jump)+10000)
+    print("Finished plotting relative.")
        
    
    
