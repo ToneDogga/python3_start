@@ -7,6 +7,7 @@ Created on Fri Aug 14 11:42:38 2020
 """
 
 from collections import namedtuple
+import pandas as pd
 import numpy as np
 
 
@@ -176,6 +177,12 @@ max_slope=0.2
 min_slope=-0.1
 
 min_size_for_trend_plot=7
+
+# tuple start_date, end_date
+pareto_dates=[(pd.to_datetime("01/03/19",format="%d/%m/%y"),pd.to_datetime("01/09/19",format="%d/%m/%y")),(pd.to_datetime("01/03/20",format="%d/%m/%y"),pd.to_datetime("01/09/20",format="%d/%m/%y")),(pd.to_datetime("01/07/19",format="%d/%m/%y"),pd.to_datetime("30/06/20",format="%d/%m/%y")),(pd.to_datetime("01/07/20",format="%d/%m/%y"),pd.to_datetime("30/06/21",format="%d/%m/%y"))]
+
+
+
 
 # moving average total days used in prediction
 #mats=7
