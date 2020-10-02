@@ -1471,6 +1471,7 @@ def pareto_on_product_for_date_and_spc_or_code(sales_df,start_date,end_date,spc,
         new_df=new_df.head(top)
         
         fig, ax = pyplot.subplots()
+        fig.autofmt_xdate()
         ax.ticklabel_format(style='plain') 
         ax.yaxis.set_major_formatter(ScalarFormatter())
   
@@ -1511,6 +1512,7 @@ def pareto_on_product_for_date_and_pg_or_code(sales_df,start_date,end_date,pg,co
         new_df=new_df.head(top)
               
         fig, ax = pyplot.subplots()
+        fig.autofmt_xdate()
         ax.ticklabel_format(style='plain')
         ax.yaxis.set_major_formatter(ScalarFormatter())
         #ax.ticklabel_format(style='plain')
@@ -1551,6 +1553,7 @@ def pareto_on_customer_for_date_and_spc_or_product(sales_df,start_date,end_date,
         new_df=new_df.head(top)  
         
         fig, ax = pyplot.subplots()
+        fig.autofmt_xdate()
         ax.ticklabel_format(style='plain')
         ax.yaxis.set_major_formatter(ScalarFormatter())
 
@@ -1592,6 +1595,7 @@ def pareto_on_customer_for_date_and_pg_or_product(sales_df,start_date,end_date,p
         new_df=new_df.head(top)  
         
         fig, ax = pyplot.subplots()
+        fig.autofmt_xdate()
         ax.ticklabel_format(style='plain')
         ax.yaxis.set_major_formatter(ScalarFormatter())
 
