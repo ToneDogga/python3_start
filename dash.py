@@ -88,7 +88,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import seaborn as sns
 import matplotlib.ticker as ticker
-
+from matplotlib.ticker import ScalarFormatter
 
 import time
 
@@ -1469,14 +1469,59 @@ def pareto_on_product_for_date_and_spc_or_code(sales_df,start_date,end_date,spc,
         ptott=ptt.sum()
         new_df['cumulative']=np.cumsum(ptt)/ptott
         new_df=new_df.head(top)
-            
-        ax=new_df.plot.bar(y='salesval',ylabel="$",fontsize=5,title="Top "+str(top)+" product $ ranking for "+str(spc)+"-"+str(code)+" "+str(start_date.strftime('%d-%m-%Y'))+" to "+str(end_date.strftime('%d-%m-%Y'))+" total dollars "+str(int(ptott)))
+        
+        fig, ax = pyplot.subplots()
+        ax.yaxis.set_major_formatter(ScalarFormatter())
+  
+        ax.ticklabel_format(style='plain') 
+  #      ax.axis([1, 10000, 1, 100000])
+        
+        ax=new_df.plot.bar(y='salesval',ylabel="$",fontsize=5,title="Top "+str(top)+" product $ ranking for spc=["+str(spc)+"]-"+str(code)+" "+str(start_date.strftime('%d-%m-%Y'))+" to "+str(end_date.strftime('%d-%m-%Y'))+" total dollars "+str(int(ptott)))
     #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
-    
+   #     axis.set_major_formatter(ScalarFormatter())
+     #   ax.ticklabel_format(style='plain')
         ax2=new_df.plot(y='cumulative',xlabel="",rot=90,ax=ax,style=["r-"],secondary_y=True)
         ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
 
-        save_fig("pareto_top_"+str(top)+"_product $ ranking for "+str(spc)+"-"+str(code)+" between "+start_date.strftime('%d-%m-%Y')+" and "+end_date.strftime('%d-%m-%Y'))
+        save_fig("pareto_top_"+str(top)+"_product $ ranking for spc-"+str(spc)+"-"+str(code)+" between "+start_date.strftime('%d-%m-%Y')+" and "+end_date.strftime('%d-%m-%Y'))
+        plt.close('all')
+
+    return
+
+
+
+def pareto_on_product_for_date_and_pg_or_code(sales_df,start_date,end_date,pg,code):
+    top=60
+    if pg!="":
+        new_df=sales_df[(sales_df.index>=start_date) & (sales_df.index<=end_date) & (sales_df['productgroup']==pg)].groupby(['productgroup','product'],sort=False).sum()
+    elif code!="":
+        new_df=sales_df[(sales_df.index>=start_date) & (sales_df.index<=end_date) & (sales_df['code']==code)].groupby(['code','product'],sort=False).sum()
+    else:
+        new_df=pd.DataFrame([])
+        return
+    if new_df.shape[0]>0:
+        new_df=new_df[['salesval']].sort_values(by='salesval',ascending=False)   
+        new_df=new_df.droplevel([0])
+
+         
+        ptt=new_df['salesval']
+        ptott=ptt.sum()
+        new_df['cumulative']=np.cumsum(ptt)/ptott
+        new_df=new_df.head(top)
+              
+        fig, ax = pyplot.subplots()
+        ax.yaxis.set_major_formatter(ScalarFormatter())
+        ax.ticklabel_format(style='plain')
+        
+        ax=new_df.plot.bar(y='salesval',ylabel="$",fontsize=5,title="Top "+str(top)+" product $ ranking for pg=["+str(pg)+"]-"+str(code)+" "+str(start_date.strftime('%d-%m-%Y'))+" to "+str(end_date.strftime('%d-%m-%Y'))+" total dollars "+str(int(ptott)))
+    #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
+   #    axis.set_major_formatter(ScalarFormatter())
+     #   ax.ticklabel_format(style='plain') 
+ 
+        ax2=new_df.plot(y='cumulative',xlabel="",rot=90,ax=ax,style=["r-"],secondary_y=True)
+        ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
+
+        save_fig("pareto_top_"+str(top)+"_product $ ranking for pg-"+str(pg)+"-"+str(code)+" between "+start_date.strftime('%d-%m-%Y')+" and "+end_date.strftime('%d-%m-%Y'))
         plt.close('all')
 
     return
@@ -1484,7 +1529,7 @@ def pareto_on_product_for_date_and_spc_or_code(sales_df,start_date,end_date,spc,
 
 
 
-def pareto_on_customer_for_date_and_spc_or_code(sales_df,start_date,end_date,spc,product):
+def pareto_on_customer_for_date_and_spc_or_product(sales_df,start_date,end_date,spc,product):
     top=60
     if spc!=-1:
         new_df=sales_df[(sales_df.index>=start_date) & (sales_df.index<=end_date) & (sales_df['specialpricecat']==spc)].groupby(['specialpricecat','code'],sort=False).sum()
@@ -1503,16 +1548,64 @@ def pareto_on_customer_for_date_and_spc_or_code(sales_df,start_date,end_date,spc
         new_df['cumulative']=np.cumsum(ptt)/ptott
         new_df=new_df.head(top)  
         
-        ax=new_df.plot.bar(y='salesval',ylabel="$",fontsize=5,title="Top "+str(top)+" customer $ ranking for "+str(spc)+"-"+str(product)+" "+str(start_date.strftime('%d-%m-%Y'))+" to "+str(end_date.strftime('%d-%m-%Y'))+" total dollars "+str(int(ptott)))
+        fig, ax = pyplot.subplots()
+        ax.yaxis.set_major_formatter(ScalarFormatter())
+
+        ax.ticklabel_format(style='plain') 
+  
+        ax=new_df.plot.bar(y='salesval',ylabel="$",fontsize=5,title="Top "+str(top)+" customer $ ranking for spc["+str(spc)+"]-"+str(product)+" "+str(start_date.strftime('%d-%m-%Y'))+" to "+str(end_date.strftime('%d-%m-%Y'))+" total dollars "+str(int(ptott)))
     #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
-    
+ #       axis.set_major_formatter(ScalarFormatter())
+     #   ax.ticklabel_format(style='plain')
+        
         ax2=new_df.plot(y='cumulative',xlabel="",rot=90,ax=ax,style=["r-"],secondary_y=True)
         ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
-        save_fig("pareto_top_"+str(top)+" customer $ ranking for "+str(spc)+"-"+str(product)+" between "+start_date.strftime('%d-%m-%Y')+" and "+end_date.strftime('%d-%m-%Y'))
+        save_fig("pareto_top_"+str(top)+" customer $ ranking for spc-"+str(spc)+"-"+str(product)+" between "+start_date.strftime('%d-%m-%Y')+" and "+end_date.strftime('%d-%m-%Y'))
         plt.close('all')
 
 
     return
+
+
+
+
+def pareto_on_customer_for_date_and_pg_or_product(sales_df,start_date,end_date,pg,product):
+    top=60
+    if pg!="":
+        new_df=sales_df[(sales_df.index>=start_date) & (sales_df.index<=end_date) & (sales_df['productgroup']==pg)].groupby(['productgroup','code'],sort=False).sum()
+    elif product!="":
+        new_df=sales_df[(sales_df.index>=start_date) & (sales_df.index<=end_date) & (sales_df['product']==product)].groupby(['product','code'],sort=False).sum()
+    else:
+        new_df=pd.DataFrame([])
+        return
+    if new_df.shape[0]>0:
+        new_df=new_df[['salesval']].sort_values(by='salesval',ascending=False)   
+        new_df=new_df.droplevel([0])
+
+         
+        ptt=new_df['salesval']
+        ptott=ptt.sum()
+        new_df['cumulative']=np.cumsum(ptt)/ptott
+        new_df=new_df.head(top)  
+        
+        fig, ax = pyplot.subplots()
+        ax.yaxis.set_major_formatter(ScalarFormatter())
+
+        ax.ticklabel_format(style='plain') 
+
+        ax=new_df.plot.bar(y='salesval',ylabel="$",fontsize=5,title="Top "+str(top)+" customer $ ranking for prodgp["+str(pg)+"]-"+str(product)+" "+str(start_date.strftime('%d-%m-%Y'))+" to "+str(end_date.strftime('%d-%m-%Y'))+" total dollars "+str(int(ptott)))
+    #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
+ #       axis.set_major_formatter(ScalarFormatter())
+    #    ax.ticklabel_format(style='plain')
+
+        ax2=new_df.plot(y='cumulative',xlabel="",rot=90,ax=ax,style=["r-"],secondary_y=True)
+        ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
+        save_fig("pareto_top_"+str(top)+" customer $ ranking for pg-"+str(pg)+"-"+str(product)+" between "+start_date.strftime('%d-%m-%Y')+" and "+end_date.strftime('%d-%m-%Y'))
+        plt.close('all')
+
+
+    return
+
 
 
 
@@ -2671,28 +2764,48 @@ def main():
         pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=48,code="")
         pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=28,code="")
         pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=38,code="")
-        pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=58,code="")
+    #    pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=58,code="")
         pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=88,code="")
+        
+        pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='10',code="")
+        pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='11',code="")
+        pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='12',code="")
+        pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='13',code="")
+        pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='14',code="")
+        pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='15',code="")
+        pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='16',code="")
+        pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='17',code="")
 
-        pareto_on_customer_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=40,product="")
-        pareto_on_customer_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=20,product="")
-        pareto_on_customer_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=30,product="")
-        pareto_on_customer_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=50,product="")
-        pareto_on_customer_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=80,product="")
+
+        pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=40,product="")
+        pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=20,product="")
+        pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=30,product="")
+        pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=50,product="")
+        pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=80,product="")
        
-        pareto_on_customer_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=48,product="")
-        pareto_on_customer_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=28,product="")
-        pareto_on_customer_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=38,product="")
-    #    pareto_on_customer_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=58,product="")
-        pareto_on_customer_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=88,product="")
+        pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=48,product="")
+        pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=28,product="")
+        pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=38,product="")
+        pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=122,product="")
+        pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=88,product="")
 
 
+        pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='10',product="")
+        pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='11',product="")
+        pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='12',product="")
+        pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='13',product="")
+        pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='14',product="")
+        pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='15',product="")
+        pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='16',product="")
+        pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='17',product="")
 
     print("Finished paretos") 
   #  pareto_on_customer_for_date_and_spc_or_code(sales_df,start_date,end_date,spc=-1,product="TS300")
     
-    
-    
+    # pareto_on_product_for_date_and_spc_or_code
+    # pareto_on_product_for_date_and_pg_or_code
+    # pareto_on_customer_for_date_and_spc_or_product
+    #  pareto_on_customer_for_date_and_pg_or_product
     
     
     
