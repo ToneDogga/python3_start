@@ -1471,12 +1471,13 @@ def pareto_on_product_for_date_and_spc_or_code(sales_df,start_date,end_date,spc,
         new_df=new_df.head(top)
         
         fig, ax = pyplot.subplots()
+        ax.ticklabel_format(style='plain') 
         ax.yaxis.set_major_formatter(ScalarFormatter())
   
-        ax.ticklabel_format(style='plain') 
+        #ax.ticklabel_format(style='plain') 
   #      ax.axis([1, 10000, 1, 100000])
         
-        ax=new_df.plot.bar(y='salesval',ylabel="$",fontsize=5,title="Top "+str(top)+" product $ ranking for spc=["+str(spc)+"]-"+str(code)+" "+str(start_date.strftime('%d-%m-%Y'))+" to "+str(end_date.strftime('%d-%m-%Y'))+" total dollars "+str(int(ptott)))
+        ax=new_df.plot.bar(y='salesval',ylabel="$",fontsize=5,grid=True, title="Top "+str(top)+" product $ ranking for spc=["+str(spc)+"]-"+str(code)+" "+str(start_date.strftime('%d-%m-%Y'))+" to "+str(end_date.strftime('%d-%m-%Y'))+" total dollars "+str(int(ptott)))
     #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
    #     axis.set_major_formatter(ScalarFormatter())
      #   ax.ticklabel_format(style='plain')
@@ -1510,10 +1511,11 @@ def pareto_on_product_for_date_and_pg_or_code(sales_df,start_date,end_date,pg,co
         new_df=new_df.head(top)
               
         fig, ax = pyplot.subplots()
-        ax.yaxis.set_major_formatter(ScalarFormatter())
         ax.ticklabel_format(style='plain')
+        ax.yaxis.set_major_formatter(ScalarFormatter())
+        #ax.ticklabel_format(style='plain')
         
-        ax=new_df.plot.bar(y='salesval',ylabel="$",fontsize=5,title="Top "+str(top)+" product $ ranking for pg=["+str(pg)+"]-"+str(code)+" "+str(start_date.strftime('%d-%m-%Y'))+" to "+str(end_date.strftime('%d-%m-%Y'))+" total dollars "+str(int(ptott)))
+        ax=new_df.plot.bar(y='salesval',ylabel="$",fontsize=5,grid=True,title="Top "+str(top)+" product $ ranking for pg=["+str(pg)+"]-"+str(code)+" "+str(start_date.strftime('%d-%m-%Y'))+" to "+str(end_date.strftime('%d-%m-%Y'))+" total dollars "+str(int(ptott)))
     #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
    #    axis.set_major_formatter(ScalarFormatter())
      #   ax.ticklabel_format(style='plain') 
@@ -1549,11 +1551,12 @@ def pareto_on_customer_for_date_and_spc_or_product(sales_df,start_date,end_date,
         new_df=new_df.head(top)  
         
         fig, ax = pyplot.subplots()
+        ax.ticklabel_format(style='plain')
         ax.yaxis.set_major_formatter(ScalarFormatter())
 
-        ax.ticklabel_format(style='plain') 
+       # ax.ticklabel_format(style='plain') 
   
-        ax=new_df.plot.bar(y='salesval',ylabel="$",fontsize=5,title="Top "+str(top)+" customer $ ranking for spc["+str(spc)+"]-"+str(product)+" "+str(start_date.strftime('%d-%m-%Y'))+" to "+str(end_date.strftime('%d-%m-%Y'))+" total dollars "+str(int(ptott)))
+        ax=new_df.plot.bar(y='salesval',ylabel="$",fontsize=5,grid=True,title="Top "+str(top)+" customer $ ranking for spc["+str(spc)+"]-"+str(product)+" "+str(start_date.strftime('%d-%m-%Y'))+" to "+str(end_date.strftime('%d-%m-%Y'))+" total dollars "+str(int(ptott)))
     #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
  #       axis.set_major_formatter(ScalarFormatter())
      #   ax.ticklabel_format(style='plain')
@@ -1589,11 +1592,12 @@ def pareto_on_customer_for_date_and_pg_or_product(sales_df,start_date,end_date,p
         new_df=new_df.head(top)  
         
         fig, ax = pyplot.subplots()
+        ax.ticklabel_format(style='plain')
         ax.yaxis.set_major_formatter(ScalarFormatter())
 
-        ax.ticklabel_format(style='plain') 
+    
 
-        ax=new_df.plot.bar(y='salesval',ylabel="$",fontsize=5,title="Top "+str(top)+" customer $ ranking for prodgp["+str(pg)+"]-"+str(product)+" "+str(start_date.strftime('%d-%m-%Y'))+" to "+str(end_date.strftime('%d-%m-%Y'))+" total dollars "+str(int(ptott)))
+        ax=new_df.plot.bar(y='salesval',ylabel="$",grid=True, fontsize=5,title="Top "+str(top)+" customer $ ranking for prodgp["+str(pg)+"]-"+str(product)+" "+str(start_date.strftime('%d-%m-%Y'))+" to "+str(end_date.strftime('%d-%m-%Y'))+" total dollars "+str(int(ptott)))
     #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
  #       axis.set_major_formatter(ScalarFormatter())
     #    ax.ticklabel_format(style='plain')
