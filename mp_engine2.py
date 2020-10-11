@@ -84,8 +84,9 @@ def prods_and_custs(sales_df):
 
 def multi_function(cust_and_prod):
    # sales_df=cust_and_prod[2]
+    min_length=7
     new_df=sales_df[(sales_df['code']==cust_and_prod[0][2]) & (sales_df['product']==cust_and_prod[1][1])]  #work_in_dict['split_key']]
-    if new_df.shape[0]>0:
+    if new_df.shape[0]>=min_length:
         return [cust_and_prod[0],cust_and_prod[1],new_df]    #sales_df[(sales_df['code']==cust_and_prod[0]) & (sales_df['product']==cust_and_prod[1])]]  #work_in_dict['split_key']]
     else:
         return []
