@@ -24,7 +24,7 @@ low_stock_limit=800000   # so high it is unused currently
 
 
 
-dash_verbose=False  #True   #False
+dash_verbose=False   #True   #False
 
 
 # filenames in same directory as this programme
@@ -167,11 +167,14 @@ sales_df_augmented_savename="sales_trans_df_augmented.pkl"
 
 price_df_savename="price_df.pkl"
 
+
+distribution_list='distribution_list.pkl'
+
 filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
    
 
-product_groups_only=["10","11","12","13","14","15","16","17"]   #,"18"]
-spc_only=["080","088",'020',"028",'030',"038",'040',"048",'050','060','070']  #,"028"]   #,"038","048","028","080","020","030","040']
+product_groups_only=["10"]   #,"11","12","13","14","15","16","17"]   #,"18"]
+spc_only=["080","088"]  #,'020',"028",'030',"038",'040',"048",'050','060','070']  #,"028"]   #,"038","048","028","080","020","030","040']
 
 max_slope=0.2
 min_slope=-0.1

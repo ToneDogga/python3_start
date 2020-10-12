@@ -72,8 +72,27 @@ from random import randrange
 
 import pickle
 import multiprocessing
-
+import subprocess as sp
 import warnings
+
+
+#import subprocess as sp
+
+#from collections import Counter
+#from statistics import mean
+from multiprocessing import Pool, Process, Lock, freeze_support, Queue, Lock, Manager
+#from tqdm import *
+from p_tqdm import p_map
+
+from os import getpid
+#import os
+#import hashlib
+#import time
+#import pickle
+#import multiprocessing 
+
+
+
 
 from collections import namedtuple
 from collections import defaultdict
@@ -368,80 +387,205 @@ def plot_stacked_line_pivot(pivot_df,title,stacked=True,number=6):
 
 
 
+def prods_and_custs(sales_df):
+     prod_list=list(set([tuple(r) for r in sales_df[['productgroup', 'product']].to_numpy()]))
+     cust_list=list(set([tuple(r) for r in sales_df[['salesrep','specialpricecat', 'code']].to_numpy()]))
 
-def plot_trend(s,title,slope,latest_date):
-   #  ax=s[['days_since_last_order','units']].iloc[-1].plot(x='days_since_last_order', linestyle='None', color="green", marker='.')
-     latest_date=pd.to_datetime(latest_date).strftime("%d/%m/%Y")
-#     print(s[['days since last order','units']].iloc[:-1])
-     fig=s[['days since last order','units']].iloc[:-1].plot(x='days since last order', linestyle='None', color="red", marker='o')
+  #   prod_list=pd.unique(sales_df['product'])
+  #   cust_list=pd.unique(sales_df['code'])
+     #cust_list = cust_list[cust_list != (88.0,'OFFINV')]
+  #  prod_list=list(tuple(sales_df,p) for p in prod_list)
+  #   cust_list=list(tuple(sales_df,p) for p in prod_list)
+ 
+   #  cust_list = cust_list[cust_list !=('9',88.0,'OFFINV')]
+   #  print("cust_list=\n",cust_list,len(cust_list))
+  #   cust_list=[c for c in cust_list[2] if c!="OFFINV"]
+    # prod_list=sorted(prod_list)
+    # cust_list=sorted(cust_list)
+     return [[c,p] for c in cust_list for p in prod_list]
 
-     s[['days since last order','bestfit']].plot(x='days since last order',kind="line",ax=fig)
 
-     plt.title(title+" (slope="+str(round(slope,3))+") w/c:"+str(latest_date))  #str(new_plot_df.columns.get_level_values(0)))
-     fig.legend(fontsize=8)
-     plt.ylabel("unit sales")
-     plt.grid(True)
-#     self.save_fig("actual_v_prediction_"+str(plot_number_df.columns[0]),self.images_path)
-     figname=title
 
-     save_fig(figname)
 
+def multi_function(cust_and_prod):
+   # sales_df=cust_and_prod[2]
+    min_length=7
+    new_df=oneyear_sales_df[(oneyear_sales_df['code']==cust_and_prod[0][2]) & (oneyear_sales_df['product']==cust_and_prod[1][1])]  #work_in_dict['split_key']]
+    if new_df.shape[0]>=dd.min_size_for_trend_plot:
+        return [cust_and_prod[0],cust_and_prod[1],new_df]    #sales_df[(sales_df['code']==cust_and_prod[0]) & (sales_df['product']==cust_and_prod[1])]]  #work_in_dict['split_key']]
+    else:
+        return []
+
+
+
+
+
+
+def multi_plot_trend(distribution_details):
+    # s=s.sort_values('date',ascending=True)
+     cust=distribution_details[0]
+     prod=distribution_details[1]
+     dist_df=distribution_details[2]
+     if dist_df.shape[0]>0:
+      #   print("yes",dist_df.shape)
+         lastone=dist_df.iloc[-1]
+      #   print("1distdf=\n",dist_df)
+
+         newgap=pd.Timedelta(pd.to_datetime('today') -lastone['date']).days
+ 
+         today_date=pd.to_datetime('today') 
+         dist_df=dist_df.append(lastone)
+      #  dist_df['daysdiff'].iloc[-1]=newgap
+      #   dist_df['days'].iloc[-1]=newgap
+       #  dist_df['qty'].iloc[-1]=0.0
+         
+      #   print("2distdf=\n",dist_df)
+
+         
+         dist_df['date'].iloc[-1]=pd.to_datetime('today')
+       #  dist_df.reset_index(inplace=True)
+      #   print("3distdf=\n",dist_df)
+
+    
+       #  dist_df=dist_df.sort_values('date',ascending=False)
+    
+         dist_df['daysdiff']=dist_df['date'].diff(periods=1).dt.days
+         dist_df['daysdiff'].fillna(0,inplace=True)
+    
+         dist_df['days']=dist_df['daysdiff'].cumsum()
+    
+       #  print("3distdf=\n",dist_df)
+
+      #   dist_df.index =  pd.to_datetime(dist_df['date'], format='%Y%m%d') 
+         X=dist_df[['days']].to_numpy()
+         X=X[::-1,0]
+      #  X=X[:,0]
+    
+         dist_df['days since last order']=X
+         y=dist_df[['qty']].to_numpy()   
+         y=y[::-1,0]
+         dist_df['units']=y
+       
+         p = np.polyfit(X[:-1], y[:-1], 1)  # linear regression 1 degree
+        
+         dist_df['bestfit']=np.polyval(p, X)
+       #  print("4distdf=\n",dist_df)
+
+       # print("s=",s)
+         figname=""
+         title=""
+         slope=round(p[0],6)
+       # print("slope=",slope)
+         if ((slope>dd.max_slope) | (slope<dd.min_slope)):
+        #    print("\nPPPPP plot slope=",slope)
+          
+             title="trend_"+str(cust)+"_"+str(prod)
+           #  figname= plot_trend(s,title,slope,latest_date)
+       # else:
+    
+       #  ax=s[['days_since_last_order','units']].iloc[-1].plot(x='days_since_last_order', linestyle='None', color="green", marker='.')
+             latest_date=pd.to_datetime(today_date).strftime("%d/%m/%Y")
+            #     print(s[['days since last order','units']].iloc[:-1])
+             fig=dist_df[['days since last order','units']].iloc[:-1].plot(x='days since last order', linestyle='None', color="red", marker='o')
+            
+             dist_df[['days since last order','bestfit']].plot(x='days since last order',kind="line",ax=fig)
+            
+             plt.title(title+" (slope="+str(round(slope,3))+") w/c:"+str(latest_date))  #str(new_plot_df.columns.get_level_values(0)))
+             fig.legend(fontsize=8)
+             plt.ylabel("unit sales")
+             plt.grid(True)
+            #     self.save_fig("actual_v_prediction_"+str(plot_number_df.columns[0]),self.images_path)
+             figname=title
+            
+             save_fig(figname)
+    
 
   #   pickle.dump(fig,open(output_dir+figname+".pkl", 'wb'))
    #  plt.draw()
    #  plt.pause(0.001)
    #  plt.show(block=False)
-     return figname
+     return 
 
 
 
 
 
-def calculate_first_derivative(s,cust,prod,latest_date):
 
-    s=s.sort_values('date',ascending=True)
-    lastone=s.iloc[-1]
-    newgap=pd.Timedelta(pd.to_datetime('today') -lastone['date']).days
-    s=s.append(lastone)
-  #  s['daysdiff'].iloc[-1]=newgap
-  #  s['days'].iloc[-1]=newgap
-    s['qty'].iloc[-1]=0.0
-    s['date'].iloc[-1]=pd.to_datetime('today')
 
-    s=s.sort_values('date',ascending=False)
 
-    s['daysdiff']=s['date'].diff(periods=1).dt.days
-    s['daysdiff'].fillna(0,inplace=True)
+# def plot_trend(s,title,slope,latest_date):
+#    #  ax=s[['days_since_last_order','units']].iloc[-1].plot(x='days_since_last_order', linestyle='None', color="green", marker='.')
+#      latest_date=pd.to_datetime(latest_date).strftime("%d/%m/%Y")
+# #     print(s[['days since last order','units']].iloc[:-1])
+#      fig=s[['days since last order','units']].iloc[:-1].plot(x='days since last order', linestyle='None', color="red", marker='o')
 
-    s['days']=s['daysdiff'].cumsum()
+#      s[['days since last order','bestfit']].plot(x='days since last order',kind="line",ax=fig)
+
+#      plt.title(title+" (slope="+str(round(slope,3))+") w/c:"+str(latest_date))  #str(new_plot_df.columns.get_level_values(0)))
+#      fig.legend(fontsize=8)
+#      plt.ylabel("unit sales")
+#      plt.grid(True)
+# #     self.save_fig("actual_v_prediction_"+str(plot_number_df.columns[0]),self.images_path)
+#      figname=title
+
+#      save_fig(figname)
+
+
+#   #   pickle.dump(fig,open(output_dir+figname+".pkl", 'wb'))
+#    #  plt.draw()
+#    #  plt.pause(0.001)
+#    #  plt.show(block=False)
+#      return figname
+
+
+
+
+
+# def calculate_first_derivative(s,cust,prod,latest_date):
+
+#     s=s.sort_values('date',ascending=True)
+#     lastone=s.iloc[-1]
+#     newgap=pd.Timedelta(pd.to_datetime('today') -lastone['date']).days
+#     s=s.append(lastone)
+#   #  s['daysdiff'].iloc[-1]=newgap
+#   #  s['days'].iloc[-1]=newgap
+#     s['qty'].iloc[-1]=0.0
+#     s['date'].iloc[-1]=pd.to_datetime('today')
+
+#     s=s.sort_values('date',ascending=False)
+
+#     s['daysdiff']=s['date'].diff(periods=1).dt.days
+#     s['daysdiff'].fillna(0,inplace=True)
+
+#     s['days']=s['daysdiff'].cumsum()
 
  
-    s.index =  pd.to_datetime(s['date'], format='%Y%m%d') 
-    X=s[['days']].to_numpy()
-    X=X[::-1,0]
-  #  X=X[:,0]
+#     s.index =  pd.to_datetime(s['date'], format='%Y%m%d') 
+#     X=s[['days']].to_numpy()
+#     X=X[::-1,0]
+#   #  X=X[:,0]
 
-    s['days since last order']=X
-    y=s[['qty']].to_numpy()   
-    y=y[::-1,0]
-    s['units']=y
+#     s['days since last order']=X
+#     y=s[['qty']].to_numpy()   
+#     y=y[::-1,0]
+#     s['units']=y
    
-    p = np.polyfit(X[:-1], y[:-1], 1)  # linear regression 1 degree
+#     p = np.polyfit(X[:-1], y[:-1], 1)  # linear regression 1 degree
     
-    s['bestfit']=np.polyval(p, X)
-   # print("s=",s)
-    figname=""
-    title=""
-    slope=round(p[0],6)
-   # print("slope=",slope)
-    if ((slope>dd.max_slope) | (slope<dd.min_slope)):
-    #    print("\nPPPPP plot slope=",slope)
+#     s['bestfit']=np.polyval(p, X)
+#    # print("s=",s)
+#     figname=""
+#     title=""
+#     slope=round(p[0],6)
+#    # print("slope=",slope)
+#     if ((slope>dd.max_slope) | (slope<dd.min_slope)):
+#     #    print("\nPPPPP plot slope=",slope)
        
-        title="trend_"+cust+"_"+prod
-        figname= plot_trend(s,title,slope,latest_date)
-   # else:
-    #    print("\nno plot slope=",slope)
-    return slope,figname,title
+#         title="trend_"+cust+"_"+prod
+#         figname= plot_trend(s,title,slope,latest_date)
+#    # else:
+#     #    print("\nno plot slope=",slope)
+#     return slope,figname,title
 
 
 
@@ -2052,14 +2196,19 @@ def train_model(name,X_set,y_set,batch_length,no_of_batches,epochs,count,total):
 
     
     
-def main():            
+def main():  
+
+    global oneyear_sales_df
+    
+    tmp=sp.call('clear',shell=True)  # clear screen 'use 'clear for unix, cls for windows
+     
     warnings.filterwarnings('ignore')
     pd.options.display.float_format = '{:.4f}'.format
       
   #  tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
     visible_devices = tf.config.get_visible_devices('GPU') 
 
-    print("\nDash : Beerenberg TF2 Salestrans analyse/predict dashboard- By Anthony Paech 25/5/20")
+    print("Dash : Beerenberg TF2 Salestrans analyse/predict dashboard- By Anthony Paech 25/5/20")
     print("=================================================================================================\n")       
 
     if True:   #dd.dash_verbose:
@@ -2756,58 +2905,58 @@ def main():
     
   ################################################################################  
     
-        
-    sales_df=pd.read_pickle(dd.sales_df_savename)
-    #print(sales_df)
-    # process a list of tuples (start_date,end_date)
-    print("Plot pareto ranking charts")
-    for d in dd.pareto_dates:    
-        pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=122,code="")
-        pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=40,code="")
-        pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=20,code="")
-        pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=30,code="")
-        pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=50,code="")
-        pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=80,code="")
- 
-        pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=48,code="")
-        pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=28,code="")
-        pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=38,code="")
-    #    pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=58,code="")
-        pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=88,code="")
-        
-        pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='10',code="")
-        pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='11',code="")
-        pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='12',code="")
-        pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='13',code="")
-        pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='14',code="")
-        pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='15',code="")
-        pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='16',code="")
-        pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='17',code="")
-
-
-        pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=40,product="")
-        pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=20,product="")
-        pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=30,product="")
-        pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=50,product="")
-        pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=80,product="")
-       
-        pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=48,product="")
-        pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=28,product="")
-        pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=38,product="")
-        pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=122,product="")
-        pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=88,product="")
-
-
-        pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='10',product="")
-        pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='11',product="")
-        pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='12',product="")
-        pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='13',product="")
-        pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='14',product="")
-        pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='15',product="")
-        pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='16',product="")
-        pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='17',product="")
-
-    print("Finished paretos") 
+    if False:    
+        sales_df=pd.read_pickle(dd.sales_df_savename)
+        #print(sales_df)
+        # process a list of tuples (start_date,end_date)
+        print("Plot pareto ranking charts")
+        for d in dd.pareto_dates:    
+            pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=122,code="")
+            pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=40,code="")
+            pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=20,code="")
+            pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=30,code="")
+            pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=50,code="")
+            pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=80,code="")
+     
+            pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=48,code="")
+            pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=28,code="")
+            pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=38,code="")
+        #    pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=58,code="")
+            pareto_on_product_for_date_and_spc_or_code(sales_df,d[0],d[1],spc=88,code="")
+            
+            pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='10',code="")
+            pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='11',code="")
+            pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='12',code="")
+            pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='13',code="")
+            pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='14',code="")
+            pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='15',code="")
+            pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='16',code="")
+            pareto_on_product_for_date_and_pg_or_code(sales_df,d[0],d[1],pg='17',code="")
+    
+    
+            pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=40,product="")
+            pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=20,product="")
+            pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=30,product="")
+            pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=50,product="")
+            pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=80,product="")
+           
+            pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=48,product="")
+            pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=28,product="")
+            pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=38,product="")
+            pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=122,product="")
+            pareto_on_customer_for_date_and_spc_or_product(sales_df,d[0],d[1],spc=88,product="")
+    
+    
+            pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='10',product="")
+            pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='11',product="")
+            pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='12',product="")
+            pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='13',product="")
+            pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='14',product="")
+            pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='15',product="")
+            pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='16',product="")
+            pareto_on_customer_for_date_and_pg_or_product(sales_df,d[0],d[1],pg='17',product="")
+    
+        print("Finished paretos") 
   #  pareto_on_customer_for_date_and_spc_or_code(sales_df,start_date,end_date,spc=-1,product="TS300")
     
     # pareto_on_product_for_date_and_spc_or_code
@@ -3443,311 +3592,406 @@ def main():
     #################################################################################################
     # Create distribution report and find all the good performing and poor performing outliers in retail sales
     if answer3=="y":
-        distribution_report_counts(days_back_to_start=732,days_back_to_end=0)
-
-    #    print("\nChecking sales trends by customers and products of past year.....")
         
-        # find all the good performing and poor performing outliers in retail sales
-        #  limit product groups
-        #product_groups_only=["10","11","12","13","14","15","18"]
-        #spc_only=["088"]
+        oneyear_sales_df=pd.read_pickle(dd.sales_df_augmented_savename)
+        oneyear_sales_df=oneyear_sales_df[oneyear_sales_df['productgroup'].isin(dd.product_groups_only) & oneyear_sales_df['specialpricecat'].isin(dd.spc_only)]   
+        oneyear_sales_df=oneyear_sales_df[(oneyear_sales_df['code']!="OFFINV")]   
+        oneyear_sales_df=oneyear_sales_df[(oneyear_sales_df['product']!="OFFINV")]   
+ 
+      #first_date=all_sales_df['date'].iloc[-1]
+        last_date=oneyear_sales_df['date'].iloc[0]
+      
+     
+      #print("Attache sales trans analysis.  Current save is:")
+      
+      
+      #print("Data available:",all_sales_df.shape[0],"records.\nfirst date:",first_date,"\nlast date:",last_date,"\n")
+    
         
-        # for each spc
-        # colect all the customer that have bought more than 3 products over $1000 in total over more them 3 trnsactions in the past year
-        #
-        # for each customer code, rank the sales growth of each product bought and the total sales
-        # with the products belonging product_groups_only
-        # append to a list
-        # sort the whole list
-        # highlight the top 20 growers and botomlatest_date=sales_df['date'].max()
-        # 20 losers
-        #
-        #print("\nSales performace start=\n",sales_df)
-        sales_df=pd.read_pickle(dd.sales_df_savename)   #,protocol=-1)          
-  #  sales_df=pd.read_pickle(dd.sales_df_savename)   #,protocol=-1)          
-        sales_df.reset_index(drop=True,inplace=True)
-        sales_df.sort_values(['date'],ascending=[True],inplace=True)
-  #      print("sales_df=\n",sales_df)
- 
-        end_date=sales_df['date'].iloc[-1]- pd.Timedelta(366, unit='d')
-        startend_date=sales_df['date'].iloc[-1]- pd.Timedelta(721, unit='d')
+        start_date=last_date - pd.Timedelta(365, unit='d')
+        end_date=last_date - pd.Timedelta(0, unit='d')
+      
+        oneyear_sales_df=oneyear_sales_df[(oneyear_sales_df.index>=start_date) & (oneyear_sales_df.index<=end_date)]   # & (sales_df['productgroup']==pg)].groupby(['productgroup','code'],sort=False).sum()
+      #  first_date=sales_df['date'].iloc[-1]
+      #  last_date=sales_df['date'].iloc[0]
 
-    #    print("year end date",end_date)
-        year_sales_df=sales_df[sales_df['date']>end_date]
-        year_sales_df.sort_values(['date'],ascending=[True],inplace=True)
-
-     #   print("ysdf=\n",year_sales_df)
-     #   last_year_sales_df=sales_df[sales_df['date']>startend_date & sales_df['date']<=end_date]
+        
  
-        #print("ysdf1=",year_sales_df)
-        year_sales_df=year_sales_df[year_sales_df['productgroup'].isin(dd.product_groups_only) & year_sales_df['specialpricecat'].isin(dd.spc_only)]   
-        year_sales_df.sort_values(['date'],ascending=[True],inplace=True)
-
-        #  last_year_sales_df=last_year_sales_df[last_year_sales_df['productgroup'].isin(dd.product_groups_only) & last_year_sales_df['specialpricecat'].isin(dd.spc_only)]   
- 
-     #   print("\nysdf2=",year_sales_df[['date','code','product']])
+        cust_prod_list=prods_and_custs(oneyear_sales_df)
+       #   print(cust_prod_list)
+      #  print(len(cust_prod_list),"combinations to process\n")
+   
+        start_timer = time.time()
           
-        #cust_list=year_sales_df.code.unique()
-        #cust_list = cust_list[cust_list != 'OFFINV']
-        #cust_licust_list.remove('OFFINV')
-        #cust_list.sort()
-        #prod_list=year_sales_df[['product','productgroup']].sort_values(by=['productgroup'])   #.unique()
-        
-        end_date=sales_df['date'].iloc[-1]- pd.Timedelta(90, unit='d')
-     #   print("90 days end date",end_date)
-        ninetyday_sales_df=sales_df[sales_df['date']>end_date]
-        
-        ninetyday_sales_df=ninetyday_sales_df[ninetyday_sales_df['productgroup'].isin(dd.product_groups_only) & ninetyday_sales_df['specialpricecat'].isin(dd.spc_only)]   
-     #   print("ninety day sales=",ninetyday_sales_df)
+     #  manager = multiprocessing.Manager()
+     #  q = manager.Queue()    
+      
+        cpus = multiprocessing.cpu_count()
        
-        #prod_list=list(set([tuple(r) for r in year_sales_df[['productgroup', 'product']].sort_values(by=['productgroup','product'],ascending=[True,True]).to_numpy()]))
-        prod_list=list(set([tuple(r) for r in ninetyday_sales_df[['productgroup', 'product']].to_numpy()]))
-        cust_list=list(set([tuple(r) for r in ninetyday_sales_df[['salesrep','specialpricecat', 'code']].to_numpy()]))
-        #cust_list = cust_list[cust_list != (88.0,'OFFINV')]
-        #print("cust_list=\n",len(cust_list))
-        cust_list=[c for c in cust_list if c[2]!="OFFINV"]
-            #     #r=[k for k, v in brand_dict.items() if v in product_list]  
-        
-        #print("\nnew cust_list=",cust_list,len(cust_list))
-        
-        
-   #     print("prod_list=\n",prod_list)
-   #     print("cust_list=\n",cust_list)
-        #prod_list.sort()
-       # print("prod_list=",prod_list)
-        #print("c=",cust_list,len(cust_list))
-   #     print("p=",prod_list,len(prod_list))
-        
-        
-        #spc_text=dd.spc_only.replace(dd.spc_dict,inplace=True)
-       # spc_text=[]
-        spc_text=[dd.spc_dict.get(int(e),'') for e in dd.spc_only]
-        pg_text=[dd.productgroups_dict.get(int(e),'') for e in dd.product_groups_only]
-        
-        if dd.dash_verbose:
-            print("\nCreating distribution report and sales trends graphs for special price categories:",spc_text,"\nin product groups:",pg_text,"....\n")
-            print("unique customers=",len(cust_list))
-            print("unique products=",len(prod_list))
+     
+        print("\nMultiprocessing",len(cust_prod_list),"possible combinations of customer and product with",cpus,"cpus.\n")
+    
+       
+    #   cust_list.insert(0,sales_df)
+    #   print("cust_list=",cust_list)
+        multiple_results=[]
+         
+    #   with Pool(processes=cpus) as pool:  # processes=cpus-1
+         #  with tqdm(total=len(cust_prod_list)) as pbar:
+             #  for i, _ in enumerate(pool.imap_unordered(multi_function, cust_prod_list)):
+           
+            #   pbar.update()
+            #   multiple_results.append(pool.apply_async(multi_function,args=(cust_prod_list, )))  # stops, journey and poolsize, epoch length and name of q
+        multiple_results.append(p_map(multi_function,cust_prod_list))  # stops, journey and poolsize, epoch length and name of q
+               #    multiple_results.append(i)
+             #      pbar.update()
+     #  pbar.close()
+     #  pool.close()
+      # print("pool closed.  trying to join() pool")
+     #  pool.join()
+    #   print("pool closed. join() complete")
+    #   print("results=",result)
+    #   print("multiple results",multiple_results)
+   
+       # mr=multiple_results[0]   #,cust_prod_list)]   #[0]
+     #  print("multiple results",mr)
+      #  print("\ntidy up results.  remove empty dfs")
+        distribution_list=[elem for elem in multiple_results[0] if len(elem)!=0]
+        with open(dd.distribution_list, 'wb') as f:
+           pickle.dump(distribution_list, f)
+        end_timer = time.time()
+        print("\nFinished. distribution_list length=",len(distribution_list),". Multiprocessing runtime:",round(end_timer - start_timer,2),"seconds.\n")
+        print("\n Plot",len(distribution_list),"trends")
+    
+   
+    
+        p_map(multi_plot_trend,distribution_list)  # stops, journey and poolsize, epoch length and name of q
 
-        print("\n")
+      #  with open(dd.distribution_list, 'rb') as f:
+      #      mynewlist = pickle.load(f)
+   
+        print("\nPlot trends finished.\n")
         
-        cust_dict={k: v for v, k in enumerate(cust_list)}
-        prod_dict={k: v for v, k in enumerate(prod_list)}
-     #   print("cist dict=\n",cust_dict)
-     #   print("prod dict=\n",prod_dict)
-        dist_df=pd.DataFrame.from_dict(cust_dict,orient='index',dtype=object)  
-        distdollars_df=pd.DataFrame.from_dict(cust_dict,orient='index',dtype=np.int32)  
-     #   print("dist_df=\n",dist_df)
-     #   print("dist dolars=\n",distdollars_df)
-     #   print("cust_dict=",cust_dict)
-     #   print("dist_df=\n",dist_df)  
-        # for p in prod_dict.keys():
-        #     print("p=",p)
-        # #    print pd.to_datetime(dict(year=df.Y, month=df.M, day=df.D))
-        #     dist_df[p]= scan_df.apply(lambda row : pd.to_datetime(dict(year=[2000],month=[1],day=[1])), axis=1)
-        #     distdollars_df[p]=sales_df.apply(lambda row : 0, axis=1)
-        # #    dist_df[p]=0 #pd.to_datetime({'year': 2000,'month':1,'day':1})   #0  #False #np.nan  #False#,columns=prod_list)
+   
+           
+############################################################################       
+       
+       
         
-        dist_df.drop(0,inplace=True,axis=1)
-        dist_df=dist_df.T
-        dist_df.index=pd.MultiIndex.from_tuples(dist_df.index,sortorder=0,names=['productgroup','product'])
-        dist_df.sort_index(level=0,ascending=True,inplace=True)
-        dist_df=dist_df.T
-        dist_df.index=pd.MultiIndex.from_tuples(dist_df.index,sortorder=0,names=['salesrep','specialpricecat','code'])
+ #        distribution_report_counts(days_back_to_start=732,days_back_to_end=0)
+
+ #    #    print("\nChecking sales trends by customers and products of past year.....")
         
-        dist_df.sort_index(level=0,ascending=True,inplace=True)
+ #        # find all the good performing and poor performing outliers in retail sales
+ #        #  limit product groups
+ #        #product_groups_only=["10","11","12","13","14","15","18"]
+ #        #spc_only=["088"]
+        
+ #        # for each spc
+ #        # colect all the customer that have bought more than 3 products over $1000 in total over more them 3 trnsactions in the past year
+ #        #
+ #        # for each customer code, rank the sales growth of each product bought and the total sales
+ #        # with the products belonging product_groups_only
+ #        # append to a list
+ #        # sort the whole list
+ #        # highlight the top 20 growers and botomlatest_date=sales_df['date'].max()
+ #        # 20 losers
+ #        #
+ #        #print("\nSales performace start=\n",sales_df)
+ #        sales_df=pd.read_pickle(dd.sales_df_savename)   #,protocol=-1)          
+ #  #  sales_df=pd.read_pickle(dd.sales_df_savename)   #,protocol=-1)          
+ #        sales_df.reset_index(drop=True,inplace=True)
+ #        sales_df.sort_values(['date'],ascending=[True],inplace=True)
+ #  #      print("sales_df=\n",sales_df)
+ 
+ #        end_date=sales_df['date'].iloc[-1]- pd.Timedelta(366, unit='d')
+ #        startend_date=sales_df['date'].iloc[-1]- pd.Timedelta(721, unit='d')
+
+ #    #    print("year end date",end_date)
+ #        year_sales_df=sales_df[sales_df['date']>end_date]
+ #        year_sales_df.sort_values(['date'],ascending=[True],inplace=True)
+
+ #     #   print("ysdf=\n",year_sales_df)
+ #     #   last_year_sales_df=sales_df[sales_df['date']>startend_date & sales_df['date']<=end_date]
+ 
+ #        #print("ysdf1=",year_sales_df)
+ #        year_sales_df=year_sales_df[year_sales_df['productgroup'].isin(dd.product_groups_only) & year_sales_df['specialpricecat'].isin(dd.spc_only)]   
+ #        year_sales_df.sort_values(['date'],ascending=[True],inplace=True)
+
+ #        #  last_year_sales_df=last_year_sales_df[last_year_sales_df['productgroup'].isin(dd.product_groups_only) & last_year_sales_df['specialpricecat'].isin(dd.spc_only)]   
+ 
+ #     #   print("\nysdf2=",year_sales_df[['date','code','product']])
+          
+ #        #cust_list=year_sales_df.code.unique()
+ #        #cust_list = cust_list[cust_list != 'OFFINV']
+ #        #cust_licust_list.remove('OFFINV')
+ #        #cust_list.sort()
+ #        #prod_list=year_sales_df[['product','productgroup']].sort_values(by=['productgroup'])   #.unique()
+        
+ #        end_date=sales_df['date'].iloc[-1]- pd.Timedelta(90, unit='d')
+ #     #   print("90 days end date",end_date)
+ #        ninetyday_sales_df=sales_df[sales_df['date']>end_date]
+        
+ #        ninetyday_sales_df=ninetyday_sales_df[ninetyday_sales_df['productgroup'].isin(dd.product_groups_only) & ninetyday_sales_df['specialpricecat'].isin(dd.spc_only)]   
+ #     #   print("ninety day sales=",ninetyday_sales_df)
+       
+ #        #prod_list=list(set([tuple(r) for r in year_sales_df[['productgroup', 'product']].sort_values(by=['productgroup','product'],ascending=[True,True]).to_numpy()]))
+ #        prod_list=list(set([tuple(r) for r in ninetyday_sales_df[['productgroup', 'product']].to_numpy()]))
+ #        cust_list=list(set([tuple(r) for r in ninetyday_sales_df[['salesrep','specialpricecat', 'code']].to_numpy()]))
+ #        #cust_list = cust_list[cust_list != (88.0,'OFFINV')]
+ #        #print("cust_list=\n",len(cust_list))
+ #        cust_list=[c for c in cust_list if c[2]!="OFFINV"]
+ #            #     #r=[k for k, v in brand_dict.items() if v in product_list]  
+        
+ #        #print("\nnew cust_list=",cust_list,len(cust_list))
+        
+        
+ #   #     print("prod_list=\n",prod_list)
+ #   #     print("cust_list=\n",cust_list)
+ #        #prod_list.sort()
+ #       # print("prod_list=",prod_list)
+ #        #print("c=",cust_list,len(cust_list))
+ #   #     print("p=",prod_list,len(prod_list))
+        
+        
+ #        #spc_text=dd.spc_only.replace(dd.spc_dict,inplace=True)
+ #       # spc_text=[]
+ #        spc_text=[dd.spc_dict.get(int(e),'') for e in dd.spc_only]
+ #        pg_text=[dd.productgroups_dict.get(int(e),'') for e in dd.product_groups_only]
+        
+ #        if dd.dash_verbose:
+ #            print("\nCreating distribution report and sales trends graphs for special price categories:",spc_text,"\nin product groups:",pg_text,"....\n")
+ #            print("unique customers=",len(cust_list))
+ #            print("unique products=",len(prod_list))
+
+ #        print("\n")
+        
+ #        cust_dict={k: v for v, k in enumerate(cust_list)}
+ #        prod_dict={k: v for v, k in enumerate(prod_list)}
+ #     #   print("cist dict=\n",cust_dict)
+ #     #   print("prod dict=\n",prod_dict)
+ #        dist_df=pd.DataFrame.from_dict(cust_dict,orient='index',dtype=object)  
+ #        distdollars_df=pd.DataFrame.from_dict(cust_dict,orient='index',dtype=np.int32)  
+ #     #   print("dist_df=\n",dist_df)
+ #     #   print("dist dolars=\n",distdollars_df)
+ #     #   print("cust_dict=",cust_dict)
+ #     #   print("dist_df=\n",dist_df)  
+ #        # for p in prod_dict.keys():
+ #        #     print("p=",p)
+ #        # #    print pd.to_datetime(dict(year=df.Y, month=df.M, day=df.D))
+ #        #     dist_df[p]= scan_df.apply(lambda row : pd.to_datetime(dict(year=[2000],month=[1],day=[1])), axis=1)
+ #        #     distdollars_df[p]=sales_df.apply(lambda row : 0, axis=1)
+ #        # #    dist_df[p]=0 #pd.to_datetime({'year': 2000,'month':1,'day':1})   #0  #False #np.nan  #False#,columns=prod_list)
+        
+ #        dist_df.drop(0,inplace=True,axis=1)
+ #        dist_df=dist_df.T
+ #        dist_df.index=pd.MultiIndex.from_tuples(dist_df.index,sortorder=0,names=['productgroup','product'])
+ #        dist_df.sort_index(level=0,ascending=True,inplace=True)
+ #        dist_df=dist_df.T
+ #        dist_df.index=pd.MultiIndex.from_tuples(dist_df.index,sortorder=0,names=['salesrep','specialpricecat','code'])
+        
+ #        dist_df.sort_index(level=0,ascending=True,inplace=True)
   
-        distdollars_df.drop(0,inplace=True,axis=1)
-        distdollars_df=distdollars_df.T
-        distdollars_df.index=pd.MultiIndex.from_tuples(distdollars_df.index,sortorder=0,names=['productgroup','product'])
-        distdollars_df.sort_index(level=0,ascending=True,inplace=True)
-        distdollars_df=distdollars_df.T
-        distdollars_df.index=pd.MultiIndex.from_tuples(distdollars_df.index,sortorder=0,names=['salesrep','specialpricecat','code'])
+ #        distdollars_df.drop(0,inplace=True,axis=1)
+ #        distdollars_df=distdollars_df.T
+ #        distdollars_df.index=pd.MultiIndex.from_tuples(distdollars_df.index,sortorder=0,names=['productgroup','product'])
+ #        distdollars_df.sort_index(level=0,ascending=True,inplace=True)
+ #        distdollars_df=distdollars_df.T
+ #        distdollars_df.index=pd.MultiIndex.from_tuples(distdollars_df.index,sortorder=0,names=['salesrep','specialpricecat','code'])
         
-        distdollars_df.sort_index(level=0,ascending=True,inplace=True)
+ #        distdollars_df.sort_index(level=0,ascending=True,inplace=True)
       
   
     
-        #df.index = pd.MultiIndex.from_tuples(df.index,names=["brand","specialpricecat","productgroup","product","on_promo","names"])
-        #print("df level (0)=\n",df.index.get_level_values(0))
+ #        #df.index = pd.MultiIndex.from_tuples(df.index,names=["brand","specialpricecat","productgroup","product","on_promo","names"])
+ #        #print("df level (0)=\n",df.index.get_level_values(0))
         
-        #print("dist_df before=\n",dist_df,"\n",dd.salesrep_dict)
+ #        #print("dist_df before=\n",dist_df,"\n",dd.salesrep_dict)
         
-        year_sales_df['counter']=0
-        new_sales_df=year_sales_df.copy(deep=True)
-        new_sales_df=new_sales_df.iloc[0:0]
+ #        year_sales_df['counter']=0
+ #        new_sales_df=year_sales_df.copy(deep=True)
+ #        new_sales_df=new_sales_df.iloc[0:0]
  
-    #    last_year_new_sales_df=last_year_year_sales_df.copy(deep=True)
-    #    last_year_new_sales_df=last_year_new_sales_df.iloc[0:0]
+ #    #    last_year_new_sales_df=last_year_year_sales_df.copy(deep=True)
+ #    #    last_year_new_sales_df=last_year_new_sales_df.iloc[0:0]
     
  
     
-        newninety_sales_df=ninetyday_sales_df.copy(deep=True)
-        newninety_sales_df=newninety_sales_df.iloc[0:0]
+ #        newninety_sales_df=ninetyday_sales_df.copy(deep=True)
+ #        newninety_sales_df=newninety_sales_df.iloc[0:0]
         
-        #print(new_sales_df)
         
-        #figure_list=[]
-        #dist_df=pd.DataFrame(cust_dict)
-        #print("dist df ",dist_df)
-        t=0
-        total=len(cust_list)*len(prod_list)
-        if dd.dash_verbose:
-            print("total combinations=",total,"\n")
+ #        start_timer2 = time.time()
+
+ #        #print(new_sales_df)
         
-        #    product_list=find_active_products(new_sales_df,age=90)  # 90 days
-        for cust in cust_list:
-      #      print("cust=",cust)
-            for prod in prod_list:
-       #         print("prod=")
-                r=ninetyday_sales_df[(ninetyday_sales_df['code']==cust[2]) & (ninetyday_sales_df['product']==prod[1]) & (ninetyday_sales_df['salesval']>0.0) & (ninetyday_sales_df['qty']>0.0)].copy(deep=True)
-              #  r=r.astype(np.datetime64)
-                #   s['counter']=s.shape[0]
+ #        #figure_list=[]
+ #        #dist_df=pd.DataFrame(cust_dict)
+ #        #print("dist df ",dist_df)
+ #        t=0
+ #        total=len(cust_list)*len(prod_list)
+ #        if dd.dash_verbose:
+ #            print("total combinations=",total,"\n")
+        
+ #        #    product_list=find_active_products(new_sales_df,age=90)  # 90 days
+ #        for cust in cust_list:
+ #      #      print("cust=",cust)
+ #            for prod in prod_list:
+ #       #         print("prod=")
+ #                r=ninetyday_sales_df[(ninetyday_sales_df['code']==cust[2]) & (ninetyday_sales_df['product']==prod[1]) & (ninetyday_sales_df['salesval']>0.0) & (ninetyday_sales_df['qty']>0.0)].copy(deep=True)
+ #              #  r=r.astype(np.datetime64)
+ #                #   s['counter']=s.shape[0]
      
-                s=year_sales_df[(year_sales_df['code']==cust[2]) & (year_sales_df['product']==prod[1]) & (year_sales_df['salesval']>0.0) & (year_sales_df['qty']>0.0)].copy(deep=True)
-                dollars=s['salesval'].sum()
-            #    print("4:",dollars)
-                s['counter']=s.shape[0]
-                if r.shape[0]>0:
-              #      dist_df.loc[cust,prod]=r['date'].dt.strftime('%d/%m/%Y').max()      #pd.to_datetime({'year': 2020,'month': 1,'day': 1})  #  r.shape[0] #s.date.max()
-                    dist_df.loc[cust,prod]=pd.to_datetime(r['date'].max(),utc=False).floor('d')  #,round(dollars,0)]
-                    distdollars_df.loc[cust,prod]=np.round(dollars,0)
-                  #  dist_df.loc[dollar_cust,prod]=round(dollars,0)   #pd.to_datetime({'year': 2020,'month': 1,'day': 1})  #  r.shape[0] #s.date.max()
+ #                s=year_sales_df[(year_sales_df['code']==cust[2]) & (year_sales_df['product']==prod[1]) & (year_sales_df['salesval']>0.0) & (year_sales_df['qty']>0.0)].copy(deep=True)
+ #                dollars=s['salesval'].sum()
+ #            #    print("4:",dollars)
+ #                s['counter']=s.shape[0]
+ #                if r.shape[0]>0:
+ #              #      dist_df.loc[cust,prod]=r['date'].dt.strftime('%d/%m/%Y').max()      #pd.to_datetime({'year': 2020,'month': 1,'day': 1})  #  r.shape[0] #s.date.max()
+ #                    dist_df.loc[cust,prod]=pd.to_datetime(r['date'].max(),utc=False).floor('d')  #,round(dollars,0)]
+ #                    distdollars_df.loc[cust,prod]=np.round(dollars,0)
+ #                  #  dist_df.loc[dollar_cust,prod]=round(dollars,0)   #pd.to_datetime({'year': 2020,'month': 1,'day': 1})  #  r.shape[0] #s.date.max()
 
-                    #dist_df.loc[cust,prod]=r['date'].dt.strftime('%d/%m/%Y').max()      #pd.to_datetime({'year': 2020,'month': 1,'day': 1})  #  r.shape[0] #s.date.max()
+ #                    #dist_df.loc[cust,prod]=r['date'].dt.strftime('%d/%m/%Y').max()      #pd.to_datetime({'year': 2020,'month': 1,'day': 1})  #  r.shape[0] #s.date.max()
 
-                #     print("r['date']=",r['date'],"\n",r['date'].max())
-                 #   print("no distribution=\n",cust,"->", prod)  #s[['code','product']])
-                s=s.sort_values('date',ascending=False)
-              #  s.index=s.date
-                t+=1
-                if t%10==0:
-                    if dd.dash_verbose:                 
-                        print("\r",cust,prod,"+",s.shape[0],"=",new_sales_df.shape[0],int(round(t/total*100,0)),"%               ",end='\r',flush=True)                    
-                    else:    
-                        print("\rDistribution report progress:",int(round(t/total*100,0)),"%               ",end='\r',flush=True)
+ #                #     print("r['date']=",r['date'],"\n",r['date'].max())
+ #                 #   print("no distribution=\n",cust,"->", prod)  #s[['code','product']])
+ #                s=s.sort_values('date',ascending=False)
+ #              #  s.index=s.date
+ #                t+=1
+ #                if t%10==0:
+ #                    if dd.dash_verbose:                 
+ #                        print("\r",cust,prod,"+",s.shape[0],"=",new_sales_df.shape[0],int(round(t/total*100,0)),"%               ",end='\r',flush=True)                    
+ #                    else:    
+ #                        print("\rDistribution report progress:",int(round(t/total*100,0)),"%               ",end='\r',flush=True)
         
-                if s.shape[0]>dd.min_size_for_trend_plot: 
-               #     print("s.shape[0]=",s.shape[0],cust[2],prod[1])
-                    s['slope'],figname,name=calculate_first_derivative(s,cust[2],prod[1],latest_date)  
-                   # s['figure']=figure
-                  #  figure_list.append(figure)
-                    new_sales_df=new_sales_df.append(s)
-                 #   if (figname!="") & (name!=""):
-                 #  new_date=df.columns[-1] + pd.offsets.Day(7)
- #       dd.report_dict[dd.report(name,8,cust[2],prod[1])]=figname
-        if dd.dash_verbose: 
-            print("\n\n")
-        #print("distribution matrix =\n",dist_df)
-        dist_df=dist_df.rename(dd.salesrep_dict,level='salesrep',axis='index')
-        dist_df=dist_df.rename(dd.spc_dict,level='specialpricecat',axis='index')
+ #                if s.shape[0]>dd.min_size_for_trend_plot: 
+ #               #     print("s.shape[0]=",s.shape[0],cust[2],prod[1])
+ #                    s['slope'],figname,name=calculate_first_derivative(s,cust[2],prod[1],latest_date)  
+ #                   # s['figure']=figure
+ #                  #  figure_list.append(figure)
+ #                    new_sales_df=new_sales_df.append(s)
+ #                 #   if (figname!="") & (name!=""):
+ #                 #  new_date=df.columns[-1] + pd.offsets.Day(7)
+ # #       dd.report_dict[dd.report(name,8,cust[2],prod[1])]=figname
+ #        if dd.dash_verbose: 
+ #            print("\n\n")
+            
+ #        end_timer2 = time.time()
+ #        print("\nPlot trends finished.  runtime:",round(end_timer2 - start_timer2,2),"seconds.\n")
+    
+            
+            
+ #        #print("distribution matrix =\n",dist_df)
+ #        dist_df=dist_df.rename(dd.salesrep_dict,level='salesrep',axis='index')
+ #        dist_df=dist_df.rename(dd.spc_dict,level='specialpricecat',axis='index')
 
-        dist_df=dist_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
-        dist_df=dist_df.rename(dd.productgroups_dict,level='productgroup',axis='columns')
+ #        dist_df=dist_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
+ #        dist_df=dist_df.rename(dd.productgroups_dict,level='productgroup',axis='columns')
     
    
-    # add totals to distdollars_df
-        xlen=distdollars_df.columns.nlevels+distdollars_df.shape[1]
-        ylen=distdollars_df.index.nlevels+distdollars_df.shape[0]
-     #   print("\n\ndistdollars size=",xlen,ylen)
+ #    # add totals to distdollars_df
+ #        xlen=distdollars_df.columns.nlevels+distdollars_df.shape[1]
+ #        ylen=distdollars_df.index.nlevels+distdollars_df.shape[0]
+ #     #   print("\n\ndistdollars size=",xlen,ylen)
         
-     #   print("cust total=\n",distdollars_df.sum(axis=1))
-     #   print("prod total=\n",distdollars_df.sum(axis=0))
-        distdollars_df[("999",'total')]=distdollars_df.sum(axis=1)   # prod
-     #   print("1\n",distdollars_df)
-        distdollars_df=distdollars_df.T
-        distdollars_df[("999",999,'total')]=distdollars_df.sum(axis=1)   # cust
-        distdollars_df=distdollars_df.T
-      #  print("2\n",distdollars_df)
+ #     #   print("cust total=\n",distdollars_df.sum(axis=1))
+ #     #   print("prod total=\n",distdollars_df.sum(axis=0))
+ #        distdollars_df[("999",'total')]=distdollars_df.sum(axis=1)   # prod
+ #     #   print("1\n",distdollars_df)
+ #        distdollars_df=distdollars_df.T
+ #        distdollars_df[("999",999,'total')]=distdollars_df.sum(axis=1)   # cust
+ #        distdollars_df=distdollars_df.T
+ #      #  print("2\n",distdollars_df)
  
-        distdollars_df=distdollars_df.iloc[np.lexsort((distdollars_df.index, distdollars_df[("999",'total')]))]
-        distdollars_df=distdollars_df.iloc[::-1].T
-        distdollars_df=distdollars_df.iloc[np.lexsort((distdollars_df.index, distdollars_df[("999",999,'total')]))]
-        distdollars_df=distdollars_df.iloc[::-1].T
+ #        distdollars_df=distdollars_df.iloc[np.lexsort((distdollars_df.index, distdollars_df[("999",'total')]))]
+ #        distdollars_df=distdollars_df.iloc[::-1].T
+ #        distdollars_df=distdollars_df.iloc[np.lexsort((distdollars_df.index, distdollars_df[("999",999,'total')]))]
+ #        distdollars_df=distdollars_df.iloc[::-1].T
 
-     #   distdollars_df.sort_index(axis='index',kind = 'mergesort').sort_values(by=[("999",'total')],axis='index',ascending=False,inplace=True)
-     #   print("4\n",distdollars_df)
+ #     #   distdollars_df.sort_index(axis='index',kind = 'mergesort').sort_values(by=[("999",'total')],axis='index',ascending=False,inplace=True)
+ #     #   print("4\n",distdollars_df)
        
-        distdollars_df=distdollars_df.rename(dd.salesrep_dict,level='salesrep',axis='index')
-        distdollars_df=distdollars_df.rename(dd.spc_dict,level='specialpricecat',axis='index')
+ #        distdollars_df=distdollars_df.rename(dd.salesrep_dict,level='salesrep',axis='index')
+ #        distdollars_df=distdollars_df.rename(dd.spc_dict,level='specialpricecat',axis='index')
 
-        distdollars_df=distdollars_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
-        distdollars_df=distdollars_df.rename(dd.productgroups_dict,level='productgroup',axis='columns')
+ #        distdollars_df=distdollars_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
+ #        distdollars_df=distdollars_df.rename(dd.productgroups_dict,level='productgroup',axis='columns')
  
     
-        plt.close('all')
+ #        plt.close('all')
      #######################################################################3
  # pandas distrribution sales pareto chart
   
-        distdollars_df.to_pickle("dd_df.pkl",protocol=-1) 
-     #   print("did=\n",distdollars_df)
+#         distdollars_df.to_pickle("dd_df.pkl",protocol=-1) 
+#      #   print("did=\n",distdollars_df)
         
         
           
-        distdollars_df=distdollars_df.droplevel([0],axis=1)
-        distdollars_df=distdollars_df.droplevel([0,1],axis=0)
+#         distdollars_df=distdollars_df.droplevel([0],axis=1)
+#         distdollars_df=distdollars_df.droplevel([0,1],axis=0)
         
-        cust_tot=distdollars_df['total']
-        distdollars_df=distdollars_df.T
-        prod_tot=distdollars_df['total']
-        distdollars_df=distdollars_df.T
+#         cust_tot=distdollars_df['total']
+#         distdollars_df=distdollars_df.T
+#         prod_tot=distdollars_df['total']
+#         distdollars_df=distdollars_df.T
         
-        ptt=prod_tot[1:].to_frame()
-        ptott=prod_tot[1:].sum()
-        ptt['cumulative']=np.cumsum(ptt)/ptott
-        ax=ptt['total'].plot.bar(x='product',ylabel="$",fontsize=5,title="Last 90 day $ All product sales ranking (within customer groups supplied) cust=["+'.'.join(str(x) for x in dd.spc_only)+"]")
-#        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
+#         ptt=prod_tot[1:].to_frame()
+#         ptott=prod_tot[1:].sum()
+#         ptt['cumulative']=np.cumsum(ptt)/ptott
+#         ax=ptt['total'].plot.bar(x='product',ylabel="$",fontsize=5,title="Last 90 day $ All product sales ranking (within customer groups supplied) cust=["+'.'.join(str(x) for x in dd.spc_only)+"]")
+# #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
 
-        ax2=ptt.plot(y='cumulative',xlabel="",rot=90,ax=ax,style=["r-"],secondary_y=True)
-        ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
+#         ax2=ptt.plot(y='cumulative',xlabel="",rot=90,ax=ax,style=["r-"],secondary_y=True)
+#         ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
 
-        save_fig("pareto_product_all")
-        plt.close('all')
+#         save_fig("pareto_product_all")
+#         plt.close('all')
 
-        ctt=cust_tot[1:].to_frame()
-        ctott=cust_tot[1:].sum()
-        ctt['cumulative']=np.cumsum(ctt)/ctott
-#        ax=ctt['total'].plot.bar(x='code',ylabel="$",fontsize=5,title="Last 90 day $ customer sales ranking (within customer groups supplied)")
-        ax=ctt['total'].plot(x='code',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ All customer sales ranking (Within product groups supplied) pg=["+'.'.join(str(x) for x in dd.product_groups_only)+"]")
+#         ctt=cust_tot[1:].to_frame()
+#         ctott=cust_tot[1:].sum()
+#         ctt['cumulative']=np.cumsum(ctt)/ctott
+# #        ax=ctt['total'].plot.bar(x='code',ylabel="$",fontsize=5,title="Last 90 day $ customer sales ranking (within customer groups supplied)")
+#         ax=ctt['total'].plot(x='code',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ All customer sales ranking (Within product groups supplied) pg=["+'.'.join(str(x) for x in dd.product_groups_only)+"]")
 
-        ax2=ctt.plot(y='cumulative',xlabel="",rot=90,ax=ax,style=["r-"],secondary_y=True)
-        ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
+#         ax2=ctt.plot(y='cumulative',xlabel="",rot=90,ax=ax,style=["r-"],secondary_y=True)
+#         ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
 
-        save_fig("pareto_customer_all")
-        plt.close('all')
+#         save_fig("pareto_customer_all")
+#         plt.close('all')
     
         
-        cust_tot=distdollars_df['total']
-        distdollars_df=distdollars_df.T
-        prod_tot=distdollars_df['total']
-        distdollars_df=distdollars_df.T
+#         cust_tot=distdollars_df['total']
+#         distdollars_df=distdollars_df.T
+#         prod_tot=distdollars_df['total']
+#         distdollars_df=distdollars_df.T
 
     
     
         
-        pt=prod_tot[1:80].to_frame()
-        pt['cumulative']=np.cumsum(pt)/ptott
-    #    print("pt",pt)
-        ct=cust_tot[1:80].to_frame()
-        ct['cumulative']=np.cumsum(ct)/ctott
-     #   print("ct",ct)
+#         pt=prod_tot[1:80].to_frame()
+#         pt['cumulative']=np.cumsum(pt)/ptott
+#     #    print("pt",pt)
+#         ct=cust_tot[1:80].to_frame()
+#         ct['cumulative']=np.cumsum(ct)/ctott
+#      #   print("ct",ct)
       
-        ax=pt['total'].plot.bar(x='product',ylabel="$",fontsize=5,title="Last 90 day $ product sales ranking top 80 (within product & cust groups supplied) pg=["+'.'.join(str(x) for x in dd.product_groups_only)+"], cust=["+'.'.join(str(x) for x in dd.spc_only)+"]")
+#         ax=pt['total'].plot.bar(x='product',ylabel="$",fontsize=5,title="Last 90 day $ product sales ranking top 80 (within product & cust groups supplied) pg=["+'.'.join(str(x) for x in dd.product_groups_only)+"], cust=["+'.'.join(str(x) for x in dd.spc_only)+"]")
 
-        ax2=pt.plot(y='cumulative',xlabel="",rot=90,ax=ax,style=["r-"],secondary_y=True)
-        ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
+#         ax2=pt.plot(y='cumulative',xlabel="",rot=90,ax=ax,style=["r-"],secondary_y=True)
+#         ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
 
-        save_fig("pareto_product")
-        plt.close('all')
+#         save_fig("pareto_product")
+#         plt.close('all')
           
-        ax=ct['total'].plot.bar(x='code',ylabel="$",fontsize=5,title="Last 90 day $ customer sales ranking top 80 (within customer & prod groups supplied) cust=["+'.'.join(str(x) for x in dd.spc_only)+"], pg=["+'.'.join(str(x) for x in dd.product_groups_only)+"]")   #+dd.product_groups_only+","+dd.spc_only)
-        ax2=ct.plot(y='cumulative',xlabel="",rot=90,ax=ax,style=["r-"],secondary_y=True)
-        ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
+#         ax=ct['total'].plot.bar(x='code',ylabel="$",fontsize=5,title="Last 90 day $ customer sales ranking top 80 (within customer & prod groups supplied) cust=["+'.'.join(str(x) for x in dd.spc_only)+"], pg=["+'.'.join(str(x) for x in dd.product_groups_only)+"]")   #+dd.product_groups_only+","+dd.spc_only)
+#         ax2=ct.plot(y='cumulative',xlabel="",rot=90,ax=ax,style=["r-"],secondary_y=True)
+#         ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
 
-        save_fig("pareto_customer")
-        plt.close('all')
+#         save_fig("pareto_customer")
+#         plt.close('all')
 
-        #plt.close('all')
+#         #plt.close('all')
 
 
 #########################################################################################  
@@ -3758,74 +4002,83 @@ def main():
 
 # Create a Pandas Excel writer using XlsxWriter as the engine.
 #excel_file = 'testfile.xlsx'
-        sheet_name = 'Sheet1'
-
-        writer = pd.ExcelWriter(output_dir+"distribution_report.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
-        writer2 = pd.ExcelWriter(output_dir+"distribution_report_with_dollars.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
-
-#df.to_excel(writer, sheet_name=sheet_name)
-        dist_df.to_excel(writer, sheet_name=sheet_name)
-        distdollars_df.to_excel(writer2, sheet_name=sheet_name)
-
-# Access the XlsxWriter workbook and worksheet objects from the dataframe.
-# This is equivalent to the following using XlsxWriter on its own:
-#
-#    workbook = xlsxwriter.Workbook('filename.xlsx')
-#    worksheet = workbook.add_worksheet()
-#
-        workbook = writer.book
-        worksheet = writer.sheets[sheet_name]
-
-            # Apply a conditional format to the cell range.
-   #     worksheet.conditional_format('B2:B8', {'type': '3_color_scale'})
-        worksheet.conditional_format('D4:ZZ1000', {'type': '3_color_scale'})
-
-        # Close the Pandas Excel writer and output the Excel file.
-        writer.save()      
+        if False:
+            sheet_name = 'Sheet1'
     
-        workbook2 = writer2.book
-        worksheet2 = writer2.sheets[sheet_name]
-        money_fmt = workbook2.add_format({'num_format': '$#,##0', 'bold': False})
-        total_fmt = workbook2.add_format({'num_format': '$#,##0', 'bold': True})
-
-        worksheet2.set_column('E:ZZ', 12, money_fmt)
-        worksheet2.set_column('D:D', 12, total_fmt)
-        worksheet2.set_row(3, 12, total_fmt)
-
-            # Apply a conditional format to the cell range.
-   #     worksheet.conditional_format('B2:B8', {'type': '3_color_scale'})
-        worksheet2.conditional_format('E5:ZZ1000', {'type': '3_color_scale'})
-
-        # Close the Pandas Excel writer and output the Excel file.
-        writer2.save()      
-   
+            writer = pd.ExcelWriter(output_dir+"distribution_report.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
+            writer2 = pd.ExcelWriter(output_dir+"distribution_report_with_dollars.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
+    
+    #df.to_excel(writer, sheet_name=sheet_name)
+            dist_df.to_excel(writer, sheet_name=sheet_name)
+            distdollars_df.to_excel(writer2, sheet_name=sheet_name)
+    
+    # Access the XlsxWriter workbook and worksheet objects from the dataframe.
+    # This is equivalent to the following using XlsxWriter on its own:
+    #
+    #    workbook = xlsxwriter.Workbook('filename.xlsx')
+    #    worksheet = workbook.add_worksheet()
+    #
+            workbook = writer.book
+            worksheet = writer.sheets[sheet_name]
+    
+                # Apply a conditional format to the cell range.
+       #     worksheet.conditional_format('B2:B8', {'type': '3_color_scale'})
+            worksheet.conditional_format('D4:ZZ1000', {'type': '3_color_scale'})
+    
+            # Close the Pandas Excel writer and output the Excel file.
+            writer.save()      
+        
+            workbook2 = writer2.book
+            worksheet2 = writer2.sheets[sheet_name]
+            money_fmt = workbook2.add_format({'num_format': '$#,##0', 'bold': False})
+            total_fmt = workbook2.add_format({'num_format': '$#,##0', 'bold': True})
+    
+            worksheet2.set_column('E:ZZ', 12, money_fmt)
+            worksheet2.set_column('D:D', 12, total_fmt)
+            worksheet2.set_row(3, 12, total_fmt)
+    
+                # Apply a conditional format to the cell range.
+       #     worksheet.conditional_format('B2:B8', {'type': '3_color_scale'})
+            worksheet2.conditional_format('E5:ZZ1000', {'type': '3_color_scale'})
+    
+            # Close the Pandas Excel writer and output the Excel file.
+            writer2.save()      
+       
 
    
    
    ##################################################################33
-
-        #print("\nysdf3=",new_sales_df[['date','code','product','counter','slope']],new_sales_df.shape)
-        new_sales_df.drop_duplicates(['code','product'],keep='first',inplace=True)
-        #new_sales_df=new_sales_df[new_sales_df['slope']>0.02]
-        new_sales_df.sort_values(['slope'],ascending=[False],inplace=True)
-        name="growth rankings"
-        if dd.dash_verbose:
-            print("\nbest growth=\n",new_sales_df[['code','product','slope']].head(100).to_string())
-            print("\nworst growth=\n",new_sales_df[['code','product','slope']].tail(50).to_string())
-            print(new_sales_df.shape)
-      #  dd.report_dict[dd.report(name,3,"_*","_*")]=new_sales_df
-        new_sales_df[['code','product','slope']].to_excel(output_dir+name+".xlsx",merge_cells=False,freeze_panes=(2,2),engine='xlsxwriter') 
+# =============================================================================
+# 
+#         #print("\nysdf3=",new_sales_df[['date','code','product','counter','slope']],new_sales_df.shape)
+#         new_sales_df.drop_duplicates(['code','product'],keep='first',inplace=True)
+#         #new_sales_df=new_sales_df[new_sales_df['slope']>0.02]
+#         new_sales_df.sort_values(['slope'],ascending=[False],inplace=True)
+#         name="growth rankings"
+#         if dd.dash_verbose:
+#             print("\nbest growth=\n",new_sales_df[['code','product','slope']].head(100).to_string())
+#             print("\nworst growth=\n",new_sales_df[['code','product','slope']].tail(50).to_string())
+#             print(new_sales_df.shape)
+#       #  dd.report_dict[dd.report(name,3,"_*","_*")]=new_sales_df
+#         new_sales_df[['code','product','slope']].to_excel(output_dir+name+".xlsx",merge_cells=False,freeze_panes=(2,2),engine='xlsxwriter') 
+#         
+#         
+#         #print("\n\nreport dict=\n",report_dict.keys())
+#      #   if dd.dash_verbose:
+#      #       print("reports being pickled and saved to",dd.report_savename)
+#      #   with open(dd.report_savename,"wb") as f:
+#      #       pickle.dump(dd.report_dict, f,protocol=-1)
+#           
+#         #plt.pause(0.001) 
+#         #plt.show()
+#         plt.close()
+#         
+#         
+#         #############################################################################
+# =============================================================================
         
         
-        #print("\n\nreport dict=\n",report_dict.keys())
-     #   if dd.dash_verbose:
-     #       print("reports being pickled and saved to",dd.report_savename)
-     #   with open(dd.report_savename,"wb") as f:
-     #       pickle.dump(dd.report_dict, f,protocol=-1)
-          
-        #plt.pause(0.001) 
-        #plt.show()
-        plt.close()
+        
         
         print("\n")
         ptotrun=len(prod_list)
@@ -3888,7 +4141,7 @@ def main():
             
   
     
-  
+ 
     
      
   
