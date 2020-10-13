@@ -173,13 +173,13 @@ distribution_list='distribution_list.pkl'
 filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
    
 
-product_groups_only=["10"]   #,"11","12","13","14","15","16","17"]   #,"18"]
-spc_only=["080","088"]  #,'020',"028",'030',"038",'040',"048",'050','060','070']  #,"028"]   #,"038","048","028","080","020","030","040']
+product_groups_only=["10","11","12","13","14","15","16","17"]   #,"18"]
+spc_only=["088",'080','020',"028",'030',"038",'040',"048",'050','060','070',"122","107"]   #,"028"]   #,"038","048","028","080","020","030","040']
 
-max_slope=0.2
+max_slope=0.16
 min_slope=-0.1
 
-min_size_for_trend_plot=7
+min_size_for_trend_plot=6
 
 # tuple start_date, end_date
 pareto_dates=[(pd.to_datetime("01/03/19",format="%d/%m/%y"),pd.to_datetime("01/09/19",format="%d/%m/%y")),(pd.to_datetime("01/03/20",format="%d/%m/%y"),pd.to_datetime("01/09/20",format="%d/%m/%y")),(pd.to_datetime("01/07/19",format="%d/%m/%y"),pd.to_datetime("30/06/20",format="%d/%m/%y")),(pd.to_datetime("01/07/20",format="%d/%m/%y"),pd.to_datetime("30/06/21",format="%d/%m/%y"))]
