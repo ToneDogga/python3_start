@@ -1582,8 +1582,8 @@ def promo_flags(sales_df,price_df):
     
     
     
-def random_forest_model():   
-    print("\nFit random forest Regressor...")
+def rfr_gru_models():   
+   
     new_df=pd.read_pickle("prior_pred_new_df.pkl")
     #print(new_df.T)
     colnames=new_df.columns.get_level_values('colname').to_list()[::3]     
@@ -1613,6 +1613,13 @@ def random_forest_model():
         y=np.concatenate((y,y_full[6:-2]),axis=0)
      #   print("x,y",X.shape,y.shape)
     
+    
+ #   print("Train GRU on scan data vs orders...")
+ #   model=train_model("all",X,y,dd.batch_length,dd.no_of_batches,dd.epochs,0,0)
+ #   model.save(output_dir+"all_sales_predict_model.h5", include_optimizer=True)
+   # joblib.dump(model,"GRU_order_predict_model.pkl")
+ #   print("GRU complete...\n") 
+    print("\nFit random forest Regressor...")
     X=X.reshape(-1,1)
     #y=y.reshape(-1,1)
     
@@ -1624,6 +1631,7 @@ def random_forest_model():
     forest_reg=RandomForestRegressor(n_estimators=300)
     
     forest_reg.fit(X,y)
+
     # pred=forest_reg.predict(X)
     # print("pred",pred,pred.shape)
     
@@ -1644,9 +1652,11 @@ def random_forest_model():
     # predictions_df[["y","y_pred"]].plot()
     
     joblib.dump(forest_reg,"RFR_order_predict_model.pkl")
-    print("RFR complete...\n") 
+    print("RFR complete...") 
+   # if answer2=="y":
+ 
  #   return(joblib.load("RFR_order_predict_model.pkl"))
-    return forest_reg
+    return forest_reg      #,model
     # X_new=1000
     # print("X_new=",X_new,", y_pred=",forest_reg_loaded.predict([[X_new]]))
     # X_new=4000
@@ -4417,7 +4427,7 @@ def main():
 
 ###################################################3
 # train random forest model
-    forest_reg=random_forest_model()
+    forest_reg=rfr_gru_models()
 #    
 #############################    
     
