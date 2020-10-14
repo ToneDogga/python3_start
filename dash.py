@@ -112,8 +112,20 @@ import matplotlib.ticker as ticker
 from matplotlib.ticker import ScalarFormatter
 
 import time
+import joblib
+    
 
+import sklearn.linear_model
+import sklearn.neighbors
 
+from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import GridSearchCV,RandomizedSearchCV
+from pandas.plotting import scatter_matrix
+
+ 
 
 #plt.ion() # enables interactive mode
 
@@ -1559,8 +1571,134 @@ def promo_flags(sales_df,price_df):
 #             #prod_sales['mat']=prod_sales['qty'].rolling(dd.mat,axis=0).mean()
  
 
+    
+   
 
-
+# def display_scores(scores):
+#     print("scores:",scores)
+#     print("mean:",scores.mean())
+#     print("std dev",scores.std())
+#     return
+    
+    
+    
+def random_forest_model():   
+    print("\nFit random forest Regressor...")
+    new_df=pd.read_pickle("prior_pred_new_df.pkl")
+    #print(new_df.T)
+    colnames=new_df.columns.get_level_values('colname').to_list()[::3]     
+    plotnumbers=new_df.columns.get_level_values('plotnumber').to_list()[::3]        
+    
+    
+    r=1
+    totalr=len(plotnumbers)
+    pred_dict={}
+    inv_dict={}
+    X=np.array([])
+    y=np.array([])
+    
+    
+    for row,name in zip(plotnumbers,colnames):
+       # print("row=",row)
+     #   name=colnames[r]
+        
+        X_full=new_df.xs(['71',row],level=['plottype3','plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
+     #   print("X_full",X_full.shape)
+        X=np.concatenate((X,X_full[5:-3]),axis=0)
+    
+        y_full=new_df.xs(['79',row],level=['plottype3','plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
+      #  y=y_full[6:-2]  
+     #   print("yfull sp",y_full.shape)
+    
+        y=np.concatenate((y,y_full[6:-2]),axis=0)
+     #   print("x,y",X.shape,y.shape)
+    
+    X=X.reshape(-1,1)
+    #y=y.reshape(-1,1)
+    
+    #print("X=\n",X,X.shape)
+    #print("y=\n",y,y.shape)
+    
+    
+    
+    forest_reg=RandomForestRegressor(n_estimators=300)
+    
+    forest_reg.fit(X,y)
+    # pred=forest_reg.predict(X)
+    # print("pred",pred,pred.shape)
+    
+    # forest_mse=mean_squared_error(y,pred)
+    # forest_rmse=np.sqrt(forest_mse)
+    # print("forest_rmse=",forest_rmse)
+    
+    # forest_rmse_scores=cross_val_score(forest_reg,X,y,scoring="neg_mean_squared_error",cv=10)
+    # forest_rmse=np.sqrt(-forest_rmse_scores)
+    # display_scores(forest_rmse)
+    
+    # p=np.c_[X,y,pred]
+    # #print(p,p.shape)
+    
+    # predictions_df=pd.DataFrame(p,columns=["X","y","y_pred"])
+    
+    
+    # predictions_df[["y","y_pred"]].plot()
+    
+    joblib.dump(forest_reg,"RFR_order_predict_model.pkl")
+    print("RFR complete...\n") 
+ #   return(joblib.load("RFR_order_predict_model.pkl"))
+    return forest_reg
+    # X_new=1000
+    # print("X_new=",X_new,", y_pred=",forest_reg_loaded.predict([[X_new]]))
+    # X_new=4000
+    # print("X_new=",X_new,", y_pred=",forest_reg_loaded.predict([[X_new]]))
+    # X_new=7000
+    # print("X_new=",X_new,", y_pred=",forest_reg_loaded.predict([[X_new]]))
+    
+    
+    
+    # if False:
+    #     param_grid=[
+    #         {'n_estimators':[3,10,30,100,200,300,400,500,600,700],"max_features":[1]},
+    #         {'bootstrap':[False],'n_estimators':[3,10,30,100,200,300,400,500,600,700],"max_features":[1]}
+    #         ]
+        
+    #     forest_reg=RandomForestRegressor()   #n_estimators=500)
+        
+    #     print("\ngrid search")
+    #     grid_search=GridSearchCV(forest_reg,param_grid,cv=5, scoring="neg_mean_squared_error",return_train_score=True)
+        
+    #     grid_search.fit(X,y)
+        
+    #     print("best params:",grid_search.best_params_)
+    #     print("best est:",grid_search.best_estimator_)
+        
+        
+    #     cvres=grid_search.cv_results_
+    #     for mean_score,params in zip(cvres['mean_test_score'], cvres['params']):
+    #         print(np.sqrt(-mean_score),params)
+            
+            
+    #     print("\nrandom search")    
+    #     rdm_search=RandomizedSearchCV(forest_reg,param_grid,n_iter=1000,n_jobs=-1,cv=5, scoring="neg_mean_squared_error",return_train_score=True,random_state=42)
+        
+    #     rdm_search.fit(X,y)
+        
+    #     print("rdm best params:",rdm_search.best_params_)
+    #     print("rdm best est:",rdm_search.best_estimator_)
+        
+        
+    #     cvres=rdm_search.cv_results_
+    #     for mean_score,params in zip(cvres['mean_test_score'], cvres['params']):
+    #         print("rdm",np.sqrt(-mean_score),params)
+    #     #    
+            
+        
+    #     feature_importances=grid_search.best_estimator_.feature_importances_
+    #     print(feature_importances)
+       
+     
+    
+    return
 
 
      
@@ -2450,7 +2588,7 @@ def main():
     
     
     answer2="n"
-    answer2=input("Predict next weeks Coles and WW orders from scan data? (y/n)")
+    answer2=input("Use GRU DNN to predict next weeks Coles and WW orders from scan data? (y/n)")
     
     answer="n"
     answer=input("Refresh salestrans?")
@@ -4118,7 +4256,7 @@ def main():
         #t_count=1
         print("Product sales summaries..")
         p_map(plot_prod,prod_list)
-        t_count=0
+        t_count=1
         print("Product compares...")
         for prod in prod_list:
             print("\rProduct unit sales graphs:",t_count,"/",ptotrun,end="\r",flush=True)
@@ -4171,7 +4309,7 @@ def main():
             
          
         #print("\n")    
-        t_count=0
+        t_count=1
         print("\nCustomer sales summaries...")
         p_map(plot_cust,cust_list)
         print("Customer compares...")
@@ -4197,204 +4335,235 @@ def main():
 # predictions - join invoiced sales data to scan data
     
     
-    if answer2=="y":
-    
-        
-        ####################################
-        # coles_pkl_dict which is save in a dictionary of report_dict as a pickle
-        # coles_pkl_dict contains a list of files names as keys to run as the actual sales in the prediction vs actual df
-        #
-        
-    #    with open(dd.report_savename,"rb") as f:
-    #        report_dict=pickle.load(f)
-        
-        #print("report dict=",report_dict.keys())
-       # coles_and_ww_pkl_dict=report_dict[dd.report('coles_and_ww_pkl_dict',0,"","")]
-    #    print("dd.coles_and_ww_pkl dict=",dd.coles_and_ww_pkl_dict)
-        
-        ###########################################3
-        
-        scan_df=pd.read_pickle(dd.scan_df_save)
-      # print("original scan_df=\n",scan_df)
-      # new_df2=multiple_slice_scandata(scan_df,query=[('99','plottype')])
-
-      # print("plk new_df2=\n",new_df2)
-      #  print(scan_df)
-      #  scan_df=scan_df.T
-        new_df=multiple_slice_scandata(scan_df,query=[('100','plottype2')])
-        new_df=new_df.droplevel([1,2,3,4,5,6,7,8,10])
-        new_df=new_df.iloc[:,7:-1]
-        new_df*=1000
-        new_df=new_df.astype(np.int32)
-    #    print("pkl new_df=\n",new_df)  
-     #   print("new_df.T=\n",new_df.T)
-        
-        saved_new_df=new_df.copy()
-        new_df=new_df.T
-        colnames=new_df.columns.get_level_values('colname').to_list()[::3]     
-        plotnumbers=new_df.columns.get_level_values('plotnumber').to_list()[::3]        
-      #  print("colnames",colnames,len(colnames))
-      #  print("plotnumbers",plotnumbers,len(plotnumbers))
-             #   newpred=np.concatenate((X_fill,X_full,pred))
-
-        
-        print("\n")
-        for row,name in zip(plotnumbers,colnames):
-            sales_corr=new_df.xs(row,level='plotnumber',drop_level=False,axis=1).corr(method='pearson')
-            sales_corr=sales_corr.droplevel([0,1])
-        #    print("sales corr",sales_corr.shape)
-        #    if sales_corr.shape[1]>=3:
-            shifted_vs_scanned_off_promo_corr=round(sales_corr.iloc[0,2],3)
-            shifted_vs_scanned_corr=round(sales_corr.iloc[1,2],3)
-
-            print(name,"-shifted vs scanned total sales correlation=",shifted_vs_scanned_corr)
-        #    print(name,"-shifted vs scanned off promo correlation=",shifted_vs_scanned_off_promo_corr)
-
-            #   print("Correlations:\n",sales_corr)
  
-            # print("row=",row)
-            new_df.xs(row,level='plotnumber',drop_level=False,axis=1).plot(xlabel="",ylabel="Units/week")
-            plt.legend(title="Invoiced vs scan units (total,off_promo)/wk correlation:("+str(shifted_vs_scanned_corr)+" , "+str(shifted_vs_scanned_off_promo_corr)+")",loc='best',fontsize=8,title_fontsize=8)
-         #   plt.show()
-            save_fig("pred_align_"+name)
-          #  plt.show()
-        plt.close('all') 
-    #n    new_df=new_df.T
-        
-        
-    #    new_df=multiple_slice_scandata(new_df,query=[('100','plottype2')])
-    #    print("new=df=\n",new_df,new_df.shape)
-        print("\n")
-        
+  # forest_reg=joblib.load("RFR_order_predict_model.pkl")   # see "RFR_for_order_prediction.py" for details on creation of this model
+
+  
+    
+    ####################################
+    # coles_pkl_dict which is save in a dictionary of report_dict as a pickle
+    # coles_pkl_dict contains a list of files names as keys to run as the actual sales in the prediction vs actual df
+    #
+    
+#    with open(dd.report_savename,"rb") as f:
+#        report_dict=pickle.load(f)
+    
+    #print("report dict=",report_dict.keys())
+   # coles_and_ww_pkl_dict=report_dict[dd.report('coles_and_ww_pkl_dict',0,"","")]
+#    print("dd.coles_and_ww_pkl dict=",dd.coles_and_ww_pkl_dict)
+    
+    ###########################################3
+    
+    scan_df=pd.read_pickle(dd.scan_df_save)
+  # print("original scan_df=\n",scan_df)
+  # new_df2=multiple_slice_scandata(scan_df,query=[('99','plottype')])
+
+  # print("plk new_df2=\n",new_df2)
+  #  print(scan_df)
+  #  scan_df=scan_df.T
+    new_df=multiple_slice_scandata(scan_df,query=[('100','plottype2')])
+    new_df=new_df.droplevel([1,2,3,4,5,6,7,8,10])
+    new_df=new_df.iloc[:,7:-1]
+    new_df*=1000
+    new_df=new_df.astype(np.int32)
+#    print("pkl new_df=\n",new_df)  
+ #   print("new_df.T=\n",new_df.T)
+    
+    saved_new_df=new_df.copy()
+    new_df=new_df.T
+    colnames=new_df.columns.get_level_values('colname').to_list()[::3]     
+    plotnumbers=new_df.columns.get_level_values('plotnumber').to_list()[::3]        
+  #  print("colnames",colnames,len(colnames))
+  #  print("plotnumbers",plotnumbers,len(plotnumbers))
+         #   newpred=np.concatenate((X_fill,X_full,pred))
+
+    
+    print("\n")
+    for row,name in zip(plotnumbers,colnames):
+        sales_corr=new_df.xs(row,level='plotnumber',drop_level=False,axis=1).corr(method='pearson')
+        sales_corr=sales_corr.droplevel([0,1])
+    #    print("sales corr",sales_corr.shape)
+    #    if sales_corr.shape[1]>=3:
+        shifted_vs_scanned_off_promo_corr=round(sales_corr.iloc[0,2],3)
+        shifted_vs_scanned_corr=round(sales_corr.iloc[1,2],3)
+
+        print(name,"-shifted vs scanned total sales correlation=",shifted_vs_scanned_corr)
+    #    print(name,"-shifted vs scanned off promo correlation=",shifted_vs_scanned_off_promo_corr)
+
+        #   print("Correlations:\n",sales_corr)
+ 
+        # print("row=",row)
+        new_df.xs(row,level='plotnumber',drop_level=False,axis=1).plot(xlabel="",ylabel="Units/week")
+        plt.legend(title="Invoiced vs scan units (total,off_promo)/wk correlation:("+str(shifted_vs_scanned_corr)+" , "+str(shifted_vs_scanned_off_promo_corr)+")",loc='best',fontsize=8,title_fontsize=8)
+     #   plt.show()
+        save_fig("pred_align_"+name)
+      #  plt.show()
+    plt.close('all') 
+#n    new_df=new_df.T
+    
+    
+#    new_df=multiple_slice_scandata(new_df,query=[('100','plottype2')])
+#    print("new=df=\n",new_df,new_df.shape)
+    print("\n")
+    
    #     latest_date=pd.to_datetime(latest_date).strftime("%d/%m/%Y")
-        latest_date=sales_df['date'].max()  
-        next_week=latest_date+ pd.offsets.Day(7)
+    latest_date=sales_df['date'].max()  
+    next_week=latest_date+ pd.offsets.Day(7)
  # 
-        new_df=new_df.T
-        new_df[next_week]=np.nan
-        new_df=new_df.T
+    new_df=new_df.T
+    new_df[next_week]=np.nan
+    new_df=new_df.T
+    new_df.to_pickle("prior_pred_new_df.pkl",protocol=-1)
 
-
-
-        r=1
-        totalr=len(plotnumbers)
-        pred_dict={}
-        inv_dict={}
+###################################################3
+# train random forest model
+    forest_reg=random_forest_model()
+#    
+#############################    
+    
+    r=1
+    totalr=len(plotnumbers)
+    pred_dict={}
+    inv_dict={}
+    rfr_dict={}
+   # rfr_list=[]
+    
+    for row,name in zip(plotnumbers,colnames):
+       # print("row=",row)
+     #   name=colnames[r]
         
-        for row,name in zip(plotnumbers,colnames):
-           # print("row=",row)
-         #   name=colnames[r]
-            
-            X_full=new_df.xs(['71',row],level=['plottype3','plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
-            X=X_full[5:-3]
+        X_full=new_df.xs(['71',row],level=['plottype3','plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
+        X=X_full[5:-3]
 #            X=new_df.iloc[:,7:-1].xs('1',level='plottype3',drop_level=False,axis=1).to_numpy()
-            y_full=new_df.xs(['75',row],level=['plottype3','plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
-    #        y=new_df.iloc[:,7:-1].xs('2',level='plottype3',drop_level=False,axis=1).to_numpy()
-            y=y_full[6:-2]     
-       
-          #  print(name)  #,"\nX=\n",X,X.shape,"\ny=\n",y,y.shape)
-            
-            
+        y_full=new_df.xs(['79',row],level=['plottype3','plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
+#        y=new_df.iloc[:,7:-1].xs('2',level='plottype3',drop_level=False,axis=1).to_numpy()
+        y=y_full[6:-2]     
+   
+      #  print(name)  #,"\nX=\n",X,X.shape,"\ny=\n",y,y.shape)
+        
+        if answer2=="y":
             model=train_model(clean_up_name(str(name)),X,y,dd.batch_length,dd.no_of_batches,dd.epochs,r,totalr)
             pred=predict_order(X_full,y_full,name,model)
             pred_dict[name]=pred[0]
-            inv_dict[name]=y_full[-2]       
-         #   print(name,"predictions:",int(pred[0]))
-          #  new_df=new_df.T
-         #   print("level=",new_df.index.nlevels,"pred=",pred)
-            lenneeded=new_df.shape[0]-len(y_full[:-1])-1
-            if lenneeded>=0:
-                y_fill=np.zeros(lenneeded)
-                newpred=np.concatenate((y_fill,y_full[:-1],[pred[0]]))
-            else:
-                newpred=np.concatenate((y_full[:-1],[pred[0]]))[-new_df.shape[0]:]
-
-      #      print("newdf1=\n",new_df,new_df.shape)
-         #   new_df=new_df.T
-         #   print("new df.T",new_df)
-            new_df[(row,'73',name,'Prediction')]=newpred.astype(np.int32)
-          #  new_df=new_df.T
-            #new_df.iloc[:,-1]=pred[0]
-           # new_df=new_df.T
-         #   print("newdf2=\n",new_df)
+        else:
+            pred=np.array([-1])
+            pred_dict[name]=-1
  
-            r+=1
-            
-   
-     #   print("final pred_dict=",pred_dict,"\ninv dict=",inv_dict)   
-        pred_output_df=pd.DataFrame.from_dict(pred_dict,orient='index',columns=[next_week],dtype=np.int32)
-        inv_output_df=pd.DataFrame.from_dict(inv_dict,orient='index',columns=["invoiced_w/e_"+str(latest_date)],dtype=np.int32)
-        pred_output_df=pd.concat((inv_output_df,pred_output_df),axis=1)
-        #pred_output['invoiced_last_week']=new_df.xs('75',level='plottype3',drop_level=False,axis=1)[-1:].to_numpy().T[0]
+        inv_dict[name]=y_full[-2]       
+     #   print(name,"predictions:",int(pred[0]))
+      #  new_df=new_df.T
+     #   print("level=",new_df.index.nlevels,"pred=",pred)
+        lenneeded=new_df.shape[0]-len(y_full[:-1])-1
+        if lenneeded>=0:
+            y_fill=np.zeros(lenneeded)
+            newpred=np.concatenate((y_fill,y_full[:-1],[pred[0]]))
+        else:
+            newpred=np.concatenate((y_full[:-1],[pred[0]]))[-new_df.shape[0]:]
 
-        print("\nOrder predictions for next week (date is end of week)=\n",pred_output_df) #,"\n",pred_output_df.T)
-    #    print("scan df=\n",scan_df)
+  #      print("newdf1=\n",new_df,new_df.shape)
+     #   new_df=new_df.T
+     #   print("new df.T",new_df)
+        new_df[(row,'73',name,'GRU_Prediction')]=newpred.astype(np.int32)
         
+      #  new_df=new_df.T
+        #new_df.iloc[:,-1]=pred[0]
+       # new_df=new_df.T
+     #   print("newdf2=\n",new_df)
+ 
+        rfr_pred=np.around(forest_reg.predict([[X[-1]]]),0) 
+        
+        rfrnewpred=np.concatenate((y_full[:-1],rfr_pred))[-new_df.shape[0]:]
+
+        new_df[(row,'74',name,'RFR_Prediction')]=rfrnewpred.astype(np.int32)
+ 
+
+
+      #  print("\nX[-1]=",X[-1],"DNN newpred[-1]=",newpred[-1],"vs Random forest pred=",rfr_pred)
+        rfr_dict[name]=rfr_pred
+       # rfr_list.append(rfr_pred)
+ 
+
+        r+=1
+        
+   
+ #   print("final pred_dict=",pred_dict,"\ninv dict=",inv_dict)   
+    pred_output_df=pd.DataFrame.from_dict(pred_dict,orient='index',columns=["GRU_order_prediction_"+str(next_week)],dtype=np.int32)
+    inv_output_df=pd.DataFrame.from_dict(inv_dict,orient='index',columns=["invoiced_w/e_"+str(latest_date)],dtype=np.int32)
+    rfr_output_df=pd.DataFrame.from_dict(rfr_dict,orient='index',columns=["RFR_order_prediction_"+str(next_week)],dtype=np.int32)
+
+    pred_output_df=pd.concat((inv_output_df,pred_output_df,rfr_output_df),axis=1)
+    #pred_output['invoiced_last_week']=new_df.xs('79',level='plottype3',drop_level=False,axis=1)[-1:].to_numpy().T[0]
+
+    print("\nOrder predictions for next week (date is end of week)=\n",pred_output_df) #,"\n",pred_output_df.T)
+    #print("\nRandom forest model predictions=",rfr_list)
+#    print("scan df=\n",scan_df)
+    
    #     new_df=saved_new_df
   
    
-        # #     results.to_pickle("order_predict_results.pkl")
-        
-       # pred_output_df=pred_output_df.T    
-        sheet_name = 'Sheet1'
+    # #     results.to_pickle("order_predict_results.pkl")
     
-        writer = pd.ExcelWriter(output_dir+"order_predict_results.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
-       
-        
-        pred_output_df.to_excel(writer,sheet_name=sheet_name)    #,engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')
-        
-        writer.save()    
+   # pred_output_df=pred_output_df.T    
+    sheet_name = 'Sheet1'
+
+    writer = pd.ExcelWriter(output_dir+"order_predict_results.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
+   
     
-      #  new_df[(row,name,'prediction')]=X_full
-      #  print("newdf=\n",new_df)
+    pred_output_df.to_excel(writer,sheet_name=sheet_name)    #,engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')
+    
+    writer.save()    
+
+  #  new_df[(row,name,'prediction')]=X_full
+ #   print("newdf=\n",new_df)
+    
+    new_df.sort_index(level=[0,1],axis=1,ascending=[True,True],inplace=True)
+#    new_df=new_df.droplevel(0)
+    fig, ax = pyplot.subplots()
+    fig.autofmt_xdate()
+    #ax.ticklabel_format(style='plain')
+    
+ 
+    print("\nPlot order predictions for",next_week,"......")
+    for row,name in zip(plotnumbers,colnames):
+       # print("row=",row)
+ 
+        new_df.iloc[-16:,:].xs(row,level='plotnumber',drop_level=False,axis=1).plot(xlabel="",sort_columns=True,style=['b-','b:','g:','r:','k:'],ylabel="Units/week")
+    #    plt.autofmt_xdate()
+ 
+        plt.legend(title="Invoiced units vs scanned units per week + next weeks prediction",loc='best',fontsize=6,title_fontsize=7)
         
-        new_df.sort_index(level=[0,1],axis=1,ascending=[True,True],inplace=True)
-    #    new_df=new_df.droplevel(0)
-        fig, ax = pyplot.subplots()
-        fig.autofmt_xdate()
-        #ax.ticklabel_format(style='plain')
- 
- 
-        print("\nPlot order predictions for",next_week,"......")
-        for row,name in zip(plotnumbers,colnames):
-           # print("row=",row)
- 
-            new_df.iloc[-16:,:].xs(row,level='plotnumber',drop_level=False,axis=1).plot(xlabel="",sort_columns=True,style=['b-','b:','g:','r:'],ylabel="Units/week")
-        #    plt.autofmt_xdate()
- 
-            plt.legend(title="Invoiced units vs scanned units per week + next weeks prediction",loc='best',fontsize=8,title_fontsize=9)
-            
-        #    ax=plt.gca()
-        #    ax.axhline(pred_dict[name], ls='--')
+    #    ax=plt.gca()
+    #    ax.axhline(pred_dict[name], ls='--')
 #            ax2.axhline(30, ls='--')
 
-          #  ax.text(1,1, "Next order prediction",fontsize=7)
+      #  ax.text(1,1, "Next order prediction",fontsize=7)
  #           ax2.text(0.5,25, "Some text")
-            save_fig("prediction_"+name)
+        save_fig("prediction_"+name)
  
-         #   plt.show()
-            
-    #    plt.close('all') 
+     #   plt.show()
+        
+#    plt.close('all') 
 
-    
-    
-    
+
+
+
  #       writer = pd.ExcelWriter("dash_run_"+now+"_predict_results.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
-       
-        
+   
+    
  #       p_df.to_excel(writer,sheet_name=sheet_name)    #,engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')
-        
+    
   #      writer.save()    
-    
-    
-    
+
+
+
    #     writer = pd.ExcelWriter(output_dir+"mini_order_predict_results.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
-       
-    #    m_df.to_excel(writer,sheet_name=sheet_name)    #,engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')
-        
-     #   writer.save()    
+   
+#    m_df.to_excel(writer,sheet_name=sheet_name)    #,engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')
+    
+ #   writer.save()    
 
 
+ 
     
     plt.close("all")
     end_timer = time.time()
