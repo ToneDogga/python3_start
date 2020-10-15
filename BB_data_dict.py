@@ -47,6 +47,9 @@ price_discrepencies_summary="30_day_underpriced_summary.xlsx"
  
 e_scandatalist=["coles_scan_data_enhanced_sept2020.xlsx","ww_scan_data_enhanced_sept2020.xlsx"] 
 transposed_datalist=["coles_scan_dataT.xlsx","ww_scan_dataT.xlsx"]  
+
+extra_scan_data=["chutneys_UPSPW.xlsx","sauces_UPSPW.xlsx","jams_UPSPW.xlsx"]
+
 e_scandata_plotqueries=[[('10','retailer'),('0','variety')],
                         [('12','retailer'),('0','variety')],
                         [('10','retailer'),('1','variety')],

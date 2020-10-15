@@ -2340,11 +2340,12 @@ def compare_customers_by_product_group_on_plot(sales_df,latest_date,prod_list,pg
  
 def plot_chart(scan_pass,count):
     scan_df=scan_pass.copy(deep=True)
- #   print("sd=\n",scan_df)
+   #print("sd=\n",scan_df,"\n",scan_df.T)
     week_freq=8
   #  scan_df['changedate']=pd.to_datetime(scan_df['date']).strftime("%Y-%m").to_list()
  #   scan_df['date']=pd.to_datetime(scan_df.index).strftime("%Y-%m").to_list()
     scan_df['date']=pd.to_datetime(scan_df.index,format="%Y-%m",exact=False).to_list()
+   # scan_df['date']=pd.to_datetime(scan_df.index,format="%Y-%m",exact=True).to_list()
 
     newdates = pd.to_datetime(scan_df['date']).apply(lambda date: date.toordinal()).to_list()
   #  print("nd=",newdates)   
@@ -2960,7 +2961,7 @@ def main():
    
   #  print("\nLoad extra scan data: chutmeys")
          
-    extra_scan_df=load_extra_scan_data(["chutneys_UPSPW.xlsx","sauces_UPSPW.xlsx","jams_UPSPW.xlsx"],weeks_back=33)
+    extra_scan_df=load_extra_scan_data(dd.extra_scan_data,weeks_back=33)
     print("Plotting UPSPW indexes for all scanned products....")
     jump=5
     for r in range(0,extra_scan_df.shape[1],jump):
