@@ -357,6 +357,7 @@ def load_sales(filenames):  # filenames is a list of xlsx files to load and sort
    # +" w/c:("+str(latest_date)+")"
     
     df.fillna(0,inplace=True)
+    df=df[(df.date.isnull()==False)]
     
     #print(df)
     print("drop duplicates")
@@ -458,7 +459,7 @@ def prods_and_custs2(sales_df):
 def plot_prod(prod):
        prod_n=prod[1]
     #   print("\rProduct unit sales graphs:",t_count,"/",ptotrun,end="\r",flush=True)
-       prod_sales=sales_df[sales_df['product']==prod_n].copy()
+       prod_sales=oneyear_sales_df[oneyear_sales_df['product']==prod_n].copy()
        if prod_sales.shape[0]>0:
       # prod_sales['period2'] = pd.to_datetime('date')  #, format='%Y-%m-%d',exact=False)
     #   print("ps1=",prod_sales)
@@ -505,7 +506,7 @@ def plot_prod(prod):
 
 def plot_cust(cust):
     #  print("\rCustomer dollar sales graphs:",t_count,"/",ctotrun,end="\r",flush=True)
-       cust_sales=sales_df[sales_df['code']==cust[2]].copy()
+       cust_sales=oneyear_sales_df[oneyear_sales_df['code']==cust[2]].copy()
        if cust_sales.shape[0]>0:
            cust_sales.set_index('date',inplace=True)
            
@@ -533,15 +534,78 @@ def plot_cust(cust):
 
 
 
-def multi_function(cust_and_prod):
+def multi_function_oneyear_sales_df(cust_and_prod):
    # sales_df=cust_and_prod[2]
+   # using global oneyear_sales_df - sales for days -265 to 0
     
     new_df=oneyear_sales_df[(oneyear_sales_df['code']==cust_and_prod[0][2]) & (oneyear_sales_df['product']==cust_and_prod[1][1])]  #work_in_dict['split_key']]
     if new_df.shape[0]>=dd.min_size_for_trend_plot:
-        return [cust_and_prod[0],cust_and_prod[1],new_df,new_df['date'].max(),new_df['qty'].sum(),new_df['salesval'].sum()]    #sales_df[(sales_df['code']==cust_and_prod[0]) & (sales_df['product']==cust_and_prod[1])]]  #work_in_dict['split_key']]
+        return [cust_and_prod[0],cust_and_prod[1],new_df,new_df['date'].max(),new_df['qty'].sum(),new_df['salesval'].sum(),0,0]    #sales_df[(sales_df['code']==cust_and_prod[0]) & (sales_df['product']==cust_and_prod[1])]]  #work_in_dict['split_key']]
     else:
         return []
 
+
+def multi_function_lastoneyear_sales_df(cust_and_prod):
+   # sales_df=cust_and_prod[2]
+   # using global lastoneyear_sales_df - sales for days -730 to -366
+    
+    new_df=lastoneyear_sales_df[(lastoneyear_sales_df['code']==cust_and_prod[0][2]) & (lastoneyear_sales_df['product']==cust_and_prod[1][1])]  #work_in_dict['split_key']]
+    if new_df.shape[0]>=dd.min_size_for_trend_plot:
+        return [cust_and_prod[0],cust_and_prod[1],new_df,new_df['date'].max(),new_df['qty'].sum(),new_df['salesval'].sum(),0,0]    #sales_df[(sales_df['code']==cust_and_prod[0]) & (sales_df['product']==cust_and_prod[1])]]  #work_in_dict['split_key']]
+    else:
+        return []
+
+
+def multi_function_twoyear_sales_df(cust_and_prod):
+   # sales_df=cust_and_prod[2]
+   # using global twoyear_sales_df  - sales for days -730 to 0
+    
+    new_df=twoyear_sales_df[(twoyear_sales_df['code']==cust_and_prod[0][2]) & (twoyear_sales_df['product']==cust_and_prod[1][1])]  #work_in_dict['split_key']]
+    if new_df.shape[0]>=dd.min_size_for_trend_plot:
+        return [cust_and_prod[0],cust_and_prod[1],new_df,new_df['date'].max(),new_df['qty'].sum(),new_df['salesval'].sum(),0,0]    #sales_df[(sales_df['code']==cust_and_prod[0]) & (sales_df['product']==cust_and_prod[1])]]  #work_in_dict['split_key']]
+    else:
+        return []
+
+
+
+def multi_function_this_minus_last(cust_and_prod):
+   # sales_df=cust_and_prod[2]
+   # using global twoyear_sales_df  - sales for days -730 to 0
+    new_last_df=lastoneyear_sales_df[(lastoneyear_sales_df['code']==cust_and_prod[0][2]) & (lastoneyear_sales_df['product']==cust_and_prod[1][1])]  #work_in_dict['split_key']]
+  #    new_df=lastoneyear_sales_df[(lastoneyear_sales_df['code']==cust_and_prod[0][2]) & (lastoneyear_sales_df['product']==cust_and_prod[1][1])]  #work_in_dict['split_key']]
+   
+    new_this_df=oneyear_sales_df[(oneyear_sales_df['code']==cust_and_prod[0][2]) & (oneyear_sales_df['product']==cust_and_prod[1][1])]  #work_in_dict['split_key']]
+   # new_last_df=lastoneyear_sales_df[(lastoneyear_sales_df['code']==cust_and_prod[0][2]) & (lastoneyear_sales_df['product']==cust_and_prod[1][1])]  #work_in_dict['split_key']]
+ 
+    new_this_qty_total=new_this_df['qty'].sum()
+    new_this_salesval_total=new_this_df['salesval'].sum()
+    
+    new_last_qty_total=new_last_df['qty'].sum()
+    new_last_salesval_total=new_last_df['salesval'].sum()
+
+    percent_qty_change=round((new_this_qty_total-new_last_qty_total)/new_last_qty_total,2)    
+    percent_salesval_change=round((new_this_salesval_total-new_last_salesval_total)/new_last_salesval_total,2)    
+
+    new_last_df['qty']=-new_last_df['qty']
+    new_last_df['salesval']=-new_last_df['salesval']
+    new_df=pd.concat((new_this_df,new_last_df),axis=0)
+    
+    #new_last_qty_total=new_df['qty'].sum()
+    #new_last_salesval_total=new_df['salesval'].sum()
+    # if new_last_df['salesval'].mean()!=0.0:
+    #     new_df['salesval_percent_change']=(new_this_df['salesval'].mean()-new_last_df['salesval'].mean())/new_last_df['salesval'].mean()
+    # else:   
+    #     new_df['salesval_percent_change']=np.nan
+        
+    # if new_last_df['qty'].mean()!=0.0:  
+    #     new_df['qty_percent_change']=(new_this_df['qty'].mean()-new_last_df['qty'].mean())/new_last_df['qty'].mean()
+    # else:
+    #     new_df['qty_percent_change']=np.nan
+    
+    if new_df.shape[0]>=dd.min_size_for_trend_plot:
+        return [cust_and_prod[0],cust_and_prod[1],new_df,new_df['date'].max(),new_df['qty'].sum(),new_df['salesval'].sum(),percent_salesval_change,percent_qty_change]    #sales_df[(sales_df['code']==cust_and_prod[0]) & (sales_df['product']==cust_and_prod[1])]]  #work_in_dict['split_key']]
+    else:
+        return []
 
 
 
@@ -1053,6 +1117,58 @@ def change_multiple_slice_scandata_values(scan_df,query,new_sales_values):
     new_scan_df.fillna(0,inplace=True)
     return new_scan_df
  
+    
+
+def add_notes(df):
+   # print("df=\n",df.iloc[0:2].to_numpy())
+    y_text=round(np.nanmax(df.iloc[0:2].to_numpy())/2.0,0)
+ #   print("y_text=",y_text)
+   # print("add notes df=\n",df)
+#    plottypes=list(set(list(set(df.index.get_level_values('plottype2').astype(str).tolist()))+list(set(df.index.get_level_values('plottype3').astype(str).tolist()))))   #+list(set(df.index.get_level_values('plottype2').astype(str).tolist()))+list(set(df.index.get_level_values('plottype3').astype(str).tolist()))))
+  #  df=df.iloc[:,-dd.e_scandata_number_of_weeks:]
+    note_df=df[df.index.get_level_values('measure')=='notes']
+ #   note_df=note_df.droplevel(['colname','measure'])
+    note_df=note_df.droplevel(['colname'])
+
+   # print("notes1=\n",notes) 
+    note_df.sort_index(axis=1,ascending=True,inplace=True)
+   # print("notes2=\n",notes) 
+  #  print("nlevels",note_df.index.nlevels)
+ 
+    note_df=note_df.T
+ #   print("nlevelsT",note_df.index.nlevels)
+   # note_df=note_df.droplevel(['colname'])
+
+   # notes.index.set_names('weekno', level=0,inplace=True)
+    #notes=notes.
+    note_df['weekno']=np.arange(0,note_df.shape[0])
+  #  print("notes4=\n",note_df) 
+    note_df.set_index('weekno',inplace=True)
+ #   print("notes.T=\n",notes,notes.index.names)
+  #  notes.reset_index(inplace=True)
+  #  notes.index.set_names('weekno2', level=0,inplace=True)
+  #  print("notes5=\n",note_df)    
+   # note_df.dropna(how='any',axis=1,inplace=True)
+    note_df.dropna(subset = ["notes"], inplace=True)
+    note_df.reset_index(inplace=True)
+ #   note_df=note_df[note_df['notes']!=np.nan]
+  #  print("test_df=\n",note_df)    
+
+    #note_df=note_df.T
+  #  print("notes3=\n",notes)    
+  #  if note_df.shape[0]>0:
+   #     note_df.sort_index(axis=1,ascending=False,inplace=True)
+      #  notes.set_index('weekno',level=1,inplace=True)
+    #    print("notes6=\n",note_df)    
+        
+    # number of labels max on a graph is 16
+    increment_y_text=round(y_text/16,0)
+    for i in range(0,note_df.shape[0]):
+           plt.axvline(note_df['weekno'].iloc[i], ls='--', color="black")
+           plt.text(note_df['weekno'].iloc[i],y_text, note_df['notes'].iloc[i], fontsize=8)
+           print("note_df['notes'].iloc[i]",i,y_text,note_df['notes'].iloc[i]) 
+           y_text-=increment_y_text
+    return
 
 
 
@@ -1060,8 +1176,10 @@ def change_multiple_slice_scandata_values(scan_df,query,new_sales_values):
 def plot_type1(df):
     # first column is unit sales off proro  (stacked)
     # second column is unit sales on promo  (stacked)
-    # third is price (second y acis)
+    # third is price (second y axis)
+    # fourth is notes
    
+  #  print("plot type 1 =\n",df)
     weeks_back=80  
     week_freq=8
    # print("plot type1 df=\n",df)
@@ -1072,11 +1190,21 @@ def plot_type1(df):
     newdates = pd.to_datetime(df['date']).apply(lambda date: date.toordinal()).to_list()
     df=df.T
     df.iloc[0:2]*=1000
+    
     #print("plot type1 df=\n",df)
     fig, ax = pyplot.subplots()
     fig.autofmt_xdate()
     ax.ticklabel_format(style='plain')
-   
+    
+    add_notes(df)
+    
+  #  weekno=22
+  #  plt.axvline(weekno, ls='--', color="black")
+  #  plt.text(weekno,1, "Target\nsparsity1", fontsize=9)
+ 
+    
+ 
+    
     df.iloc[0:2].T.plot(xlabel="",use_index=False,kind='bar',color=['blue','red'],secondary_y=False,stacked=True,fontsize=9,ax=ax,legend=False)
     ax.set_ylabel('Units/week',fontsize=9)
 
@@ -1090,11 +1218,19 @@ def plot_type1(df):
  #   print("improived labels=",improved_labels[0])
     improved_labels=improved_labels[:1]+improved_labels[::week_freq]
     
-    
+  #  ax.axvline(-10, ls='--', color="black")
+   # ax.annotate("test1",xy=(0,0))
+  #  plt.plot([1, 1], [0, 0.3], "g:")
+  #  plt.text(0.05, 0.32, "Target\nsparsity", fontsize=9)
+ 
   
     ax.xaxis.set_major_locator(ticker.MultipleLocator(week_freq))
     ax.set_xticklabels(improved_labels,fontsize=6)
-
+    
+ 
+    
+    
+   # ax.axvline(10, ls='--')
     return
 
 
@@ -1139,9 +1275,11 @@ def plot_type2(df,this_year_df,last_year_df):
  
  #   df.iloc[0:2].T.plot(xlabel="",use_index=False,kind='bar',color=['blue','red'],secondary_y=False,stacked=True,fontsize=9,ax=ax,legend=False)
     ax.set_ylabel('Units/week this year vs LY',fontsize=9)
-    
-    
-
+ #  ax.annotate("test2",xy=(0,0))
+ #   ax.plot([0.5,0.41], [0, 0.3], "k:")
+  #  plt.axvline(12, ls='--', color="black")
+  #  plt.text(0.55, 0.82, "Target\nsparsity2", fontsize=7)
+  
     line=this_year_df.iloc[:1].T.plot(use_index=True,grid=True,xlabel="",kind='line',style=["r-"],secondary_y=False,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
    # current_handles0, current_labels0 = ax.get_legend_handles_labels()
 
@@ -1157,10 +1295,14 @@ def plot_type2(df,this_year_df,last_year_df):
    # print(current_handles2[0].current_labels2[0])
     # if df.shape[0]>=3:
    #     line=df.iloc[2:3].T.plot(use_index=True,xlabel="",kind='line',style=['g:'],secondary_y=True,fontsize=9,legend=False,ax=ax)   #,ax=ax2)
-    
+ 
 #  ax.set_ylabel('Units/week',fontsize=9)
-
+  #  ax.axvline(10, ls='--', color="black")
     ax.right_ax.set_ylabel('Distribution this year',fontsize=9)
+ #   ax.axvline(-10, ls='--', color="yellow")
+  #  ax.annotate("test2",xy=(0,0))
+  #  plt.plot([1, 1], [0, 0.3], "k:")
+  #  plt.text(0.05, 0.32, "Target\nsparsity", fontsize=9)
   #  current_handles, current_labels = plt.gca().get_legend_handles_labels()
    # print("cl=",current_labels,line)
    # current_labels=current_labels+" Last year"
@@ -1174,14 +1316,19 @@ def plot_type2(df,this_year_df,last_year_df):
         
         
     fig.legend([current_labels2[0],current_labels2[0]+" last year","Distribution (sold)"],title="Units/week TY vs LY",title_fontsize=9,fontsize=7,loc='upper center', bbox_to_anchor=(0.2, 1.1))
-  #  print(df.shape,"xticks=",ax.get_xticks(),df.iloc[:,ax.get_xticks()])
+ #   ax.axvline(12, ls='--', color="yellow")
+  #  ax.annotate("test2",xy=(0,0))
+
+    #  print(df.shape,"xticks=",ax.get_xticks(),df.iloc[:,ax.get_xticks()])
   #  new_labels = [dt.date.fromordinal(int(item)) for item in newdates]   #ax.get_xticks()]
   #  improved_labels = ['{}-{}'.format(calendar.month_abbr[int(m)],y) for y, m , d in map(lambda x: str(x).split('-'), new_labels)]
   #  improved_labels=improved_labels[::week_freq]
   
   #  ax.xaxis.set_major_locator(ticker.MultipleLocator(week_freq))
   #  ax.set_xticklabels(improved_labels,fontsize=8)
-
+  #  plt.axvline(12, ls='--', color="black")
+  #  plt.text(0.55, 0.82, "Target\nsparsity2", fontsize=7)
+ 
     return
 
 
@@ -1386,44 +1533,44 @@ def plot_slices(df):
 def graph_sales_year_on_year(sales_df,title,left_y_axis_title):
     prod_sales=sales_df[['salesval']].resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
     #print("prod sales1=\n",prod_sales)
-    
-    year_list = prod_sales.index.year.to_list()
-    week_list = prod_sales.index.week.to_list()
-    month_list = prod_sales.index.month.to_list()
-    
-    prod_sales['year'] = year_list   #prod_sales.index.year
-    prod_sales['week'] = week_list   #prod_sales.index.week
-    prod_sales['monthno']=month_list
-    prod_sales.reset_index(drop=True,inplace=True)
-    prod_sales.set_index('week',inplace=True)
-    
-    week_freq=4.3
-    #print("prod sales3=\n",prod_sales)
-    weekno_list=[str(y)+"-W"+str(w) for y,w in zip(year_list,week_list)]
-    #print("weekno list=",weekno_list,len(weekno_list))
-    prod_sales['weekno']=weekno_list
-    yest= [dt.datetime.strptime(str(w) + '-3', "%Y-W%W-%w") for w in weekno_list]    #wednesday
-    
-    #print("yest=",yest)
-    prod_sales['yest']=yest
-    improved_labels = ['{}'.format(calendar.month_abbr[int(m)]) for m in list(np.arange(0,13))]
-    fig, ax = pyplot.subplots()
-    fig.autofmt_xdate()
-    ax.ticklabel_format(style='plain')
-    styles=["b-","r:","g:","m:","c:"]
-    new_years=list(set(prod_sales['year'].to_list()))
-    #print("years=",years,"weels=",new_years)
-    for y,i in zip(new_years[::-1],np.arange(0,len(new_years))):
-        test_df=prod_sales[prod_sales['year']==y]
-      #  print(y,test_df)
-        fig=test_df[['salesval']].plot(use_index=True,grid=True,style=styles[i],xlabel="",ylabel=left_y_axis_title,ax=ax,title=title,fontsize=8)
+    if prod_sales.shape[0]>0:
+        year_list = prod_sales.index.year.to_list()
+        week_list = prod_sales.index.week.to_list()
+        month_list = prod_sales.index.month.to_list()
+        
+        prod_sales['year'] = year_list   #prod_sales.index.year
+        prod_sales['week'] = week_list   #prod_sales.index.week
+        prod_sales['monthno']=month_list
+        prod_sales.reset_index(drop=True,inplace=True)
+        prod_sales.set_index('week',inplace=True)
+        
+        week_freq=4.3
+        #print("prod sales3=\n",prod_sales)
+        weekno_list=[str(y)+"-W"+str(w) for y,w in zip(year_list,week_list)]
+        #print("weekno list=",weekno_list,len(weekno_list))
+        prod_sales['weekno']=weekno_list
+        yest= [dt.datetime.strptime(str(w) + '-3', "%Y-W%W-%w") for w in weekno_list]    #wednesday
+        
+        #print("yest=",yest)
+        prod_sales['yest']=yest
+        improved_labels = ['{}'.format(calendar.month_abbr[int(m)]) for m in list(np.arange(0,13))]
+        fig, ax = pyplot.subplots()
+        fig.autofmt_xdate()
+        ax.ticklabel_format(style='plain')
+        styles=["b-","r:","g:","m:","c:"]
+        new_years=list(set(prod_sales['year'].to_list()))
+        #print("years=",years,"weels=",new_years)
+        for y,i in zip(new_years[::-1],np.arange(0,len(new_years))):
+            test_df=prod_sales[prod_sales['year']==y]
+          #  print(y,test_df)
+            fig=test_df[['salesval']].plot(use_index=True,grid=True,style=styles[i],xlabel="",ylabel=left_y_axis_title,ax=ax,title=title,fontsize=8)
+         
+        ax.legend(new_years[::-1],fontsize=9)
+        ax.xaxis.set_major_locator(ticker.MultipleLocator(week_freq))   #,byweekday=mdates.SU)
+        ax.set_xticklabels([""]+improved_labels,fontsize=8)
+        figname=title
+        save_fig(figname)
      
-    ax.legend(new_years[::-1],fontsize=9)
-    ax.xaxis.set_major_locator(ticker.MultipleLocator(week_freq))   #,byweekday=mdates.SU)
-    ax.set_xticklabels([""]+improved_labels,fontsize=8)
-    figname=title
-    save_fig(figname)
- 
     #  save_fig
     return
    
@@ -2344,8 +2491,10 @@ def plot_chart(scan_pass,count):
     week_freq=8
   #  scan_df['changedate']=pd.to_datetime(scan_df['date']).strftime("%Y-%m").to_list()
  #   scan_df['date']=pd.to_datetime(scan_df.index).strftime("%Y-%m").to_list()
+  #  df=df[(df.date.isnull()==False)]
     scan_df['date']=pd.to_datetime(scan_df.index,format="%Y-%m",exact=False).to_list()
    # scan_df['date']=pd.to_datetime(scan_df.index,format="%Y-%m",exact=True).to_list()
+
 
     newdates = pd.to_datetime(scan_df['date']).apply(lambda date: date.toordinal()).to_list()
   #  print("nd=",newdates)   
@@ -2461,6 +2610,7 @@ def load_extra_scan_data(scan_data_files,weeks_back):
     df = df.iloc[-weeks_back:,1:]
  
     df.fillna(0.0,inplace=True)
+    df=df[(df.index.isnull()==False)]
     df=df.loc[:, (df != 0.0).any(axis=0)]
     return df
 
@@ -2500,7 +2650,10 @@ def train_model(name,X_set,y_set,batch_length,no_of_batches,epochs,count,total):
     #     keras.layers.Conv1D(filters=st.batch_length,kernel_size=4, strides=1, padding='same', input_shape=[None, 1]),  #st.batch_length]), 
       #   keras.layers.BatchNormalization(),
          keras.layers.GRU(200, return_sequences=True, input_shape=[None, 1]), #st.batch_length]),
+ 
+       #  keras.layers.GRU(60, return_sequences=True, input_shape=[None, 1]), #st.batch_length]),
         # keras.layers.BatchNormalization(),
+     #    keras.layers.GRU(30, return_sequences=True),
          keras.layers.GRU(200, return_sequences=True),
        #  keras.layers.AlphaDropout(rate=0.2),
        #  keras.layers.BatchNormalization(),
@@ -2538,7 +2691,7 @@ def train_model(name,X_set,y_set,batch_length,no_of_batches,epochs,count,total):
     
 def main():  
 
-    global oneyear_sales_df,latest_date, sales_df
+    global oneyear_sales_df,latest_date,lastoneyear_sales_df,twoyear_sales_df
     
     tmp=sp.call('clear',shell=True)  # clear screen 'use 'clear for unix, cls for windows
      
@@ -2999,7 +3152,7 @@ def main():
     summ_df = summ_df.sort_values('All', axis=1, ascending=False)
     summ_df = summ_df.sort_values('All', axis=0, ascending=False)
  #   print("Sample of last 30 days underpriced summary, check excel report:\n",summ_df.iloc[10:20,10:20])
-    print('Underpriced?? summary report completed:',dd.price_discrepencies_summary) 
+    print('Underpriced?? summary report completed:',dd.price_discrepencies_summary,"\n") 
     summ_df.to_excel(output_dir+dd.price_discrepencies_summary)
 
   # =============================================================
@@ -3940,14 +4093,15 @@ def main():
     #################################################################################################
     # Create distribution report and find all the good performing and poor performing outliers in retail sales
     if answer3=="y":
-        
-        oneyear_sales_df=pd.read_pickle(dd.sales_df_augmented_savename)
-        oneyear_sales_df=oneyear_sales_df[oneyear_sales_df['productgroup'].isin(dd.product_groups_only) & oneyear_sales_df['specialpricecat'].isin(dd.spc_only)]   
-        oneyear_sales_df=oneyear_sales_df[(oneyear_sales_df['code']!="OFFINV")]   
-        oneyear_sales_df=oneyear_sales_df[(oneyear_sales_df['product']!="OFFINV")]   
-        oneyear_sales_df=oneyear_sales_df[(oneyear_sales_df['salesval']>0)] 
+        print("\nCreate distribution reports..")
+        print("sales from -365 days to 0 days")
+        sales_df=pd.read_pickle(dd.sales_df_augmented_savename)
+        sales_df=sales_df[sales_df['productgroup'].isin(dd.product_groups_only) & sales_df['specialpricecat'].isin(dd.spc_only)]   
+        sales_df=sales_df[(sales_df['code']!="OFFINV")]   
+        sales_df=sales_df[(sales_df['product']!="OFFINV")]   
+     #   sales_df=sales_df[(sales_df['salesval']>0)] 
       #first_date=all_sales_df['date'].iloc[-1]
-        last_date=oneyear_sales_df['date'].iloc[0]
+        last_date=sales_df['date'].iloc[0]
       
      
       #print("Attache sales trans analysis.  Current save is:")
@@ -3959,13 +4113,73 @@ def main():
         start_date=last_date - pd.Timedelta(365, unit='d')
         end_date=last_date - pd.Timedelta(0, unit='d')
       
-        oneyear_sales_df=oneyear_sales_df[(oneyear_sales_df.index>=start_date) & (oneyear_sales_df.index<=end_date)]   # & (sales_df['productgroup']==pg)].groupby(['productgroup','code'],sort=False).sum()
+        oneyear_sales_df=sales_df[(sales_df.index>start_date) & (sales_df.index<=end_date)].copy()   # & (sales_df['productgroup']==pg)].groupby(['productgroup','code'],sort=False).sum()
       #  first_date=sales_df['date'].iloc[-1]
       #  last_date=sales_df['date'].iloc[0]
 
+######################################################
+
+
+        print("sales from -730 days to -365 days")
+      #   lastoneyear_sales_df=pd.read_pickle(dd.sales_df_augmented_savename)
+      #   lastoneyear_sales_df=lastoneyear_sales_df[lastoneyear_sales_df['productgroup'].isin(dd.product_groups_only) & lastoneyear_sales_df['specialpricecat'].isin(dd.spc_only)]   
+      #   lastoneyear_sales_df=lastoneyear_sales_df[(lastoneyear_sales_df['code']!="OFFINV")]   
+      #   lastoneyear_sales_df=lastoneyear_sales_df[(lastoneyear_sales_df['product']!="OFFINV")]   
+      #   lastoneyear_sales_df=lastoneyear_sales_df[(lastoneyear_sales_df['salesval']>0)] 
+      # #first_date=all_sales_df['date'].iloc[-1]
+      #   last_date=lastoneyear_sales_df['date'].iloc[0]
+      
+     
+      #print("Attache sales trans analysis.  Current save is:")
+      
+      
+      #print("Data available:",all_sales_df.shape[0],"records.\nfirst date:",first_date,"\nlast date:",last_date,"\n")
+    
         
+        laststart_date=last_date - pd.Timedelta(730, unit='d')
+        lastend_date=last_date - pd.Timedelta(365, unit='d')
+      
+        lastoneyear_sales_df=sales_df[(sales_df.index>laststart_date) & (sales_df.index<=lastend_date)].copy()   # & (sales_df['productgroup']==pg)].groupby(['productgroup','code'],sort=False).sum()
+      
+##############################################################################################3
+
+        print("sales from -730 days to 0 days")
+      #   twoyear_sales_df=pd.read_pickle(dd.sales_df_augmented_savename)
+      #   twoyear_sales_df=twoyear_sales_df[twoyear_sales_df['productgroup'].isin(dd.product_groups_only) & lastoneyear_sales_df['specialpricecat'].isin(dd.spc_only)]   
+      #   twoyear_sales_df=twoyear_sales_df[(twoyear_sales_df['code']!="OFFINV")]   
+      #   twoyear_sales_df=twoyear_sales_df[(twoyear_sales_df['product']!="OFFINV")]   
+      #   twoyear_sales_df=twoyear_sales_df[(twoyear_sales_df['salesval']>0)] 
+      # #first_date=all_sales_df['date'].iloc[-1]
+      #   last_date=twoyear_sales_df['date'].iloc[0]
+      
+     
+      #print("Attache sales trans analysis.  Current save is:")
+      
+      
+      #print("Data available:",all_sales_df.shape[0],"records.\nfirst date:",first_date,"\nlast date:",last_date,"\n")
+    
+        
+        twolaststart_date=last_date - pd.Timedelta(730, unit='d')
+        twolastend_date=last_date - pd.Timedelta(0, unit='d')
+      
+        twoyear_sales_df=sales_df[(sales_df.index>twolaststart_date) & (sales_df.index<=twolastend_date)].copy()   # & (sales_df['productgroup']==pg)].groupby(['productgroup','code'],sort=False).sum()
+      
+   
+
+        
+      
+        #  first_date=sales_df['date'].iloc[-1]
  
-        cust_prod_list=prods_and_custs(oneyear_sales_df)
+      #  last_date=sales_df['date'].iloc[0]
+
+
+#############################################################################################
+
+       
+ 
+        cust_prod_list_oneyear=prods_and_custs(oneyear_sales_df)
+        cust_prod_list_lastoneyear=prods_and_custs(lastoneyear_sales_df)
+        cust_prod_list_twoyear=prods_and_custs(twoyear_sales_df)
        #   print(cust_prod_list)
       #  print(len(cust_prod_list),"combinations to process\n")
    
@@ -3977,12 +4191,15 @@ def main():
         cpus = multiprocessing.cpu_count()
        
      
-        print("\nMultiprocessing sales from",len(cust_prod_list),"possible combinations of customer and product from",str(start_date),"to",str(end_date)," with",cpus,"cpus.\n")
+        print("\nSlicing this year's sales from",len(cust_prod_list_oneyear),"possible combinations of customer and product from",str(start_date),"to",str(end_date),"with",cpus,"cpus.\n")
     
        
     #   cust_list.insert(0,sales_df)
     #   print("cust_list=",cust_list)
-        multiple_results=[]
+        multiple_results_oneyear=[]
+        multiple_results_lastoneyear=[]
+    #    multiple_results_twoyear=[]
+        multiple_results_thisyear_minus_lastyear=[]
          
     #   with Pool(processes=cpus) as pool:  # processes=cpus-1
          #  with tqdm(total=len(cust_prod_list)) as pbar:
@@ -3990,7 +4207,23 @@ def main():
            
             #   pbar.update()
             #   multiple_results.append(pool.apply_async(multi_function,args=(cust_prod_list, )))  # stops, journey and poolsize, epoch length and name of q
-        multiple_results.append(p_map(multi_function,cust_prod_list))  # stops, journey and poolsize, epoch length and name of q
+        multiple_results_oneyear.append(p_map(multi_function_oneyear_sales_df,cust_prod_list_oneyear))  # stops, journey and poolsize, epoch length and name of q
+        print("\nSlicing last year's sales from",len(cust_prod_list_lastoneyear),"possible combinations of customer and product from",str(laststart_date),"to",str(lastend_date),"with",cpus,"cpus.\n")
+  
+        
+        multiple_results_lastoneyear.append(p_map(multi_function_lastoneyear_sales_df,cust_prod_list_lastoneyear))  # stops, journey and poolsize, epoch length and name of q
+  
+    #    print("\nMultiprocessing the last two years sales from",len(cust_prod_list_twoyear),"possible combinations of customer and product from",str(twolaststart_date),"to",str(twolastend_date)," with",cpus,"cpus.\n")
+ 
+     #   multiple_results_twoyear.append(p_map(multi_function_twoyear_sales_df,cust_prod_list_twoyear))  # stops, journey and poolsize, epoch length and name of q
+
+        print("\nSlicing this year vs last year from",len(cust_prod_list_twoyear),"possible combinations of customer and product from",str(twolaststart_date),"to",str(twolastend_date),"with",cpus,"cpus.\n")
+ 
+        multiple_results_thisyear_minus_lastyear.append(p_map(multi_function_this_minus_last,cust_prod_list_twoyear))  # stops, journey and poolsize, epoch length and name of q
+
+
+
+   #
                #    multiple_results.append(i)
              #      pbar.update()
      #  pbar.close()
@@ -4004,16 +4237,39 @@ def main():
        # mr=multiple_results[0]   #,cust_prod_list)]   #[0]
      #  print("multiple results",mr)
       #  print("\ntidy up results.  remove empty dfs")
-        distribution_list=[elem for elem in multiple_results[0] if len(elem)!=0]
-        with open(dd.distribution_list, 'wb') as f:
-           pickle.dump(distribution_list, f)
+        distribution_list_oneyear=[elem for elem in multiple_results_oneyear[0] if len(elem)!=0]
+        distribution_list_lastoneyear=[elem for elem in multiple_results_lastoneyear[0] if len(elem)!=0]
+   #     distribution_list_twoyear=[elem for elem in multiple_results_twoyear[0] if len(elem)!=0]
+        distribution_list_thisyear_minus_lastyear=[elem for elem in multiple_results_thisyear_minus_lastyear[0] if len(elem)!=0]
+     #   distribution_list_thisyear_minus_lastyear_percent=[elem for elem in multiple_results_thisyear_minus_lastyear_percent[0] if len(elem)!=0]
+
+        
+        
+        with open(dd.distribution_list_oneyear, 'wb') as f:
+           pickle.dump(distribution_list_oneyear, f)
+        with open(dd.distribution_list_lastoneyear, 'wb') as f:
+           pickle.dump(distribution_list_lastoneyear, f)
+    #    with open(dd.distribution_list_twoyear, 'wb') as f:
+    #       pickle.dump(distribution_list_twoyear, f)
+        with open(dd.distribution_list_thisyear_minus_lastyear, 'wb') as f:
+           pickle.dump(distribution_list_thisyear_minus_lastyear, f)
+    #    with open(dd.distribution_list_thisyear_minus_lastyear_percent, 'wb') as f:
+    #       pickle.dump(distribution_list_thisyear_minus_lastyear_percent, f)
+ 
+           
+           
+ 
+        print("\nFinished. \ndistribution_list_oneyear length=",len(distribution_list_oneyear),"for",len(cust_prod_list_oneyear),"unique custs and prods\ndistribution_list_lastoneyear length=",len(distribution_list_lastoneyear),"for",len(cust_prod_list_oneyear),"unique custs and prods")
+        print("distribution_list_thisyear_minus_lastyear length=",len(distribution_list_thisyear_minus_lastyear),"for",len(cust_prod_list_twoyear),"unique custs and prods")
+     #   print("distribution_list_thisyear_minus_lastyear_percent length=",len(distribution_list_thisyear_minus_lastyear_percent),"for",len(cust_prod_list_twoyear),"unique custs and prods")
+ 
         end_timer = time.time()
-        print("\nFinished. distribution_list length=",len(distribution_list),". Multiprocessing runtime:",round(end_timer - start_timer,2),"seconds.\n")
-        print("\n Plot",len(distribution_list),"trends")
+        print("Multiprocessing runtime:",round(end_timer - start_timer,2),"seconds.")
+        print("\n Plot",len(distribution_list_oneyear),"trends")
     
    
     
-        p_map(multi_plot_trend,distribution_list)  
+        p_map(multi_plot_trend,distribution_list_oneyear)  
 
       #  with open(dd.distribution_list, 'rb') as f:
       #      mynewlist = pickle.load(f)
@@ -4026,97 +4282,109 @@ def main():
       #  print("dlist=",distribution_list[:][:2])    
    #     r=[] 
    #     c=[]
-        for sublist in distribution_list:
-    #        r.append(sublist[0])
-    #        c.append(sublist[1])
+        for sublist in distribution_list_oneyear:
             del sublist[2]
-        
+        for sublist in distribution_list_lastoneyear:
+            del sublist[2]
+        for sublist in distribution_list_thisyear_minus_lastyear:
+            del sublist[2]
+      #  for sublist in distribution_list_thisyear_minus_lastyear_percent:
+      #      del sublist[2]
+
+
+
+
 
      #   print("post del dist list=",distribution_list)
-        dist_df=pd.DataFrame(distribution_list,columns=['cust','prod',"latestdate","qtysum","salesvalsum"])
+        dist_oneyear_df=pd.DataFrame(distribution_list_oneyear,columns=['cust','prod',"latestdate","qtysum","salesvalsum","a","b"])
+     #   change_salesval_df=dist_oneyear_df.copy(deep=True) 
+     #   change_percent_salesval_df=dist_oneyear_df.copy(deep=True) 
+     #   change_qty_df=dist_oneyear_df.copy(deep=True) 
+     #   change_percent_qty_df=dist_oneyear_df.copy(deep=True) 
      
-       
   ##################################################3      
         
-        pivot_salesval_df=pd.pivot_table(dist_df, values='salesvalsum', columns='prod',index='cust', aggfunc=np.sum, margins=True,dropna=True,observed=True)
-        pivot_salesval_df.sort_values("All",ascending=False,axis="index",inplace=True)
-        pivot_salesval_df.sort_values("All",ascending=False,axis="columns",inplace=True)
+        pivot_salesval_oneyear_df=pd.pivot_table(dist_oneyear_df, values='salesvalsum', columns='prod',index='cust', aggfunc=np.sum, margins=True,dropna=False)
+    #    pivot_salesval_df.sort_values("All",ascending=False,axis="index",inplace=True)
+    #    pivot_salesval_df.sort_values("All",ascending=False,axis="columns",inplace=True)
         
      #   print("0pivot_salesval_df=\n",pivot_salesval_df)
-        pivot_salesval_df=pivot_salesval_df.rename({"All":(999,999,"All")},level=0,axis='index')
-        pivot_salesval_df=pivot_salesval_df.rename({"All":(999,"All")},level=0,axis='columns')
+        pivot_salesval_oneyear_df=pivot_salesval_oneyear_df.rename({"All":(999,999,"All")},level=0,axis='index')
+        pivot_salesval_oneyear_df=pivot_salesval_oneyear_df.rename({"All":(999,"All")},level=0,axis='columns')
         
     #    pivot_salesval_df.index[-1]="(999,999,All)"
       #  print("1pivot_salesval_df=\n",pivot_salesval_df)
         
     #    pivot_salesval_df.set_index('cust',inplace=True)
-        pivot_salesval_df.index=pd.MultiIndex.from_tuples(pivot_salesval_df.index,sortorder=0,names=['salesrep','specialpricecat','code'])   #['productgroup','product'])
+        pivot_salesval_oneyear_df.index=pd.MultiIndex.from_tuples(pivot_salesval_oneyear_df.index,sortorder=0,names=['salesrep','specialpricecat','code'])   #['productgroup','product'])
       #  print("1pivot_salesval_df=\n",pivot_salesval_df)
         
-        pivot_salesval_df=pivot_salesval_df.T
+        pivot_salesval_oneyear_df=pivot_salesval_oneyear_df.T
       #  pivot_salesval_df.index[-1]="(999,All)"
   
      #   pivot_salesval_df.set_index('prod',inplace=True)
  
-        pivot_salesval_df.index=pd.MultiIndex.from_tuples(pivot_salesval_df.index,sortorder=0,names=['productgroup','product'])
+        pivot_salesval_oneyear_df.index=pd.MultiIndex.from_tuples(pivot_salesval_oneyear_df.index,sortorder=0,names=['productgroup','product'])
      #   print("2pivot_salesval_df=\n",pivot_salesval_df)
-        pivot_salesval_df=pivot_salesval_df.T
+        pivot_salesval_oneyear_df=pivot_salesval_oneyear_df.T
         
-        pivot_salesval_df=pivot_salesval_df.rename(dd.salesrep_dict,level='salesrep',axis='index')
-        pivot_salesval_df=pivot_salesval_df.rename(dd.spc_dict,level='specialpricecat',axis='index')
+        pivot_salesval_oneyear_df=pivot_salesval_oneyear_df.rename(dd.salesrep_dict,level='salesrep',axis='index')
+        pivot_salesval_oneyear_df=pivot_salesval_oneyear_df.rename(dd.spc_dict,level='specialpricecat',axis='index')
 
-        pivot_salesval_df=pivot_salesval_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
-        pivot_salesval_df=pivot_salesval_df.rename(dd.productgroups_dict,level='productgroup',axis='columns')
+        pivot_salesval_oneyear_df=pivot_salesval_oneyear_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
+        pivot_salesval_oneyear_df=pivot_salesval_oneyear_df.rename(dd.productgroups_dict,level='productgroup',axis='columns').copy(deep=True)
   
         
         
    #     print("pivot_salesval_df=\n",pivot_salesval_df)
 #######################################################       
         
-        pivot_qtyval_df=pd.pivot_table(dist_df, values='qtysum', columns='prod',index='cust', aggfunc=np.sum, margins=True,dropna=True,observed=True)
-        pivot_qtyval_df.sort_values("All",ascending=False,axis="index",inplace=True)
-        pivot_qtyval_df.sort_values("All",ascending=False,axis="columns",inplace=True)
+        pivot_qty_oneyear_df=pd.pivot_table(dist_oneyear_df, values='qtysum', columns='prod',index='cust', aggfunc=np.sum, margins=True,dropna=False)
+    #    pivot_qtyval_df.sort_values("All",ascending=False,axis="index",inplace=True)
+    #    pivot_qtyval_df.sort_values("All",ascending=False,axis="columns",inplace=True)
  
      #   print("0pivot_salesval_df=\n",pivot_salesval_df)
-        pivot_qtyval_df=pivot_qtyval_df.rename({"All":(999,999,"All")},level=0,axis='index')
-        pivot_qtyval_df=pivot_qtyval_df.rename({"All":(999,"All")},level=0,axis='columns')
+        pivot_qty_oneyear_df=pivot_qty_oneyear_df.rename({"All":(999,999,"All")},level=0,axis='index')
+        pivot_qty_oneyear_df=pivot_qty_oneyear_df.rename({"All":(999,"All")},level=0,axis='columns')
     #    pivot_salesval_df.index[-1]="(999,999,All)"
       #  print("1pivot_salesval_df=\n",pivot_salesval_df)
         
     #    pivot_salesval_df.set_index('cust',inplace=True)
-        pivot_qtyval_df.index=pd.MultiIndex.from_tuples(pivot_qtyval_df.index,sortorder=0,names=['salesrep','specialpricecat','code'])   #['productgroup','product'])
+        pivot_qty_oneyear_df.index=pd.MultiIndex.from_tuples(pivot_qty_oneyear_df.index,sortorder=0,names=['salesrep','specialpricecat','code'])   #['productgroup','product'])
       #  print("1pivot_salesval_df=\n",pivot_salesval_df)
         
-        pivot_qtyval_df=pivot_qtyval_df.T
+        pivot_qty_oneyear_df=pivot_qty_oneyear_df.T
       #  pivot_salesval_df.index[-1]="(999,All)"
   
      #   pivot_salesval_df.set_index('prod',inplace=True)
  
-        pivot_qtyval_df.index=pd.MultiIndex.from_tuples(pivot_qtyval_df.index,sortorder=0,names=['productgroup','product'])
+        pivot_qty_oneyear_df.index=pd.MultiIndex.from_tuples(pivot_qty_oneyear_df.index,sortorder=0,names=['productgroup','product'])
      #   print("2pivot_salesval_df=\n",pivot_salesval_df)
-        pivot_qtyval_df=pivot_qtyval_df.T
+        pivot_qty_oneyear_df=pivot_qty_oneyear_df.T
         
         
-        pivot_qtyval_df=pivot_qtyval_df.rename(dd.salesrep_dict,level='salesrep',axis='index')
-        pivot_qtyval_df=pivot_qtyval_df.rename(dd.spc_dict,level='specialpricecat',axis='index')
+        pivot_qty_oneyear_df=pivot_qty_oneyear_df.rename(dd.salesrep_dict,level='salesrep',axis='index')
+        pivot_qty_oneyear_df=pivot_qty_oneyear_df.rename(dd.spc_dict,level='specialpricecat',axis='index')
 
-        pivot_qtyval_df=pivot_qtyval_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
-        pivot_qtyval_df=pivot_qtyval_df.rename(dd.productgroups_dict,level='productgroup',axis='columns')
+        pivot_qty_oneyear_df=pivot_qty_oneyear_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
+        pivot_qty_oneyear_df=pivot_qty_oneyear_df.rename(dd.productgroups_dict,level='productgroup',axis='columns').copy(deep=True)
 
         
-        
+      
+       
     #    print("pivot_qtyval_df=\n",pivot_qtyval_df)
 #
 #######################################################       
          
-        pivot_date_df=pd.pivot_table(dist_df, values='latestdate', columns='prod',index='cust', aggfunc=np.max, margins=False,dropna=True,observed=True)
+        pivot_date_df=pd.pivot_table(dist_oneyear_df, values='latestdate', columns='prod',index='cust', aggfunc=np.max, margins=False,dropna=False)
      #   print("0pivot_salesval_df=\n",pivot_salesval_df)
      #   pivot_salesval_df=pivot_salesval_df.rename({"All":(999,999,"All")},level=0,axis='index')
      #   pivot_salesval_df=pivot_salesval_df.rename({"All":(999,"All")},level=0,axis='columns')
     #    pivot_salesval_df.index[-1]="(999,999,All)"
       #  print("1pivot_salesval_df=\n",pivot_salesval_df)
         
-    #    pivot_salesval_df.set_index('cust',inplace=True)
+    #    pivot_sales       pivot_salesval_change_df=pd.pivot_table(change_salesval_df, values='changevalsum', columns='prod',index='cust', aggfunc=np.max, margins=True,dropna=True,observed=True)
+#val_df.set_index('cust',inplace=True)
         pivot_date_df.index=pd.MultiIndex.from_tuples(pivot_date_df.index,sortorder=0,names=['salesrep','specialpricecat','code'])   #['productgroup','product'])
       #  print("1pivot_salesval_df=\n",pivot_salesval_df)
         
@@ -4133,24 +4401,328 @@ def main():
         pivot_date_df=pivot_date_df.rename(dd.spc_dict,level='specialpricecat',axis='index')
 
         pivot_date_df=pivot_date_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
-        pivot_date_df=pivot_date_df.rename(dd.productgroups_dict,level='productgroup',axis='columns')
+        pivot_date_df=pivot_date_df.rename(dd.productgroups_dict,level='productgroup',axis='columns').copy()
 
         
         
      #   print("pivot_date_df=\n",pivot_date_df)
 #
 #######################################################       
+      #  print("dlist=",distribution_list[:][:2])    
+   #     r=[] 
+   #     c=[]
+     #   for sublist in distribution_list_lastoneyear:
+    #        r.append(sublist[0])
+    #        c.append(sublist[1])
+      #      del sublist[2]
+        
+
+      #  print("post del dist list=",distribution_list_lastoneyear)
+        dist_lastoneyear_df=pd.DataFrame(distribution_list_lastoneyear,columns=['cust','prod',"latestdate","qtysum","salesvalsum","a","b"])
          
-       
+   ##################################################3      
         
-       
+        pivot_salesval_lastoneyear_df=pd.pivot_table(dist_lastoneyear_df, values='salesvalsum', columns='prod',index='cust', aggfunc=np.sum, margins=True,dropna=False)
+  #      pivot_salesval_df.sort_values("All",ascending=False,axis="index",inplace=True)
+  #      pivot_salesval_df.sort_values("All",ascending=False,axis="columns",inplace=True)
         
-       
+     #   print("0pivot_salesval_df=\n",pivot_salesval_df)
+        pivot_salesval_lastoneyear_df=pivot_salesval_lastoneyear_df.rename({"All":(999,999,"All")},level=0,axis='index')
+        pivot_salesval_lastoneyear_df=pivot_salesval_lastoneyear_df.rename({"All":(999,"All")},level=0,axis='columns')
         
-       
+    #    pivot_salesval_df.index[-1]="(999,999,All)"
+      #  print("1pivot_salesval_df=\n",pivot_salesval_df)
         
-       
+    #    pivot_salesval_df.set_index('cust',inplace=True)
+        pivot_salesval_lastoneyear_df.index=pd.MultiIndex.from_tuples(pivot_salesval_lastoneyear_df.index,sortorder=0,names=['salesrep','specialpricecat','code'])   #['productgroup','product'])
+      #  print("1pivot_salesval_df=\n",pivot_salesval_df)
         
+        pivot_salesval_lastoneyear_df=pivot_salesval_lastoneyear_df.T
+      #  pivot_salesval_df.index[-1]="(999,All)"
+  
+     #   pivot_salesval_df.set_index('prod',inplace=True)
+ 
+        pivot_salesval_lastoneyear_df.index=pd.MultiIndex.from_tuples(pivot_salesval_lastoneyear_df.index,sortorder=0,names=['productgroup','product'])
+     #   print("2pivot_salesval_df=\n",pivot_salesval_df)
+        pivot_salesval_lastoneyear_df=pivot_salesval_lastoneyear_df.T
+        
+        pivot_salesval_lastoneyear_df=pivot_salesval_lastoneyear_df.rename(dd.salesrep_dict,level='salesrep',axis='index')
+        pivot_salesval_lastoneyear_df=pivot_salesval_lastoneyear_df.rename(dd.spc_dict,level='specialpricecat',axis='index')
+
+        pivot_salesval_lastoneyear_df=pivot_salesval_lastoneyear_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
+        pivot_salesval_lastoneyear_df=pivot_salesval_lastoneyear_df.rename(dd.productgroups_dict,level='productgroup',axis='columns').copy()
+  
+        
+        
+   #     print("pivot_salesval_df=\n",pivot_salesval_df)
+#######################################################       
+        
+        pivot_qty_lastoneyear_df=pd.pivot_table(dist_lastoneyear_df, values='qtysum', columns='prod',index='cust', aggfunc=np.sum, margins=True,dropna=False)
+  #      change_percent_salesval_df['changevalsumpercent']=np.around(((change_salesval_df['salesvalsum']-dist_df['salesvalsum'])/change_salesval_df['salesvalsum'])*100,2)
+      #  pivot_qtyval_df.sort_values("All",ascending=False,axis="index",inplace=True)
+      #  pivot_qtyval_df.sort_values("All",ascending=False,axis="columns",inplace=True)
+ 
+     #   print("0pivot_salesval_df=\n",pivot_salesval_df)
+        pivot_qty_lastoneyear_df=pivot_qty_lastoneyear_df.rename({"All":(999,999,"All")},level=0,axis='index')
+        pivot_qty_lastoneyear_df=pivot_qty_lastoneyear_df.rename({"All":(999,"All")},level=0,axis='columns')
+    #    pivot_salesval_df.index[-1]="(999,999,All)"
+      #  print("1pivot_salesval_df=\n",pivot_salesval_df)
+        
+    #    pivot_salesval_df.set_index('cust',inplace=True)
+        pivot_qty_lastoneyear_df.index=pd.MultiIndex.from_tuples(pivot_qty_lastoneyear_df.index,sortorder=0,names=['salesrep','specialpricecat','code'])   #['productgroup','product'])
+      #  print("1pivot_salesval_df=\n",pivot_salesval_df)
+        
+        pivot_qty_lastoneyear_df=pivot_qty_lastoneyear_df.T
+      #  pivot_salesval_df.index[-1]="(999,All)"
+  
+     #   pivot_salesval_df.set_index('prod',inplace=True)
+ 
+        pivot_qty_lastoneyear_df.index=pd.MultiIndex.from_tuples(pivot_qty_lastoneyear_df.index,sortorder=0,names=['productgroup','product'])
+     #   print("2pivot_salesval_df=\n",pivot_salesval_df)
+        pivot_qty_lastoneyear_df=pivot_qty_lastoneyear_df.T
+        
+        
+        pivot_qty_lastoneyear_df=pivot_qty_lastoneyear_df.rename(dd.salesrep_dict,level='salesrep',axis='index')
+        pivot_qty_lastoneyear_df=pivot_qty_lastoneyear_df.rename(dd.spc_dict,level='specialpricecat',axis='index')
+
+        pivot_qty_lastoneyear_df=pivot_qty_lastoneyear_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
+        pivot_qty_lastoneyear_df=pivot_qty_lastoneyear_df.rename(dd.productgroups_dict,level='productgroup',axis='columns').copy()
+
+        
+        
+    #    print("pivot_qtyval_df=\n",pivot_qtyval_df)
+#
+
+
+######################################################################333
+# change all the salesval and qty to negative values in last years 
+   ###################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#######################################################       
+        dist_change_df=pd.DataFrame(distribution_list_thisyear_minus_lastyear,columns=['cust','prod',"latestdate","salesvalsum","qtysum","percent_salesval_change","percent_qty_change"])
+        print("dist change df=\n",dist_change_df)
+      #  change_salesval_df['changevalsum']=change_salesval_df['salesvalsum']-dist_df['salesvalsum']
+        #dist_df=pd.DataFrame(distribution_list_oneyear,columns=['cust','prod',"latestdate","qtysum","salesvalsum"])
+   
+        pivot_salesval_change_df=pd.pivot_table(dist_change_df, values='salesvalsum', columns='prod',index='cust', aggfunc=np.sum, margins=True,dropna=False)
+ 
+     #   pivot_salesval_change_df.sort_values("All",ascending=False,axis="index",inplace=True)
+     #   pivot_salesval_change_df.sort_values("All",ascending=False,axis="columns",inplace=True)
+ 
+ 
+    #  #   print("0pivot_salesval_df=\n",pivot_salesval_df)
+        pivot_salesval_change_df=pivot_salesval_change_df.rename({"All":(999,999,"All")},level=0,axis='index')
+        pivot_salesval_change_df=pivot_salesval_change_df.rename({"All":(999,"All")},level=0,axis='columns')
+      #  pivot_salesval_change_df.index[-1]="(999,999,All)"
+    #   #  print("1pivot_salesval_df=\n",pivot_salesval_df)
+        
+    #    pivot_salesval_change_df.set_index('cust',inplace=True)
+        pivot_salesval_change_df.index=pd.MultiIndex.from_tuples(pivot_salesval_change_df.index,sortorder=0,names=['salesrep','specialpricecat','code'])   #['productgroup','product'])
+    #   #  print("1pivot_salesval_df=\n",pivot_salesval_df)
+        
+        pivot_salesval_change_df=pivot_salesval_change_df.T
+    #   pivot_salesval_df.index[-1]="(999,All)"
+  
+    #  #   pivot_salesval_df.set_index('prod',inplace=True)
+ 
+        pivot_salesval_change_df.index=pd.MultiIndex.from_tuples(pivot_salesval_change_df.index,sortorder=0,names=['productgroup','product'])
+    #  #   print("2pivot_salesval_df=\n",pivot_salesval_df)
+        pivot_salesval_change_df=pivot_salesval_change_df.T
+        
+        pivot_salesval_change_df=pivot_salesval_change_df.rename(dd.salesrep_dict,level='salesrep',axis='index')
+        pivot_salesval_change_df=pivot_salesval_change_df.rename(dd.spc_dict,level='specialpricecat',axis='index')
+
+        pivot_salesval_change_df=pivot_salesval_change_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
+        pivot_salesval_change_df=pivot_salesval_change_df.rename(dd.productgroups_dict,level='productgroup',axis='columns')
+
+        
+        
+     #   print("pivot_date_df=\n",pivot_date_df)
+#
+#######################################################       
+    #    change_percent_salesval_df['changevalsumpercent']=np.around(((change_salesval_df['salesvalsum']-dist_df['salesvalsum'])/change_salesval_df['salesvalsum'])*100,2)
+
+        
+  #######################################################       
+         
+    #    change_qty_df['changeqtysum']=change_qty_df['qtysum']-dist_df['qtysum']
+        #dist_df=pd.DataFrame(distribution_list_oneyear,columns=['cust','prod',"latestdate","qtysum","salesvalsum"])
+   
+        pivot_qty_change_df=pd.pivot_table(dist_change_df, values="qtysum", columns='prod',index='cust', aggfunc=np.sum, margins=True,dropna=False)
+ 
+     #   pivot_salesval_change_df.sort_values("All",ascending=False,axis="index",inplace=True)
+     #   pivot_salesval_change_df.sort_values("All",ascending=False,axis="columns",inplace=True)
+ 
+ 
+    #  #   print("0pivot_salesval_df=\n",pivot_salesval_df)
+        pivot_qty_change_df=pivot_qty_change_df.rename({"All":(999,999,"All")},level=0,axis='index')
+        pivot_qty_change_df=pivot_qty_change_df.rename({"All":(999,"All")},level=0,axis='columns')
+      #  pivot_salesval_change_df.index[-1]="(999,999,All)"
+    #   #  print("1pivot_salesval_df=\n",pivot_salesval_df)
+        
+    #    pivot_salesval_change_df.set_index('cust',inplace=True)
+        pivot_qty_change_df.index=pd.MultiIndex.from_tuples(pivot_qty_change_df.index,sortorder=0,names=['salesrep','specialpricecat','code'])   #['productgroup','product'])
+    #   #  print("1pivot_salesval_df=\n",pivot_salesval_df)
+        
+        pivot_qty_change_df=pivot_qty_change_df.T
+    #   pivot_salesval_df.index[-1]="(999,All)"
+  
+    #  #   pivot_salesval_df.set_index('prod',inplace=True)
+ 
+        pivot_qty_change_df.index=pd.MultiIndex.from_tuples(pivot_qty_change_df.index,sortorder=0,names=['productgroup','product'])
+    #  #   print("2pivot_salesval_df=\n",pivot_salesval_df)
+        pivot_qty_change_df=pivot_qty_change_df.T
+        
+        pivot_qty_change_df=pivot_qty_change_df.rename(dd.salesrep_dict,level='salesrep',axis='index')
+        pivot_qty_change_df=pivot_qty_change_df.rename(dd.spc_dict,level='specialpricecat',axis='index')
+
+        pivot_qty_change_df=pivot_qty_change_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
+        pivot_qty_change_df=pivot_qty_change_df.rename(dd.productgroups_dict,level='productgroup',axis='columns')
+
+        
+        
+     #   print("pivot_date_df=\n",pivot_date_df)
+#
+#######################################################       
+     #   dist_change_df=pd.DataFrame(distribution_list_thisyear_minus_lastyear,columns=['cust','prod',"latestdate","qty_percent_change","salesval_percent_change"])
+    #    dist_change_percent_df=pd.DataFrame(distribution_list_thisyear_minus_lastyear,columns=['cust','prod',"latestdate","a","b","percent_salesval_change","percent_qty_change"])
+ 
+      #  dist_change_percent_df=pd.DataFrame(distribution_list_thisyear_minus_lastyear_percent  ,columns=['cust','prod',"latestdate","qty_percent_change","salesval_percent_chnage"])
+    # new_df['salesval_percent_change']=(new_this_df['salesval'].sum()-new_last_df['salesval'].sum())/new_last_df['salesval'].sum()*100
+   # new_df['qty_percent_change']=(new_this_df['qty'].sum()-new_last_df['qty'].sum())/new_last_df['qty'].sum()*100
+ 
+        pivot_salesval_change_percent_df=pd.pivot_table(dist_change_df, values='percent_salesval_change', columns='prod',index='cust', aggfunc=np.sum, margins=False,dropna=False)
+ 
+   #  #    pivot_salesval_change_percent_df.sort_values("All",ascending=False,axis="index",inplace=True)
+   #  #    pivot_salesval_change_percent_df.sort_values("All",ascending=False,axis="columns",inplace=True)
+
+ 
+   #  #  #   print("0pivot_salesval_df=\n",pivot_salesval_df)
+   #     pivot_salesval_change_percent_df=pivot_salesval_change_percent_df.rename({"All":(999,999,"All")},level=0,axis='index')
+   #     pivot_salesval_change_percent_df=pivot_salesval_change_percent_df.rename({"All":(999,"All")},level=0,axis='columns')
+   #    #  pivot_salesval_change_df.index[-1]="(999,999,All)"
+   #  #   #  print("1pivot_salesval_df=\n",pivot_salesval_df)
+        
+   #  #    pivot_salesval_change_df.set_index('cust',inplace=True)
+        pivot_salesval_change_percent_df.index=pd.MultiIndex.from_tuples(pivot_salesval_change_percent_df.index,sortorder=0,names=['salesrep','specialpricecat','code'])   #['productgroup','product'])
+   #  #   #  print("1pivot_salesval_df=\n",pivot_salesval_df)
+        
+        pivot_salesval_change_percent_df=pivot_salesval_change_percent_df.T
+   #  #   pivot_salesval_df.index[-1]="(999,All)"
+  
+   #  #  #   pivot_salesval_df.set_index('prod',inplace=True)
+ 
+        pivot_salesval_change_percent_df.index=pd.MultiIndex.from_tuples(pivot_salesval_change_percent_df.index,sortorder=0,names=['productgroup','product'])
+   #  #  #   print("2pivot_salesval_df=\n",pivot_salesval_df)
+        pivot_salesval_change_percent_df=pivot_salesval_change_percent_df.T
+        
+        pivot_salesval_change_percent_df=pivot_salesval_change_percent_df.rename(dd.salesrep_dict,level='salesrep',axis='index')
+        pivot_salesval_change_percent_df=pivot_salesval_change_percent_df.rename(dd.spc_dict,level='specialpricecat',axis='index')
+
+        pivot_salesval_change_percent_df=pivot_salesval_change_percent_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
+        pivot_salesval_change_percent_df=pivot_salesval_change_percent_df.rename(dd.productgroups_dict,level='productgroup',axis='columns')
+  
+####################################################################################33
+
+      #change_percent_qty_df['changeqtysumpercent']=np.around(((change_qty_df['qtysum']-dist_df['qtysum'])/change_qty_df['qtysum'])*100,2)
+         #dist_df=pd.DataFrame(distribution_list_oneyear,columns=['cust','prod',"latestdate","qtysum","salesvalsum"])
+   
+        pivot_qty_change_percent_df=pd.pivot_table(dist_change_df, values='percent_qty_change', columns='prod',index='cust', aggfunc=np.sum, margins=False,dropna=False)
+ 
+    # #    pivot_salesval_change_percent_df.sort_values("All",ascending=False,axis="index",inplace=True)
+    # #    pivot_salesval_change_percent_df.sort_values("All",ascending=False,axis="columns",inplace=True)
+
+ 
+    # #  #   print("0pivot_salesval_df=\n",pivot_salesval_df)
+   #     pivot_qty_change_percent_df=pivot_qty_change_percent_df.rename({"All":(999,999,"All")},level=0,axis='index')
+   #     pivot_qty_change_percent_df=pivot_qty_change_percent_df.rename({"All":(999,"All")},level=0,axis='columns')
+    #   #  pivot_salesval_change_df.index[-1]="(999,999,All)"
+    # #   #  print("1pivot_salesval_df=\n",pivot_salesval_df)
+        
+    # #    pivot_salesval_change_df.set_index('cust',inplace=True)
+        pivot_qty_change_percent_df.index=pd.MultiIndex.from_tuples(pivot_qty_change_percent_df.index,sortorder=0,names=['salesrep','specialpricecat','code'])   #['productgroup','product'])
+    # #   #  print("1pivot_salesval_df=\n",pivot_salesval_df)
+        
+        pivot_qty_change_percent_df=pivot_qty_change_percent_df.T
+    # #   pivot_salesval_df.index[-1]="(999,All)"
+  
+    # #  #   pivot_salesval_df.set_index('prod',inplace=True)
+ 
+        pivot_qty_change_percent_df.index=pd.MultiIndex.from_tuples(pivot_qty_change_percent_df.index,sortorder=0,names=['productgroup','product'])
+    # #  #   print("2pivot_salesval_df=\n",pivot_salesval_df)
+        pivot_qty_change_percent_df=pivot_qty_change_percent_df.T
+        
+        pivot_qty_change_percent_df=pivot_qty_change_percent_df.rename(dd.salesrep_dict,level='salesrep',axis='index')
+        pivot_qty_change_percent_df=pivot_qty_change_percent_df.rename(dd.spc_dict,level='specialpricecat',axis='index')
+
+        pivot_qty_change_percent_df=pivot_qty_change_percent_df.rename(dd.productgroup_dict,level='productgroup',axis='columns')
+    #    pivot_qty_change_percent_df=pivot_qty_change_percent_df.rename(dd.productgroups_dict,level='productgroup',axis='columns')
+
+           
+     #   print("pivot_date_df=\n",pivot_date_df)
+#
+#######################################################       
+          
+   #  sort all  
+   
+        # pivot_salesval_oneyear_df=pivot_salesval_oneyear_df.rename({"All":(999,999,"All")},level=0,axis='index')
+        # pivot_salesval_oneyear_df=pivot_salesval_oneyear_df.rename({"All":(999,"All")},level=0,axis='columns')
+        # pivot_salesval_oneyear_df.sort_values("All",ascending=False,axis="index",inplace=True)
+        # pivot_salesval_oneyear_df.sort_values("All",ascending=False,axis="columns",inplace=True)
+ 
+   
+      #  change_percent_salesval_df['changevalsumpercent']=np.around(((change_salesval_df['salesvalsum']-dist_df['salesvalsum'])/change_salesval_df['salesvalsum'])*100,2)
+ 
+    
+ 
+    
+       
+ #################################################   
+        pivot_qty_oneyear_df.sort_values([("",'All')],ascending=False,axis="index",inplace=True)
+        pivot_qty_oneyear_df.sort_values([(999,"",'All')],ascending=False,axis="columns",inplace=True)
+   
+        pivot_qty_lastoneyear_df.sort_values([("","All")],ascending=False,axis="index",inplace=True)
+        pivot_qty_lastoneyear_df.sort_values([(999,"","All")],ascending=False,axis="columns",inplace=True)
+       
+        pivot_qty_change_df.sort_values([("","All")],ascending=False,axis="index",inplace=True)
+        pivot_qty_change_df.sort_values([(999,"","All")],ascending=False,axis="columns",inplace=True)
+ 
+    #    pivot_qty_change_percent_df.sort_values([("","All")],ascending=False,axis="index",inplace=True)
+    #    pivot_qty_change_percent_df.sort_values([(999,"","All")],ascending=False,axis="columns",inplace=True)
+        
+        pivot_salesval_oneyear_df.sort_values([("","All")],ascending=False,axis="index",inplace=True)
+        pivot_salesval_oneyear_df.sort_values([(999,"","All")],ascending=False,axis="columns",inplace=True)
+ 
+        pivot_salesval_lastoneyear_df.sort_values([("","All")],ascending=False,axis="index",inplace=True)
+        pivot_salesval_lastoneyear_df.sort_values([(999,"","All")],ascending=False,axis="columns",inplace=True)
+ 
+     #   print("psly before=\n",pivot_salesval_lastoneyear_df)   
+  
+        pivot_salesval_change_df.sort_values([("","All")],ascending=False,axis="index",inplace=True)
+        pivot_salesval_change_df.sort_values([(999,"","All")],ascending=False,axis="columns",inplace=True)
+ 
+     #   print("psly after=\n",pivot_salesval_lastoneyear_df)   
+     
+ 
+     #   pivot_salesval_change_percent_df.sort_values([("","All")],ascending=False,axis="index",inplace=True)
+     #   pivot_salesval_change_percent_df.sort_values([(999,"","All")],ascending=False,axis="columns",inplace=True)
+   
   
 
 #########################################################################################  
@@ -4166,12 +4738,29 @@ def main():
 
         writer = pd.ExcelWriter(output_dir+"distribution_report.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
         writer2 = pd.ExcelWriter(output_dir+"distribution_report_with_dollars.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
-        writer3 = pd.ExcelWriter(output_dir+"distribution_report_with_units.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
+        writer2a = pd.ExcelWriter(output_dir+"distribution_report_with_dollars_lastyear.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter') 
+        writer4 = pd.ExcelWriter(output_dir+"distribution_report_with_dollars_change.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
+        writer5 = pd.ExcelWriter(output_dir+"distribution_report_with_dollars_percent_change.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
+
+        writer6 = pd.ExcelWriter(output_dir+"distribution_report_with_units.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
+        writer7 = pd.ExcelWriter(output_dir+"distribution_report_with_units_lastyear.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
+        writer8 = pd.ExcelWriter(output_dir+"distribution_report_with_units_change.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
+        writer9 = pd.ExcelWriter(output_dir+"distribution_report_with_units_percent_change.xlsx",engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
+
 
 #df.to_excel(writer, sheet_name=sheet_name)
         pivot_date_df.to_excel(writer, sheet_name=sheet_name)
-        pivot_salesval_df.to_excel(writer2, sheet_name=sheet_name)
-        pivot_qtyval_df.to_excel(writer3, sheet_name=sheet_name)
+        
+        pivot_salesval_oneyear_df.to_excel(writer2, sheet_name=sheet_name)
+        pivot_salesval_lastoneyear_df.to_excel(writer2a, sheet_name=sheet_name)
+        pivot_salesval_change_df.to_excel(writer4, sheet_name=sheet_name)
+        pivot_salesval_change_percent_df.to_excel(writer5, sheet_name=sheet_name)
+
+        pivot_qty_oneyear_df.to_excel(writer6, sheet_name=sheet_name)
+        pivot_qty_lastoneyear_df.to_excel(writer7, sheet_name=sheet_name)
+        pivot_qty_change_df.to_excel(writer8, sheet_name=sheet_name)
+        pivot_qty_change_percent_df.to_excel(writer9, sheet_name=sheet_name)
+
 
 # Access the XlsxWriter workbook and worksheet objects from the dataframe.
 # This is equivalent to the following using XlsxWriter on its own:
@@ -4205,25 +4794,151 @@ def main():
         # Close the Pandas Excel writer and output the Excel file.
         writer2.save()      
    
-        workbook3 = writer3.book
-        worksheet3 = writer3.sheets[sheet_name]
-        value_fmt = workbook3.add_format({'num_format': '#,##0', 'bold': False})
-        total_fmt = workbook3.add_format({'num_format': '#,##0', 'bold': True})
+    #############################333
+    
+        workbook2a = writer2a.book
+        worksheet2a = writer2a.sheets[sheet_name]
+        money_fmt = workbook2a.add_format({'num_format': '$#,##0', 'bold': False})
+        total_fmt = workbook2a.add_format({'num_format': '$#,##0', 'bold': True})
 
-        worksheet3.set_column('E:ZZ', 12, value_fmt)
-        worksheet3.set_column('D:D', 12, total_fmt)
-        worksheet3.set_row(3, 12, total_fmt)
+        worksheet2a.set_column('E:ZZ', 12, money_fmt)
+        worksheet2a.set_column('D:D', 12, total_fmt)
+        worksheet2a.set_row(3, 12, total_fmt)
 
             # Apply a conditional format to the cell range.
    #     worksheet.conditional_format('B2:B8', {'type': '3_color_scale'})
-        worksheet3.conditional_format('E5:ZZ1000', {'type': '3_color_scale'})
+        worksheet2a.conditional_format('E5:ZZ1000', {'type': '3_color_scale'})
 
         # Close the Pandas Excel writer and output the Excel file.
-        writer3.save()      
+        writer2a.save()      
+  
+  ###########################################3 
+  
+        workbook4 = writer4.book
+        worksheet4 = writer4.sheets[sheet_name]
+        money_fmt = workbook4.add_format({'num_format': '$#,##0', 'bold': False})
+        total_fmt = workbook4.add_format({'num_format': '$#,##0', 'bold': True})
 
+        worksheet4.set_column('E:ZZ', 12, money_fmt)
+        worksheet4.set_column('D:D', 12, total_fmt)
+        worksheet4.set_row(3, 12, total_fmt)
+
+            # Apply a conditional format to the cell range.
+   #     worksheet.conditional_format('B2:B8', {'type': '3_color_scale'})
+        worksheet4.conditional_format('E5:ZZ1000', {'type': '3_color_scale'})
+
+        writer4.save()
+
+        workbook5 = writer5.book
+        worksheet5 = writer5.sheets[sheet_name]
+   #     #money_fmt = workbook4.add_format({'num_format': '$#,##0', 'bold': False})
+         #total_fmt = workbook4.add_format({'num_format': '$#,##0', 'bold': True})
+        value_pc_fmt = workbook5.add_format({'num_format': '##0%', 'bold': False})
+        total_pc_fmt = workbook5.add_format({'num_format': '##0%', 'bold': True})
+
+
+        worksheet5.set_column('E:ZZ', 12, value_pc_fmt)
+        worksheet5.set_column('D:D', 12, total_pc_fmt)
+        worksheet5.set_row(3, 12, total_pc_fmt)
+
+   #          # Apply a conditional format to the cell range.
+   # #     worksheet.conditional_format('B2:B8', {'type': '3_color_scale'})
+        worksheet5.conditional_format('E5:ZZ1000', {'type': '3_color_scale'})
+
+        writer5.save()
+
+
+
+    ##################################################################33
+    
+    
+    
+    
+      
    
+    
    
-   ##################################################################33
+    
+        workbook6 = writer6.book
+        worksheet6 = writer6.sheets[sheet_name]
+        value_fmt = workbook6.add_format({'num_format': '#,##0', 'bold': False})
+        total_fmt = workbook6.add_format({'num_format': '#,##0', 'bold': True})
+
+        worksheet6.set_column('E:ZZ', 12, value_fmt)
+        worksheet6.set_column('D:D', 12, total_fmt)
+        worksheet6.set_row(3, 12, total_fmt)
+
+            # Apply a conditional format to the cell range.
+   #     worksheet.conditional_format('B2:B8', {'type': '3_color_scale'})
+        worksheet6.conditional_format('E5:ZZ1000', {'type': '3_color_scale'})
+
+        # Close the Pandas Excel writer and output the Excel file.
+        writer6.save()      
+  
+   
+    
+   
+    
+        workbook7 = writer7.book
+        worksheet7 = writer7.sheets[sheet_name]
+        value_fmt = workbook7.add_format({'num_format': '#,##0', 'bold': False})
+        total_fmt = workbook7.add_format({'num_format': '#,##0', 'bold': True})
+
+        worksheet7.set_column('E:ZZ', 12, value_fmt)
+        worksheet7.set_column('D:D', 12, total_fmt)
+        worksheet7.set_row(3, 12, total_fmt)
+
+            # Apply a conditional format to the cell range.
+   #     worksheet.conditional_format('B2:B8', {'type': '3_color_scale'})
+        worksheet7.conditional_format('E5:ZZ1000', {'type': '3_color_scale'})
+
+        # Close the Pandas Excel writer and output the Excel file.
+        writer7.save()      
+  
+   
+    
+   
+    
+        workbook8 = writer8.book
+        worksheet8 = writer8.sheets[sheet_name]
+        value_fmt = workbook8.add_format({'num_format': '#,##0', 'bold': False})
+        total_fmt = workbook8.add_format({'num_format': '#,##0', 'bold': True})
+
+        worksheet8.set_column('E:ZZ', 12, value_fmt)
+        worksheet8.set_column('D:D', 12, total_fmt)
+        worksheet8.set_row(3, 12, total_fmt)
+
+            # Apply a conditional format to the cell range.
+   #     worksheet.conditional_format('B2:B8', {'type': '3_color_scale'})
+        worksheet8.conditional_format('E5:ZZ1000', {'type': '3_color_scale'})
+
+        # Close the Pandas Excel writer and output the Excel file.
+        writer8.save()      
+
+
+
+        workbook9 = writer9.book
+        worksheet9 = writer9.sheets[sheet_name]
+  # #      value_fmt = workbook9.add_format({'num_format': '#,##0', 'bold': False})
+  # #      total_fmt = workbook9.add_format({'num_format': '#,##0', 'bold': True})
+        value_pc_fmt = workbook9.add_format({'num_format': '##0%', 'bold': False})
+        total_pc_fmt = workbook9.add_format({'num_format': '##0%', 'bold': True})
+
+
+        worksheet9.set_column('E:ZZ', 12, value_pc_fmt)
+        worksheet9.set_column('D:D', 12, total_pc_fmt)
+        worksheet9.set_row(3, 12, total_pc_fmt)
+
+             # Apply a conditional format to the cell range.
+  #  #     worksheet.conditional_format('B2:B8', {'type': '3_color_scale'})
+        worksheet9.conditional_format('E5:ZZ1000', {'type': '3_color_scale'})
+
+  #       # Close the Pandas Excel writer and output the Excel file.
+        writer9.save()      
+
+    
+    
+    
 # =============================================================================
 # 
 #         #print("\nysdf3=",new_sales_df[['date','code','product','counter','slope']],new_sales_df.shape)

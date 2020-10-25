@@ -171,8 +171,11 @@ sales_df_augmented_savename="sales_trans_df_augmented.pkl"
 price_df_savename="price_df.pkl"
 
 
-distribution_list='distribution_list.pkl'
-
+distribution_list_oneyear='distribution_list_oneyear.pkl'
+distribution_list_lastoneyear='distribution_list_lastoneyear.pkl'
+distribution_list_twoyear='distribution_list_twoyear.pkl'
+distribution_list_thisyear_minus_lastyear='distribution_list_thisyear_minus_lastyear.pkl'
+distribution_list_thisyear_minus_lastyear_percent="distribution_list_thisyear_minus_lastyear_percent.pkl"
 filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
    
 
@@ -220,7 +223,7 @@ productgroup_dict={"01":"30g glass",
                    "17":"Mustards 150ml glass jar",
                    "18":"Olive Oil 500ml",
                    "31":"2 Litre",
-                   "999":""}
+                   "999":"999"}
 
 productgroups_dict={1:"30g glass",
                    2:"40g glass",
