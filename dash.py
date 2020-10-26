@@ -1119,9 +1119,9 @@ def change_multiple_slice_scandata_values(scan_df,query,new_sales_values):
  
     
 
-def add_notes(df):
+def add_notes(df,rows):
    # print("df=\n",df.iloc[0:2].to_numpy())
-    y_text=round(np.nanmax(df.iloc[0:2].to_numpy())/2.0,0)
+    y_text=round(np.nanmax(df.iloc[0:rows-1].to_numpy())/2.0,0)
  #   print("y_text=",y_text)
    # print("add notes df=\n",df)
 #    plottypes=list(set(list(set(df.index.get_level_values('plottype2').astype(str).tolist()))+list(set(df.index.get_level_values('plottype3').astype(str).tolist()))))   #+list(set(df.index.get_level_values('plottype2').astype(str).tolist()))+list(set(df.index.get_level_values('plottype3').astype(str).tolist()))))
@@ -1150,24 +1150,25 @@ def add_notes(df):
   #  print("notes5=\n",note_df)    
    # note_df.dropna(how='any',axis=1,inplace=True)
     note_df.dropna(subset = ["notes"], inplace=True)
-    note_df.reset_index(inplace=True)
- #   note_df=note_df[note_df['notes']!=np.nan]
-  #  print("test_df=\n",note_df)    
-
-    #note_df=note_df.T
-  #  print("notes3=\n",notes)    
-  #  if note_df.shape[0]>0:
-   #     note_df.sort_index(axis=1,ascending=False,inplace=True)
-      #  notes.set_index('weekno',level=1,inplace=True)
-    #    print("notes6=\n",note_df)    
-        
-    # number of labels max on a graph is 16
-    increment_y_text=round(y_text/16,0)
-    for i in range(0,note_df.shape[0]):
-           plt.axvline(note_df['weekno'].iloc[i], ls='--', color="black")
-           plt.text(note_df['weekno'].iloc[i],y_text, note_df['notes'].iloc[i], fontsize=8)
-           print("note_df['notes'].iloc[i]",i,y_text,note_df['notes'].iloc[i]) 
-           y_text-=increment_y_text
+    if note_df.shape[0]>0:
+        note_df.reset_index(inplace=True)
+     #   note_df=note_df[note_df['notes']!=np.nan]
+      #  print("test_df=\n",note_df)    
+    
+        #note_df=note_df.T
+      #  print("notes3=\n",notes)    
+      #  if note_df.shape[0]>0:
+       #     note_df.sort_index(axis=1,ascending=False,inplace=True)
+          #  notes.set_index('weekno',level=1,inplace=True)
+        #    print("notes6=\n",note_df)    
+            
+        # number of labels max on a graph is 16
+        increment_y_text=round(y_text/16,0)
+        for i in range(0,note_df.shape[0]):
+             #  plt.axvline(note_df['weekno'].iloc[i], ls='--', color="black")
+               plt.text(note_df['weekno'].iloc[i],y_text, note_df['notes'].iloc[i], fontsize=8)
+               print("note_df['notes'].iloc[i]",i,y_text,note_df['notes'].iloc[i]) 
+               y_text-=increment_y_text
     return
 
 
@@ -1196,7 +1197,7 @@ def plot_type1(df):
     fig.autofmt_xdate()
     ax.ticklabel_format(style='plain')
     
-    add_notes(df)
+    add_notes(df,3)
     
   #  weekno=22
   #  plt.axvline(weekno, ls='--', color="black")
@@ -1239,8 +1240,9 @@ def plot_type1(df):
 def plot_type2(df,this_year_df,last_year_df):
     # first column is total units sales
     # second column is distribution 
+    # third is notes
     
-    
+  #  print("plot type 2 before df=\n",df)
    #3 print("plotdf.T=\n",df.T)
    # pv = pd.pivot_table(df.T, index=df.index, columns=df.index,
    #                 values='value', aggfunc='sum')
@@ -1252,6 +1254,7 @@ def plot_type2(df,this_year_df,last_year_df):
    # print("plot type1 df=\n",df)
     this_year_df=this_year_df.droplevel([0,1,2,3,4,5,6,7,8,9,10])
     last_year_df=last_year_df.droplevel([0,1,2,3,4,5,6,7,8,9,10])
+    df=df.droplevel([0,1,2,3,4,5,6,7,8,9,10])
    
   #  df=df.T
   #  df['date']=pd.to_datetime(df.index).strftime("%Y-%m-%d").to_list()
@@ -1260,11 +1263,17 @@ def plot_type2(df,this_year_df,last_year_df):
     this_year_df.iloc[:1]*=1000
     last_year_df.iloc[:1]*=1000
 
+
+   # print("plot type 2 after df=\n",df)
+
+
     #print("plot type1 df=\n",df)
     fig, ax = pyplot.subplots()
     ax.ticklabel_format(style='plain')
    
+    #add_notes(df,2)
     
+
 #    fig = plt.figure()
 #ax1 = fig.add_subplot(111)
     ax2 = ax.twiny()
@@ -1339,7 +1348,8 @@ def plot_type3(df):
        # first column is total units sales
     # second column is distribution 
     
-   
+  #  print("plot type 3 df=\n",df)
+ 
       
     week_freq=8
    # print("plot type1 df=\n",df)
@@ -1355,7 +1365,10 @@ def plot_type3(df):
     fig, ax = pyplot.subplots()
     fig.autofmt_xdate()
     ax.ticklabel_format(style='plain')
-   
+    
+ #   add_notes(df,1)
+    
+
  #   df.iloc[0:2].T.plot(xlabel="",use_index=False,kind='bar',color=['blue','red'],secondary_y=False,stacked=True,fontsize=9,ax=ax,legend=False)
     ax.set_ylabel('Total units/week',fontsize=9)
 
