@@ -141,7 +141,7 @@ e_scandata_plotqueries=[[('10','retailer'),('0','variety')],
 
   
 
-                        [('1','brand')],
+                        [('1','brand')],  #'    augmented_sales_df.to_pickle(dd.sales_df_augmented_savename,protocol=-1)')],
                         [('2','brand')],
                         [('3','brand')],
                         [('4','brand')],
@@ -154,7 +154,7 @@ e_scandata_plotqueries=[[('10','retailer'),('0','variety')],
                   #      [('12','retailer'),('14','productgroup')]]
 
 
-customers_to_plot_together=['FLNOR',"FLFRE","FLPAS","FLMIT","FLBRI"]
+customers_to_plot_together=['FLNOR',"FLFRE","FLSTI", "FLDAW","GLENORC","IGAATH"]  #"FLPAS","FLMIT","FLBRI"]
 scaling_point_week_no=51
 
 e_scandata_number_of_weeks=53  # number of weeks back from latest week
@@ -167,6 +167,8 @@ weeks_rolling_mean=3  # week mrolling ean on invoiced sales
 
 sales_df_savename="sales_trans_df.pkl"
 sales_df_augmented_savename="sales_trans_df_augmented.pkl"
+sales_df_complete_augmented_savename="sales_trans_df_complete_augmented.pkl"
+ #  sales_df_augmented_savename="sales_trans_df_augmented.pkl"
 
 price_df_savename="price_df.pkl"
 
@@ -180,7 +182,7 @@ filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"
    
 
 product_groups_only=["10","11","12","13","14","15","16","17"]   #,"18"]
-spc_only=['088','080','020',"028",'030',"038",'040',"048",'050','060','070',"122","107"]   #,"028"]   #,"038","048","028","080","020","030","040']
+spc_only=['088','028','048']   #,'080','020',"028",'030',"038",'040',"048",'050','060','070',"122","107"]   #,"028"]   #,"038","048","028","080","020","030","040']
 
 max_slope=0.16
 min_slope=-0.1

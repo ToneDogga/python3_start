@@ -1162,12 +1162,12 @@ def add_notes(df,rows):
           #  notes.set_index('weekno',level=1,inplace=True)
         #    print("notes6=\n",note_df)    
             
-        # number of labels max on a graph is 16
-        increment_y_text=round(y_text/16,0)
+        # number of labels max on a graph is 10
+        increment_y_text=round(y_text/10,0)
         for i in range(0,note_df.shape[0]):
              #  plt.axvline(note_df['weekno'].iloc[i], ls='--', color="black")
                plt.text(note_df['weekno'].iloc[i],y_text, note_df['notes'].iloc[i], fontsize=8)
-               print("note_df['notes'].iloc[i]",i,y_text,note_df['notes'].iloc[i]) 
+           #    print("note_df['notes'].iloc[i]",i,y_text,note_df['notes'].iloc[i]) 
                y_text-=increment_y_text
     return
 
@@ -2262,7 +2262,7 @@ def pareto_on_customer_for_date_and_pg_or_product(sales_df,start_date,end_date,p
 
 
 def compare_customers_on_plot(sales_df,latest_date,prod):
-    styles1 = ['r-',"b-","g-","k-","y-"]
+    styles1 = ['r-',"b-","g-","k-","y-",'r-',"b-","g-","k-","y-",'r-',"b-","g-","k-","y-"]
        # styles1 = ['bs-','ro:','y^-']
     linewidths = 1  # [2, 1, 4]
     latest_date=pd.to_datetime(latest_date).strftime("%d/%m/%Y")
@@ -2311,6 +2311,7 @@ def compare_customers_on_plot(sales_df,latest_date,prod):
                 pass
                 #print("not enough sales data",cust,prod)
             else:    
+                
                 cust_sales[['mat']].plot(grid=True,use_index=True,title=str(prod)+" Dollars/week moving total comparison "+str(dd.mat2)+" weeks @w/c:"+str(latest_date),style=styles1[t_count], lw=linewidths,ax=ax)
         ax.legend(dd.customers_to_plot_together,title="")
         ax.set_xlabel("",fontsize=8)
@@ -2381,7 +2382,7 @@ def compare_customers_on_plot(sales_df,latest_date,prod):
  
     
 def compare_customers_by_product_group_on_plot(sales_df,latest_date,prod_list,pg_number):
-    styles1 = ['r-',"b-","g-","k-","y-"]
+    styles1 = ['r-',"b-","g-","k-","y-",'r-',"b-","g-","k-","y-",'r-',"b-","g-","k-","y-"]
        # styles1 = ['bs-','ro:','y^-']
     linewidths = 1  # [2, 1, 4]
     latest_date=pd.to_datetime(latest_date).strftime("%d/%m/%Y")
@@ -3084,13 +3085,18 @@ def main():
    
    #  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++===
    
+   
+   
+    complete_augmented_sales_df=promo_flags(sales_df,price_df)
+    complete_augmented_sales_df.to_pickle(dd.sales_df_complete_augmented_savename,protocol=-1)          
+
     end_date=sales_df['date'].iloc[-1]- pd.Timedelta(30, unit='d')
     #print(end_date)
     #print("ysdf=",sales_df)
-    recent_sales_df=sales_df[sales_df['date']>end_date]
-    augmented_sales_df=promo_flags(recent_sales_df,price_df)
-    augmented_sales_df.to_pickle(dd.sales_df_augmented_savename,protocol=-1)          
-    on_promo_sales_df=augmented_sales_df[augmented_sales_df['on_promo']==True]    #.copy(deep=True)
+  #  recent_sales_df=sales_df[sales_df['date']>end_date]
+  #  augmented_sales_df=promo_flags(recent_sales_df,price_df)
+ #   augmented_sales_df.to_pickle(dd.sales_df_augmented_savename,protocol=-1)          
+    on_promo_sales_df=complete_augmented_sales_df[complete_augmented_sales_df['on_promo']==True]    #.copy(deep=True)
     
   #  print(on_promo_sales_df)
     on_promo_sales_df["month"] = pd.to_datetime(on_promo_sales_df['date']).dt.strftime('%b')
@@ -3637,7 +3643,8 @@ def main():
     shop_df=sales_df[(sales_df['glset']=="EXS")]
     dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
     dds['mat']=dds['salesval'].rolling(365,axis=0).sum()
-    dds['dates']=dds.index.tolist()
+    dds['dates']=dds.index.tolist()  #       sales_df=pd.read_pickle(dd.sales_df_augmented_savename)
+ 
 
     
  
@@ -3907,9 +3914,12 @@ def main():
     ##############################################################33
     # rank top customers and products
     #
-    
-    
+    sales_df=pd.read_pickle(dd.sales_df_savename)   #,protocol=-1)          
     sales_df.reset_index(drop=True,inplace=True)
+    sales_df.sort_values('date',ascending=True,inplace=True)
+
+    
+  #  sales_df.reset_index(drop=True,inplace=True)
  #   print("sales_df=\n",sales_df)
 
     latest_date=sales_df['date'].max()
@@ -4108,7 +4118,9 @@ def main():
     if answer3=="y":
         print("\nCreate distribution reports..")
         print("sales from -365 days to 0 days")
-        sales_df=pd.read_pickle(dd.sales_df_augmented_savename)
+        sales_df=pd.read_pickle(dd.sales_df_complete_augmented_savename)
+  #      sales_df=pd.read_pickle(dd.sales_df_savename)
+ 
         sales_df=sales_df[sales_df['productgroup'].isin(dd.product_groups_only) & sales_df['specialpricecat'].isin(dd.spc_only)]   
         sales_df=sales_df[(sales_df['code']!="OFFINV")]   
         sales_df=sales_df[(sales_df['product']!="OFFINV")]   
@@ -4213,7 +4225,7 @@ def main():
         multiple_results_lastoneyear=[]
     #    multiple_results_twoyear=[]
         multiple_results_thisyear_minus_lastyear=[]
-         
+     
     #   with Pool(processes=cpus) as pool:  # processes=cpus-1
          #  with tqdm(total=len(cust_prod_list)) as pbar:
              #  for i, _ in enumerate(pool.imap_unordered(multi_function, cust_prod_list)):
@@ -4529,7 +4541,7 @@ def main():
 
 #######################################################       
         dist_change_df=pd.DataFrame(distribution_list_thisyear_minus_lastyear,columns=['cust','prod',"latestdate","salesvalsum","qtysum","percent_salesval_change","percent_qty_change"])
-        print("dist change df=\n",dist_change_df)
+    #    print("dist change df=\n",dist_change_df)
       #  change_salesval_df['changevalsum']=change_salesval_df['salesvalsum']-dist_df['salesvalsum']
         #dist_df=pd.DataFrame(distribution_list_oneyear,columns=['cust','prod',"latestdate","qtysum","salesvalsum"])
    
