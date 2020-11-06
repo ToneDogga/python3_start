@@ -1012,7 +1012,7 @@ def load_data(scan_data_files,scan_data_filesT):
     df=df.T
  #   write_excel2(df,"testdf.xlsx")
     print("\n")
-  #  print("df4=\n",df)
+ #   print("df4=\n",df,"\n",df.T)
     return df
 
 
@@ -1491,7 +1491,7 @@ def plot_slices(df):
             brand=list(set(plot_df.index.get_level_values('brand').astype(str).tolist()))
 
             plot_type3(plot_df)
-            save_fig("ZZ_scandata_plot_"+str(retailer[0])+"_"+str(variety[0])+"_"+str(brand[0])+"_"+str(colnames[0])+"_3")
+            save_fig("ZZ"+str(pt)+"_scandata_plot_"+str(retailer[0])+"_"+str(variety[0])+"_"+str(brand[0])+"_"+str(colnames[0])+"_3")
          #   plt.close()
  
         else:
@@ -1519,11 +1519,11 @@ def plot_slices(df):
              #   print("last year plot df=",last_year_plot_df)
                 if str(pt)=='1':   #standard plot type
                     plot_type1(plot_df)
-                    save_fig("ZZ_scandata_plot_"+str(retailer[0])+"_"+str(variety[0])+"_"+str(brand[0])+"_"+str(colnames[0])+"_"+str(pn)+"_"+str(pt))
+                    save_fig("ZZ"+str(pt)+"_scandata_plot_"+str(retailer[0])+"_"+str(variety[0])+"_"+str(brand[0])+"_"+str(colnames[0])+"_"+str(pn)+"_"+str(pt))
                     plt.close()    
                 elif str(pt)=='2':   #stacked bars plus right axis price
                     plot_type2(df,this_year_plot_df,last_year_plot_df)
-                    save_fig("ZZ_scandata_plot_"+str(retailer[0])+"_"+str(variety[0])+"_"+str(brand[0])+"_"+str(colnames[0])+"_"+str(pn)+"_"+str(pt))
+                    save_fig("ZZ"+str(pt)+"_scandata_plot_"+str(retailer[0])+"_"+str(variety[0])+"_"+str(brand[0])+"_"+str(colnames[0])+"_"+str(pn)+"_"+str(pt))
                     plt.close()
      
                 else:    
@@ -2000,52 +2000,52 @@ def predict_order(X_set_full,y_set_full,predrec,model):    #inv_hdf,mat_hdf,rec,
    
     
    
-def plot_prediction(df,title,latest_date):    
- #   dates=hdf.index.tolist()[7:]
-    #print("dates:",dates,len(dates))
-  #  df=pd.DataFrame({title+'_total_scanned':X_pred,title+'_ordered_prediction':Y_pred,title+'_total_invoiced_shifted_3wks':y_invoiced},index=dates)
-   # df=pd.DataFrame({title+'_total_scanned':X_pred,title+'_ordered_prediction':Y_pred},index=dates)
+# def plot_prediction(df,title,latest_date):    
+#  #   dates=hdf.index.tolist()[7:]
+#     #print("dates:",dates,len(dates))
+#   #  df=pd.DataFrame({title+'_total_scanned':X_pred,title+'_ordered_prediction':Y_pred,title+'_total_invoiced_shifted_3wks':y_invoiced},index=dates)
+#    # df=pd.DataFrame({title+'_total_scanned':X_pred,title+'_ordered_prediction':Y_pred},index=dates)
  
-    #shifted_df=df.shift(1, freq='W')   #[:-3]   # 3 weeks
-    latest_date=pd.to_datetime(latest_date).strftime("%d/%m/%Y")
+#     #shifted_df=df.shift(1, freq='W')   #[:-3]   # 3 weeks
+#     latest_date=pd.to_datetime(latest_date).strftime("%d/%m/%Y")
     
-    #df=gdf[['coles_BB_jams_total_scanned','all_BB_coles_jams_predicted']].rolling(mat,axis=0).mean()
-    df=df.droplevel(['type'])
-    df=df.sort_index()
-  #  print("plor pred=\n",df)
-  #  df.replace(0.0,np.nan,inplace=True)    # don't plot zero values
-    df=df.T
+#     #df=gdf[['coles_BB_jams_total_scanned','all_BB_coles_jams_predicted']].rolling(mat,axis=0).mean()
+#     df=df.droplevel(['type'])
+#     df=df.sort_index()
+#   #  print("plor pred=\n",df)
+#   #  df.replace(0.0,np.nan,inplace=True)    # don't plot zero values
+#     df=df.T
 
-  #  styles1 = ['b-','r:']
-    styles1 = ['g:','r:','b-']
-           # styles1 = ['bs-','ro:','y^-']
-    linewidths = 1  # [2, 1, 4]
-   # print("df=\n",df,df.shape)
-    ax=plt.gca()
-    df.iloc[-26:].plot(grid=True,title=title[:42]+" w/commencing:"+str(latest_date),style=styles1, lw=linewidths,ax=ax,fontsize=10)
-    #plt.pause(0.001)
+#   #  styles1 = ['b-','r:']
+#     styles1 = ['g:','r:','b-']
+#            # styles1 = ['bs-','ro:','y^-']
+#     linewidths = 1  # [2, 1, 4]
+#    # print("df=\n",df,df.shape)
+#     ax=plt.gca()
+#     df.iloc[-26:].plot(grid=True,title=title[:42]+" w/commencing:"+str(latest_date),style=styles1, lw=linewidths,ax=ax,fontsize=10)
+#     #plt.pause(0.001)
     
-    #df.iloc[-6:].plot(grid=True,title=title,style=styles1, lw=linewidths)
-    #plt.pause(0.001)
-  #  ax.title(fontsize=10)
-    ax.legend(title="")
-    #plt.ax.show()
+#     #df.iloc[-6:].plot(grid=True,title=title,style=styles1, lw=linewidths)
+#     #plt.pause(0.001)
+#   #  ax.title(fontsize=10)
+#     ax.legend(title="")
+#     #plt.ax.show()
     
-    #df=df.rolling(mat,axis=0).mean()
-    #df=df[100:]
+#     #df=df.rolling(mat,axis=0).mean()
+#     #df=df[100:]
     
-    #ax=df.plot(grid=True,title="Coles units moving total "+str(mat)+" weeks",style=styles1, lw=linewidths)
-    #ax.legend(title="")
-    #plt.show()
+#     #ax=df.plot(grid=True,title="Coles units moving total "+str(mat)+" weeks",style=styles1, lw=linewidths)
+#     #ax.legend(title="")
+#     #plt.show()
     
     
-    save_fig("ZZZ_order_predictions_"+title)   #,images_path)
+#     save_fig("ZZZ_order_predictions_"+title)   #,images_path)
       
-   # plt.show()
+#    # plt.show()
 
-    #print(df)
-    plt.close("all")
-    return 
+#     #print(df)
+#     plt.close("all")
+#     return 
 
 
 
@@ -2766,7 +2766,7 @@ def main():
     
     
     answer2="n"
-    answer2=input("Use GRU DNN to predict next weeks Coles and WW orders from scan data? (y/n)")
+ #   answer2=input("Use GRU DNN to predict next weeks Coles and WW orders from scan data? (y/n)")
     
     answer="n"
     answer=input("Refresh salestrans?")
@@ -2971,7 +2971,7 @@ def main():
  ##################################################################3
 #  jams brand index    Beerenberg vs st Dalfour (and Bonne Maman) 
  
- #  print("pdf=\n",pdf)
+ #   print("pdf=\n",pdf)
     new_pdf=multiple_slice_scandata(pdf,query=[('9','plottype3')])
      
     new_pdf=new_pdf.droplevel([0,1,2,3,4,5,6,7,8,9,10])
@@ -2994,7 +2994,7 @@ def main():
  ##################################################################3
 #  condimants brand index   Beerenberg vs Baxters (and Whitlock or Jills)
  
- #  print("pdf=\n",pdf)
+   # print("pdf=\n",pdf)
     new_pdf=multiple_slice_scandata(pdf,query=[('10','plottype1')])
      
     new_pdf=new_pdf.droplevel([0,1,2,3,4,5,6,7,8,9,10])
@@ -3052,7 +3052,7 @@ def main():
    # new_pdf=new_pdf.set_index('sortorder')
      #new_pdf=new_pdf.droplevel([0])
     new_scan_sales_df=new_pdf.T
-  #  print("newpdf2=\n",new_pdf.columns)
+ #   print("newpdf2=\n",new_pdf.columns)
     newcols_dict={k:v for k,v in zip(new_scan_sales_df.columns,column_names)}
   #  print("newcols dict=\n",newcols_dict)
    # new_pdf.rename(columns={1001: '1001', 1010: '1010', 1012:'1012',1018:'1018'}, inplace=True)
@@ -3133,7 +3133,7 @@ def main():
    
   #  print("\nLoad extra scan data: chutmeys")
          
-    extra_scan_df=load_extra_scan_data(dd.extra_scan_data,weeks_back=33)
+    extra_scan_df=load_extra_scan_data(dd.extra_scan_data,weeks_back=53)
     print("Plotting UPSPW indexes for all scanned products....")
     jump=5
     for r in range(0,extra_scan_df.shape[1],jump):
@@ -5112,20 +5112,32 @@ def main():
   # print("plk new_df2=\n",new_df2)
   #  print(scan_df)
   #  scan_df=scan_df.T
-    new_df=multiple_slice_scandata(scan_df,query=[('100','plottype2')])
+    new_df=multiple_slice_scandata(scan_df,query=[('100','plottype2')]) #,('72','plottype3'),('71','plottype3'),('79','plottype3')])
     new_df=new_df.droplevel([1,2,3,4,5,6,7,8,10])
+
     new_df=new_df.iloc[:,7:-1]
+ #   print("new_df=\n",new_df)
+
     new_df*=1000
     new_df=new_df.astype(np.int32)
-#    print("pkl new_df=\n",new_df)  
- #   print("new_df.T=\n",new_df.T)
-    
     saved_new_df=new_df.copy()
+
+    new_df=new_df.drop('80', level='plottype3')
+  #  saved_new_df=new_df.copy()
+
+#    print("pkl new_df=\n",new_df)  
+  #  print("new_df=\n",new_df)
+    
+    
+  #  saved_new_df=new_df.copy()
     new_df=new_df.T
     colnames=new_df.columns.get_level_values('colname').to_list()[::3]     
-    plotnumbers=new_df.columns.get_level_values('plotnumber').to_list()[::3]        
+    plotnumbers=new_df.columns.get_level_values('plotnumber').to_list()[::3]  
+  #  plottypethree=new_df.columns.get_level_values('plottype3').to_list()[::3]       
   #  print("colnames",colnames,len(colnames))
   #  print("plotnumbers",plotnumbers,len(plotnumbers))
+  #  print("plottypethree",plottypethree,len(plottypethree))
+  
          #   newpred=np.concatenate((X_fill,X_full,pred))
 
     
@@ -5135,17 +5147,17 @@ def main():
         sales_corr=sales_corr.droplevel([0,1])
     #    print("sales corr",sales_corr.shape)
     #    if sales_corr.shape[1]>=3:
-        shifted_vs_scanned_off_promo_corr=round(sales_corr.iloc[0,2],3)
-        shifted_vs_scanned_corr=round(sales_corr.iloc[1,2],3)
+     #   shifted_vs_scanned_off_promo_corr=round(sales_corr.iloc[0,1],3)
+        shifted_vs_scanned_corr=round(sales_corr.iloc[0,1],3)
 
-        print(name,"-shifted vs scanned total sales correlation=",shifted_vs_scanned_corr)
+      #  print(name,"-shifted vs scanned total sales correlation=",shifted_vs_scanned_corr)
     #    print(name,"-shifted vs scanned off promo correlation=",shifted_vs_scanned_off_promo_corr)
 
         #   print("Correlations:\n",sales_corr)
  
         # print("row=",row)
         new_df.xs(row,level='plotnumber',drop_level=False,axis=1).plot(xlabel="",ylabel="Units/week")
-        plt.legend(title="Invoiced vs scan units (total,off_promo)/wk correlation:("+str(shifted_vs_scanned_corr)+" , "+str(shifted_vs_scanned_off_promo_corr)+")",loc='best',fontsize=8,title_fontsize=8)
+        plt.legend(title="Invoiced vs scan units total/wk correlation:("+str(shifted_vs_scanned_corr)+")",loc='best',fontsize=8,title_fontsize=8)
      #   plt.show()
         save_fig("pred_align_"+name)
       #  plt.show()
@@ -5161,7 +5173,10 @@ def main():
     latest_date=sales_df['date'].max()  
     next_week=latest_date+ pd.offsets.Day(7)
  # 
-    new_df=new_df.T
+  #  new_df=new_df.T
+    new_df=saved_new_df.copy()
+   # print("new saved df=\n",new_df)
+ #   new_df=new_df.T
     new_df[next_week]=np.nan
     new_df=new_df.T
     new_df.to_pickle("prior_pred_new_df.pkl",protocol=-1)
@@ -5190,15 +5205,21 @@ def main():
 #        y=new_df.iloc[:,7:-1].xs('2',level='plottype3',drop_level=False,axis=1).to_numpy()
         y=y_full[6:-2]     
    
+      #  new_df.replace(0,np.nan,inplace=True)
+        old_preds=new_df.xs(['80',row],level=['plottype3','plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
+ 
+      #  old_preds[old_preds == 0] = np.nan # or use np.nan
+     #   print("old preds=\n",old_preds,old_preds.shape)
+   #     print("y_full=\n",y_full,y_full.shape)
       #  print(name)  #,"\nX=\n",X,X.shape,"\ny=\n",y,y.shape)
         
-        if answer2=="y":
-            model=train_model(clean_up_name(str(name)),X,y,dd.batch_length,dd.no_of_batches,dd.epochs,r,totalr)
-            pred=predict_order(X_full,y_full,name,model)
-            pred_dict[name]=pred[0]
-        else:
-            pred=np.array([-1])
-            pred_dict[name]=-1
+        # if answer2=="y":
+        #     model=train_model(clean_up_name(str(name)),X,y,dd.batch_length,dd.no_of_batches,dd.epochs,r,totalr)
+        #     pred=predict_order(X_full,y_full,name,model)
+        #     pred_dict[name]=pred[0]
+        # else:
+        pred=np.array([-1])
+        pred_dict[name]=-1
  
         inv_dict[name]=y_full[-2]       
      #   print(name,"predictions:",int(pred[0]))
@@ -5206,7 +5227,9 @@ def main():
      #   print("level=",new_df.index.nlevels,"pred=",pred)
         lenneeded=new_df.shape[0]-len(y_full[:-1])-1
         if lenneeded>=0:
-            y_fill=np.zeros(lenneeded)
+          #  y_fill=np.zeros(lenneeded)
+            y_fill = np.empty(lenneeded)
+            y_fill[:] = np.NaN
             newpred=np.concatenate((y_fill,y_full[:-1],[pred[0]]))
         else:
             newpred=np.concatenate((y_full[:-1],[pred[0]]))[-new_df.shape[0]:]
@@ -5214,16 +5237,17 @@ def main():
   #      print("newdf1=\n",new_df,new_df.shape)
      #   new_df=new_df.T
      #   print("new df.T",new_df)
-        new_df[(row,'73',name,'GRU_Prediction')]=newpred.astype(np.int32)
+     #   new_df[(row,'73',name,'GRU_Prediction')]=newpred.astype(np.int32)
         
       #  new_df=new_df.T
         #new_df.iloc[:,-1]=pred[0]
        # new_df=new_df.T
      #   print("newdf2=\n",new_df)
- 
+        
         rfr_pred=np.around(forest_reg.predict([[X[-1]]]),0) 
         
-        rfrnewpred=np.concatenate((y_full[:-1],rfr_pred))[-new_df.shape[0]:]
+     #   rfrnewpred=np.concatenate((y_full[:-1],rfr_pred))[-new_df.shape[0]:]
+        rfrnewpred=np.concatenate((old_preds[:-1],rfr_pred))[-new_df.shape[0]:]
 
         new_df[(row,'74',name,'RFR_Prediction')]=rfrnewpred.astype(np.int32)
  
@@ -5241,14 +5265,20 @@ def main():
     pred_output_df=pd.DataFrame.from_dict(pred_dict,orient='index',columns=["GRU_order_prediction_"+str(next_week)],dtype=np.int32)
     inv_output_df=pd.DataFrame.from_dict(inv_dict,orient='index',columns=["invoiced_w/e_"+str(latest_date)],dtype=np.int32)
     rfr_output_df=pd.DataFrame.from_dict(rfr_dict,orient='index',columns=["RFR_order_prediction_"+str(next_week)],dtype=np.int32)
-
+ #   pred_output_df.replace(0.0,np.nan,inplace=True)
+ #   pred_output_df=pd.concat((inv_output_df,pred_output_df,rfr_output_df),axis=1)
     pred_output_df=pd.concat((inv_output_df,pred_output_df,rfr_output_df),axis=1)
+
     #pred_output['invoiced_last_week']=new_df.xs('79',level='plottype3',drop_level=False,axis=1)[-1:].to_numpy().T[0]
 
-    print("\nOrder predictions for next week (date is end of week)=\n",pred_output_df) #,"\n",pred_output_df.T)
+  #  print("\nOrder predictions for next week (date is end of week)=\n",pred_output_df) #,"\n",pred_output_df.T)
     #print("\nRandom forest model predictions=",rfr_list)
 #    print("scan df=\n",scan_df)
-    
+    pred_output_df.drop(["GRU_order_prediction_"+str(next_week)],axis=1,inplace=True)
+ #   pred_output_df.replace(np.nan,0,inplace=True)
+
+    print("\nafter Order predictions for next week (date is end of week)=\n",pred_output_df) #,"\n",pred_output_df.T)
+   
    #     new_df=saved_new_df
   
    
@@ -5278,7 +5308,7 @@ def main():
     for row,name in zip(plotnumbers,colnames):
        # print("row=",row)
  
-        new_df.iloc[-16:,:].xs(row,level='plotnumber',drop_level=False,axis=1).plot(xlabel="",sort_columns=True,style=['b-','b:','g:','r:','k:'],ylabel="Units/week")
+        new_df.iloc[-16:,:].xs(row,level='plotnumber',drop_level=False,axis=1).plot(xlabel="",sort_columns=True,style=['b-','r:','g:',"r-"],ylabel="Units/week")
     #    plt.autofmt_xdate()
  
         plt.legend(title="Invoiced units vs scanned units per week + next weeks prediction",loc='best',fontsize=6,title_fontsize=7)

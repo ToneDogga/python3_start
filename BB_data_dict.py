@@ -48,7 +48,7 @@ price_discrepencies_summary="30_day_underpriced_summary.xlsx"
 e_scandatalist=["coles_scan_data_enhanced_sept2020.xlsx","ww_scan_data_enhanced_sept2020.xlsx"] 
 transposed_datalist=["coles_scan_dataT.xlsx","ww_scan_dataT.xlsx"]  
 
-extra_scan_data=["chutneys_UPSPW.xlsx","sauces_UPSPW.xlsx","jams_UPSPW.xlsx"]
+extra_scan_data=["chutneys_UPSPW.xlsx","sauces_UPSPW.xlsx","jams_UPSPW.xlsx","chutney_units.xlsx","sauces_units.xlsx","jams_units.xlsx"]
 
 e_scandata_plotqueries=[[('10','retailer'),('0','variety')],
                         [('12','retailer'),('0','variety')],
@@ -154,7 +154,7 @@ e_scandata_plotqueries=[[('10','retailer'),('0','variety')],
                   #      [('12','retailer'),('14','productgroup')]]
 
 
-customers_to_plot_together=['FLNOR',"FLFRE","FLSTI", "FLDAW","GLENORC","IGAATH"]  #"FLPAS","FLMIT","FLBRI"]
+customers_to_plot_together=['FLNOR',"FLFRE","FLSTI", "FLPAS","FLBRI"]   #"FLDAW","GLENORC","IGAATH"]  #"FLPAS","FLMIT","FLBRI"]
 scaling_point_week_no=51
 
 e_scandata_number_of_weeks=53  # number of weeks back from latest week
@@ -181,8 +181,8 @@ distribution_list_thisyear_minus_lastyear_percent="distribution_list_thisyear_mi
 filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
    
 
-product_groups_only=["10","11","12","13","14","15","16","17"]   #,"18"]
-spc_only=['088','028','048']   #,'080','020',"028",'030',"038",'040',"048",'050','060','070',"122","107"]   #,"028"]   #,"038","048","028","080","020","030","040']
+product_groups_only=["10"]  #,"11","12","13","14","15","16","17"]   #,"18"]
+spc_only=['048']   #,'028','048']   #,'080','020',"028",'030',"038",'040',"048",'050','060','070',"122","107"]   #,"028"]   #,"038","048","028","080","020","030","040']
 
 max_slope=0.16
 min_slope=-0.1
@@ -190,7 +190,8 @@ min_slope=-0.1
 min_size_for_trend_plot=6
 
 # tuple start_date, end_date
-pareto_dates=[(pd.to_datetime("01/03/19",format="%d/%m/%y"),pd.to_datetime("01/09/19",format="%d/%m/%y")),(pd.to_datetime("01/03/20",format="%d/%m/%y"),pd.to_datetime("01/09/20",format="%d/%m/%y")),(pd.to_datetime("01/07/19",format="%d/%m/%y"),pd.to_datetime("30/06/20",format="%d/%m/%y")),(pd.to_datetime("01/07/20",format="%d/%m/%y"),pd.to_datetime("30/06/21",format="%d/%m/%y"))]
+#pareto_dates=[(pd.to_datetime("01/03/19",format="%d/%m/%y"),pd.to_datetime("01/09/19",format="%d/%m/%y")),(pd.to_datetime("01/03/20",format="%d/%m/%y"),pd.to_datetime("01/09/20",format="%d/%m/%y")),(pd.to_datetime("01/07/19",format="%d/%m/%y"),pd.to_datetime("30/06/20",format="%d/%m/%y")),(pd.to_datetime("01/07/20",format="%d/%m/%y"),pd.to_datetime("30/06/21",format="%d/%m/%y"))]
+pareto_dates=[(pd.to_datetime("01/07/19",format="%d/%m/%y"),pd.to_datetime("30/06/20",format="%d/%m/%y")),(pd.to_datetime("01/07/20",format="%d/%m/%y"),pd.to_datetime("30/06/21",format="%d/%m/%y"))]
 
 
 
