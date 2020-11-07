@@ -5234,7 +5234,8 @@ def main():
         else:
             newpred=np.concatenate((y_full[:-1],[pred[0]]))[-new_df.shape[0]:]
 
-  #      print("newdf1=\n",new_df,new_df.shape)
+        
+   #     print("newpred=\n",newpred,newpred.shape)
      #   new_df=new_df.T
      #   print("new df.T",new_df)
      #   new_df[(row,'73',name,'GRU_Prediction')]=newpred.astype(np.int32)
@@ -5298,6 +5299,9 @@ def main():
  #   print("newdf=\n",new_df)
     
     new_df.sort_index(level=[0,1],axis=1,ascending=[True,True],inplace=True)
+   # print("old new df=\n",new_df)
+    new_df.replace(0,np.nan,inplace=True)
+  #  print("new new_df=\n",new_df)
 #    new_df=new_df.droplevel(0)
     fig, ax = pyplot.subplots()
     fig.autofmt_xdate()
@@ -5308,7 +5312,7 @@ def main():
     for row,name in zip(plotnumbers,colnames):
        # print("row=",row)
  
-        new_df.iloc[-16:,:].xs(row,level='plotnumber',drop_level=False,axis=1).plot(xlabel="",sort_columns=True,style=['b-','r:','g:',"r-"],ylabel="Units/week")
+        new_df.iloc[-16:,:].xs(row,level='plotnumber',drop_level=False,axis=1).plot(xlabel="",sort_columns=True,style=['g:','r:','b-',"r-"],ylabel="Units/week")
     #    plt.autofmt_xdate()
  
         plt.legend(title="Invoiced units vs scanned units per week + next weeks prediction",loc='best',fontsize=6,title_fontsize=7)
