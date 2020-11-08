@@ -8,6 +8,7 @@ Created on Sun Nov  8 09:43:19 2020
 import pandas as pd
 import datetime as dt
 
+smoothing_mat=4
 sales_trans_filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
 #
 queries={
