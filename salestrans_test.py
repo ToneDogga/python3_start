@@ -65,7 +65,7 @@ import warnings
 #from statistics import mean
 # from multiprocessing import Pool, Process, Lock, freeze_support, Queue, Lock, Manager
 #from tqdm import *
-# from p_tqdm import p_map
+from p_tqdm import p_map
 
 # from os import getpid
 # #import os
@@ -79,7 +79,7 @@ import warnings
 
 # from collections import namedtuple
 # from collections import defaultdict
-# from datetime import datetime
+from datetime import datetime
 # from pandas.plotting import scatter_matrix
 
 # from matplotlib import pyplot, dates
@@ -108,7 +108,44 @@ import matplotlib as mpl
 
 
 import salestrans_lib  
+import query_dict as qd
 import pyglet
+
+
+
+
+   
+def log_dir(prefix=""):
+    now = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    root_logdir = "./salestrans_outputs"
+    if prefix:
+        prefix += "-"
+    name = prefix + "run-" + now
+    return "{}/{}/".format(root_logdir, name)
+
+
+output_dir = log_dir("salestrans_outputs")
+os.makedirs(output_dir, exist_ok=True)
+
+st=salestrans_lib.salestrans_df(output_dir)   # instantiate a salestrans_df
+
+
+def build_an_entry(query_name):
+  #  query_name=qd.queries[q]
+    new_df=df.copy()
+    for qn in query_name:  
+        q_df=st.query_df(new_df,qn)
+        new_df=q_df.copy()
+    q_df.drop_duplicates(keep="first",inplace=True)       
+    return st.save_query(q_df,query_name,root=False)   
+    
+
+
+def build_query_dict(df):
+    query_handles=[]
+    query_handles.append(p_map(build_an_entry,qd.queries.values()))   #st.save_query(q_df,query_name,root=False)   
+    return {k: v for k, v in zip(qd.queries.keys(),query_handles[0])}
+
 
 
 def start_banner():
@@ -135,6 +172,11 @@ def start_banner():
 
 
 def main():
+ 
+ #   output_dir = st.log_dir("salestrans_outputs")
+ #   os.makedirs(output_dir, exist_ok=True)
+
+
   #  global oneyear_sales_df,latest_date,lastoneyear_sales_df,twoyear_sales_df
     
   #  tmp=sp.call('clear',shell=True)  # clear screen 'use 'clear for unix, cls for windows
@@ -144,113 +186,25 @@ def main():
     pd.options.display.float_format = '{:.4f}'.format
       
   #  tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
+    
+    global df   # so I can use p_map multiprocessing  
+    df=st.load(qd.sales_trans_filenames,renew=False)  #=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"])
+   # st.display_df(df) 
+  
+    ####################################################################################
+    print("Build query dict\n")
+    query_handles=build_query_dict(df)   
+ #   print("query handles=",query_handles)    
+  ##############################################################
+  
+    for q in query_handles.keys():
+  #      print("qh=",qh)
+        new_df,new_query_name=st.load_query(query_handles[q],root=False)
+        print(q,"(",len(query_handles[q]),")=",new_query_name,new_df.shape,"\n")
+
+    print(st.load_query(query_handles['not shop'],root=False)) 
+    print(st.load_query(query_handles['online'],root=False)) 
    
-    st=salestrans_lib.salestrans_df()   # instantiate a salestrans_df
-
-####################################################################################
-    
-
-
-    df=st.load(renew=False,filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"])
-    st.display_df(df) 
-    
-    query_name=["OR",("product","TS300"),("code","FLPAS"),("salesrep","36")]
-    
-    query_handle1=st.save_query(df,query_name)
- 
-  #  new_df,new_query_name=st.load_query(query_handle)
-    
-  #  print("new_query_name=\n",new_query_name)
-   # st.display_df(df)
-    
-#######################################################    
-    
-   # query_name=["OR",("product","TS300"),("code","FLPAS"),("salesrep","36")]
- 
-    q_df=st.query_df(df,query_name)
-    query_handle=st.save_query(q_df,query_name)
-    
-  #  print("q1_df=\n",q_df)   
-  
-################################################################    
-  
-    
-    query_name=["AND",("product","TS300"),("code","FLPAS"),("salesrep","36")]
- 
-    q_df=st.query_df(df,query_name)
-    query_handle2=st.save_query(q_df,query_name)
-    
-  #  print("q2_df=\n",q_df)    
-
- 
-################################################################    
-  
-    
-   # query_name=["NOT",("product","TS300")]   #,("code","FLPAS"),("salesrep","36")]
-    query_name=["NOT",("product","TS300"),("code","FLPAS"),("salesrep","36")]
- 
- 
-    q_df=st.query_df(df,query_name)
-    query_handle3=st.save_query(q_df,query_name)
-    
- #   print("q3_df=\n",q_df)    
-
-################################################################    
-  
-    
-   # query_name=["NOT",("product","TS300")]   #,("code","FLPAS"),("salesrep","36")]
-    query_name=["B",("qty",8,16)]
- 
- 
-    q_df=st.query_df(df,query_name)
-    query_handle4=st.save_query(q_df,query_name)
-    
- #   print("q4_df=\n",q_df)    
-
-################################################################    
-  
-    
-   # query_name=["NOT",("product","TS300")]   #,("code","FLPAS"),("salesrep","36")]
-    query_name=["B",("date",pd.to_datetime("2019-01-01"),pd.to_datetime("2019-12-31"))]
- 
- 
-    q_df=st.query_df(df,query_name)
-    query_handle5=st.save_query(q_df,query_name)
-    
- #   print("q5_df=\n",q_df)    
-
-################################################################    
-  
-    
-   # query_name=["NOT",("product","TS300")]   #,("code","FLPAS"),("salesrep","36")]
-    query_name1=["B",("date",pd.to_datetime("2019-01-01"),pd.to_datetime("2019-12-31"))]
-    query_name2=["B",("qty",8,16)]
-
- 
-    q_df=st.query_df(df,query_name1)
-    q_df=st.query_df(q_df,query_name2)
- 
-    query_handle6=st.save_query(q_df,query_name1+query_name2)
-    
-  #  print("q6_df=\n",q_df)    
-
-  
-#############################################################
-
-    new_df,new_query_name=st.load_query(query_handle1)
-    print(new_query_name,new_df,"\n")
-    new_df,new_query_name=st.load_query(query_handle2)
-    print(new_query_name,new_df,"\n")
-    new_df,new_query_name=st.load_query(query_handle3)
-    print(new_query_name,new_df,"\n")
-    new_df,new_query_name=st.load_query(query_handle4)
-    print(new_query_name,new_df,"\n")
-    new_df,new_query_name=st.load_query(query_handle5)
-    print(new_query_name,new_df,"\n")
-    new_df,new_query_name=st.load_query(query_handle6)
-    print(new_query_name,new_df,"\n")
-     
-    
     
             
 main()

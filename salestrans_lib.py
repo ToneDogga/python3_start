@@ -54,14 +54,20 @@ from matplotlib.ticker import ScalarFormatter
 import time
 import joblib
 
+import os
+
 import pickle
 import codecs
 
 from pathlib import Path
 
 class salestrans_df:
-    # def __init__(self):  #,filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]):   #, m=[["L","R","-","T"],["T","-","L","R"],["R","L","T","-"],["-","T","R","L"]]):
-    #     self.f=0
+    def __init__(self,outd):  #,filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]):   #, m=[["L","R","-","T"],["T","-","L","R"],["R","L","T","-"],["-","T","R","L"]]):
+       self.output_dir = outd  #self.log_dir("salestrans_outputs")
+   #     os.makedirs(self.output_dir, exist_ok=True)
+
+
+        #     self.f=0
     #     self.t="test2"
     #   #  print("filenames=",self.filenames)
     #     return
@@ -76,7 +82,7 @@ class salestrans_df:
 
     
     
-    def load(self,renew,filenames):  # filenames is a list of xlsx files to load and sort by date
+    def load(self,filenames,renew):  # filenames is a list of xlsx files to load and sort by date
         if renew:
             print("Loading from excel:",filenames,"\nload:",filenames[0])
             df=pd.read_excel(filenames[0],sheet_name="AttacheBI_sales_trans",usecols=range(0,17),verbose=False)  # -1 means all rows   
@@ -99,50 +105,73 @@ class salestrans_df:
          
             df['period'] = df['period'].astype('category')
             df.set_index('date',inplace=True,drop=False) 
-            self.save_query(df,[])
+            self.save_query(df,[],root=True)
             #df.to_pickle("./st_df.pkl",protocol=-1)
         else:
             query_handle=self.encode_query_name([])
-            my_file = Path("./"+str(query_handle)+".pkl")
-            if my_file.is_file():
+         #   my_file = Path("./"+str(query_handle)+".pkl")
+          #  if my_file.is_file():
            #     df=pd.read_pickle(my_file)
-                df,_=self.load_query(query_handle)
-            else:
-                print("no pickle created yet",my_file)
-                df=pd.DataFrame([])
+            df,_=self.load_query(query_handle,root=True)
+          #  else:
+          #      print("no pickle created yet",my_file)
+          #      df=pd.DataFrame([])
         return df
+    
+      
+    
+    # def log_dir(self,prefix=""):
+    #     now = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    #     root_logdir = "./salestrans_outputs"
+    #     if prefix:
+    #         prefix += "-"
+    #     name = prefix + "run-" + now
+    #     return "{}/{}/".format(root_logdir, name)
+    
 
-        
+
+      
 
 
-    def display_df(self,df):
-        print("display_df=\n",df)
+   # def display_df(self,df):
+   #     print("display_df=\n",df)
         
         
     
     def encode_query_name(self,query_name):
-        return codecs.encode(pickle.dumps(query_name), "base64").decode()
+        return codecs.encode(pickle.dumps(query_name), "base64").decode()  #[:-1]
 
 
     def decode_query_name(self,filename):
-        return pickle.loads(codecs.decode(filename.encode(), "base64"))
+        return pickle.loads(codecs.decode(filename.encode(), "base64")) #[:-1]
 
 
    
-    def save_query(self,df,query_name):
+    def save_query(self,df,query_name,root):
      #   print("save query",query_name)
-        filename=self.encode_query_name(query_name)
+        if df.shape[0]>0:
+            filename=self.encode_query_name(query_name)[:-1]
+     #   print("filename length=",len(filename))
+            
      #   print("save query filename",filename)
-        df.to_pickle(filename+".pkl",protocol=-1)
-        return filename
+            if root: 
+                df.to_pickle(filename+".pkl",protocol=-1)
+            else:     
+                df.to_pickle(self.output_dir+filename+".pkl",protocol=-1)
+            return filename
+        else:
+            return "empty"
     
        
-    def load_query(self,filename):
+    def load_query(self,filename,root):
        # filename=Path("./"+filename)   
    #     print("load query",filename)
         query_name=list(self.decode_query_name(filename))
     #    print("load query",query_name,"filename",filename)
-        df=pd.read_pickle(filename+".pkl")
+        if root:
+            df=pd.read_pickle(filename+".pkl")            
+        else:    
+            df=pd.read_pickle(self.output_dir+filename+".pkl")
         return df,query_name
 
     
@@ -162,58 +191,68 @@ class salestrans_df:
 # 
 #         
 # =========================================================================
-        if (query_name[0]=="AND") | (query_name[0]=='OR') | (query_name[0]=="B") | (query_name[0]=="NOT"):
-            operator=query_name[0]
-          #  print("valid operator",operator)
-            query_list=query_name[1:]
-         #   print("quwery",query_list)
-            new_df=df.copy()
-            if operator=="AND":
-                for q in query_list:    
-                    new_df=new_df[(new_df[q[0]]==q[1])].copy() 
-                    print("AND query=",q,"&",new_df.shape) 
-             #   print("new_df=\n",new_df)    
-            elif operator=="OR":
-                new_df_list=[]
-                for q in query_list:    
-                    new_df_list.append(new_df[(new_df[q[0]]==q[1])].copy()) 
-                    print("OR query=",q,"|",new_df_list[-1].shape)
-                new_df=new_df_list[0]    
-                for i in range(1,len(query_list)):    
-                    new_df=pd.concat((new_df,new_df_list[i]),axis=0)    
-           # elif operator=="NOT":
-           #      new_df_list=[]
-           #      for q in query_list:    
-           #          new_df_list.append(new_df[(new_df[q[0]]!=q[1])].copy()) 
-           #          print("NOT query=",q,"not",new_df_list[-1].shape)
-           #      new_df=new_df_list[0]    
-           #      for i in range(1,len(query_list)):    
-           #          new_df=pd.concat((new_df,new_df_list[i]),axis=0)    
-            elif operator=="NOT":
-                for q in query_list:    
-                    new_df=new_df[(new_df[q[0]]!=q[1])].copy() 
-                    print("NOT query=",q,"not",new_df.shape) 
-            elif operator=="B":
-                if (len(query_list)==1) & (len(query_list[0])==3):
+       if (query_name==[]) | (df.shape[0]==0):
+           return df   #new_df.copy(deep=True) 
+       else :   
+           if (query_name[0]=="AND") | (query_name[0]=='OR') | (query_name[0]=="B") | (query_name[0]=="NOT"):
+                operator=query_name[0]
+              #  print("valid operator",operator)
+                query_list=query_name[1:]
+             #   print("quwery",query_list)
+                new_df=df.copy()
+                if operator=="AND":
+                    for q in query_list:    
+                        new_df=new_df[(new_df[q[0]]==q[1])].copy() 
+                    #    print("AND query=",q,"&",new_df.shape) 
+                 #   print("new_df=\n",new_df)    
+                elif operator=="OR":
+                    new_df_list=[]
+                    for q in query_list:    
+                        new_df_list.append(new_df[(new_df[q[0]]==q[1])].copy()) 
+                     #   print("OR query=",q,"|",new_df_list[-1].shape)
+                    new_df=new_df_list[0]    
+                    for i in range(1,len(query_list)):    
+                        new_df=pd.concat((new_df,new_df_list[i]),axis=0)   
+                  #  print("before drop",new_df.shape)    
+                    new_df.drop_duplicates(keep="first",inplace=True)   
+                  #  print("after drop",new_df.shape)
+                elif operator=="NOT":
+                    for q in query_list:    
+                        new_df=new_df[(new_df[q[0]]!=q[1])].copy() 
+                   #     print("NOT query=",q,"NOT",new_df.shape)  
+                   
+                  #   new_df_list=[]
+                  #   for q in query_list:    
+                  #       new_df_list.append(new_df[(new_df[q[0]]!=q[1])].copy()) 
+                  #    #   print("OR query=",q,"|",new_df_list[-1].shape)
+                  #   new_df=new_df_list[0]    
+                  #   for i in range(1,len(query_list)):    
+                  #       new_df=pd.concat((new_df,new_df_list[i]),axis=0)   
+                  # #  print("before drop",new_df.shape)    
+                  #   new_df.drop_duplicates(keep="first",inplace=True)   
+    
+                   
+                elif operator=="B":
+                  #  if (len(query_list[0])==3):
                     for q in query_list:
-                        print("between ql=",q[1],q[2])
+                    #        print("between ql=",q[1],q[2])
                         start=q[1]
                         end=q[2]
                         new_df=new_df[(new_df[q[0]]>=q[1]) & (new_df[q[0]]<=q[2])].copy() 
-                        print("Beeterm AND query=",q,"&",new_df.shape) 
-  
-                #    if isnumeric(query_list[0][1]) & isnumeric(query_list[0][2]):
-                #        print("valid tuple",query_list[0])
-
+                     #       print("Beeterm AND query=",q,"&",new_df.shape) 
+                   # else:
+                   #     print("Error in between statement")
+                
+                else:
+                    print("opeerator not found\n")
+                
+                
+                return new_df.copy(deep=True)
+                      
+           else:
+                print("invalid operator")
+                return pd.DataFrame([])
+    
+    
             
-            
-            
-            
-            return new_df.copy(deep=True)
-        else:
-            print("invalid operator",operator)
-            return pd.DataFrame([])
-
-
-        
   
