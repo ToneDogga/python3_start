@@ -61,6 +61,8 @@ import codecs
 
 from pathlib import Path
 
+import query_dict as qd
+
 class salestrans_df:
     def __init__(self,outd):  #,filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]):   #, m=[["L","R","-","T"],["T","-","L","R"],["R","L","T","-"],["-","T","R","L"]]):
        self.output_dir = outd  #self.log_dir("salestrans_outputs")
@@ -108,7 +110,7 @@ class salestrans_df:
             self.save_query(df,[],root=True)
             #df.to_pickle("./st_df.pkl",protocol=-1)
         else:
-            query_handle=self.encode_query_name([])
+            query_handle=self.encode_query_name([])[:-1]
          #   my_file = Path("./"+str(query_handle)+".pkl")
           #  if my_file.is_file():
            #     df=pd.read_pickle(my_file)
@@ -116,7 +118,9 @@ class salestrans_df:
           #  else:
           #      print("no pickle created yet",my_file)
           #      df=pd.DataFrame([])
-        return df
+        if df.shape[0]>0:
+            df=df.rename(columns=qd.rename_columns_dict)  
+        return df   #.rename(columns=qd.rename_columns_dict,inplace=True)
     
       
     
@@ -139,7 +143,7 @@ class salestrans_df:
         
     
     def encode_query_name(self,query_name):
-        return codecs.encode(pickle.dumps(query_name), "base64").decode()  #[:-1]
+        return codecs.encode(pickle.dumps(query_name), "base64").decode()
 
 
     def decode_query_name(self,filename):
@@ -149,18 +153,18 @@ class salestrans_df:
    
     def save_query(self,df,query_name,root):
      #   print("save query",query_name)
-        if df.shape[0]>0:
-            filename=self.encode_query_name(query_name)[:-1]
+      #  if df.shape[0]>0:
+        filename=self.encode_query_name(query_name)[:-1]
      #   print("filename length=",len(filename))
             
      #   print("save query filename",filename)
-            if root: 
-                df.to_pickle(filename+".pkl",protocol=-1)
-            else:     
-                df.to_pickle(self.output_dir+filename+".pkl",protocol=-1)
-            return filename
-        else:
-            return "empty"
+        if root: 
+            df.to_pickle(filename+".pkl",protocol=-1)
+        else:     
+            df.to_pickle(self.output_dir+filename+".pkl",protocol=-1)
+        return filename
+      #  else:
+      #      return "empty"
     
        
     def load_query(self,filename,root):

@@ -136,6 +136,11 @@ def graph_sales_year_on_year(df,title,left_y_axis_title):
   #  prod_sales=sales_df[['salesval']].resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
     #print("prod sales1=\n",prod_sales)
     if df.shape[0]>0:
+        df=df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+        df['qty_mat']=df['qty'].rolling(qd.smoothing_mat,axis=0).mean()
+        df['salesval_mat']=df['salesval'].rolling(qd.smoothing_mat,axis=0).mean()
+ 
+ 
         year_list = df.index.year.to_list()
         week_list = df.index.week.to_list()
         month_list = df.index.month.to_list()
@@ -178,6 +183,76 @@ def graph_sales_year_on_year(df,title,left_y_axis_title):
    
 
 
+def pareto_product(df,title):
+    top=60
+    if df.shape[0]>0:
+ 
+       # df=df.droplevel([0])
+        df=df.groupby(['product'],sort=False).sum()
+        df=df.sort_values(by='salesval',ascending=False)  
+     #   print("pareto df=\n",df)
+         
+        ptt=df['salesval']
+        ptott=ptt.sum()
+        df['cumulative']=np.cumsum(ptt)/ptott
+        df=df.head(top)
+              
+        fig, ax = pyplot.subplots()
+        fig.autofmt_xdate()
+        ax.ticklabel_format(style='plain')
+        ax.yaxis.set_major_formatter(ScalarFormatter())
+        #ax.ticklabel_format(style='plain')
+        
+        ax=df.plot.bar(y='salesval',ylabel="$",fontsize=5,grid=True,title="Top "+str(top)+" product $ ranking for "+str(title))
+    #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
+   #    axis.set_major_formatter(ScalarFormatter())
+     #   ax.ticklabel_format(style='plain') 
+ 
+        ax2=df.plot(y='cumulative',xlabel="",rot=90,ax=ax,style=["r-"],secondary_y=True)
+        ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
+
+        save_fig("pareto_top_"+str(top)+"_product $ ranking for "+str(title))
+        plt.close('all')
+
+    return
+
+
+
+
+def pareto_customer(df,title):
+    top=60
+    if df.shape[0]>0:
+ 
+       # df=df.droplevel([0])
+        df=df.groupby(['code'],sort=False).sum()
+        df=df.sort_values(by='salesval',ascending=False)  
+    #    print("pareto df=\n",df)
+         
+        ptt=df['salesval']
+        ptott=ptt.sum()
+        df['cumulative']=np.cumsum(ptt)/ptott
+        df=df.head(top)
+              
+        fig, ax = pyplot.subplots()
+        fig.autofmt_xdate()
+        ax.ticklabel_format(style='plain')
+        ax.yaxis.set_major_formatter(ScalarFormatter())
+        #ax.ticklabel_format(style='plain')
+        
+        ax=df.plot.bar(y='salesval',ylabel="$",fontsize=5,grid=True,title="Top "+str(top)+" customer $ ranking for "+str(title))
+    #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
+   #    axis.set_major_formatter(ScalarFormatter())
+     #   ax.ticklabel_format(style='plain') 
+ 
+        ax2=df.plot(y='cumulative',xlabel="",rot=90,ax=ax,style=["r-"],secondary_y=True)
+        ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
+
+        save_fig("pareto_top_"+str(top)+"_customer $ ranking for "+str(title))
+        plt.close('all')
+
+    return
+
+
 
 
 
@@ -193,12 +268,12 @@ def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
 
 
 
-def smooth(df):
-     df=df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
-     df['qty_mat']=df['qty'].rolling(qd.smoothing_mat,axis=0).mean()
-     df['salesval_mat']=df['salesval'].rolling(qd.smoothing_mat,axis=0).mean()
+# def smooth(df):
+#  #    df=df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+#      df['qty_mat']=df['qty'].rolling(qd.smoothing_mat,axis=0).mean()
+#      df['salesval_mat']=df['salesval'].rolling(qd.smoothing_mat,axis=0).mean()
  
-     return df
+#      return df
 
 
 
@@ -209,12 +284,15 @@ def build_an_entry(query_name):
         q_df=st.query_df(new_df,qn)
         new_df=q_df.copy()
     q_df.drop_duplicates(keep="first",inplace=True)    
-    q_df=smooth(q_df)
+   # q_df=smooth(q_df)
     return st.save_query(q_df,query_name,root=False)   
     
 
 
 def build_query_dict(df):
+    if df.shape[0]>0:
+        df=df.rename(columns=qd.rename_columns_dict)  
+
     query_handles=[]
     query_handles.append(p_map(build_an_entry,qd.queries.values()))   #st.save_query(q_df,query_name,root=False)   
     return {k: v for k, v in zip(qd.queries.keys(),query_handles[0])}
@@ -260,8 +338,13 @@ def main():
       
   #  tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
     
+    renew=(input("renew salestrans? (y/n)")=='y')  
+    
     global df   # so I can use p_map multiprocessing  
-    df=st.load(qd.sales_trans_filenames,renew=False)  #=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"])
+    df=st.load(qd.sales_trans_filenames,renew=renew)  #=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"])
+   # print(df)
+    
+   # print(df)
    # st.display_df(df) 
   
     ####################################################################################
@@ -274,7 +357,10 @@ def main():
   #      print("qh=",qh)
         new_df,new_query_name=st.load_query(query_handles[q],root=False)
         print(q,"(",len(query_handles[q]),")=",new_query_name,"\n",new_df.shape,"\n")
+        pareto_product(new_df,q)
+        pareto_customer(new_df,q)
         graph_sales_year_on_year(new_df,q,"$/week")
+ 
 
  #   print(st.load_query(query_handles['not shop'],root=False)) 
  #   print(st.load_query(query_handles['online'],root=False)) 
