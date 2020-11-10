@@ -107,6 +107,7 @@ class salestrans_df:
          
             df['period'] = df['period'].astype('category')
             df.set_index('date',inplace=True,drop=False) 
+            df=df.rename(columns=qd.rename_columns_dict)  
             self.save_query(df,[],root=True)
             #df.to_pickle("./st_df.pkl",protocol=-1)
         else:
@@ -118,8 +119,8 @@ class salestrans_df:
           #  else:
           #      print("no pickle created yet",my_file)
           #      df=pd.DataFrame([])
-        if df.shape[0]>0:
-            df=df.rename(columns=qd.rename_columns_dict)  
+   #     if df.shape[0]>0:
+   #         df=df.rename(columns=qd.rename_columns_dict)  
         return df   #.rename(columns=qd.rename_columns_dict,inplace=True)
     
       
@@ -196,7 +197,7 @@ class salestrans_df:
 #         
 # =========================================================================
        if (query_name==[]) | (df.shape[0]==0):
-           return df   #new_df.copy(deep=True) 
+           return df.copy(deep=True) 
        else :   
            if (query_name[0]=="AND") | (query_name[0]=='OR') | (query_name[0]=="B") | (query_name[0]=="NOT"):
                 operator=query_name[0]
@@ -206,13 +207,13 @@ class salestrans_df:
                 new_df=df.copy()
                 if operator=="AND":
                     for q in query_list:    
-                        new_df=new_df[(new_df[q[0]]==q[1])].copy() 
+                        new_df=new_df[(new_df[q[0]]==q[1])].copy(deep=True) 
                     #    print("AND query=",q,"&",new_df.shape) 
                  #   print("new_df=\n",new_df)    
                 elif operator=="OR":
                     new_df_list=[]
                     for q in query_list:    
-                        new_df_list.append(new_df[(new_df[q[0]]==q[1])].copy()) 
+                        new_df_list.append(new_df[(new_df[q[0]]==q[1])].copy(deep=True)) 
                      #   print("OR query=",q,"|",new_df_list[-1].shape)
                     new_df=new_df_list[0]    
                     for i in range(1,len(query_list)):    
@@ -222,7 +223,7 @@ class salestrans_df:
                   #  print("after drop",new_df.shape)
                 elif operator=="NOT":
                     for q in query_list:    
-                        new_df=new_df[(new_df[q[0]]!=q[1])].copy() 
+                        new_df=new_df[(new_df[q[0]]!=q[1])].copy(deep=True) 
                    #     print("NOT query=",q,"NOT",new_df.shape)  
                    
                   #   new_df_list=[]
@@ -242,13 +243,13 @@ class salestrans_df:
                     #        print("between ql=",q[1],q[2])
                         start=q[1]
                         end=q[2]
-                        new_df=new_df[(new_df[q[0]]>=q[1]) & (new_df[q[0]]<=q[2])].copy() 
+                        new_df=new_df[(new_df[q[0]]>=q[1]) & (new_df[q[0]]<=q[2])].copy(deep=True) 
                      #       print("Beeterm AND query=",q,"&",new_df.shape) 
                    # else:
                    #     print("Error in between statement")
                 
                 else:
-                    print("opeerator not found\n")
+                    print("operator not found\n")
                 
                 
                 return new_df.copy(deep=True)

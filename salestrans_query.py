@@ -291,11 +291,13 @@ def build_an_entry(query_name):
 
 def build_query_dict(df):
     if df.shape[0]>0:
-        df=df.rename(columns=qd.rename_columns_dict)  
-
-    query_handles=[]
-    query_handles.append(p_map(build_an_entry,qd.queries.values()))   #st.save_query(q_df,query_name,root=False)   
-    return {k: v for k, v in zip(qd.queries.keys(),query_handles[0])}
+     #   df=df.rename(columns=qd.rename_columns_dict)  
+        query_handles=[]
+        query_handles.append(p_map(build_an_entry,qd.queries.values()))   #st.save_query(q_df,query_name,root=False)   
+        return {k: v for k, v in zip(qd.queries.keys(),query_handles[0])}
+    else:
+        print("df empty",df)
+        return {}
 
 
 
@@ -338,7 +340,7 @@ def main():
       
   #  tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
     
-    renew=(input("renew salestrans? (y/n)")=='y')  
+    renew=(input("renew salestrans? (y/n)").lower()=='y')  
     
     global df   # so I can use p_map multiprocessing  
     df=st.load(qd.sales_trans_filenames,renew=renew)  #=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"])
