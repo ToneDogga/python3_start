@@ -178,7 +178,7 @@ distribution_list_lastoneyear='distribution_list_lastoneyear.pkl'
 distribution_list_twoyear='distribution_list_twoyear.pkl'
 distribution_list_thisyear_minus_lastyear='distribution_list_thisyear_minus_lastyear.pkl'
 distribution_list_thisyear_minus_lastyear_percent="distribution_list_thisyear_minus_lastyear_percent.pkl"
-filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]
+filenames=["allsalestrans2020.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]   #"allsalestrans190520.xlsx", "allsalestrans101120.xlsx"
    
 
 product_groups_only=["10"]  #,"11","12","13","14","15","16","17"]   #,"18"]

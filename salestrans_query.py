@@ -127,7 +127,7 @@ def log_dir(prefix=""):
 output_dir = log_dir("salestrans_outputs")
 os.makedirs(output_dir, exist_ok=True)
 
-st=salestrans_lib.salestrans_df(output_dir)   # instantiate a salestrans_df
+st=salestrans_lib.salestrans_df(output_dir,"./salestrans_outputs/")   # instantiate a salestrans_df
 
 
 
@@ -285,19 +285,37 @@ def build_an_entry(query_name):
         new_df=q_df.copy()
     q_df.drop_duplicates(keep="first",inplace=True)    
    # q_df=smooth(q_df)
-    return st.save_query(q_df,query_name,root=False)   
+    return st.save_query(q_df,query_name,root=True)   
     
 
 
 def build_query_dict(df):
     if df.shape[0]>0:
      #   df=df.rename(columns=qd.rename_columns_dict)  
-        query_handles=[]
-        query_handles.append(p_map(build_an_entry,qd.queries.values()))   #st.save_query(q_df,query_name,root=False)   
-        return {k: v for k, v in zip(qd.queries.keys(),query_handles[0])}
+      #  query_handles=[]
+        query_filenames=[]
+        query_filenames.append(p_map(build_an_entry,qd.queries.values()))   #st.save_query(q_df,query_name,root=False)   
+     #   query_filenames=[q[:250] for q in query_handles[0]]  # if len(q)>249]
+     #   print("build a query dict query filenames",query_filenames)
+        return {k: v for k, v in zip(qd.queries.keys(),query_filenames[0])}     #,{k: v for k, v in zip(qd.queries.keys(),query_filenames)}
     else:
         print("df empty",df)
         return {}
+
+
+
+def graph_a_dict_key(q):
+    new_df=st.load_query(query_filenames_dict[q],root=True,fileinputtype=True)
+ #   print(q,"query",qd.queries[q],"encoded length",len(query_filenames_dict[q]))
+    pareto_product(new_df,q)
+    pareto_customer(new_df,q)
+    graph_sales_year_on_year(new_df,q,"$/week")
+
+
+
+# def graph_dict():
+#   #  new_df=st.load_query(query_filenames_dict[q],root=False,fileinputtype=True)
+#     p_map(graph_a_dict_key,query_filenames_dict.keys())
 
 
 
@@ -351,17 +369,26 @@ def main():
   
     ####################################################################################
     print("Build query dict\n")
-    query_handles=build_query_dict(df)   
-  #  print("query handles=",query_handles)    
-  ##############################################################
+    global query_filenames_dict
+    query_filenames_dict=build_query_dict(df)   
+   # print("\n")
+    #print("query handles=",query_handles)    
+   # print("query filenames dict.keys()=",query_filenames_dict.keys())    
+ 
+    ##############################################################
   
-    for q in query_handles.keys():
-  #      print("qh=",qh)
-        new_df,new_query_name=st.load_query(query_handles[q],root=False)
-        print(q,"(",len(query_handles[q]),")=",new_query_name,"\n",new_df.shape,"\n")
-        pareto_product(new_df,q)
-        pareto_customer(new_df,q)
-        graph_sales_year_on_year(new_df,q,"$/week")
+    print("\nGraph query:",query_filenames_dict.keys(),"\n")
+    p_map(graph_a_dict_key,query_filenames_dict.keys())
+
+   # graph_dict()
+   # print("\n\n\n")
+
+    # for q in query_filenames_dict.keys():
+    #     new_df=st.load_query(query_filenames_dict[q],root=True,fileinputtype=True)
+    #     print(q,"query",qd.queries[q],"encoded length",len(query_filenames_dict[q]))
+    #     pareto_product(new_df,q)
+    #     pareto_customer(new_df,q)
+    #     graph_sales_year_on_year(new_df,q,"$/week")
  
 
  #   print(st.load_query(query_handles['not shop'],root=False)) 

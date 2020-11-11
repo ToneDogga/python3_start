@@ -64,9 +64,10 @@ from pathlib import Path
 import query_dict as qd
 
 class salestrans_df:
-    def __init__(self,outd):  #,filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]):   #, m=[["L","R","-","T"],["T","-","L","R"],["R","L","T","-"],["-","T","R","L"]]):
+    def __init__(self,outd,rtld):  #,filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","salestrans.xlsx"]):   #, m=[["L","R","-","T"],["T","-","L","R"],["R","L","T","-"],["-","T","R","L"]]):
        self.output_dir = outd  #self.log_dir("salestrans_outputs")
-   #     os.makedirs(self.output_dir, exist_ok=True)
+       self.rootlogdir= rtld
+    #     os.makedirs(self.output_dir, exist_ok=True)
 
 
         #     self.f=0
@@ -86,14 +87,18 @@ class salestrans_df:
     
     def load(self,filenames,renew):  # filenames is a list of xlsx files to load and sort by date
         if renew:
-            print("Loading from excel:",filenames,"\nload:",filenames[0])
-            df=pd.read_excel(filenames[0],sheet_name="AttacheBI_sales_trans",usecols=range(0,17),verbose=False)  # -1 means all rows   
-         #   price_df=pd.read_excel("salestrans.xlsx",sheet_name="prices",usecols=range(0,dd.price_width),header=0,skiprows=[0,2,3],index_col=0,verbose=False)  # -1 means all rows  
+ #           print("Loading from excel:",filenames,"\nload:",filenames[0])
+            print("Loading from excel:",filenames,"\nload:",filenames)
+
+           # df=pd.read_excel(filenames[0],sheet_name="AttacheBI_sales_trans",usecols=range(0,17),verbose=False)  # -1 means all rows   
+            df=pd.DataFrame([])
+            #   price_df=pd.read_excel("salestrans.xlsx",sheet_name="prices",usecols=range(0,dd.price_width),header=0,skiprows=[0,2,3],index_col=0,verbose=False)  # -1 means all rows  
          #   price_df=price_df.iloc[:-2]
          #   price_df = price_df.rename_axis("product")
          
-            df=df.append(p_map(self.load_excel,filenames[1:])) 
-              
+  #          df=df.append(p_map(self.load_excel,filenames[1:])) 
+            df=df.append(p_map(self.load_excel,filenames)) 
+             
             df.fillna(0,inplace=True)
             df=df[(df.date.isnull()==False)]
             
@@ -108,14 +113,14 @@ class salestrans_df:
             df['period'] = df['period'].astype('category')
             df.set_index('date',inplace=True,drop=False) 
             df=df.rename(columns=qd.rename_columns_dict)  
-            self.save_query(df,[],root=True)
+            self.save_query(df,qd.queries['all'],root=True)
             #df.to_pickle("./st_df.pkl",protocol=-1)
         else:
-            query_handle=self.encode_query_name([])[:-1]
+        #    query_handle=self.encode_query_name([])[:-1]
          #   my_file = Path("./"+str(query_handle)+".pkl")
           #  if my_file.is_file():
            #     df=pd.read_pickle(my_file)
-            df,_=self.load_query(query_handle,root=True)
+            df=self.load_query(qd.queries['all'],root=True,fileinputtype=False)
           #  else:
           #      print("no pickle created yet",my_file)
           #      df=pd.DataFrame([])
@@ -152,34 +157,57 @@ class salestrans_df:
 
 
    
-    def save_query(self,df,query_name,root):
+    def save_query(self,df,query,root):
      #   print("save query",query_name)
       #  if df.shape[0]>0:
-        filename=self.encode_query_name(query_name)[:-1]
+        filename=self.encode_query_name(query)[:-1]  
+        if len(filename)>249:
+            filename=filename[:250]
+      
+    #    print("load query name=",query_handle,len(query_handle),"filename=",filename,len(filename))
+
      #   print("filename length=",len(filename))
-            
-     #   print("save query filename",filename)
+    #    if len(ffilename)>249:
+    #        filename=ffilename[:250]
+    #    else:
+    #        filename=ffilename
+    #    print("save query",query,len(query)," filename",filename,len(filename))
         if root: 
-            df.to_pickle(filename+".pkl",protocol=-1)
+            df.to_pickle(self.rootlogdir+filename+".pkl",protocol=-1)
         else:     
             df.to_pickle(self.output_dir+filename+".pkl",protocol=-1)
         return filename
       #  else:
       #      return "empty"
     
+    
        
-    def load_query(self,filename,root):
+    def load_query(self,query,root,fileinputtype):
        # filename=Path("./"+filename)   
    #     print("load query",filename)
-        query_name=list(self.decode_query_name(filename))
+        if fileinputtype:
+            filename=query
+        else:    
+            filename=self.encode_query_name(query)[:-1]  
+
+ #       filename=self.decode_query_name(query)[:-1]  
+        if len(filename)>249:
+            filename=filename[:250]
+    
+    #    print("load query name=",query,len(query),"filename=",filename,len(filename))
+     
+      #      query_name=qd.queries
+      #  else:    
+            
     #    print("load query",query_name,"filename",filename)
         if root:
-            df=pd.read_pickle(filename+".pkl")            
+            df=pd.read_pickle(self.rootlogdir+filename+".pkl")            
         else:    
             df=pd.read_pickle(self.output_dir+filename+".pkl")
-        return df,query_name
+        return df
 
     
+
     def query_df(self,df,query_name):
 # =============================================================================
 #         

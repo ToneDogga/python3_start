@@ -9,7 +9,7 @@ import pandas as pd
 import datetime as dt
 
 smoothing_mat=4
-sales_trans_filenames=["allsalestrans190520.xlsx","allsalestrans2018.xlsx","allsalestrans101120.xlsx","salestrans.xlsx"]
+sales_trans_filenames=["allsalestrans2018.xlsx","allsalestrans2020.xlsx","salestrans.xlsx"]   #"allsalestrans190520.xlsx",
 
 rename_columns_dict={'specialpricecat':'spc','productgroup':'pg'}
 #
@@ -35,7 +35,7 @@ queries={
     # "not shop":[["NOT",('specialpricecat',92)]],
     # "online":[["AND",('glset','ONL')],["B",("date",pd.to_datetime("2020-01-03"),pd.to_datetime("2020-01-03"))]]
     "harris farm TY all":[["AND",("spc",122)],["B",("date",pd.to_datetime("today")+pd.offsets.Day(-365),pd.to_datetime("today"))]],
-    "harris farm TY mealbases":[["AND",("spc",122),('pg','14')],["B",("date",pd.to_datetime("today")+pd.offsets.Day(-365),pd.to_datetime("today"))]],
+    "harris farm TY mealbases andf jams":[["AND",("spc",122)],["OR",('pg','14'),("pg","10"),('pg','11')],["B",("date",pd.to_datetime("today")+pd.offsets.Day(-365),pd.to_datetime("today"))]],
     "harris farm all":[["AND",("spc",122)]],
     "harris farm mealbases":[["AND",("spc",122),('pg','14')]]
  
