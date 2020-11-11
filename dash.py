@@ -336,15 +336,15 @@ def load_excel(filename):
 
 
 def load_sales(filenames):  # filenames is a list of xlsx files to load and sort by date
-    print("load:",filenames[0])
-    df=pd.read_excel(filenames[0],sheet_name="AttacheBI_sales_trans",usecols=range(0,17),verbose=False)  # -1 means all rows   
+    print("load:",filenames)
+  #  df=pd.read_excel(filenames[0],sheet_name="AttacheBI_sales_trans",usecols=range(0,17),verbose=False)  # -1 means all rows   
     price_df=pd.read_excel("salestrans.xlsx",sheet_name="prices",usecols=range(0,dd.price_width),header=0,skiprows=[0,2,3],index_col=0,verbose=False)  # -1 means all rows  
    # price_df.columns=price_df.columns.astype(str)
     price_df=price_df.iloc[:-2]
     price_df = price_df.rename_axis("product")
  #   print("df size=",df.shape,df.columns)
- 
-    df=df.append(p_map(load_excel,filenames[1:])) 
+    df=pd.DataFrame([]) 
+    df=df.append(p_map(load_excel,filenames)) 
  
  
    # for filename in filenames[1:]:
@@ -2750,26 +2750,26 @@ def main():
     print("Data available:",sales_df.shape[0],"records.\nfirst date:",first_date,"\nlast date:",last_date,"\n")
   
     
-    answer4="n"
-    answer4=input("\nPlot scan data? (y/n)")
+    answer4=False
+    answer4=(input("\nPlot scan data? (y/n)").lower()=='y')
     #answer3="y"
 
-    answer5="n"
-    answer5=input("\nPlot paretos? (y/n)")
+    answer5=False
+    answer5=(input("\nPlot paretos? (y/n)").lower()=='y')
       
 
 
 
-    answer3="y"
+    answer3=True
    # answer3=input("Create distribution report and sales trends? (y/n)")
     #answer3="y"
     
     
-    answer2="n"
+    answer2=False
  #   answer2=input("Use GRU DNN to predict next weeks Coles and WW orders from scan data? (y/n)")
     
-    answer="n"
-    answer=input("Refresh salestrans?")
+    answer=False
+    answer=(input("Refresh salestrans?").lower()=='y')
     
     print("\n")
     start_timer = time.time()
@@ -3065,7 +3065,7 @@ def main():
 ########################33
 
 
-    if answer=="y":
+    if answer:
         sales_df,price_df=load_sales(dd.filenames)  # filenames is a list of xlsx files to load and sort by date
      #      with open(dd.sales_df_savename,"wb") as f:
   #            pickle.dump(sales_df, f,protocol=-1)
@@ -3219,7 +3219,7 @@ def main():
        
 #   print("new sales values for ",q,"=\n",new_sales_values,new_sales_values.shape)
   #     print("sales slice on",q,"\n",multiple_slice_salesdata(sales_df,query=q)) #   key=['1'],criteria='brand')
-           if answer4=="y":
+           if answer4:
                mssd=multiple_slice_scandata(scan_df,q)
            #    print("mssd",mssd)
                plot_slices(mssd) #   key=['1'],criteria='brand')
@@ -3282,7 +3282,7 @@ def main():
   #   plot_slices(new_df)
 
     
-    if answer4=="y":
+    if answer4:
         print("Scandata plotting finished...\n\n")
        
 
@@ -3425,7 +3425,7 @@ def main():
     
   ################################################################################  
     
-    if answer5=="y":    
+    if answer5:    
         sales_df=pd.read_pickle(dd.sales_df_savename)
         #print(sales_df)
         # process a list of tuples (start_date,end_date)
@@ -4115,7 +4115,7 @@ def main():
     
     #################################################################################################
     # Create distribution report and find all the good performing and poor performing outliers in retail sales
-    if answer3=="y":
+    if answer3:
         print("\nCreate distribution reports..")
         print("sales from -365 days to 0 days")
         sales_df=pd.read_pickle(dd.sales_df_complete_augmented_savename)
