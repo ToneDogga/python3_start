@@ -5,6 +5,11 @@ Created on Sat Jun 13 14:52:36 2020
 
 @author: tonedogga
 """
+
+import os
+os.chdir("/home/tonedogga/Documents/python_dev")
+cwdpath = os.getcwd()
+
 import sys
 assert sys.version_info >= (3, 5)
 
@@ -14,7 +19,7 @@ assert sklearn.__version__ >= "0.20"
 
 import BB_data_dict as dd
 
-import os
+
 if dd.dash_verbose:
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '5' 
 
@@ -2720,6 +2725,7 @@ def main():
 
     if True:   #dd.dash_verbose:
         print("Python version:",sys.version)
+        print("Current working directory",cwdpath)
         print("\ntensorflow:",tf.__version__)
         #    print("eager exec:",tf.executing_eagerly())      
         print("keras:",keras.__version__)

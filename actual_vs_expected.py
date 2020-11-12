@@ -26,6 +26,9 @@
 #
 #   results - plot the plot dictionary and send each prediction to excel by month
 
+import os
+os.chdir("/home/tonedogga/Documents/python_dev")
+cwdpath = os.getcwd()
 
 
 print("\n\nActual vs Expected- Sales crystal ball stack : TF2 Salestrans predict - By Anthony Paech 25/5/20")
@@ -90,7 +93,7 @@ assert tf.__version__ >= "2.0"
 
 # # Common imports
 import numpy as np
-import os
+#import os
 from pathlib import Path
 import pandas as pd
 import pickle
@@ -142,6 +145,8 @@ def main():
  #   print("=============================================================================\n")       
     
     print("Python version:",sys.version)
+    print("Current working directory",cwdpath)
+ 
     print("\ntensorflow:",tf.__version__)
 #    print("eager exec:",tf.executing_eagerly())
 

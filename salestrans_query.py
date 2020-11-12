@@ -6,6 +6,11 @@ Created on Sat Nov  7 10:51:34 2020
 @author: tonedogga
 """
 
+import os
+os.chdir("/home/tonedogga/Documents/python_dev")
+cwdpath = os.getcwd()
+
+
 import subprocess as sp
 tmp=sp.call('clear',shell=True)  # clear screen 'use 'clear for unix, cls for windows
  
@@ -19,8 +24,6 @@ assert sys.version_info >= (3, 5)
 import sklearn
 assert sklearn.__version__ >= "0.20"
 
-
-import os
 
 # TensorFlow ≥2.0 is required
 import tensorflow as tf
@@ -327,6 +330,8 @@ def start_banner():
     print("=================================================================================================\n")       
 
     print("Python version:",sys.version)
+    print("Current working directory",cwdpath)
+ 
     print("\ntensorflow:",tf.__version__)
     #    print("eager exec:",tf.executing_eagerly())      
     print("keras:",keras.__version__)
