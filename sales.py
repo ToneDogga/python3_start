@@ -181,10 +181,10 @@ class sales_class(object):
  
     #---------------------------------------------------------
  
-        if dd2.dash2_dict['sales']['glset_not_spc_mask_flag']:
-            df=df[df['productgroup'].isin(dd2.dash2_dict['sales']['pg_only']) & df['glset'].isin(dd2.dash2_dict['sales']['glset_only'])]  
-        else:                                                                                                      
-            df=df[df['productgroup'].isin(dd2.dash2_dict['sales']['pg_only']) & df['specialpricecat'].isin(dd2.dash2_dict['sales']['spc_only'])]    
+       # if dd2.dash2_dict['sales']['glset_not_spc_mask_flag']:
+       #     new_df=df[((df['productgroup'].isin(dd2.dash2_dict['sales']['pg_only'])) & (df['glset'].isin(dd2.dash2_dict['sales']['glset_only'])))].copy(deep=True)  
+       # else:                                                                                                      
+        new_df=df[((df['productgroup'].isin(dd2.dash2_dict['sales']['pg_only'])) & (df['specialpricecat'].isin(dd2.dash2_dict['sales']['spc_only'])))].copy(deep=True)    
  
     
 #------------------------------------------------------------------------
@@ -192,10 +192,11 @@ class sales_class(object):
 
      #  print("\nPreprocess data exclude OFFINV. \nInclude only product groups=",dd2.dash2_dict['sales']["pg_only"],"\nSpecial price cat=",dd2.dash2_dict['sales']['spc_only'])
        # df=df[(df['code']=="OFFINV") | (df['product']=="OFFINV")]
-        df.rename(columns=rename_dict, inplace=True)
+        new_df.rename(columns=rename_dict, inplace=True)
      #   df=df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
-        #print("rename collumsn")
-        return df
+        #print("rename collumsn"
+    #    print("preprocesed=\n",new_df.head(100))
+        return new_df
     
     
       
@@ -461,25 +462,28 @@ class sales_query_class(object):
 # 
 #         
 # =========================================================================
-  #   print("query_df df=\n",df,"query_name=",query_name)  
+ #    print("query_df df=\n",new_df,"query_name=",query_name)  
      if (query_name==[]) | (new_df.shape[0]==0):
            return new_df.copy(deep=True) 
      else :   
-           if (query_name[0]=="AND") | (query_name[0]=='OR') | (query_name[0]=="BD")| (query_name[0]=="B") | (query_name[0]=="NOT"):
-                operator=query_name[0]
-              #  print("valid operator",operator)
+           if ((query_name[0]=="AND") | (query_name[0]=='OR') | (query_name[0]=="BD")| (query_name[0]=="B") | (query_name[0]=="NOT")):
+                oper=str(query_name[0])
+             #   print("valid operator",oper,new_df.shape)
                 query_list=query_name[1:]
-             #   print("quwery",query_list)
+  
+                
        #         new_df=df.copy()
-                if operator=="AND":
-                    for q in query_list:    
-                        new_df=new_df[(new_df[q[0]]==q[1])].copy(deep=True) 
-                    #    print("AND query=",q,"&",new_df.shape) 
-                 #   print("new_df=\n",new_df)    
-                elif operator=="OR":
+                if oper=="AND":
+                 #   print("AND quwery_list",query_list)
+                    for q in query_list:  
+                        field=str(q[0])
+                        new_df=new_df[(new_df[field]==q[1])].copy() 
+                  #      print("AND query=",field,"==",q[1],"\nnew_df=",new_df.shape) 
+                  #      print("new new_df=\n",new_df)    
+                elif oper=="OR":
                     new_df_list=[]
                     for q in query_list:    
-                        new_df_list.append(new_df[(new_df[q[0]]==q[1])].copy(deep=True)) 
+                        new_df_list.append(new_df[(new_df[q[0]]==q[1])].copy()) 
                      #   print("OR query=",q,"|",new_df_list[-1].shape)
                     new_df=new_df_list[0]    
                     for i in range(1,len(query_list)):    
@@ -487,9 +491,9 @@ class sales_query_class(object):
                   #  print("before drop",new_df.shape)    
                     new_df.drop_duplicates(keep="first",inplace=True)   
                   #  print("after drop",new_df.shape)
-                elif operator=="NOT":
+                elif oper=="NOT":
                     for q in query_list:    
-                        new_df=new_df[(new_df[q[0]]!=q[1])].copy(deep=True) 
+                        new_df=new_df[(new_df[q[0]]!=q[1])].copy() 
                    #     print("NOT query=",q,"NOT",new_df.shape)  
                    
                   #   new_df_list=[]
@@ -503,23 +507,23 @@ class sales_query_class(object):
                   #   new_df.drop_duplicates(keep="first",inplace=True)   
     
                    
-                elif operator=="BD":  # betwwen dates
+                elif oper=="BD":  # betwwen dates
                   #  if (len(query_list[0])==3):
                     for q in query_list:
                     #    print("between ql=",q[1],q[2])
                         start=q[1]
                         end=q[2]
-                        new_df=new_df[(pd.to_datetime(new_df[q[0]])>=pd.to_datetime(q[1])) & (pd.to_datetime(new_df[q[0]])<=pd.to_datetime(q[2]))].copy(deep=True) 
+                        new_df=new_df[(pd.to_datetime(new_df[q[0]])>=pd.to_datetime(q[1])) & (pd.to_datetime(new_df[q[0]])<=pd.to_datetime(q[2]))].copy() 
                      #       print("Beeterm AND query=",q,"&",new_df.shape) 
                    # else:
                    #     print("Error in between statement")
-                elif operator=="B":  # btween numbers or strings
+                elif oper=="B":  # btween numbers or strings
                   #  if (len(query_list[0])==3):
                     for q in query_list:
                     #    print("between ql=",q[1],q[2])
                         start=q[1]
                         end=q[2]
-                        new_df=new_df[(new_df[q[0]]>=q[1]) & (new_df[q[0]]<=q[2])].copy(deep=True) 
+                        new_df=new_df[(new_df[q[0]]>=q[1]) & (new_df[q[0]]<=q[2])].copy() 
                      #       print("Beeterm AND query=",q,"&",new_df.shape) 
                    # else:
                    #     print("Error in between statement")
@@ -558,7 +562,7 @@ class sales_query_class(object):
       #  self.query=sales_query_class()
       
         query_df=qdf.copy()
-        dd2.dash2_dict['sales']['query_df']=query_df
+        dd2.dash2_dict['sales']['query_df']=query_df.copy()
         if query_df.shape[0]>0:
          #   df=df.rename(columns=qd.rename_columns_dict)  
           #  query_handles=[]
@@ -960,7 +964,7 @@ class sales_pivot_class(object):
   
     
             print("\nBest performers",trends[-40:-4][::-1])
-            print("Worst performers",trends[4:40],"\n")
+            print("\nWorst performers",trends[4:40],"\n")
     
             
             self._trend_heatmap(trends[4:-4],output_dir)
@@ -1515,31 +1519,32 @@ class sales_plot_class(object):
         for k in df_dict.keys():
             mat_df=df_dict[k].copy()
             mat_df=mat_df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
-            mat_df=self.preprocess(mat_df,mat)
- #           df['mat']=df['salesval'].rolling(mat,axis=0).sum()
-      #      df=df[(df['mat']>=0)]
- 
-       #     print("end mat preprocess=\n",df)
-           # styles1 = ['b-','g:','r:']
-            styles1 = ['b-']
-          # styles1 = ['bs-','ro:','y^-']
-            linewidths = 2  # [2, 1, 4]
-                   
-            fig, ax = pyplot.subplots()
-            ax=mat_df.iloc[mat:][['mat']].plot(grid=True,fontsize=6,style=styles1, lw=linewidths)
-         
-            ax.yaxis.set_major_formatter(StrMethodFormatter('${x:,.0f}')) # 2 decimal places
-
-            ax.set_title("["+self._clean_up_name(str(k))+"] $ sales moving total "+str(mat)+" weeks @w/c:"+str(latest_date),fontsize= 7)
-            ax.legend(title="",fontsize=6)
-            ax.set_xlabel("",fontsize=6)
-            ax.set_ylabel("",fontsize=6)
-           # ax.yaxis.set_major_formatter('${x:1.0f}')
-            ax.yaxis.set_tick_params(which='major', labelcolor='green',
-                         labelleft=True, labelright=False)
-            
-            self._save_fig(self._clean_up_name(str(k))+"_dollars_moving_total",output_dir)
-            plt.close()
+            if mat_df.shape[0]>mat:
+                mat_df=self.preprocess(mat_df,mat)
+     #           df['mat']=df['salesval'].rolling(mat,axis=0).sum()
+          #      df=df[(df['mat']>=0)]
+     
+           #     print("end mat preprocess=\n",df)
+               # styles1 = ['b-','g:','r:']
+                styles1 = ['b-']
+              # styles1 = ['bs-','ro:','y^-']
+                linewidths = 2  # [2, 1, 4]
+                       
+                fig, ax = pyplot.subplots()
+                ax=mat_df.iloc[mat:][['mat']].plot(grid=True,fontsize=6,style=styles1, lw=linewidths)
+             
+                ax.yaxis.set_major_formatter(StrMethodFormatter('${x:,.0f}')) # 2 decimal places
+    
+                ax.set_title("["+self._clean_up_name(str(k))+"] $ sales moving total "+str(mat)+" weeks @w/c:"+str(latest_date),fontsize= 7)
+                ax.legend(title="",fontsize=6)
+                ax.set_xlabel("",fontsize=6)
+                ax.set_ylabel("",fontsize=6)
+               # ax.yaxis.set_major_formatter('${x:1.0f}')
+                ax.yaxis.set_tick_params(which='major', labelcolor='green',
+                             labelleft=True, labelright=False)
+                
+                self._save_fig(self._clean_up_name(str(k))+"_dollars_moving_total",output_dir)
+                plt.close()
         return   
  
     
@@ -1549,25 +1554,26 @@ class sales_plot_class(object):
          #   df=self.preprocess(df_dict[k],mat)
             mat_df=df_dict[k].copy()
             mat_df=mat_df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
-            mat_df=self.preprocess(mat_df,mat)
-            styles1 = ['b-']
-          # styles1 = ['bs-','ro:','y^-']
-            linewidths = 2  # [2, 1, 4]
-                   
-            fig, ax = pyplot.subplots()
-            ax=mat_df.iloc[mat:][['mat']].plot.area(stacked=True)       
-            ax.yaxis.set_major_formatter(StrMethodFormatter('${x:,.0f}')) # 2 decimal places
-
-            ax.set_title("["+self.clean_up_name(str(k))+"] $ sales stacked moving total "+str(mat)+" weeks @w/c:"+str(latest_date),fontsize= 7)
-            ax.legend(title="",fontsize=6)
-            ax.set_xlabel("",fontsize=6)
-            ax.set_ylabel("",fontsize=6)
-           # ax.yaxis.set_major_formatter('${x:1.0f}')
-            ax.yaxis.set_tick_params(which='major', labelcolor='green',
-                         labelleft=True, labelright=False)
-            
-            self._save_fig(self._clean_up_name(str(k))+"_dollars_moving_total_stacked",output_dir)
-            plt.close()
+            if mat_df.shape[0]>mat:
+                mat_df=self.preprocess(mat_df,mat)
+                styles1 = ['b-']
+              # styles1 = ['bs-','ro:','y^-']
+                linewidths = 2  # [2, 1, 4]
+                       
+                fig, ax = pyplot.subplots()
+                ax=mat_df.iloc[mat:][['mat']].plot.area(stacked=True)       
+                ax.yaxis.set_major_formatter(StrMethodFormatter('${x:,.0f}')) # 2 decimal places
+    
+                ax.set_title("["+self.clean_up_name(str(k))+"] $ sales stacked moving total "+str(mat)+" weeks @w/c:"+str(latest_date),fontsize= 7)
+                ax.legend(title="",fontsize=6)
+                ax.set_xlabel("",fontsize=6)
+                ax.set_ylabel("",fontsize=6)
+               # ax.yaxis.set_major_formatter('${x:1.0f}')
+                ax.yaxis.set_tick_params(which='major', labelcolor='green',
+                             labelleft=True, labelright=False)
+                
+                self._save_fig(self._clean_up_name(str(k))+"_dollars_moving_total_stacked",output_dir)
+                plt.close()
         return   
  
 
@@ -2142,26 +2148,27 @@ class sales_plot_class(object):
 
 
     def pareto_customer(self,df_dict,latest_date,output_dir):
-        print("pareto customer plot type=",latest_date,output_dir)
+        print("pareto customer plot type=",df_dict.keys(),latest_date,output_dir)
         top=60
-        for k in df_dict.keys():
+        i_dict=df_dict.copy()
+        for k,v in i_dict.items():
         #    cust_df=self.preprocess(df_dict[k],mat).copy()
   #          new_df=df_dict[k].groupby(['code','product'],sort=False).sum()
-            new_df=df_dict[k].groupby(['code'],sort=False).sum()
- 
+            new_df=v.groupby(['code'],sort=False).sum().copy(deep=True)
+       #     print("pareto customer",k,new_df,new_df.shape)
         #    print("pareto customer",k,new_df)
             if new_df.shape[0]>0:
-                new_df=new_df[(new_df['salesval']>1.0)]
-                new_df=new_df[['salesval']].sort_values(by='salesval',ascending=False)   
+                knew_df=new_df[(new_df['salesval']>1.0)].copy()
+                knew_df=knew_df[['salesval']].sort_values(by='salesval',ascending=False)   
             #    new_df=new_df.droplevel([0])
         
-                new_df['ccount']=np.arange(1,new_df.shape[0]+1)
-                df_len=new_df.shape[0]
+                knew_df['ccount']=np.arange(1,knew_df.shape[0]+1)
+                df_len=knew_df.shape[0]
                 
-                ptt=new_df['salesval']
+                ptt=knew_df['salesval']
                 ptott=ptt.sum()
-                new_df['cumulative']=np.cumsum(ptt)/ptott
-                new_df=new_df.head(top)
+                knew_df['cumulative']=np.cumsum(ptt)/ptott
+                knew_df=knew_df.head(top)
                 
                 fig, ax = pyplot.subplots()
                 fig.autofmt_xdate()
@@ -2177,7 +2184,7 @@ class sales_plot_class(object):
                 #ax.ticklabel_format(style='plain') 
           #      ax.axis([1, 10000, 1, 100000])
                 
-                ax=new_df.plot.bar(y='salesval',ylabel="",fontsize=7,grid=False)
+                ax=knew_df.plot.bar(y='salesval',ylabel="",fontsize=7,grid=False)
             #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
            #     axis.set_major_formatter(ScalarFormatter())
              #   ax.ticklabel_format(style='plain')
@@ -2187,10 +2194,10 @@ class sales_plot_class(object):
                 ax.set_title("["+self._clean_up_name(str(k))+"] Top "+str(top)+" customer $ ranking total dollars "+str(int(ptott))+" total("+str(df_len)+")",fontsize=9)
              
              
-                ax2=new_df.plot(y='cumulative',xlabel="",rot=90,fontsize=7,ax=ax,grid=True,style=["r-"],secondary_y=True)
+                ax2=knew_df.plot(y='cumulative',xlabel="",rot=90,fontsize=7,ax=ax,grid=True,style=["r-"],secondary_y=True)
                 ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
                 ax3 = ax.twiny() 
-                ax4=new_df[['ccount']].plot(use_index=True,ax=ax3,grid=False,fontsize=7,xlabel="",style=['w:'],legend=False,secondary_y=False)
+                ax4=knew_df[['ccount']].plot(use_index=True,ax=ax3,grid=False,fontsize=7,xlabel="",style=['w:'],legend=False,secondary_y=False)
                 if df_len<=1:
                     df_len=2
          
@@ -2199,21 +2206,24 @@ class sales_plot_class(object):
         
                 self._save_fig(self._clean_up_name(str(k))+"pareto_top_"+str(top)+"_customer_$_ranking",output_dir)
                 plt.close()
-        
-            return
+            else:
+                print("pareto customer nothing plotted. no records for ",k,new_df)
+ 
+        return
 
 
     def pareto_product_dollars(self,df_dict,latest_date,output_dir):
-        print("pareto product plot type=",latest_date,output_dir)
+        print("pareto product plot type=",df_dict.keys(),latest_date,output_dir)
         top=60
-        for k in df_dict.keys():
+        i_dict=df_dict.copy()
+        for k,v in i_dict.items():
         #    cust_df=self.preprocess(df_dict[k],mat).copy()
   #          new_df=df_dict[k].groupby(['code','product'],sort=False).sum()
-            new_df=df_dict[k].groupby(['product'],sort=False).sum()
+            new_df=v.groupby(['product'],sort=False).sum().copy(deep=True)
  
-         #   print("pareto product",k,new_df)
+      #      print("pareto product dollars",k,new_df,new_df.shape)
             if new_df.shape[0]>0:
-                new_df=new_df[(new_df['salesval']>1.0)]
+                new_df=new_df[(new_df['salesval']>1.0)].copy()
                 new_df=new_df[['salesval']].sort_values(by='salesval',ascending=False)   
             #    new_df=new_df.droplevel([0])
         
@@ -2259,33 +2269,37 @@ class sales_plot_class(object):
         
                 self._save_fig(self._clean_up_name(str(k))+"pareto_top_"+str(top)+"_product_$_ranking",output_dir)
                 plt.close()
-        
-            return
+            else:
+                print("pareto product dollars nothing plotted. no records for ",k,new_df)
+      
+        return
 
 
 
 
     def pareto_product_units(self,df_dict,latest_date,output_dir):
-        print("pareto product units plot type=",latest_date,output_dir)
+        print("pareto product units plot type=",df_dict.keys(),latest_date,output_dir)
         top=60
-        for k in df_dict.keys():
+        i_dict=df_dict.copy()
+      #  print("pareto product i_dict=\n",i_dict,"\n i_dict.items()=\n",i_dict.items())
+        for k,v in i_dict.items():
         #    cust_df=self.preprocess(df_dict[k],mat).copy()
   #          new_df=df_dict[k].groupby(['code','product'],sort=False).sum()
-            new_df=df_dict[k].groupby(['product'],sort=False).sum()
+            new_df=v.groupby(['product'],sort=False).sum().copy(deep=True)
  
-         #   print("pareto product",k,new_df)
+       #     print("\n++++++pareto product units",k,new_df)
             if new_df.shape[0]>0:
-                new_df=new_df[(new_df['qty']>1.0)]
-                new_df=new_df[['qty']].sort_values(by='qty',ascending=False)   
+                knew_df=new_df[(new_df['qty']>1.0)].copy()
+                knew_df=knew_df[['qty']].sort_values(by='qty',ascending=False)   
             #    new_df=new_df.droplevel([0])
         
-                new_df['pcount']=np.arange(1,new_df.shape[0]+1)
-                df_len=new_df.shape[0]
+                knew_df['pcount']=np.arange(1,knew_df.shape[0]+1)
+                df_len=knew_df.shape[0]
                 
-                ptt=new_df['qty']
+                ptt=knew_df['qty']
                 ptott=ptt.sum()
-                new_df['cumulative']=np.cumsum(ptt)/ptott
-                new_df=new_df.head(top)
+                knew_df['cumulative']=np.cumsum(ptt)/ptott
+                knew_df=knew_df.head(top)
                 
                 fig, ax = pyplot.subplots()
                 fig.autofmt_xdate()
@@ -2297,7 +2311,7 @@ class sales_plot_class(object):
                 #ax.ticklabel_format(style='plain') 
           #      ax.axis([1, 10000, 1, 100000])
                 
-                ax=new_df.plot.bar(y='qty',ylabel="units",fontsize=7,grid=False)
+                ax=knew_df.plot.bar(y='qty',ylabel="units",fontsize=7,grid=False)
             #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
            #     axis.set_major_formatter(ScalarFormatter())
              #   ax.ticklabel_format(style='plain')
@@ -2306,10 +2320,10 @@ class sales_plot_class(object):
                 ax.yaxis.set_tick_params(which='major', labelcolor='green',labelleft=True, labelright=False)
                 ax.set_title("["+self._clean_up_name(str(k))+"] Top "+str(top)+" product unit ranking total units "+str(int(ptott))+" total("+str(df_len)+")",fontsize=9)
   
-                ax2=new_df.plot(y='cumulative',xlabel="",rot=90,fontsize=7,ax=ax,grid=True,style=["r-"],secondary_y=True)
+                ax2=knew_df.plot(y='cumulative',xlabel="",rot=90,fontsize=7,ax=ax,grid=True,style=["r-"],secondary_y=True)
                 ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
                 ax3 = ax.twiny() 
-                ax4=new_df[['pcount']].plot(use_index=True,ax=ax3,grid=False,fontsize=7,xlabel="",style=['w:'],legend=False,secondary_y=False)
+                ax4=knew_df[['pcount']].plot(use_index=True,ax=ax3,grid=False,fontsize=7,xlabel="",style=['w:'],legend=False,secondary_y=False)
                 if df_len<=1:
                     df_len=2
          
@@ -2318,8 +2332,9 @@ class sales_plot_class(object):
         
                 self._save_fig(self._clean_up_name(str(k))+"pareto_top_"+str(top)+"_product_units_ranking",output_dir)
                 plt.close()
-        
-            return
+            else:
+                print("pareto product units nothing plotted. no records for ",k,new_df)
+        return
 
  
 

@@ -264,6 +264,9 @@ def main():
     dash.sales.plot.p_compare_customers(query_dict,dd2.dash2_dict['sales']['annual_mat'],dd2.dash2_dict['sales']['plots']['customers_to_plot_together'],latest_date,plot_output_dir)
     dash.sales.plot.p_compare_products(query_dict,dd2.dash2_dict['sales']['annual_mat'],dd2.dash2_dict['sales']['plots']['products_to_plot_together'],latest_date,plot_output_dir)
 
+
+
+  
     dash.sales.plot.pareto_customer(query_dict,latest_date,plot_output_dir)
     dash.sales.plot.pareto_product_dollars(query_dict,latest_date,plot_output_dir)
     dash.sales.plot.pareto_product_units(query_dict,latest_date,plot_output_dir)
