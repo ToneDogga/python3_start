@@ -201,15 +201,15 @@ def main():
     print("Run queries on loaded sales_df data:",aug_sales_df.shape,"(",first_date,"to",latest_date,")") 
     query_dict=dash.sales.query.queries(aug_sales_df)   #"sales query infile4","g")
     print("query dict keys=\n",query_dict.keys())
-    for q in query_dict.keys():
-        print(q,"\n",query_dict[q].shape)
+    for k,v in query_dict.items():
+        print(k,"\n",v.shape)
         
   #  print("scan_monthly_df=\n",scan_monthly_df) #.shape)   #,"\n",scan_monthly_df.T)   #.shape)   
     print("Run queries on loaded scan_monthly_df data:",scan_monthly_df.shape) 
     scan_monthly_dict=dash.scan.scan_monthly_queries(scan_monthly_df)    
     print("scan monthly dict keys=\n",scan_monthly_dict.keys())
-    for q in scan_monthly_dict.keys():
-        print(q,"\n",scan_monthly_dict[q].shape)
+    for k,v in scan_monthly_dict.items():
+        print(k,"\n",v.shape)
         
         
         

@@ -144,7 +144,7 @@ class price_class(object):
       #  recent_sales_df=sales_df[sales_df['date']>end_date]
       #  augmented_sales_df=promo_flags(recent_sales_df,price_df)
      #   augmented_sales_df.to_pickle(dd.sales_df_augmented_savename,protocol=-1)          
-        on_promo_sales_df=complete_augmented_sales_df[complete_augmented_sales_df['on_promo']==True]    #.copy(deep=True)
+        on_promo_sales_df=complete_augmented_sales_df[complete_augmented_sales_df['on_promo']==True]    #.copy()
         
       #  print(on_promo_sales_df)
         on_promo_sales_df["month"] = pd.to_datetime(on_promo_sales_df['date']).dt.strftime('%b')

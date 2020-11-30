@@ -518,8 +518,8 @@ class ave_class(object):
         #total_queries=1
         total_queries=len(query_dict.keys())
     
-        for query_name in query_dict.keys():
-            query_df=query_dict[query_name]
+        for query_name,v in query_dict.items():
+            query_df=v.copy()      #query_dict[query_name]
                        #    print("query aname",query_name,"query_df=\n",query_df)
             print("\nQuery name to train on:",query_name,": (",query_count,"/",total_queries,")\n")  #," : ",plot_dict[k][0,-10:])
             actuals,dates=self._create_series(query_df,dollars=dd2.dash2_dict['sales']['predictions']['dollars'])

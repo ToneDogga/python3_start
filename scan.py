@@ -225,7 +225,7 @@ class scan_class(object):
        
      
    def _plot_chart(self,scan_pass,count,extra_names,output_dir):
-        scan_df=scan_pass.copy(deep=True)
+        scan_df=scan_pass.copy()
        #print("sd=\n",scan_df,"\n",scan_df.T)
         week_freq=8
       #  scan_df['changedate']=pd.to_datetime(scan_df['date']).strftime("%Y-%m").to_list()
@@ -315,18 +315,18 @@ class scan_class(object):
     
    def plot_scan_monthly_dict(self,scan_monthly_dict,output_dir):
         
-        for p in scan_monthly_dict.keys():
-            print("Plotting scan data monthly for",p,"scan query to",output_dir)
-            scan_monthly_df=scan_monthly_dict[p].copy()
+        for k,v in scan_monthly_dict.items():
+            print("Plotting scan data monthly for",k,"scan query to",output_dir)
+            scan_monthly_df=v.copy()
             jump=5
             for r in range(0,scan_monthly_df.shape[1],jump):
-                self._plot_chart(scan_monthly_df.iloc[:,r:r+jump],int(r/jump),p,output_dir)
+                self._plot_chart(scan_monthly_df.iloc[:,r:r+jump],int(r/jump),k,output_dir)
      #       print("Finished plotting absolute.")
             
             scale_df=self._scale(scan_monthly_df)
             jump=5
             for r in range(0,scale_df.shape[1],jump):
-                self._plot_chart(scale_df.iloc[:,r:r+jump],int(r/jump)+10000,p,output_dir)
+                self._plot_chart(scale_df.iloc[:,r:r+jump],int(r/jump)+10000,k,output_dir)
       #      print("Finished plotting relative.")
         return   
    
@@ -370,6 +370,7 @@ class scan_class(object):
        return False
            
  
+    
   #     return("price save outfile")
        
    def load(self,save_dir,savefile):
@@ -456,7 +457,7 @@ class scan_class(object):
        
     
    def _multiple_slice_scandata(self,df,query):
-        new_df=df.copy(deep=True)
+        new_df=df.copy()
         for q in query:
             
             criteria=q[1]
@@ -1023,7 +1024,7 @@ class scan_class(object):
 # =========================================================================
   #   print("query_df df=\n",df,"query_name=",query_name)  
      if (query_name==[]) | (new_df.shape[0]==0):
-           return new_df.copy(deep=True) 
+           return new_df.copy() 
      else :   
            if (query_name[0]=="AND") | (query_name[0]=='OR') | (query_name[0]=="BD")| (query_name[0]=="B") | (query_name[0]=="NOT"):
                 operator=query_name[0]
@@ -1033,9 +1034,9 @@ class scan_class(object):
        #         new_df=df.copy()
                 if operator=="AND":
                     for q in query_list:    
-                  #      new_df=new_df[(new_df[q[0]]==q[1])].copy(deep=True) 
+                  #      new_df=new_df[(new_df[q[0]]==q[1])].copy() 
                  #       print("scan monthly query q=",q)
-                        new_df=new_df.xs(q[1],level=q[0],axis='columns',drop_level=False).copy(deep=True)
+                        new_df=new_df.xs(q[1],level=q[0],axis='columns',drop_level=False).copy()
                 #       print("AND new_df=\n",new_df)
                         
                     #    print("AND query=",q,"&",new_df.shape) 
@@ -1043,8 +1044,8 @@ class scan_class(object):
                 elif operator=="OR":
                     new_df_list=[]
                     for q in query_list:    
-                 #       new_df_list.append(new_df[(new_df[q[0]]==q[1])].copy(deep=True)) 
-                         new_df_list.append(new_df.xs(q[1],level=q[0],axis='columns',drop_level=False).copy(deep=True))
+                 #       new_df_list.append(new_df[(new_df[q[0]]==q[1])].copy()) 
+                         new_df_list.append(new_df.xs(q[1],level=q[0],axis='columns',drop_level=False).copy())
                  #   print("OR query=",q,"|",new_df_list[-1].shape)
                     new_df=new_df_list[0]    
                     for i in range(1,len(query_list)):    
@@ -1054,14 +1055,14 @@ class scan_class(object):
                   #  print("after drop",new_df.shape)
                 elif operator=="NOT":
                     for q in query_list:    
-                  #      new_df=new_df[(new_df[q[0]]!=q[1])].copy(deep=True) 
+                  #      new_df=new_df[(new_df[q[0]]!=q[1])].copy() 
                      #    quq='"'+str(q[0])+' != '+ "'"+str(q[1])+"'"+'"'
                          new_df=new_df.T
                          new_df=new_df[new_df.index.get_level_values(q[0]) != q[1]]
                          new_df=new_df.T
                       #   print("query quq=",quq)
                        #  new_df=new_df.query(quq)
-                     #    new_df.xs(not q[1],level=q[0],axis='columns',drop_level=False).copy(deep=True)
+                     #    new_df.xs(not q[1],level=q[0],axis='columns',drop_level=False).copy()
                    
                 elif operator=="BD":  # betwwen dates
                   #  if (len(query_list[0])==3):
@@ -1069,7 +1070,7 @@ class scan_class(object):
                     #    print("between ql=",q[1],q[2])
                         start=q[1]
                         end=q[2]
-                        new_df=new_df[(pd.to_datetime(new_df[q[0]])>=pd.to_datetime(q[1])) & (pd.to_datetime(new_df[q[0]])<=pd.to_datetime(q[2]))].copy(deep=True) 
+                        new_df=new_df[(pd.to_datetime(new_df[q[0]])>=pd.to_datetime(q[1])) & (pd.to_datetime(new_df[q[0]])<=pd.to_datetime(q[2]))].copy() 
                      #       print("Beeterm AND query=",q,"&",new_df.shape) 
                    # else:
                    #     print("Error in between statement")
@@ -1079,7 +1080,7 @@ class scan_class(object):
                     #    print("between ql=",q[1],q[2])
                         start=q[1]
                         end=q[2]
-                        new_df=new_df[(new_df[q[0]]>=q[1]) & (new_df[q[0]]<=q[2])].copy(deep=True) 
+                        new_df=new_df[(new_df[q[0]]>=q[1]) & (new_df[q[0]]<=q[2])].copy() 
                      #       print("Beeterm AND query=",q,"&",new_df.shape) 
                    # else:
                    #     print("Error in between statement")
@@ -1087,7 +1088,7 @@ class scan_class(object):
                 else:
                     print("operator not found\n")
                         
-                return new_df.copy(deep=True)
+                return new_df.copy()
                       
            else:
                 print("invalid operator")
@@ -1102,7 +1103,7 @@ class scan_class(object):
         #queries=query_name[1]
       #  query_name=qd.queries[q]
         new_df=dd2.dash2_dict['scan']['query_df']
-      #  new_df=query_df.copy(deep=True)
+      #  new_df=query_df.copy()
         for qn in query_name[1]:  
         #    print("build a query dict qn=",qn)
             q_df=self._scan_monthly_query_df(new_df,qn)

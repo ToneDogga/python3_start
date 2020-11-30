@@ -182,9 +182,9 @@ class sales_class(object):
     #---------------------------------------------------------
  
        # if dd2.dash2_dict['sales']['glset_not_spc_mask_flag']:
-       #     new_df=df[((df['productgroup'].isin(dd2.dash2_dict['sales']['pg_only'])) & (df['glset'].isin(dd2.dash2_dict['sales']['glset_only'])))].copy(deep=True)  
+       #     new_df=df[((df['productgroup'].isin(dd2.dash2_dict['sales']['pg_only'])) & (df['glset'].isin(dd2.dash2_dict['sales']['glset_only'])))].copy()  
        # else:                                                                                                      
-        new_df=df[((df['productgroup'].isin(dd2.dash2_dict['sales']['pg_only'])) & (df['specialpricecat'].isin(dd2.dash2_dict['sales']['spc_only'])))].copy(deep=True)    
+        new_df=df[((df['productgroup'].isin(dd2.dash2_dict['sales']['pg_only'])) & (df['specialpricecat'].isin(dd2.dash2_dict['sales']['spc_only'])))].copy()    
  
     
 #------------------------------------------------------------------------
@@ -464,7 +464,7 @@ class sales_query_class(object):
 # =========================================================================
  #    print("query_df df=\n",new_df,"query_name=",query_name)  
      if (query_name==[]) | (new_df.shape[0]==0):
-           return new_df.copy(deep=True) 
+           return new_df
      else :   
            if ((query_name[0]=="AND") | (query_name[0]=='OR') | (query_name[0]=="BD")| (query_name[0]=="B") | (query_name[0]=="NOT")):
                 oper=str(query_name[0])
@@ -531,7 +531,7 @@ class sales_query_class(object):
                 else:
                     print("operator not found\n")
                         
-                return new_df.copy(deep=True)
+                return new_df.copy()
                       
            else:
                 print("invalid operator")
@@ -546,7 +546,7 @@ class sales_query_class(object):
         #queries=query_name[1]
       #  query_name=qd.queries[q]
         new_df=dd2.dash2_dict['sales']['query_df']
-      #  new_df=query_df.copy(deep=True)
+      #  new_df=query_df.copy()
         for qn in query_name[1]:  
         #    print("build a query dict qn=",qn)
             q_df=self._query_df(new_df,qn)
@@ -887,7 +887,7 @@ class sales_pivot_class(object):
             
                
                      pv=pv.rename(dd2.productgroup_dict,level='pg',axis='columns')
-                     pv=pv.rename(dd2.productgroups_dict,level='pg',axis='columns')   #.copy(deep=True)
+                     pv=pv.rename(dd2.productgroups_dict,level='pg',axis='columns')   #.copy()
                   
                      sheet_name = 'Sheet1'
             
@@ -929,7 +929,7 @@ class sales_pivot_class(object):
         #for q in passed_dict.keys():
         #    print("key=",q)
       
-        dist_sales_df=passed_df.copy(deep=True)
+        dist_sales_df=passed_df.copy()
         dd2.dash2_dict['sales']['dist_sales_df']=dist_sales_df
         cust_prod_list=self._prods_and_custs(dist_sales_df)
          
@@ -999,7 +999,7 @@ class sales_pivot_class(object):
                         pivot_dist_df=pivot_dist_df.rename(dd2.spc_dict,level='spc',axis='index')
                    
                         pivot_dist_df=pivot_dist_df.rename(dd2.productgroup_dict,level='pg',axis='columns')
-                        pivot_dist_df=pivot_dist_df.rename(dd2.productgroups_dict,level='pg',axis='columns')   #.copy(deep=True)
+                        pivot_dist_df=pivot_dist_df.rename(dd2.productgroups_dict,level='pg',axis='columns')   #.copy()
                        
                         pivot_dist_df.sort_values([("","All")],ascending=False,axis="index",inplace=True)
                         pivot_dist_df.sort_values([(999,"","All")],ascending=False,axis="columns",inplace=True)
@@ -1038,7 +1038,7 @@ class sales_pivot_class(object):
         #for q in passed_dict.keys():
         #    print("key=",q)
     
-        dist_sales_df=passed_df.copy(deep=True)
+        dist_sales_df=passed_df.copy()
         dd2.dash2_dict['sales']['dist_sales_df']=dist_sales_df
         cust_prod_list=self._prods_and_custs(dist_sales_df)
          
@@ -1104,7 +1104,7 @@ class sales_pivot_class(object):
                         pivot_dist_df=pivot_dist_df.rename(dd2.spc_dict,level='spc',axis='index')
                    
                         pivot_dist_df=pivot_dist_df.rename(dd2.productgroup_dict,level='pg',axis='columns')
-                        pivot_dist_df=pivot_dist_df.rename(dd2.productgroups_dict,level='pg',axis='columns')   #.copy(deep=True)
+                        pivot_dist_df=pivot_dist_df.rename(dd2.productgroups_dict,level='pg',axis='columns')   #.copy()
                        
                         pivot_dist_df.sort_values([("","All")],ascending=False,axis="index",inplace=True)
                         pivot_dist_df.sort_values([(999,"","All")],ascending=False,axis="columns",inplace=True)
@@ -1141,7 +1141,7 @@ class sales_pivot_class(object):
         #for q in passed_dict.keys():
         #    print("key=",q)
        
-        dist_sales_df=passed_df.copy(deep=True)
+        dist_sales_df=passed_df.copy()
         dd2.dash2_dict['sales']['dist_sales_df']=dist_sales_df
         cust_prod_list=self._prods_and_custs(dist_sales_df)
          
@@ -1516,9 +1516,9 @@ class sales_plot_class(object):
 
     def mat(self,df_dict,mat,latest_date,output_dir):
         print("plotting mat plot type=",df_dict.keys(),mat,latest_date,output_dir)
-        for k in df_dict.keys():
-            mat_df=df_dict[k].copy()
-            mat_df=mat_df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+        for k,v in df_dict.items():
+      #      mat_df=v.copy()
+            mat_df=v.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0).copy()
             if mat_df.shape[0]>mat:
                 mat_df=self.preprocess(mat_df,mat)
      #           df['mat']=df['salesval'].rolling(mat,axis=0).sum()
@@ -1550,10 +1550,10 @@ class sales_plot_class(object):
     
     def mat_stacked_product(self,df_dict,mat,latest_date,output_dir):
         print("plotting mat plot type=",df_dict.keys(),mat,latest_date,output_dir)
-        for k in df_dict.keys():
+        for k,v in df_dict.items():
          #   df=self.preprocess(df_dict[k],mat)
-            mat_df=df_dict[k].copy()
-            mat_df=mat_df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+    #        mat_df=v.copy()
+            mat_df=v.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0).copy()
             if mat_df.shape[0]>mat:
                 mat_df=self.preprocess(mat_df,mat)
                 styles1 = ['b-']
@@ -1629,8 +1629,8 @@ class sales_plot_class(object):
 #                   #  else:
 #                         # if dd.dash_verbose:
 #               #          print("product",prod,"-customers to plot together",cust)
-#                     cust_sales=df[(df['code']==str(cust)) & (df['pg']==str(pg))].copy(deep=True)
-#                 #    cust_sales2=cust_sales.copy(deep=True)
+#                     cust_sales=df[(df['code']==str(cust)) & (df['pg']==str(pg))].copy()
+#                 #    cust_sales2=cust_sales.copy()
 #               #          print("cust_sause=\n",cust_sales)
 #                     if cust_sales.shape[0]>0: 
 #                         
@@ -1802,7 +1802,7 @@ class sales_plot_class(object):
   
             for cust in cust_list:
           #      print("cust=",cust,"pg=",pg)
-                cust_sales=plot_df[(plot_df['code']==str(cust)) & (plot_df['pg']==str(pg))].copy(deep=True)
+                cust_sales=plot_df[(plot_df['code']==str(cust)) & (plot_df['pg']==str(pg))].copy()
                 if cust_sales.shape[0]>0: 
                     cust_sales.set_index('date',inplace=True)
                     cust_sales=cust_sales.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
@@ -1840,7 +1840,7 @@ class sales_plot_class(object):
             t_count=0
             for cust in cust_list:
      
-                cust_sales=plot_df[(plot_df['code']==str(cust)) & (plot_df['pg']==str(pg))].copy(deep=True)
+                cust_sales=plot_df[(plot_df['code']==str(cust)) & (plot_df['pg']==str(pg))].copy()
                 if cust_sales.shape[0]>0: 
                    cust_sales.set_index('date',inplace=True)
                   
@@ -1885,8 +1885,8 @@ class sales_plot_class(object):
      #   print("mp para list=",mp_para_list)
         mp_para_list=[]
         kcount=1
-        for k in df_dict.keys():
-            mat_df=df_dict[k].copy()                
+        for k,v in df_dict.items():
+            mat_df=v.copy()                
             pg_list=list(set(mat_df['pg']))
             mp_para_list.append([k,mat_df,pg_list,cust_list,mat,latest_date,output_dir])
     #    print("mp para list=",mp_para_list)
@@ -1928,7 +1928,7 @@ class sales_plot_class(object):
   
             for prod in prod_list:
           #      print("cust=",cust,"pg=",pg)
-                prod_sales=plot_df[(plot_df['product']==str(prod)) & (plot_df['spc']==spc)].copy(deep=True)
+                prod_sales=plot_df[(plot_df['product']==str(prod)) & (plot_df['spc']==spc)].copy()
                 if prod_sales.shape[0]>0: 
                     prod_sales.set_index('date',inplace=True)
                     prod_sales=prod_sales.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
@@ -1966,7 +1966,7 @@ class sales_plot_class(object):
             t_count=0
             for prod in prod_list:
      
-                prod_sales=plot_df[(plot_df['product']==str(prod)) & (plot_df['spc']==spc)].copy(deep=True)
+                prod_sales=plot_df[(plot_df['product']==str(prod)) & (plot_df['spc']==spc)].copy()
                 if prod_sales.shape[0]>0: 
                    prod_sales.set_index('date',inplace=True)
                   
@@ -2011,8 +2011,8 @@ class sales_plot_class(object):
      #   print("mp para list=",mp_para_list)
         mp_para_list=[]
         kcount=1
-        for k in df_dict.keys():
-            mat_df=df_dict[k].copy()                
+        for k,v in df_dict.items():
+            mat_df=v.copy()                
             spc_list=list(set(mat_df['spc']))
        #     print("spclist=",spc_list)
             mp_para_list.append([k,mat_df,prod_list,spc_list,mat,latest_date,output_dir])
@@ -2031,8 +2031,8 @@ class sales_plot_class(object):
 
     def yoy_dollars(self,df_dict,mat,latest_date,output_dir):
         print("yoy dollars plot type=",mat,latest_date,output_dir)
-        for k in df_dict.keys():
-            cust_df=self.preprocess(df_dict[k],mat).copy()
+        for k,v in df_dict.items():
+            cust_df=self.preprocess(v,mat)
             cust_df=cust_df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
 
           #  print("end yoy customer preprocess",k)
@@ -2066,7 +2066,7 @@ class sales_plot_class(object):
             new_years=list(set(cust_df['year'].to_list()))
             #print("years=",years,"weels=",new_years)
             for y,i in zip(new_years[::-1],np.arange(0,len(new_years))):
-                test_df=cust_df[cust_df['year']==y].copy()
+                test_df=cust_df[cust_df['year']==y]
               #  print(y,test_df)
                 fig=test_df[['salesval']].plot(use_index=True,grid=True,style=styles[i],xlabel="",ylabel=left_y_axis_title,ax=ax,fontsize=8)
              
@@ -2091,8 +2091,8 @@ class sales_plot_class(object):
 
     def yoy_units(self,df_dict,mat,latest_date,output_dir):
         print("yoy units plot type=",mat,latest_date,output_dir)
-        for k in df_dict.keys():
-            cust_df=self.preprocess(df_dict[k],mat).copy()
+        for k,v in df_dict.items():
+            cust_df=self.preprocess(v,mat)
             cust_df=cust_df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
 
           #  print("end yoy customer preprocess",k)
@@ -2126,7 +2126,7 @@ class sales_plot_class(object):
             new_years=list(set(cust_df['year'].to_list()))
             #print("years=",years,"weels=",new_years)
             for y,i in zip(new_years[::-1],np.arange(0,len(new_years))):
-                test_df=cust_df[cust_df['year']==y].copy()
+                test_df=cust_df[cust_df['year']==y]
               #  print(y,test_df)
                 fig=test_df[['qty']].plot(use_index=True,grid=True,style=styles[i],xlabel="",ylabel=left_y_axis_title,ax=ax,fontsize=8)
              
@@ -2150,25 +2150,25 @@ class sales_plot_class(object):
     def pareto_customer(self,df_dict,latest_date,output_dir):
         print("pareto customer plot type=",df_dict.keys(),latest_date,output_dir)
         top=60
-        i_dict=df_dict.copy()
-        for k,v in i_dict.items():
+   #     i_dict=df_dict.copy()
+        for k,v in df_dict.items():
         #    cust_df=self.preprocess(df_dict[k],mat).copy()
   #          new_df=df_dict[k].groupby(['code','product'],sort=False).sum()
-            new_df=v.groupby(['code'],sort=False).sum().copy(deep=True)
+            new_df=v.groupby(['code'],sort=False).sum()
        #     print("pareto customer",k,new_df,new_df.shape)
         #    print("pareto customer",k,new_df)
             if new_df.shape[0]>0:
-                knew_df=new_df[(new_df['salesval']>1.0)].copy()
-                knew_df=knew_df[['salesval']].sort_values(by='salesval',ascending=False)   
+                new_df=new_df[(new_df['salesval']>1.0)]
+                new_df=new_df[['salesval']].sort_values(by='salesval',ascending=False)   
             #    new_df=new_df.droplevel([0])
         
-                knew_df['ccount']=np.arange(1,knew_df.shape[0]+1)
-                df_len=knew_df.shape[0]
+                new_df['ccount']=np.arange(1,new_df.shape[0]+1)
+                df_len=new_df.shape[0]
                 
-                ptt=knew_df['salesval']
+                ptt=new_df['salesval']
                 ptott=ptt.sum()
-                knew_df['cumulative']=np.cumsum(ptt)/ptott
-                knew_df=knew_df.head(top)
+                new_df['cumulative']=np.cumsum(ptt)/ptott
+                new_df=new_df.head(top)
                 
                 fig, ax = pyplot.subplots()
                 fig.autofmt_xdate()
@@ -2184,7 +2184,7 @@ class sales_plot_class(object):
                 #ax.ticklabel_format(style='plain') 
           #      ax.axis([1, 10000, 1, 100000])
                 
-                ax=knew_df.plot.bar(y='salesval',ylabel="",fontsize=7,grid=False)
+                ax=new_df.plot.bar(y='salesval',ylabel="",fontsize=7,grid=False)
             #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
            #     axis.set_major_formatter(ScalarFormatter())
              #   ax.ticklabel_format(style='plain')
@@ -2194,10 +2194,10 @@ class sales_plot_class(object):
                 ax.set_title("["+self._clean_up_name(str(k))+"] Top "+str(top)+" customer $ ranking total dollars "+str(int(ptott))+" total("+str(df_len)+")",fontsize=9)
              
              
-                ax2=knew_df.plot(y='cumulative',xlabel="",rot=90,fontsize=7,ax=ax,grid=True,style=["r-"],secondary_y=True)
+                ax2=new_df.plot(y='cumulative',xlabel="",rot=90,fontsize=7,ax=ax,grid=True,style=["r-"],secondary_y=True)
                 ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
                 ax3 = ax.twiny() 
-                ax4=knew_df[['ccount']].plot(use_index=True,ax=ax3,grid=False,fontsize=7,xlabel="",style=['w:'],legend=False,secondary_y=False)
+                ax4=new_df[['ccount']].plot(use_index=True,ax=ax3,grid=False,fontsize=7,xlabel="",style=['w:'],legend=False,secondary_y=False)
                 if df_len<=1:
                     df_len=2
          
@@ -2215,15 +2215,15 @@ class sales_plot_class(object):
     def pareto_product_dollars(self,df_dict,latest_date,output_dir):
         print("pareto product plot type=",df_dict.keys(),latest_date,output_dir)
         top=60
-        i_dict=df_dict.copy()
-        for k,v in i_dict.items():
+     #   i_dict=df_dict.copy()
+        for k,v in df_dict.items():
         #    cust_df=self.preprocess(df_dict[k],mat).copy()
   #          new_df=df_dict[k].groupby(['code','product'],sort=False).sum()
-            new_df=v.groupby(['product'],sort=False).sum().copy(deep=True)
+            new_df=v.groupby(['product'],sort=False).sum()
  
       #      print("pareto product dollars",k,new_df,new_df.shape)
             if new_df.shape[0]>0:
-                new_df=new_df[(new_df['salesval']>1.0)].copy()
+                new_df=new_df[(new_df['salesval']>1.0)]
                 new_df=new_df[['salesval']].sort_values(by='salesval',ascending=False)   
             #    new_df=new_df.droplevel([0])
         
@@ -2280,26 +2280,26 @@ class sales_plot_class(object):
     def pareto_product_units(self,df_dict,latest_date,output_dir):
         print("pareto product units plot type=",df_dict.keys(),latest_date,output_dir)
         top=60
-        i_dict=df_dict.copy()
+   #     i_dict=df_dict.copy()
       #  print("pareto product i_dict=\n",i_dict,"\n i_dict.items()=\n",i_dict.items())
-        for k,v in i_dict.items():
+        for k,v in df_dict.items():
         #    cust_df=self.preprocess(df_dict[k],mat).copy()
   #          new_df=df_dict[k].groupby(['code','product'],sort=False).sum()
-            new_df=v.groupby(['product'],sort=False).sum().copy(deep=True)
+            new_df=v.groupby(['product'],sort=False).sum()
  
        #     print("\n++++++pareto product units",k,new_df)
             if new_df.shape[0]>0:
-                knew_df=new_df[(new_df['qty']>1.0)].copy()
-                knew_df=knew_df[['qty']].sort_values(by='qty',ascending=False)   
+                new_df=new_df[(new_df['qty']>1.0)]
+                new_df=new_df[['qty']].sort_values(by='qty',ascending=False)   
             #    new_df=new_df.droplevel([0])
         
-                knew_df['pcount']=np.arange(1,knew_df.shape[0]+1)
-                df_len=knew_df.shape[0]
+                new_df['pcount']=np.arange(1,new_df.shape[0]+1)
+                df_len=new_df.shape[0]
                 
-                ptt=knew_df['qty']
+                ptt=new_df['qty']
                 ptott=ptt.sum()
-                knew_df['cumulative']=np.cumsum(ptt)/ptott
-                knew_df=knew_df.head(top)
+                new_df['cumulative']=np.cumsum(ptt)/ptott
+                new_df=new_df.head(top)
                 
                 fig, ax = pyplot.subplots()
                 fig.autofmt_xdate()
@@ -2311,7 +2311,7 @@ class sales_plot_class(object):
                 #ax.ticklabel_format(style='plain') 
           #      ax.axis([1, 10000, 1, 100000])
                 
-                ax=knew_df.plot.bar(y='qty',ylabel="units",fontsize=7,grid=False)
+                ax=new_df.plot.bar(y='qty',ylabel="units",fontsize=7,grid=False)
             #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
            #     axis.set_major_formatter(ScalarFormatter())
              #   ax.ticklabel_format(style='plain')
@@ -2320,10 +2320,10 @@ class sales_plot_class(object):
                 ax.yaxis.set_tick_params(which='major', labelcolor='green',labelleft=True, labelright=False)
                 ax.set_title("["+self._clean_up_name(str(k))+"] Top "+str(top)+" product unit ranking total units "+str(int(ptott))+" total("+str(df_len)+")",fontsize=9)
   
-                ax2=knew_df.plot(y='cumulative',xlabel="",rot=90,fontsize=7,ax=ax,grid=True,style=["r-"],secondary_y=True)
+                ax2=new_df.plot(y='cumulative',xlabel="",rot=90,fontsize=7,ax=ax,grid=True,style=["r-"],secondary_y=True)
                 ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
                 ax3 = ax.twiny() 
-                ax4=knew_df[['pcount']].plot(use_index=True,ax=ax3,grid=False,fontsize=7,xlabel="",style=['w:'],legend=False,secondary_y=False)
+                ax4=new_df[['pcount']].plot(use_index=True,ax=ax3,grid=False,fontsize=7,xlabel="",style=['w:'],legend=False,secondary_y=False)
                 if df_len<=1:
                     df_len=2
          
@@ -2391,7 +2391,7 @@ class sales_predict_class(object):
     
        
     def _multiple_slice_scandata(self,df,query):
-        new_df=df.copy(deep=True)
+        new_df=df.copy()
         for q in query:
             
             criteria=q[1]
