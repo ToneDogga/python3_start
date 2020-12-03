@@ -202,7 +202,7 @@ def main():
     query_dict=dash.sales.query.queries(aug_sales_df)   #"sales query infile4","g")
     print("query dict keys=\n",query_dict.keys())
     for k,v in query_dict.items():
-        print(k,"\n",v.shape)
+        print(k,"\n",v,v.shape)
         
   #  print("scan_monthly_df=\n",scan_monthly_df) #.shape)   #,"\n",scan_monthly_df.T)   #.shape)   
     print("Run queries on loaded scan_monthly_df data:",scan_monthly_df.shape) 
@@ -227,6 +227,8 @@ def main():
     stock_report_df=dash.production.load_from_excel(dd2.dash2_dict['production']['in_dir'])
     dash.production.report(stock_report_df,dd2.dash2_dict['production']['in_dir'])
 
+    dash.scheduler.display_schedule(plot_output_dir)
+
     all_raw_dict=dash.sales.summary(dd2.dash2_dict['sales']['in_dir'],dd2.dash2_dict['sales']['raw_savefile'])
   #  dash.sales.pivot.report(all_raw_dict['raw_all'],plot_output_dir)
     dash.price.report(aug_sales_df,promo_pivot_df,plot_output_dir)
@@ -240,6 +242,9 @@ def main():
        print("\nDash2 started:",dt.datetime.fromtimestamp(time.time()).strftime('%H:%M:%S %d/%m/%Y'),"\n")
        
        dash.production.report(stock_report_df,dd2.dash2_dict['production']['in_dir'])
+       
+       dash.scheduler.display_schedule(plot_output_dir)
+       
        all_raw_dict=dash.sales.summary(dd2.dash2_dict['sales']['in_dir'],dd2.dash2_dict['sales']['raw_savefile'])
        dash.sales.pivot.report(all_raw_dict['raw_all'],plot_output_dir)
        dash.price.report(aug_sales_df,promo_pivot_df,plot_output_dir)

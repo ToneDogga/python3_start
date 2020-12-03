@@ -9,6 +9,7 @@ Created on Tue Nov 17 09:23:27 2020
 import sales
 import scan
 import price
+import scheduler
 import production
 import ave_dash2
 
@@ -24,6 +25,7 @@ class dash2_class:
        self.price=price.price_class()
        self.production=production.production_class()
        self.ave_predict=ave_dash2.ave_class()
+       self.scheduler=scheduler.schedule()
        #self.load=sales_class()
        
 

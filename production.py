@@ -44,6 +44,7 @@ class production_class(object):
         stock_report_df=stock_df[['productgroup','code','lastsalesdate','qtyinstock']].sort_values(['productgroup','qtyinstock'],ascending=[True,True])
         
         stock_report_df.replace({'productgroup':dd2.productgroups_dict},inplace=True)
+        self._save(stock_report_df)
         return stock_report_df
     
     
@@ -80,8 +81,9 @@ class production_class(object):
        return
 
        
-   def save(self):
+   def _save(self,df):
        print("save production")
+       df.to_pickle(dd2.dash2_dict['production']['save_dir']+dd2.dash2_dict['production']['SOH_savefile'],protocol=-1)
        return
    
     
