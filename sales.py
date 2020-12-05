@@ -45,6 +45,8 @@ Created on Tue Nov 17 09:06:18 2020
 
 import numpy as np
 import pandas as pd
+from pandas.tseries.frequencies import to_offset
+
 import datetime as dt
 from datetime import datetime
 from datetime import date
@@ -232,11 +234,12 @@ class sales_class(object):
     def report(self,df):
         print("\nsales_df Report: Preprocess masking excluded OFFINV prod and cust codes. \nInclude only product groups=",dd2.dash2_dict['sales']["pg_only"],"\n and special price cat=",dd2.dash2_dict['sales']['spc_only'])
       #  df=dash.sales.query.load(dd2.dash2_dict['sales']['save_dir'],dd2.dash2_dict['sales']['savefile'])
-        latest_date=pd.to_datetime(df['date'].iloc[0]).strftime('%d/%m/%Y')
-        first_date=pd.to_datetime(df['date'].iloc[-1]).strftime('%d/%m/%Y')   #df['date'].iloc[-1]
+        latest_date=pd.to_datetime(df['date'].iloc[0])
+        first_date=pd.to_datetime(df['date'].iloc[-1])  #df['date'].iloc[-1]
+        
         
         print("\nAttache sales trans analysis up to date.  New save is:",dd2.dash2_dict['sales']['savefile'])
-        print("Data available:",df.shape,"records.\nfirst date:",first_date,"\nlatest date:",latest_date,"\n")
+        print("Data available:",df.shape,"records.\nfirst date:",first_date.strftime('%d/%m/%Y'),"\nlatest date:",latest_date.strftime('%d/%m/%Y'),"\n")
         return first_date,latest_date
     
        
@@ -270,7 +273,7 @@ class sales_class(object):
         dds['365_day%']=round(dds['diff365']/dds['mat']*100,2)
         
         dds['date']=dds.index.tolist()
-        latest_date=dds['date'].max()
+  #      latest_date=dds['date'].max()
         dds.reset_index(inplace=True)
         #self.dash.sales.plot.mat({title:dds},dd2.dash2_dict['sales']['annual_mat'],latest_date,plot_output_dir)
         return dds[['dates','mat7','diff7','30_day%','90_day%','365_day%','mat']].tail(8)
@@ -669,11 +672,11 @@ class sales_pivot_class(object):
          cust=distribution_details[0]
          prod=distribution_details[1]
          dist_df=distribution_details[2]
-         qty_sum=distribution_details[4]
-         salesval_sum=distribution_details[5]
-         most_recent_date=distribution_details[3]
+   #      qty_sum=distribution_details[4]
+   #      salesval_sum=distribution_details[5]
+   #      most_recent_date=distribution_details[3]
          
-         latest_date=pd.to_datetime(dist_df['date'].max()).strftime("%d/%m/%Y")
+    #     latest_date=pd.to_datetime(dist_df['date'].max()).strftime("%d/%m/%Y")
          if isinstance(dist_df,pd.DataFrame):
              if dist_df.shape[0]>0:
               #   print("yes",dist_df.shape)
@@ -754,7 +757,7 @@ class sales_pivot_class(object):
         # salesval_sum=distribution_details[5]
         # most_recent_date=distribution_details[3]
          
-         latest_date=pd.to_datetime(dist_df['date'].max()).strftime("%d/%m/%Y")
+         latest_date=pd.to_datetime(dist_df['date'].max())    #.strftime("%d/%m/%Y")
          if isinstance(dist_df,pd.DataFrame):
              if dist_df.shape[0]>0:
               #   print("yes",dist_df.shape)
@@ -802,7 +805,7 @@ class sales_pivot_class(object):
                      title="Trend_"+str(round(slope,3))+"_"+str(cust)+"_"+str(prod)
                      sns.lmplot(x='days since last order',y='units', hue='on_promo',data=dist_df)    # col='on_promo_guess',
                  
-                     plt.title(title+" (slope="+str(round(slope,3))+") w/c:"+str(latest_date))  #str(new_plot_df.columns.get_level_values(0)))
+                     plt.title(title+" (slope="+str(round(slope,3))+") w/c:"+latest_date.strftime('%d/%m/%Y'))  #str(new_plot_df.columns.get_level_values(0)))
                  #    fig.legend(fontsize=8)
                      plt.ylabel("unit sales")
                      plt.grid(True)
@@ -1515,7 +1518,7 @@ class sales_plot_class(object):
 
 
     def mat(self,df_dict,mat,latest_date,output_dir):
-        print("plotting mat plot type=",df_dict.keys(),mat,latest_date,output_dir)
+        print("plotting mat plot type=",df_dict.keys(),mat,latest_date.strftime('%d/%m/%Y'),output_dir)
         for k,v in df_dict.items():
       #      mat_df=v.copy()
             mat_df=v.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0).copy()
@@ -1535,7 +1538,7 @@ class sales_plot_class(object):
              
                 ax.yaxis.set_major_formatter(StrMethodFormatter('${x:,.0f}')) # 2 decimal places
     
-                ax.set_title("["+self._clean_up_name(str(k))+"] $ sales moving total "+str(mat)+" weeks @w/c:"+str(latest_date),fontsize= 7)
+                ax.set_title("["+self._clean_up_name(str(k))+"] $ sales moving total "+str(mat)+" weeks @w/c:"+latest_date.strftime('%d/%m/%Y'),fontsize= 7)
                 ax.legend(title="",fontsize=6)
                 ax.set_xlabel("",fontsize=6)
                 ax.set_ylabel("",fontsize=6)
@@ -1549,7 +1552,7 @@ class sales_plot_class(object):
  
     
     def mat_stacked_product(self,df_dict,mat,latest_date,output_dir):
-        print("plotting mat plot type=",df_dict.keys(),mat,latest_date,output_dir)
+        print("plotting mat plot type=",df_dict.keys(),mat,latest_date.strftime('%d/%m/%Y'),output_dir)
         for k,v in df_dict.items():
          #   df=self.preprocess(df_dict[k],mat)
     #        mat_df=v.copy()
@@ -1564,7 +1567,7 @@ class sales_plot_class(object):
                 ax=mat_df.iloc[mat:][['mat']].plot.area(stacked=True)       
                 ax.yaxis.set_major_formatter(StrMethodFormatter('${x:,.0f}')) # 2 decimal places
     
-                ax.set_title("["+self.clean_up_name(str(k))+"] $ sales stacked moving total "+str(mat)+" weeks @w/c:"+str(latest_date),fontsize= 7)
+                ax.set_title("["+self.clean_up_name(str(k))+"] $ sales stacked moving total "+str(mat)+" weeks @w/c:"+latest_date.strftime('%d/%m/%Y'),fontsize= 7)
                 ax.legend(title="",fontsize=6)
                 ax.set_xlabel("",fontsize=6)
                 ax.set_ylabel("",fontsize=6)
@@ -1817,7 +1820,7 @@ class sales_plot_class(object):
                         cust_sales[['mat']].plot(grid=True,use_index=True,fontsize=8,style=styles1[t_count], lw=linewidths,ax=ax)
                     except:
                         pass
-                    ax.set_title("["+self._clean_up_name(str(query_name))+"] "+str(cust)+" pg:"+str(pg)+" dollars/week moving total comparison  "+str(mat)+" weeks @w/c:"+str(latest_date),fontsize= 7)
+                    ax.set_title("["+self._clean_up_name(str(query_name))+"] "+str(cust)+" pg:"+str(pg)+" dollars/week moving total comparison  "+str(mat)+" weeks @w/c:"+latest_date.strftime('%d/%m/%Y'),fontsize= 7)
           
                 #    ax.legend(cust,title="",fontsize=8)
                 #    ax.set_xlabel("",fontsize=8)
@@ -1861,7 +1864,7 @@ class sales_plot_class(object):
                    except:
                        pass
         
-                   ax.set_title("["+self._clean_up_name(str(query_name))+"] "+str(cust)+" pg:"+str(pg)+" Scaled Sales/week moving total comparison "+str(mat)+" weeks @w/c:"+str(latest_date),fontsize= 7)
+                   ax.set_title("["+self._clean_up_name(str(query_name))+"] "+str(cust)+" pg:"+str(pg)+" Scaled Sales/week moving total comparison "+str(mat)+" weeks @w/c:"+latest_date.strftime('%d/%m/%Y'),fontsize= 7)
                 else:
                    pass
                 t_count+=1  
@@ -1881,7 +1884,7 @@ class sales_plot_class(object):
 
      
     def p_compare_customers(self,df_dict,mat,cust_list,latest_date,output_dir):
-        print("compare customer plot type=",cust_list,latest_date,output_dir,"\r")
+        print("compare customer plot type=",cust_list,latest_date.strftime('%d/%m/%Y'),output_dir,"\r")
      #   print("mp para list=",mp_para_list)
         mp_para_list=[]
         kcount=1
@@ -1943,7 +1946,7 @@ class sales_plot_class(object):
                         prod_sales[['mat']].plot(grid=True,use_index=True,fontsize=8,style=styles1[t_count], lw=linewidths,ax=ax)
                     except:
                         pass
-                    ax.set_title("["+self._clean_up_name(str(query_name))+"] spc:"+str(spc)+" prod:"+str(prod)+" units/week moving total comparison  "+str(mat)+" weeks @w/c:"+str(latest_date),fontsize= 7)
+                    ax.set_title("["+self._clean_up_name(str(query_name))+"] spc:"+str(spc)+" prod:"+str(prod)+" units/week moving total comparison  "+str(mat)+" weeks @w/c:"+latest_date.strftime('%d/%m/%Y'),fontsize= 7)
           
                 #    ax.legend(cust,title="",fontsize=8)
                 #    ax.set_xlabel("",fontsize=8)
@@ -1987,7 +1990,7 @@ class sales_plot_class(object):
                    except:
                        pass
         
-                   ax.set_title("["+self._clean_up_name(str(query_name))+"] spc:"+str(spc)+" prod:"+str(prod)+" Scaled units/week moving total comparison "+str(mat)+" weeks @w/c:"+str(latest_date),fontsize= 7)
+                   ax.set_title("["+self._clean_up_name(str(query_name))+"] spc:"+str(spc)+" prod:"+str(prod)+" Scaled units/week moving total comparison "+str(mat)+" weeks @w/c:"+latest_date.strftime('%d/%m/%Y'),fontsize= 7)
                 else:
                    pass
                 t_count+=1  
@@ -2007,7 +2010,7 @@ class sales_plot_class(object):
 
      
     def p_compare_products(self,df_dict,mat,prod_list,latest_date,output_dir):
-        print("compare products plot type=",prod_list,latest_date,output_dir,"\r")
+        print("compare products plot type=",prod_list,latest_date.strftime('%d/%m/%Y'),output_dir,"\r")
      #   print("mp para list=",mp_para_list)
         mp_para_list=[]
         kcount=1
@@ -2030,7 +2033,7 @@ class sales_plot_class(object):
 
 
     def yoy_dollars(self,df_dict,mat,latest_date,output_dir):
-        print("yoy dollars plot type=",mat,latest_date,output_dir)
+        print("yoy dollars plot type=",mat,latest_date.strftime('%d/%m/%Y'),output_dir)
         for k,v in df_dict.items():
             cust_df=self.preprocess(v,mat)
             cust_df=cust_df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
@@ -2090,7 +2093,7 @@ class sales_plot_class(object):
 
 
     def yoy_units(self,df_dict,mat,latest_date,output_dir):
-        print("yoy units plot type=",mat,latest_date,output_dir)
+        print("yoy units plot type=",mat,latest_date.strftime('%d/%m/%Y'),output_dir)
         for k,v in df_dict.items():
             cust_df=self.preprocess(v,mat)
             cust_df=cust_df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
@@ -2148,7 +2151,7 @@ class sales_plot_class(object):
 
 
     def pareto_customer(self,df_dict,latest_date,output_dir):
-        print("pareto customer plot type=",df_dict.keys(),latest_date,output_dir)
+        print("pareto customer plot type=",df_dict.keys(),latest_date.strftime('%d/%m/%Y'),output_dir)
         top=60
    #     i_dict=df_dict.copy()
         for k,v in df_dict.items():
@@ -2213,7 +2216,7 @@ class sales_plot_class(object):
 
 
     def pareto_product_dollars(self,df_dict,latest_date,output_dir):
-        print("pareto product plot type=",df_dict.keys(),latest_date,output_dir)
+        print("pareto product plot type=",df_dict.keys(),latest_date.strftime('%d/%m/%Y'),output_dir)
         top=60
      #   i_dict=df_dict.copy()
         for k,v in df_dict.items():
@@ -2278,7 +2281,7 @@ class sales_plot_class(object):
 
 
     def pareto_product_units(self,df_dict,latest_date,output_dir):
-        print("pareto product units plot type=",df_dict.keys(),latest_date,output_dir)
+        print("pareto product units plot type=",df_dict.keys(),latest_date.strftime('%d/%m/%Y'),output_dir)
         top=60
    #     i_dict=df_dict.copy()
       #  print("pareto product i_dict=\n",i_dict,"\n i_dict.items()=\n",i_dict.items())
@@ -2418,18 +2421,22 @@ class sales_predict_class(object):
         return
 
        
-    def _rfr_model(self):   
+    def _rfr_model(self,new_df):   #,latest_date,next_week):   
        
-        new_df=pd.read_pickle("prior_pred_new_df.pkl")
-        #print(new_df.T)
+       # new_df=pd.read_pickle("prior_pred_new_df.pkl")
+       # print("_rfr model new_df\n",new_df,"\n",new_df.T)
+       # new_df.fillna(0,inplace=True)
+        
         colnames=new_df.columns.get_level_values('colname').to_list()[::3]     
         plotnumbers=new_df.columns.get_level_values('plotnumber').to_list()[::3]        
         
+      #  print("cn=",colnames)
+      #  print("pln=",plotnumbers)
         
-        r=1
-        totalr=len(plotnumbers)
-        pred_dict={}
-        inv_dict={}
+        # r=1
+        # totalr=len(plotnumbers)
+        # pred_dict={}
+        # inv_dict={}
         X=np.array([])
         y=np.array([])
         
@@ -2466,15 +2473,52 @@ class sales_predict_class(object):
     
     
     
-    def predict_order(self,scan_df,latest_date,output_dir):    
+    def _get_invoiced_sales_and_shift(self,new_df,sales_df):
+        new_df=new_df.droplevel([3,5,6,7,12])
+        new_df=self._multiple_slice_scandata(new_df,query=[('79','plottype3')]).copy()
+        new_df=new_df.droplevel([2,4,5,6])
+        new_df=new_df.T
+
+        plotnumber=new_df.columns.get_level_values('plotnumber').to_list() 
+        retailer=new_df.columns.get_level_values('retailer').to_list()   
+        product=new_df.columns.get_level_values('product').to_list()     
+     
+        sales_df=sales_df.sort_index()
+        
+        retailer_sales=pd.DataFrame([])
+        for n,r,p in zip(plotnumber,retailer,product):
+            sdf=sales_df[['qty']][(sales_df['spc']==float(r)) & (sales_df['product']==p)]
+ 
+            loffset = '7D'
+
+#            weekly_sdf=sdf.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)   
+               #     week ending Wed night 
+  #          weekly_sdf=sdf.resample('W-TUE', label='left', loffset=pd.DateOffset(days=7)).sum().round(0)  
+            weekly_sdf=sdf.resample('W-TUE', label='left').sum().round(0)   
+ 
+            weekly_sdf.index = weekly_sdf.index + to_offset(loffset) 
+            w2=weekly_sdf.sort_index().copy()
+            w2=w2.rename(columns={"qty":(n,r,p,79)})
+            retailer_sales=pd.concat((retailer_sales,w2),axis=1)
+        retailer_sales.fillna(0,inplace=True)    
+      #  retailer_sales=retailer_sales.T
+        retailer_sales.columns = pd.MultiIndex.from_tuples(retailer_sales.columns)
+        retailer_sales.columns.names=["plotnumber","retailer","product","plottype3"]
+        return retailer_sales   #.iloc[:,-1]
+    
+    
+    
+    def predict_order(self,scan_df,sales_df,latest_date,output_dir):    
       #  scan_df=pd.read_pickle(dd.scan_df_save)
       #  print("original scan_df=\n",scan_df)
       # new_df2=multiple_slice_scandata(scan_df,query=[('99','plottype')])
-    
+     #   print("predict order latest date=",latest_date.strftime('%d/%m/%Y'))
        #n print("plk new_df2=\n",new_df2)
       #  print(scan_df)
       #  scan_df=scan_df.T
         new_df=self._multiple_slice_scandata(scan_df,query=[('100','plottype2')]) #,('72','plottype3'),('71','plottype3'),('79','plottype3')])
+        retailer_info_df=new_df.copy()
+        
         new_df=new_df.droplevel([1,2,3,4,5,6,7,8])
     
         new_df=new_df.iloc[:,7:-1]
@@ -2503,7 +2547,6 @@ class sales_predict_class(object):
         
       
         new_df=new_df.droplevel([2],axis=1)
-    #    print("new new_df=\n",new_df)
        
        # colnames=list(set(colnames))
        # plotnumbers=list(set(plotnumbers))
@@ -2531,7 +2574,7 @@ class sales_predict_class(object):
             #   print("Correlations:\n",sales_corr)
      
             # print("row=",row)
-            new_df.xs(row,level='plotnumber',drop_level=False,axis=1).plot(xlabel="",ylabel="Units/week")
+            new_df[:-3].xs(row,level='plotnumber',drop_level=False,axis=1).plot(xlabel="",ylabel="Units/week")
             plt.legend(title="Invoiced vs scan units total/wk correlation:("+str(shifted_vs_scanned_corr)+")",loc='best',fontsize=8,title_fontsize=8)
          #   plt.show()
             self._save_fig("pred_align_"+name,output_dir)
@@ -2555,11 +2598,21 @@ class sales_predict_class(object):
      #   new_df=new_df.T
         new_df[next_week]=np.nan
         new_df=new_df.T
+        
+       # print("predict order new new_df=\n",new_df)
+ 
+        units_invoiced_df=self._get_invoiced_sales_and_shift(retailer_info_df,sales_df)
+       # print("predict order units invoiced",units_invoiced_df) 
+        scan_inv=(units_invoiced_df/1000).copy()
+        scan_inv.to_excel(output_dir+"units_invoiced.xlsx")
+        
+        
+        #  new_df=new_df.iloc[:-1]
      #   new_df.to_pickle("prior_pred_new_df.pkl",protocol=-1)
     
     ###################################################3
     # train random forest model
-        forest_reg=self._rfr_model()
+        forest_reg=self._rfr_model(new_df)   #,latest_date,next_week)
 # 
   #+++++++++++++++++++++++++++++++++++++++++++++++++      
           
@@ -2567,7 +2620,7 @@ class sales_predict_class(object):
         totalr=len(plotnumbers)
         pred_dict={}
         sort_order_dict={}
-       # name_dict={}
+        this_weeks_sales_dict={}
         inv_dict={}
         rfr_dict={}
        # rfr_list=[]
@@ -2578,13 +2631,17 @@ class sales_predict_class(object):
          #   name=colnames[r]
             
             X_full=new_df.xs(['71',row],level=['plottype3','plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
-            X=X_full[5:-3]
+            X=X_full[2:-2]
     #            X=new_df.iloc[:,7:-1].xs('1',level='plottype3',drop_level=False,axis=1).to_numpy()
-            y_full=new_df.xs(['79',row],level=['plottype3','plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
+      #      y_full2=new_df.xs(['79',row],level=['plottype3','plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
+            y_full=units_invoiced_df.xs([row],level=['plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
+
     #        y=new_df.iloc[:,7:-1].xs('2',level='plottype3',drop_level=False,axis=1).to_numpy()
-            y=y_full[6:-2]     
-      #      print("pred y_full",y_full) 
+            y=y_full[3:-4]    #(dd2.dash2_dict['sales']['predictions']["invoiced_sales_weeks_offset"])]     
+         #   print("pred",y[-3:],"d y_full",y_full)  #,"y_full2",y_full2) 
           #  new_df.replace(0,np.nan,inplace=True)
+          #  print(X,"Xshape",X.shape,"\n",y,"yshape",y.shape)
+          
             old_preds=new_df.xs(['80',row],level=['plottype3','plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
      
           #  old_preds[old_preds == 0] = np.nan # or use np.nan
@@ -2602,7 +2659,8 @@ class sales_predict_class(object):
             #name_dict[name]=colnames[r]
             sort_order_dict[name]=sortorder[r]
      
-            inv_dict[name]=y_full[-2]       
+            inv_dict[name]=y_full[-dd2.dash2_dict['sales']['predictions']["invoiced_sales_weeks_offset"]]   
+            this_weeks_sales_dict[name]=y_full[-1]
          #   print(name,"predictions:",int(pred[0]))
           #  new_df=new_df.T
          #   print("level=",new_df.index.nlevels,"pred=",pred)
@@ -2648,11 +2706,15 @@ class sales_predict_class(object):
         sort_output_df=pd.DataFrame.from_dict(sort_order_dict,orient='index',columns=["sortorder"],dtype=np.int32)
       #  name_output_df=pd.DataFrame.from_dict(name_dict,orient='index',columns=["name"])
     
-        inv_output_df=pd.DataFrame.from_dict(inv_dict,orient='index',columns=["invoiced_w/e_"+latest_date.strftime("%d/%m/%Y")],dtype=np.int32)
-        rfr_output_df=pd.DataFrame.from_dict(rfr_dict,orient='index',columns=["RFR_order_prediction_"+next_week.strftime("%d/%m/%Y")],dtype=np.int32)
+       #   sales resampled ending tuesdays, data drop is thursday so -2 day offset on dates
+    
+        inv_output_df=pd.DataFrame.from_dict(inv_dict,orient='index',columns=["invoiced_w/e_"+(latest_date+pd.offsets.Day(-2-7*(dd2.dash2_dict['sales']['predictions']["invoiced_sales_weeks_offset"]-1))).strftime("%d/%m/%Y")],dtype=np.int32)
+        this_weeks_sales_output_df=pd.DataFrame.from_dict(this_weeks_sales_dict,orient='index',columns=["invoiced_w/e_"+(latest_date+pd.offsets.Day(-2)).strftime("%d/%m/%Y")],dtype=np.int32)
+ 
+        rfr_output_df=pd.DataFrame.from_dict(rfr_dict,orient='index',columns=["RFR_order_prediction_"+(next_week+pd.offsets.Day(-2)).strftime("%d/%m/%Y")],dtype=np.int32)
      #   pred_output_df.replace(0.0,np.nan,inplace=True)
      #   pred_output_df=pd.concat((inv_output_df,pred_output_df,rfr_output_df),axis=1)
-        pred_output_df=pd.concat((sort_output_df,inv_output_df,pred_output_df,rfr_output_df),axis=1)
+        pred_output_df=pd.concat((sort_output_df,this_weeks_sales_output_df,inv_output_df,pred_output_df,rfr_output_df),axis=1)
     
         #pred_output['invoiced_last_week']=new_df.xs('79',level='plottype3',drop_level=False,axis=1)[-1:].to_numpy().T[0]
     

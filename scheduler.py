@@ -8,7 +8,9 @@ Created on Wed Dec  2 18:02:59 2020
 
 import numpy as np
 import pandas as pd
+from pandas.tseries.frequencies import to_offset
 import os
+import datetime as dt
 
 import matplotlib.pyplot as plt  
 import dash2_dict as dd2 
@@ -173,70 +175,34 @@ class scheduler_curves(object):
     
   
 class schedule(object):
-    def __init__(self):
-        
-        self.productgroup_mask=["10","11","12","13","14","15","16","17"]
-        self.productgroup_dict={                   
-                   "Jams 250ml glass jar":"10",
-                   "Sauce 300ml glass bottle":"11",
-                   "Dressings 300ml glass bottle":"12",
-                   "Condiments 250ml glass jar":"13",
-                   "Meal bases 250ml glass jar":"14",
-                   "Condiments for cheese 150ml glass jar":"15",
-                   "Traditional condiments 150ml glass jar":"16",
-                   "Mustards 150ml glass jar":"17"
-                  }
-
-        self.productgroup_type={
-                    
-                   # 0 for winter product group
-                   # 1 for summer product group 
-                   # that means they use different demand curves
-                   
-                   "Jams 250ml glass jar":0,
-                   "Sauce 300ml glass bottle":1,
-                   "Dressings 300ml glass bottle":1,
-                   "Condiments 250ml glass jar":0,
-                   "Meal bases 250ml glass jar":0,
-                   "Condiments for cheese 150ml glass jar":1,
-                   "Traditional condiments 150ml glass jar":1,
-                   "Mustards 150ml glass jar":0
-                   }
- 
-        self.format_type={
-                   "Jams 250ml glass jar":0,
-                   "Sauce 300ml glass bottle":1,
-                   "Dressings 300ml glass bottle":1,
-                   "Condiments 250ml glass jar":0,
-                   "Meal bases 250ml glass jar":0,
-                   "Condiments for cheese 150ml glass jar":2,
-                   "Traditional condiments 150ml glass jar":2,
-                   "Mustards 150ml glass jar":2
-              
-              }    
-              
-        pass
+    def __init__(self):           
+         pass
     
     
-    
-  
-    
-    
-    
-    
-    def load_SOH(self,filename):
+    def _load_SOH(self,filename):
          stock_on_hand_df=pd.read_pickle(filename)  
          stock_on_hand_df['pg']=stock_on_hand_df['productgroup']
-         stock_on_hand_df["pg"].replace(self.productgroup_dict, inplace=True)
-         stock_on_hand_df=stock_on_hand_df[stock_on_hand_df['pg'].isin(self.productgroup_mask)]
+         stock_on_hand_df["pg"].replace(dd2.dash2_dict['scheduler']['productgroup_dict'], inplace=True)
+         stock_on_hand_df=stock_on_hand_df[stock_on_hand_df['pg'].isin(dd2.dash2_dict['scheduler']['productgroup_mask'])]
          stock_on_hand_df['pg_type']=stock_on_hand_df['productgroup'] 
-         stock_on_hand_df["pg_type"].replace(self.productgroup_type,inplace=True)
+         stock_on_hand_df["pg_type"].replace(dd2.dash2_dict['scheduler']['productgroup_type'],inplace=True)
          stock_on_hand_df['format_type']=stock_on_hand_df['productgroup'] 
-         stock_on_hand_df["format_type"].replace(self.format_type,inplace=True)
+         stock_on_hand_df["format_type"].replace(dd2.dash2_dict['scheduler']['format_type'],inplace=True)
          stock_on_hand_df.rename(columns={'code':"product"},inplace=True)
          return stock_on_hand_df[["product","format_type","pg_type","productgroup","pg","lastsalesdate","qtyinstock"]]
+
+
          
-      
+    def _load_PP(self,filename):
+         return pd.read_pickle(filename)  
+        # return stock_on_hand_df[["product","format_type","pg_type","productgroup","pg","lastsalesdate","qtyinstock"]]
+
+         
+    def _load_PM(self,filename):
+         return pd.read_pickle(filename)  
+        # return stock_on_hand_df[["product","format_type","pg_type","productgroup","pg","lastsalesdate","qtyinstock"]]
+        
+  
     
     
     def load_average_weekly_sales(self,filename):
@@ -305,7 +271,30 @@ class schedule(object):
      #   return c
 
 
-  
+
+
+    def _find_latest_manu_date(self,production_made_df):
+        pmd=list(set(list(production_made_df['code'])))    # product code    
+        latest_date_dict={}
+        for p in pmd: 
+             w=production_made_df[production_made_df['code']==p]
+          #   print("w=\n",w)
+             latest_date_dict[p]=w['to_date'].max(axis=0)
+     #   print("latest_date_dict=",latest_date_dict)
+    #    stocks["format_priority"].replace(fp, inplace=True)
+        return latest_date_dict
+
+
+
+    def _replace_latest_manu_date(self,latest_date_dict,s):
+        ps=list(set(list(s['product'])))    
+        stocks=s.copy()
+        for p in ps: 
+             stocks['last_manu_date'][stocks['product']==p]=latest_date_dict[p]
+             
+       # print("fp=",fp)
+        stocks["weeks_since_last_made"]=(pd.to_datetime('today')-pd.to_datetime(stocks['last_manu_date'])).dt.days/7    #round("D")
+        return stocks
 
     
     
@@ -327,9 +316,15 @@ class schedule(object):
         sc.display_curves(curves,output_dir)
        # print("curves_df=\n",curves_df)
         
-        stock_on_hand_df=s.load_SOH(dd2.dash2_dict['production']['save_dir']+dd2.dash2_dict['production']['SOH_savefile'])
-        #print("SOH=\n",stock_on_hand_df)  
-        
+        stock_on_hand_df=self._load_SOH(dd2.dash2_dict['production']['save_dir']+dd2.dash2_dict['production']['SOH_savefile'])
+      #  print("SOH=\n",stock_on_hand_df)  
+
+        production_made_df=self._load_PM(dd2.dash2_dict['production']['save_dir']+dd2.dash2_dict['production']['PM_savefile'])
+      #  print("PM=\n",production_made_df)  
+
+        latest_date_dict=self._find_latest_manu_date(production_made_df)      
+
+
         weekly_sales_df,latest_date=s.load_average_weekly_sales(dd2.dash2_dict['sales']['save_dir']+dd2.dash2_dict['sales']['savefile'])
         #print("weekly sales df=\n",weekly_sales_df)
         stocks=pd.merge(stock_on_hand_df,weekly_sales_df,on=["product"])   #['product']=='product']]
@@ -338,20 +333,26 @@ class schedule(object):
         stocks['no_weeks_sales_as_target']=target_weeks_of_stocks
         stocks['target_holdings']=round(stocks['ave_qty_sold_per_week']*target_weeks_of_stocks,0).astype(np.int32)
         stocks['stock_needed']=stocks['target_holdings']-stocks['qtyinstock']
-        stocks['days_to_stock_out']=round(stocks['qtyinstock'] / ((stocks['ave_qty_sold_per_week']/7)),0).astype(np.int32)
+        stocks['weeks_to_stock_out']=round(stocks['qtyinstock'] / ((stocks['ave_qty_sold_per_week'])),1)
         stocks['urgency']=0.0
         stocks['effic']=0.0
         stocks['winter_demand']=0.0  #*(1-stocks['pg_type'])+curv[3]*stocks['pg_type']
         stocks['summer_demand']=0.0
+        stocks['last_manu_date']=pd.to_datetime("today")
+        stocks['weeks_since_last_made']=0
+    #    print("stocks before:=\n",stocks.to_string())
+        
+        latest_date_dict=self._find_latest_manu_date(production_made_df)      
+        stocks=self._replace_latest_manu_date(latest_date_dict,stocks)
     
-     
-       # print(stocks.to_string())
+    
+     #   print("stocks after:=\n",stocks.to_string())
         # stocks['effic']=0.0
         #for row in range(0,stocks.shape[0]):
-        day_no_list=stocks['days_to_stock_out']
-        for i,d in enumerate(day_no_list):   
+        weeks_no_list=stocks['weeks_to_stock_out']
+        for i,w in enumerate(weeks_no_list):   
          #  print("urgency",i,d) 
-           curv=s.calc_urgency(d,estimated_days_to_make_from_scheduling,curves)
+           curv=s.calc_urgency(int(w/7),estimated_days_to_make_from_scheduling,curves)
            stocks['urgency'].iloc[i]=curv[0]
            
            
@@ -360,6 +361,14 @@ class schedule(object):
          #  print("effic",i,e) 
            curv2=s.calc_efficiency(e,minimum_onehundred_percent_run,curves)
            stocks['effic'].iloc[i]=curv2
+          
+        sd={}    
+        product_list=list(set(list(stocks['product']))) 
+      #  print("product_list=",product_list)
+        for p in product_list:
+            stocks[stocks['product']==p].sort_index(ascending=True)
+            sd[p]=5  #(pd.to_datetime("today")-pd.to_datetime(stocks['lastsalesdate'].iloc[-1]))    #.strftime("%d/%m/%Y")
+            
           
         curv3=s.calc_demand(estimated_days_to_make_from_scheduling,curves)  
         stocks['winter_demand']=curv3[0]  #*(1-stocks['pg_type'])+curv[3]*stocks['pg_type']
@@ -372,21 +381,33 @@ class schedule(object):
         
         stocks['target_holdings']=round(stocks['adjusted_ave_qty_sold_per_week']*target_weeks_of_stocks,0).astype(np.int32)
         
-        stocks['proirity']=(stocks['effic']*efficiency_weight+stocks['urgency']*urgency_weight)
+        stocks['priority']=(stocks['effic']*efficiency_weight+stocks['urgency']*urgency_weight)
         stocks=stocks[stocks['stock_needed']>0]
-        stocks['format_proirity']=stocks['pg']
+        stocks['format_priority']=stocks['pg']
+        stocks['format_type_priority']=stocks['pg_type']
         pgs=list(set(list(stocks['pg'])))
         fp={}
         for pg in pgs:
             v=stocks[stocks['pg']==pg]
-            #print("v",v,np.mean(v['proirity']))
-            fp[pg]=np.mean(v['proirity'])
-    
+       
+            #print("v",v,np.mean(v['priority']))
+            fp[pg]=np.mean(v['priority'])
+            
+        pgts=list(set(list(stocks['pg_type'])))    
+        ft={}
+        for pgt in pgts: 
+             w=stocks[stocks['pg_type']==pgt]
+             ft[pgt]=np.mean(w['priority'])
      #   print("fp=",fp)
-        stocks["format_proirity"].replace(fp, inplace=True)
-        stocks=stocks.sort_values(['format_proirity','format_type','proirity','days_to_stock_out'],axis=0,ascending=[False,False,False,True])
+        stocks["format_priority"].replace(fp, inplace=True)
+        stocks["format_type_priority"].replace(ft, inplace=True)
+       # stocks['days_since_last_manu'].replace(sd,inplace=True)
+        stocks=stocks.sort_values(['format_type_priority','format_priority','priority','weeks_to_stock_out'],axis=0,ascending=[False,False,False,True])
         print("schedule at",latest_date.strftime("%d/%m/%Y"),"=\n",stocks.to_string())  #,"\n",stocks.T)
-      #  print(stocks[["product","qtyinstock","no_weeks_sales_as_target","stock_needed","days_to_stock_out","format_type","format_proirity","proirity"]].to_string())
+        stocks.to_pickle(dd2.dash2_dict['scheduler']['schedule_savedir']+dd2.dash2_dict['scheduler']['schedule_savefile'],protocol=-1)
+        
+        
+      #  print(stocks[["product","qtyinstock","no_weeks_sales_as_target","stock_needed","days_to_stock_out","format_type","format_priority","priority"]].to_string())
         # stock to make = target_weeks_of_SOH*historic_weekly_sales_rate*seasonality_factor- Current SOH
         #  days to stock out=Current SOH /  (historic_weekly_sales_rate/7*seasonality_factor)
         print("\n===============================================================================================\n")

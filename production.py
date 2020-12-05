@@ -7,6 +7,7 @@ Created on Sat Nov 21 14:44:26 2020
 """
 ""
 import pandas as pd
+from pandas.tseries.frequencies import to_offset
 import dash2_dict as dd2
 
 
@@ -44,7 +45,7 @@ class production_class(object):
         stock_report_df=stock_df[['productgroup','code','lastsalesdate','qtyinstock']].sort_values(['productgroup','qtyinstock'],ascending=[True,True])
         
         stock_report_df.replace({'productgroup':dd2.productgroups_dict},inplace=True)
-        self._save(stock_report_df)
+        self._save_stock(stock_report_df)
         return stock_report_df
     
     
@@ -58,6 +59,8 @@ class production_class(object):
         production_made_df=pd.read_excel(in_dir+dd2.dash2_dict['production']['production_made_query'],sheet_name=dd2.dash2_dict['production']['production_made_sheet'])    # -1 means all rows   
         production_made_df=production_made_df[['to_date','jobid','code','qtybatches','qtyunits']].sort_values('to_date',ascending=True)
         print("\nProduction recently made:\n",production_made_df.tail(50))
+        self._save_PM(production_made_df)
+        
         print("load:",in_dir+dd2.dash2_dict['production']['production_planned_query'])
         production_planned_df=pd.read_excel(in_dir+dd2.dash2_dict['production']['production_planned_query'],sheet_name=dd2.dash2_dict['production']['production_planned_sheet'])    # -1 means all rows   
         
@@ -66,7 +69,7 @@ class production_class(object):
                         
         production_planned_df=production_planned_df[['to_date','jobid','code','qtybatches','qtyunits']].sort_values('to_date',ascending=True)
         print("\nProduction planned:\n",production_planned_df.head(50))
-        
+        self._save_PP(production_planned_df)
         print("\n============================================================================\n")  
               
         return
@@ -81,9 +84,21 @@ class production_class(object):
        return
 
        
-   def _save(self,df):
-       print("save production")
+   def _save_stock(self,df):
+       print("save stock")
        df.to_pickle(dd2.dash2_dict['production']['save_dir']+dd2.dash2_dict['production']['SOH_savefile'],protocol=-1)
        return
-   
+ 
+       
+   def _save_PP(self,df):
+       print("save PP")
+       df.to_pickle(dd2.dash2_dict['production']['save_dir']+dd2.dash2_dict['production']['PP_savefile'],protocol=-1)
+       return
+     
+       
+   def _save_PM(self,df):
+       print("save PM")
+       df.to_pickle(dd2.dash2_dict['production']['save_dir']+dd2.dash2_dict['production']['PM_savefile'],protocol=-1)
+       return
+ 
     

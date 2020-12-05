@@ -198,7 +198,7 @@ def main():
     
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=    
   #  print("aug sales df=\n",aug_sales_df)
-    print("Run queries on loaded sales_df data:",aug_sales_df.shape,"(",first_date,"to",latest_date,")") 
+    print("Run queries on loaded sales_df data:",aug_sales_df.shape,"(",first_date.strftime('%d/%m/%Y'),"to",latest_date.strftime('%d/%m/%Y'),")") 
     query_dict=dash.sales.query.queries(aug_sales_df)   #"sales query infile4","g")
     print("query dict keys=\n",query_dict.keys())
     for k,v in query_dict.items():
@@ -254,67 +254,69 @@ def main():
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    # sales trans data    
    
-   
-    dash.sales.pivot.distribution_report_dollars('last_today_to_365_days',query_dict['last_today_to_365_days'],plot_output_dir,trend=True)
-  
+    if False:   #True:  
+        dash.sales.pivot.distribution_report_dollars('last_today_to_365_days',query_dict['last_today_to_365_days'],plot_output_dir,trend=True)
+      
+        
+        dash.sales.plot.mat(all_raw_dict,dd2.dash2_dict['sales']['annual_mat'],latest_date,plot_output_dir)
+        dash.sales.plot.mat(query_dict,dd2.dash2_dict['sales']['annual_mat'],latest_date,plot_output_dir)
+        #dash.sales.plot.mat_stacked_product(query_dict,dd2.dash2_dict['sales']['annual_mat'],latest_date,plot_output_dir)
+       
+       
+        dash.sales.plot.yoy_dollars(query_dict,7,latest_date,plot_output_dir)
+        dash.sales.plot.yoy_units(query_dict,7,latest_date,plot_output_dir)
+        # dash.sales.plot.compare_customers(query_dict,dd2.dash2_dict['sales']['annual_mat'],dd2.dash2_dict['sales']['plots']['customers_to_plot_together'],latest_date,plot_output_dir)
+        dash.sales.plot.p_compare_customers(query_dict,dd2.dash2_dict['sales']['annual_mat'],dd2.dash2_dict['sales']['plots']['customers_to_plot_together'],latest_date,plot_output_dir)
+        dash.sales.plot.p_compare_products(query_dict,dd2.dash2_dict['sales']['annual_mat'],dd2.dash2_dict['sales']['plots']['products_to_plot_together'],latest_date,plot_output_dir)
     
-    dash.sales.plot.mat(all_raw_dict,dd2.dash2_dict['sales']['annual_mat'],latest_date,plot_output_dir)
-    dash.sales.plot.mat(query_dict,dd2.dash2_dict['sales']['annual_mat'],latest_date,plot_output_dir)
-    #dash.sales.plot.mat_stacked_product(query_dict,dd2.dash2_dict['sales']['annual_mat'],latest_date,plot_output_dir)
-   
-   
-    dash.sales.plot.yoy_dollars(query_dict,7,latest_date,plot_output_dir)
-    dash.sales.plot.yoy_units(query_dict,7,latest_date,plot_output_dir)
-    # dash.sales.plot.compare_customers(query_dict,dd2.dash2_dict['sales']['annual_mat'],dd2.dash2_dict['sales']['plots']['customers_to_plot_together'],latest_date,plot_output_dir)
-    dash.sales.plot.p_compare_customers(query_dict,dd2.dash2_dict['sales']['annual_mat'],dd2.dash2_dict['sales']['plots']['customers_to_plot_together'],latest_date,plot_output_dir)
-    dash.sales.plot.p_compare_products(query_dict,dd2.dash2_dict['sales']['annual_mat'],dd2.dash2_dict['sales']['plots']['products_to_plot_together'],latest_date,plot_output_dir)
-
-
-
-  
-    dash.sales.plot.pareto_customer(query_dict,latest_date,plot_output_dir)
-    dash.sales.plot.pareto_product_dollars(query_dict,latest_date,plot_output_dir)
-    dash.sales.plot.pareto_product_units(query_dict,latest_date,plot_output_dir)
- 
-    print("distribution report dollars + trend sort")
-    original_stdout = sys.stdout 
-    with open(plot_output_dir+dd2.dash2_dict['sales']['print_report'], 'a') as f:
-       sys.stdout = f 
-       dash.sales.pivot.distribution_report_dollars('last_today_to_365_days',query_dict['last_today_to_365_days'],plot_output_dir,trend=True)
-   
-    sys.stdout=original_stdout 
     
-    dash.sales.pivot.distribution_report_dollars('last_365_to_731_days',query_dict['last_365_to_731_days'],plot_output_dir,trend=False)
-  
-    this_year=query_dict['last_today_to_365_days'].copy()
-    last_year=dash.sales.pivot.negative(query_dict['last_365_to_731_days'])   # multiple all athe salesval by -1 
-    change_year=pd.concat((this_year,last_year),axis=0)
-    dash.sales.pivot.distribution_report_dollars('change dollars',change_year,plot_output_dir,trend=False)
-
-    dash.sales.pivot.distribution_report_units('last_today_to_365_days',query_dict['last_today_to_365_days'],plot_output_dir)
-    dash.sales.pivot.distribution_report_units('last_365_to_731_days',query_dict['last_365_to_731_days'],plot_output_dir)
-   
-    this_year=query_dict['last_today_to_365_days'].copy()
-    last_year=dash.sales.pivot.negative(query_dict['last_365_to_731_days'])   # multiple all athe salesval by -1 
-    change_year=pd.concat((this_year,last_year),axis=0)
-    dash.sales.pivot.distribution_report_units('change units',change_year,plot_output_dir)
-
-    dash.sales.pivot.distribution_report_dates('last_today_to_365_days',query_dict['last_today_to_365_days'],plot_output_dir)
+    
+      
+        dash.sales.plot.pareto_customer(query_dict,latest_date,plot_output_dir)
+        dash.sales.plot.pareto_product_dollars(query_dict,latest_date,plot_output_dir)
+        dash.sales.plot.pareto_product_units(query_dict,latest_date,plot_output_dir)
+     
+        print("distribution report dollars + trend sort")
+        original_stdout = sys.stdout 
+        with open(plot_output_dir+dd2.dash2_dict['sales']['print_report'], 'a') as f:
+           sys.stdout = f 
+           dash.sales.pivot.distribution_report_dollars('last_today_to_365_days',query_dict['last_today_to_365_days'],plot_output_dir,trend=True)
+       
+        sys.stdout=original_stdout 
+        
+        dash.sales.pivot.distribution_report_dollars('last_365_to_731_days',query_dict['last_365_to_731_days'],plot_output_dir,trend=False)
+      
+        this_year=query_dict['last_today_to_365_days'].copy()
+        last_year=dash.sales.pivot.negative(query_dict['last_365_to_731_days'])   # multiple all athe salesval by -1 
+        change_year=pd.concat((this_year,last_year),axis=0)
+        dash.sales.pivot.distribution_report_dollars('change dollars',change_year,plot_output_dir,trend=False)
+    
+        dash.sales.pivot.distribution_report_units('last_today_to_365_days',query_dict['last_today_to_365_days'],plot_output_dir)
+        dash.sales.pivot.distribution_report_units('last_365_to_731_days',query_dict['last_365_to_731_days'],plot_output_dir)
+       
+        this_year=query_dict['last_today_to_365_days'].copy()
+        last_year=dash.sales.pivot.negative(query_dict['last_365_to_731_days'])   # multiple all athe salesval by -1 
+        change_year=pd.concat((this_year,last_year),axis=0)
+        dash.sales.pivot.distribution_report_units('change units',change_year,plot_output_dir)
+    
+        dash.sales.pivot.distribution_report_dates('last_today_to_365_days',query_dict['last_today_to_365_days'],plot_output_dir)
  
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
   #  Scan data 
     
-    dash.scan.brand_index(scan_df,plot_output_dir)  
+        dash.scan.brand_index(scan_df,plot_output_dir)  
   #  print("scan_df=\n",scan_df,"\n",scan_df.T)
   #  original_stdout = sys.stdout 
   #  with open(plot_output_dir+dd2.dash2_dict['sales']['print_report'], 'a') as f:
   #      sys.stdout = f 
         
-    dash.scan.plot_scan_weekly(scan_df,plot_output_dir)  
+        dash.scan.plot_scan_weekly(scan_df,plot_output_dir)  
     #    dash.scan.plot_scan_monthly_data(scan_monthly_df,plot_output_dir)
-    dash.scan.plot_scan_monthly_dict(scan_monthly_dict,plot_output_dir)
+        dash.scan.plot_scan_monthly_dict(scan_monthly_dict,plot_output_dir)
    
-    dash.sales.predict.predict_order(scan_df,pd.to_datetime(latest_date),plot_output_dir)
+   # print("\nlatest date",latest_date) 
+  #  print("aug sales_df=\n",aug_sales_df)
+    dash.sales.predict.predict_order(scan_df,aug_sales_df,latest_date,plot_output_dir)
    # sys.stdout=original_stdout 
   
  #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++   
