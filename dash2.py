@@ -318,6 +318,12 @@ def main():
   #  print("aug sales_df=\n",aug_sales_df)
     dash.sales.predict.predict_order(scan_df,aug_sales_df,latest_date,plot_output_dir)
    # sys.stdout=original_stdout 
+   
+    #dash.sales.predict._repredict_rfr(plot_output_dir)
+    
+    dash.scheduler.visualise_schedule(plot_output_dir)
+
+   
   
  #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++   
    # actual vs expected prediction

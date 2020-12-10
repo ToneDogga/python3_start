@@ -25,7 +25,7 @@ class dash2_class:
        self.price=price.price_class()
        self.production=production.production_class()
        self.ave_predict=ave_dash2.ave_class()
-       self.scheduler=scheduler.schedule()
+       self.scheduler=scheduler.scheduler()
        #self.load=sales_class()
        
 
