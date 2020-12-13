@@ -12,10 +12,11 @@ import price
 import scheduler
 import production
 import ave_dash2
+import animate_plots
 
 import pandas as pd
 
-class dash2_class:
+class dash2_class():
    def __init__(self):   #,in_value):
       # self.dash2_init="dash2_init called"
       # print(self.dash2_init)
@@ -26,6 +27,7 @@ class dash2_class:
        self.production=production.production_class()
        self.ave_predict=ave_dash2.ave_class()
        self.scheduler=scheduler.scheduler()
+       self.animate=animate_plots.animate_engine()
        #self.load=sales_class()
        
 

@@ -54,7 +54,32 @@ import cv2
   
 from p_tqdm import p_map,p_umap
 
-       
+ 
+from pandas.tseries.holiday import *
+from pandas.tseries.offsets import CustomBusinessDay
+
+
+class SABusinessCalendar(AbstractHolidayCalendar):
+   rules = [
+     Holiday('New Year', month=1, day=1), #observance=sunday_to_monday),
+     Holiday('Australia Day', month=1, day=26, observance=sunday_to_monday),
+   
+     Holiday('Anzac Day', month=4, day=25),
+     Holiday('Good Friday', month=1, day=1, offset=[Easter(), Day(-2)]),
+     Holiday('Easter Monday', month=1, day=1, offset=[Easter(),Day(+1)]),    
+
+   
+     Holiday('October long weekend', month=10, day=1, observance=sunday_to_monday),
+     Holiday('Christmas', month=12, day=25), #, observance=nearest_workday),
+     Holiday('Boxing day', month=12, day=26),  #, observance=nearest_workday),
+     Holiday('Dec27 shutdown', month=12, day=27),   #, observance=nearest_workday)
+     Holiday('Proclamation day', month=12, day=28),   #, observance=nearest_workday),
+     Holiday('Dec29 shutdown', month=12, day=29),   #, observance=nearest_workday)    
+     Holiday('Dec30 shutdown', month=12, day=30),   #, observance=nearest_workday)     
+     Holiday('Dec31 shutdown', month=12, day=31)   #, observance=nearest_workday)     
+
+   ]
+      
 
    
 
@@ -337,12 +362,12 @@ class scheduler(object):
        # s=schedule()    
        # sc=scheduler_curves()
         
-        target_weeks_of_stocks=5
-        minimum_weeks_stock_holdings=2
-        estimated_days_to_make_from_scheduling=1
-        urgency_weight=1.0
-        efficiency_weight=1.0
-        minimum_onehundred_percent_run=40000
+        target_weeks_of_stocks=dd2.dash2_dict['scheduler']['target_weeks_of_stocks']
+        minimum_weeks_stock_holdings=dd2.dash2_dict['scheduler']['minimum_weeks_stock_holdings']
+        estimated_days_to_make_from_scheduling=dd2.dash2_dict['scheduler']['estimated_days_to_make_from_scheduling']
+        urgency_weight=dd2.dash2_dict['scheduler']['urgency_weight']
+        efficiency_weight=dd2.dash2_dict['scheduler']['efficiency_weight']
+        minimum_onehundred_percent_run=dd2.dash2_dict['scheduler']['minimum_onehundred_percent_run']
         
         curves=self.create_curves()
       #  print(curves)
@@ -798,53 +823,145 @@ class scheduler(object):
     
 
 
-    
-    
-    def stacker(self,df):
-    # take a df of the schedule and fit it efficiency into each day using dd2.dash2_dict['scheduler']['stacker_productivity']  values
-    
-     #   df['new_dates']=df.index.get_level_values(0)
-     #   print("stacker=\n",df)
-        # for r1 in df.index:
-        #     start_batch=df.iloc[r1,'batches']
-        #     print(df)
-        #     for r2 in df.index[1:]:
-        #         tot_batches=df.loc[r2,'batches']+start_batch
-        #         print("r2",r2,tot_batches)
-    
-                
-                
+
+
+    def stacker(self,*,schedule,min_day_size,max_day_size):
+        SA_BD = CustomBusinessDay(calendar=SABusinessCalendar())
         
-        return df
+        schedule.set_index(['priority'],drop=False,inplace=True)
+        start_date=schedule.iloc[0,1]
+        schedule['original_stacked_date_pos']=schedule['stacked_date_pos']
+
+        schedule['moved']=False
+        schedule=schedule[~schedule['moved']]
+        if True:
+            stacked_pos=0
+            schedule['moved']=False
+            inc_sp_flag=False
+         #   schedule=schedule[~schedule['moved']]
+            for row in schedule.index:  #range(0,schedule.shape[0]-1):
+                if ~schedule.loc[row,'moved']:
+                  #  try:
+  
+                    tot_batch=schedule.loc[row,'batches']
+                  #  except:
+                  #      break
+                   # new_schedule=schedule[~schedule['moved']]
+                   # ft=schedule.loc[row,'format_type']
+                 #   schedule=schedule[schedule['format_type']==schedule.loc[row,'format_type']]
+                    for row2 in schedule.index[row:]:
+                        if (~(schedule.loc[row2,'moved']) | (schedule.loc[row,'moved'])) & (schedule.loc[row,'format_type']==schedule.loc[row2,'format_type']):
+                         #   schedule=schedule[(schedule[row2,'format_type']==ft)]
+                       #     if (schedule.loc[row,'format_type']==schedule.loc[row2,'format_type']):
+                                 test_tot_batch=tot_batch+schedule.loc[row2,'batches']
+                              #   print("pass=",passes,"r1=",row,tot_batch,"+r2=",row2,schedule.loc[row2,'batches'],"=",test_tot_batch)
+                                 if (test_tot_batch<min_day_size):
+                               #      print("too small <",min_day_size,test_tot_batch)
+                          #           schedule.loc[row,'stacked_date_pos']=stacked_pos
+                                    # try:
+                                     tot_batch+=schedule.loc[row2,'batches']
+                                    # except:
+                                    #    break
+                                   #  stacked_pos+=1
+                                 elif (test_tot_batch>=max_day_size):
+                              #       print("too big >=",max_day_size,test_tot_batch)
+                                     inc_sp_flag=True
+                                    # break
+                                    # tot_batch=0
+                                   #  stacked_pos+=1
+                                     
+                                 else:  
+                                      #   tot_batch+=schedule.loc[row2,'batches']
+                             #        print("just right test_tot_batch=",test_tot_batch)
+                                     tot_batch=test_tot_batch
+                                     schedule.loc[row2,'stacked_date_pos']=stacked_pos
+                                     inc_sp_flag=True
+                                   #  schedule.loc[row,'stacked_date_pos']=stacked_pos
+
+                                     schedule.loc[row2,'moved']=True
+                                      
+                        else:
+                            pass
+                            
+
+                    
+                    if inc_sp_flag: 
+                        stacked_pos+=1
+                        inc_sp_flag=False
+        
+        schedule.reset_index(drop=True,inplace=True)
+  
+     #   schedule.sort_values(["stacked_date_pos"],ascending=True,inplace=True)
+        for p in range(1,2):
+            schedule.sort_values(["stacked_date_pos"],ascending=True,inplace=True)
+          #  schedule=schedule[(~schedule['moved']) & (schedule['stacked_date_pos']>=stacked_pos)]
+         #   print("schedule slice=",schedule.to_string())
+            try:
+                topval=schedule[(~schedule['moved']) & (schedule['stacked_date_pos']>=stacked_pos)].iloc[:,6].to_numpy()
+            except:
+                pass
+            else:
+            #    print("p,tv",topval)
+ 
+                change=(-(np.arange(stacked_pos,stacked_pos+topval.shape[0])-topval))
+             #   print("stacked pos",stacked_pos,topval,change)
+              #  print(schedule[((~schedule['moved']) & (schedule['stacked_date_pos']>=stacked_pos))])  #.iloc[:,6]-=change
+                schedule.loc[((~schedule['moved']) & (schedule['stacked_date_pos']>=stacked_pos)),'stacked_date_pos']-=change
+  
+             #   schedule.loc[(~schedule['moved']) & (schedule['stacked_date_pos']>=stacked_pos),'stacked_date_pos']-=change
+             #   schedule.loc[(~schedule['moved']) & (schedule['stacked_date_pos']>=stacked_pos),'moved']=True
+        schedule.drop(['original_stacked_date_pos','moved','format_type'],inplace=True,axis=1)   
+        
+    #    start_date = dt.date.today()   #time.now()  #.normalize()   #dt.date.today()
+     #   other_start_date=start_date.dt.datetime
+        date_choices=pd.bdate_range(start_date,start_date+timedelta(schedule.shape[0]*2),normalize=True,freq=SA_BD)
+        date_choices_dict={}
+        
+        for j,d in enumerate(date_choices):
+         #   i=int((d-start_date).days)
+            date_choices_dict[j]=d
+
+      #  print(date_choices_dict)
+        schedule.drop(['scheduled_date'],axis=1,inplace=True)
+        schedule['scheduled_date']=[date_choices_dict[i] for i in schedule['stacked_date_pos'].to_list()]
+        schedule.drop(['stacked_date_pos'],axis=1,inplace=True)
+        schedule.set_index(['scheduled_date'],drop=True,inplace=True)
+      #  schedule.sort_index(ascending=True,axis=1,inplace=True)
+        return schedule
+
+                
+
 
    
     
     
-    def display_and_export_final_schedule(self,df,start_schedule_date):
-        df['priority']=np.arange(1,df.shape[0]+1)
-        df['stacked_date_pos']=np.arange(0,df.shape[0])
-        df['stacked_date']=df['scheduled_date'].iloc[0]
-        final_schedule=df[['priority','scheduled_date','product','batches','new_stock_will_be_approx','stacked_date','stacked_date_pos']]
-     #   final_schedule.drop(["scheduled_date","priority"],axis=1,inplace=True)
-        final_schedule.to_pickle("fs.pkl",protocol=-1)
+    def display_and_export_final_schedule(self,final_schedule,start_schedule_date,plot_output_dir):
+#         df['priority']=np.arange(1,df.shape[0]+1)
+#         df['stacked_date_pos']=np.arange(0,df.shape[0])
+#     #    df['stacked_date']=df['scheduled_date'].iloc[0]
+#         final_schedule=df[['priority','scheduled_date','product','format_type','batches','new_stock_will_be_approx','stacked_date_pos']]
+#      #   final_schedule.drop(["scheduled_date","priority"],axis=1,inplace=True)
+#         final_schedule.to_pickle("fs.pkl",protocol=-1)
    
-       # final_schedule.set_index(['scheduled_date','priority'],drop=False,inplace=True)
+#        # final_schedule.set_index(['scheduled_date','priority'],drop=False,inplace=True)
     
  
         
-        print("\nBefore stacking - scheduling start date=",start_schedule_date.strftime("%A %d/%m/%Y"))            
-        print(final_schedule)
+#         #print("\nBefore stacking - scheduling start date=",start_schedule_date.strftime("%A %d/%m/%Y"))            
+#         #print(final_schedule)
         
-        final_schedule=self.stacker(final_schedule)
-          
+  
+
+#         final_schedule=self.stacker(schedule=final_schedule,min_day_size=dd2.dash2_dict['scheduler']['min_day_size'],max_day_size=dd2.dash2_dict['scheduler']['max_day_size'])
+# #print("finish schedule=\n",schedule.to_string())
         print("\nAfter stacking - scheduling start date=",start_schedule_date.strftime("%A %d/%m/%Y"))            
-        print(final_schedule)
+        print(final_schedule.to_string())
         
         
         sheet_name = 'Sheet1'
-        writer = pd.ExcelWriter(dd2.dash2_dict['scheduler']['schedule_savedir_plots']+dd2.dash2_dict['scheduler']['schedule_save_excel'],engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
+        writer = pd.ExcelWriter(plot_output_dir+dd2.dash2_dict['scheduler']['schedule_save_excel'],engine='xlsxwriter',datetime_format='dd/mm/yyyy',date_format='dd/mm/yyyy')   #excel_file, engine='xlsxwriter')
      
-        final_schedule.to_excel(writer,sheet_name=sheet_name,index=False)
+        final_schedule.to_excel(writer,sheet_name=sheet_name,index=True)
         
         workbook = writer.book
         worksheet = writer.sheets[sheet_name]
@@ -924,7 +1041,12 @@ class scheduler(object):
     
        
     
-    def visualise_schedule(self,plot_output_dir):
+    def visualise_schedule(self,start_schedule_day_offset,start_schedule_date,plot_output_dir):
+        
+        SA_BD = CustomBusinessDay(calendar=SABusinessCalendar())
+#s = pd.bdate_range('2020-07-01', end='2021-01-07', freq=SA_BD)
+
+        
     #    os.chdir("/home/tonedogga/Documents/python_dev")
      #   cwdpath = os.getcwd()
         
@@ -937,38 +1059,38 @@ class scheduler(object):
        
         todays_date = dt.date.today()   #time.now()  #.normalize()   #dt.date.today()
         other_todays_date=dt.datetime.now()
-        maximum_days_into_schedule_future=80
-       # start_schedule_day_offset=0
+       #  maximum_days_into_schedule_future=80
+       # # start_schedule_day_offset=0
          
-        date_choices=pd.bdate_range(todays_date,todays_date+timedelta(maximum_days_into_schedule_future),normalize=True)
-        date_choices_dict={}
+       #  date_choices=pd.bdate_range(todays_date,todays_date+timedelta(maximum_days_into_schedule_future),normalize=True,freq=SA_BD)
+       #  date_choices_dict={}
         
-        for d in date_choices:
-            i=int((d-other_todays_date).days+1)
-            date_choices_dict[i]=d
+       #  for d in date_choices:
+       #      i=int((d-other_todays_date).days+1)
+       #      date_choices_dict[i]=d
  
-        if True: #we are testing
-            start_schedule_day_offset=5
-            start_schedule_date=date_choices_dict[int(start_schedule_day_offset)]
-        else:    
-            #print("dcd=",date_choices_dict)    
-            incorrect=True
-            while incorrect:    
-                start_schedule_day_offset=input("Days ahead from today to start scheduling manufacturing?")
-                if isinstance(start_schedule_day_offset,str):
-                    try:
-                        start_schedule_day_offset=int(start_schedule_day_offset)
-                    except:
-                        pass
-                    else:
-                        if isinstance(start_schedule_day_offset,int):
-                            try:
-                                start_schedule_date=date_choices_dict[int(start_schedule_day_offset)]
-                            except KeyError:
-                                print("start date is weekend or invalid.")
-                                pass
-                            else:
-                                incorrect=False
+       #  if True: #we are testing
+       #      start_schedule_day_offset=dd2.dash2_dict['scheduler']['default_start_schedule_days_delay']
+       #      start_schedule_date=date_choices_dict[int(start_schedule_day_offset)]
+       #  else:    
+       #      #print("dcd=",date_choices_dict)    
+       #      incorrect=True
+       #      while incorrect:    
+       #          start_schedule_day_offset=input("Days ahead from today to start scheduling manufacturing?")
+       #          if isinstance(start_schedule_day_offset,str):
+       #              try:
+       #                  start_schedule_day_offset=int(start_schedule_day_offset)
+       #              except:
+       #                  pass
+       #              else:
+       #                  if isinstance(start_schedule_day_offset,int):
+       #                      try:
+       #                          start_schedule_date=date_choices_dict[int(start_schedule_day_offset)]
+       #                      except KeyError:
+       #                          print("start date is weekend or invalid.")
+       #                          pass
+       #                      else:
+       #                          incorrect=False
               
             
           
@@ -988,7 +1110,9 @@ class scheduler(object):
         # stock level equation is    x (dates) = starting stock - sales rate/day * x
         
         #print(schedule)
-        
+     #   final_schedule.drop(["scheduled_date","priority"],axis=1,inplace=True)
+       # schedule.to_pickle("fs.pkl",protocol=-1)
+ 
         product_code_priority=schedule['product'].to_list()
         pcp_len=len(product_code_priority)
         print("\n")  #"ppp",product_code_priority)
@@ -1013,7 +1137,7 @@ class scheduler(object):
         
     
       #  schedule['batches']
-        schedule['scheduled_date']=pd.bdate_range(start_schedule_date,start_schedule_date+timedelta(round(pcp_len*(7/5),0)+1),normalize=True)[:pcp_len] 
+        schedule['scheduled_date']=pd.bdate_range(start_schedule_date,start_schedule_date+timedelta(round(pcp_len*(7/5),0)*2),normalize=True,freq=SA_BD)[:pcp_len] 
         schedule['days_to_manu']=(pd.to_datetime(schedule['scheduled_date'])-pd.to_datetime(todays_date)).dt.days.astype('int16')   #pd.to_datetime(todays_date)
         schedule['day_of_week_no']=schedule['scheduled_date'].dt.dayofweek
       #  print("schedule before2=\n",schedule)
@@ -1023,6 +1147,14 @@ class scheduler(object):
         schedule['new_stock_will_be_approx']=np.around(schedule['qtyinstock']+schedule['batches']*schedule['yield_per_batch']-((schedule['adjusted_ave_qty_sold_per_week']/7)*schedule['days_to_manu']),0).astype(np.int32)
       #  schedule['day_of_week']=schedule['day_of_week_no'].format("%W")
       #  print("schedule before3=\n",schedule)
+        
+        
+     #   schedule['priority']=np.arange(1,schedule.shape[0]+1)
+     #   schedule['stacked_date_pos']=np.arange(0,schedule.shape[0])
+    #    df['stacked_date']=df['scheduled_date'].iloc[0]
+     #   schedule=schedule[['priority','scheduled_date','product','format_type','batches','new_stock_will_be_approx','stacked_date_pos']]
+    
+        
         
         
         
@@ -1043,11 +1175,11 @@ class scheduler(object):
             start_date=stock_line['last_manu_date'].date()  #.normalize()    #.strftime("%d/%m/%Y")
             #print(start_date)
             #end_date=start_date+pd.offsets.Day(36)
-            end_date=start_date+timedelta(maximum_days_into_schedule_future)
+            end_date=start_date+timedelta(dd2.dash2_dict['scheduler']['maximum_days_into_schedule_future'])
     
             if todays_date>(end_date-timedelta(days_to_potentially_schedule_ahead)):
                 start_date=todays_date-timedelta(days_back_from_today_if_last_manu_is_too_long_ago)
-                end_date=start_date+timedelta(maximum_days_into_schedule_future)
+                end_date=start_date+timedelta(dd2.dash2_dict['scheduler']['maximum_days_into_schedule_future'])
             
                 
             #print(curves[:,2:])
@@ -1062,7 +1194,7 @@ class scheduler(object):
     
           #  for days_in_future in range(6,36,6) :  #plot_dict['df'].shape[0]):
               
-            for batch_size in [5,10,20,30,40,50,60,70,80,90,100,110,120,recommended_batch_size]:
+            for batch_size in list(np.arange(5,120,1))+[recommended_batch_size]:
                 start_schedule_date=dt.date.today()+timedelta(schedule_day)
                 while ((start_schedule_date.weekday==5) | (start_schedule_date.weekday==6)):
                     # avoid weekends
@@ -1124,7 +1256,15 @@ class scheduler(object):
                 
       #+-----------------------------------------------------------------------------------------------------------
               
-                
+        schedule['priority']=np.arange(1,schedule.shape[0]+1)
+        schedule['stacked_date_pos']=np.arange(0,schedule.shape[0])
+    #    df['stacked_date']=df['scheduled_date'].iloc[0]
+        final_schedule=schedule[['priority','scheduled_date','product','format_type','batches','new_stock_will_be_approx','stacked_date_pos']]
+     #   final_schedule.drop(["scheduled_date","priority"],axis=1,inplace=True)
+        final_schedule.to_pickle("fs.pkl",protocol=-1)
+ 
+        final_schedule=self.stacker(schedule=final_schedule,min_day_size=dd2.dash2_dict['scheduler']['min_day_size'],max_day_size=dd2.dash2_dict['scheduler']['max_day_size'])
+
         
         print("\nPlotting...")
         p_map(self._multiplot,plot_dict_list)                
@@ -1134,16 +1274,16 @@ class scheduler(object):
     
       
         
-        self.display_and_export_final_schedule(schedule,saved_start_schedule_date)
+        # self.display_and_export_final_schedule(final_schedule,saved_start_schedule_date,plot_output_dir)
         
-        self.animate_plots(gif_duration=4,mp4_fps=2,plot_output_dir=plot_output_dir)
-        
-        
+        # self.animate_plots(gif_duration=4,mp4_fps=10,plot_output_dir=plot_output_dir)
         
         
         
         
-        return
+        
+        
+        return final_schedule,saved_start_schedule_date
     
     #---------------------------------------------------------------------------------------------------------------
     

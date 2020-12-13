@@ -18,7 +18,7 @@ import xlsxwriter
 
 import xlrd
 import datetime as dt
-from datetime import datetime
+from datetime import datetime,timedelta
 from pandas.plotting import scatter_matrix
 
 from matplotlib import pyplot, dates
@@ -47,6 +47,9 @@ from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import GridSearchCV,RandomizedSearchCV
 from pandas.plotting import scatter_matrix
 
+
+from pandas.tseries.holiday import *
+from pandas.tseries.offsets import CustomBusinessDay
 
 
 import tensorflow as tf
@@ -88,6 +91,36 @@ dash=dash2_root.dash2_class()   #"in_dash value")   # instantiate a salestrans_d
 os.chdir("/home/tonedogga/Documents/python_dev")
 cwdpath = os.getcwd()
 #print(cwdpath)
+
+
+
+
+
+class SABusinessCalendar(AbstractHolidayCalendar):
+   rules = [
+     Holiday('New Year', month=1, day=1), #observance=sunday_to_monday),
+     Holiday('Australia Day', month=1, day=26, observance=sunday_to_monday),
+   
+     Holiday('Anzac Day', month=4, day=25),
+     Holiday('Good Friday', month=1, day=1, offset=[Easter(), Day(-2)]),
+     Holiday('Easter Monday', month=1, day=1, offset=[Easter(),Day(+1)]),    
+
+   
+     Holiday('October long weekend', month=10, day=1, observance=sunday_to_monday),
+     Holiday('Christmas', month=12, day=25, observance=nearest_workday),
+     Holiday('Boxing day', month=12, day=26, observance=nearest_workday),
+     Holiday('Dec27 shutdown', month=12, day=27),   #, observance=nearest_workday)    
+
+     Holiday('Proclamation day', month=12, day=28, observance=nearest_workday),
+     Holiday('Dec29 shutdown', month=12, day=29),   #, observance=nearest_workday)    
+     Holiday('Dec30 shutdown', month=12, day=30),   #, observance=nearest_workday)     
+     Holiday('Dec31 shutdown', month=12, day=31)   #, observance=nearest_workday)     
+
+   ]
+      
+
+
+
 
 def log_dir(prefix=""):
     now = datetime.utcnow().strftime("%Y%m%d%H%M%S")
@@ -138,6 +171,47 @@ def main():
     
    
     refresh=(input("Refresh transaction data from excel? (y/n)").lower()=='y')  
+    shortcut=(input("Take the shortcut? (y/n)").lower()=='y')  
+   
+ 
+    todays_date = dt.date.today()   #time.now()  #.normalize()   #dt.date.today()
+    other_todays_date=dt.datetime.now()
+    SA_BD = CustomBusinessDay(calendar=SABusinessCalendar())
+    # start_schedule_day_offset=0
+      
+    date_choices=pd.bdate_range(todays_date,todays_date+timedelta(dd2.dash2_dict['scheduler']['maximum_days_into_schedule_future']),normalize=True,freq=SA_BD)
+    date_choices_dict={}
+     
+    for d in date_choices:
+        i=int((d-other_todays_date).days+1)
+        date_choices_dict[i]=d
+ 
+    
+    #if False: #we are testing
+   # start_schedule_day_offset=dd2.dash2_dict['scheduler']['default_start_schedule_days_delay']
+   # start_schedule_date=date_choices_dict[int(start_schedule_day_offset)]
+    if True:    
+        #print("dcd=",date_choices_dict)    
+        incorrect=True
+        while incorrect:    
+            start_schedule_day_offset=input("Days ahead from today to start scheduling manufacturing?")
+            if isinstance(start_schedule_day_offset,str):
+                try:
+                    start_schedule_day_offset=int(start_schedule_day_offset)
+                except:
+                    pass
+                else:
+                    if isinstance(start_schedule_day_offset,int):
+                        try:
+                            start_schedule_date=date_choices_dict[int(start_schedule_day_offset)]
+                        except KeyError:
+                            print("start date is weekend or invalid.")
+                            pass
+                        else:
+                            incorrect=False
+
+    
+    
     if refresh:
         print("\nLoad sales data from",len(dd2.dash2_dict['sales']['in_files']),"excel files in current working directory (",cwdpath,")....")
         sales_df=dash.sales.load_from_excel(dd2.dash2_dict['sales']['in_dir'],dd2.dash2_dict['sales']['in_files'])
@@ -200,6 +274,8 @@ def main():
   #  print("aug sales df=\n",aug_sales_df)
     print("Run queries on loaded sales_df data:",aug_sales_df.shape,"(",first_date.strftime('%d/%m/%Y'),"to",latest_date.strftime('%d/%m/%Y'),")") 
     query_dict=dash.sales.query.queries(aug_sales_df)   #"sales query infile4","g")
+    with open(dd2.dash2_dict['sales']["save_dir"]+dd2.dash2_dict['sales']["query_dict_savefile"], 'wb') as f:
+        pickle.dump(query_dict,f,protocol=-1)
     print("query dict keys=\n",query_dict.keys())
     for k,v in query_dict.items():
         print(k,"\n",v,v.shape)
@@ -254,7 +330,7 @@ def main():
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    # sales trans data    
    
-    if False:   #True:  
+    if not shortcut:   #False: #True:  
         dash.sales.pivot.distribution_report_dollars('last_today_to_365_days',query_dict['last_today_to_365_days'],plot_output_dir,trend=True)
       
         
@@ -316,13 +392,30 @@ def main():
    
    # print("\nlatest date",latest_date) 
   #  print("aug sales_df=\n",aug_sales_df)
+  
+   # original_stdout = sys.stdout 
+   # with open(plot_output_dir+dd2.dash2_dict['sales']['print_report'], 'a') as f:
+   #     sys.stdout = f 
+ 
     dash.sales.predict.predict_order(scan_df,aug_sales_df,latest_date,plot_output_dir)
    # sys.stdout=original_stdout 
    
-    #dash.sales.predict._repredict_rfr(plot_output_dir)
+   # dash.sales.predict._repredict_rfr(plot_output_dir)
     
-    dash.scheduler.visualise_schedule(plot_output_dir)
+    final_schedule,saved_start_schedule_date=dash.scheduler.visualise_schedule(start_schedule_day_offset,start_schedule_date,plot_output_dir)
 
+    original_stdout=sys.stdout 
+    with open(plot_output_dir+dd2.dash2_dict['sales']['print_report'], 'a') as f:
+       sys.stdout = f 
+       dash.sales.predict._repredict_rfr(plot_output_dir)
+       
+       dash.scheduler.display_and_export_final_schedule(final_schedule,saved_start_schedule_date,plot_output_dir)
+    sys.stdout=original_stdout
+       
+    dash.scheduler.animate_plots(gif_duration=4,mp4_fps=10,plot_output_dir=plot_output_dir)
+        
+    dash.animate.animate_reports(query_dict,plot_output_dir,mp4_fps=11)
+ 
    
   
  #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++   

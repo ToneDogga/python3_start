@@ -53,8 +53,10 @@ import tensorflow as tf
 
 gpus = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(gpus[0], True)
+#tf.config.set_memory_growth(gpus[0], True)
 
-tf.config.experimental_run_functions_eagerly(False)   #True)   # false
+tf.config.run_functions_eagerly(False)
+#tf.config.experimental_run_functions_eagerly(False)   #True)   # false
 
 # gpus = tf.config.list_physical_devices('GPU')
 # tf.config.experimental.set_memory_growth(gpus[0], True)

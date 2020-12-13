@@ -1522,6 +1522,12 @@ class sales_plot_class(object):
         for k,v in df_dict.items():
       #      mat_df=v.copy()
             mat_df=v.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0).copy()
+            
+ #           loffset = '7D'
+ #           weekly_sdf=sdf.resample('W-TUE', label='left').sum().round(0)   
+ #           weekly_sdf.index = weekly_sdf.index + to_offset(loffset) 
+ 
+            
             if mat_df.shape[0]>mat:
                 mat_df=self.preprocess(mat_df,mat)
      #           df['mat']=df['salesval'].rolling(mat,axis=0).sum()
@@ -1557,6 +1563,13 @@ class sales_plot_class(object):
          #   df=self.preprocess(df_dict[k],mat)
     #        mat_df=v.copy()
             mat_df=v.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0).copy()
+            
+  #          loffset = '7D'
+  #          weekly_sdf=sdf.resample('W-TUE', label='left').sum().round(0)   
+  #          weekly_sdf.index = weekly_sdf.index + to_offset(loffset) 
+ 
+            
+            
             if mat_df.shape[0]>mat:
                 mat_df=self.preprocess(mat_df,mat)
                 styles1 = ['b-']
@@ -1809,6 +1822,13 @@ class sales_plot_class(object):
                 if cust_sales.shape[0]>0: 
                     cust_sales.set_index('date',inplace=True)
                     cust_sales=cust_sales.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+                    
+ #                  loffset = '7D'
+          #          weekly_sdf=sdf.resample('W-TUE', label='left').sum().round(0)   
+           #         weekly_sdf.index = weekly_sdf.index + to_offset(loffset) 
+ 
+                    
+                    
                     cust_sales['mat']=cust_sales['salesval'].rolling(mat,axis=0).mean()
                     if cust_sales.shape[0]>scaling_point_week_no:
                         start_point.append(cust_sales['mat'].iloc[scaling_point_week_no])
@@ -1848,6 +1868,12 @@ class sales_plot_class(object):
                    cust_sales.set_index('date',inplace=True)
                   
                    cust_sales=cust_sales.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+                   
+ #                  loffset = '7D'
+  #                  weekly_sdf=sdf.resample('W-TUE', label='left').sum().round(0)   
+   #                  weekly_sdf.index = weekly_sdf.index + to_offset(loffset) 
+ 
+                   
           
                    cust_sales['mat']=cust_sales['salesval'].rolling(mat,axis=0).mean()
           
@@ -1935,6 +1961,12 @@ class sales_plot_class(object):
                 if prod_sales.shape[0]>0: 
                     prod_sales.set_index('date',inplace=True)
                     prod_sales=prod_sales.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+                    
+ #                   loffset = '7D'
+  #                   weekly_sdf=sdf.resample('W-TUE', label='left').sum().round(0)   
+   #                   weekly_sdf.index = weekly_sdf.index + to_offset(loffset) 
+ 
+                    
                     prod_sales['mat']=prod_sales['qty'].rolling(mat,axis=0).mean()
                     if prod_sales.shape[0]>scaling_point_week_no:
                         start_point.append(prod_sales['mat'].iloc[scaling_point_week_no])
@@ -1974,6 +2006,12 @@ class sales_plot_class(object):
                    prod_sales.set_index('date',inplace=True)
                   
                    prod_sales=prod_sales.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+                   
+              #    loffset = '7D'
+              #    weekly_sdf=sdf.resample('W-TUE', label='left').sum().round(0)   
+              #    weekly_sdf.index = weekly_sdf.index + to_offset(loffset) 
+ 
+                   
           
                    prod_sales['mat']=prod_sales['qty'].rolling(mat,axis=0).mean()
           
@@ -2037,6 +2075,14 @@ class sales_plot_class(object):
         for k,v in df_dict.items():
             cust_df=self.preprocess(v,mat)
             cust_df=cust_df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+            
+            
+  #          loffset = '7D'
+  #          weekly_sdf=sdf.resample('W-TUE', label='left').sum().round(0)   
+  #          weekly_sdf.index = weekly_sdf.index + to_offset(loffset) 
+ 
+            
+            
 
           #  print("end yoy customer preprocess",k)
             left_y_axis_title="$/week"
@@ -2097,6 +2143,13 @@ class sales_plot_class(object):
         for k,v in df_dict.items():
             cust_df=self.preprocess(v,mat)
             cust_df=cust_df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+
+  #          loffset = '7D'
+  #          weekly_sdf=sdf.resample('W-TUE', label='left').sum().round(0)   
+  #          weekly_sdf.index = weekly_sdf.index + to_offset(loffset) 
+ 
+
+
 
           #  print("end yoy customer preprocess",k)
             left_y_axis_title="units/week"
@@ -2447,13 +2500,19 @@ class sales_predict_class(object):
             
             X_full=new_df.xs(['71',row],level=['plottype3','plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
          #   print("X_full",X_full.shape)
+         # original   X=np.concatenate((X,X_full[5:-3]),axis=0)
             X=np.concatenate((X,X_full[5:-3]),axis=0)
-        
+       
             y_full=new_df.xs(['79',row],level=['plottype3','plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
           #  y=y_full[6:-2]  
          #   print("yfull sp",y_full.shape)
         
+ #           y=np.concatenate((y,y_full[6:-2]),axis=0)
             y=np.concatenate((y,y_full[6:-2]),axis=0)
+
+            
+            
+            
         print("\nFit random forest Regressor...")
         X=X.reshape(-1,1)
         
@@ -2489,14 +2548,15 @@ class sales_predict_class(object):
         for n,r,p in zip(plotnumber,retailer,product):
             sdf=sales_df[['qty']][(sales_df['spc']==float(r)) & (sales_df['product']==p)]
  
-            loffset = '7D'
-
+ 
 #            weekly_sdf=sdf.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)   
                #     week ending Wed night 
   #          weekly_sdf=sdf.resample('W-TUE', label='left', loffset=pd.DateOffset(days=7)).sum().round(0)  
+  
+            loffset = '7D'
             weekly_sdf=sdf.resample('W-TUE', label='left').sum().round(0)   
- 
             weekly_sdf.index = weekly_sdf.index + to_offset(loffset) 
+ 
             w2=weekly_sdf.sort_index().copy()
             w2=w2.rename(columns={"qty":(n,r,p,79)})
             retailer_sales=pd.concat((retailer_sales,w2),axis=1)
@@ -2624,6 +2684,8 @@ class sales_predict_class(object):
         inv_dict={}
         rfr_dict={}
        # rfr_list=[]
+        extra_scan_inv=pd.DataFrame([]) 
+       
         new_df=new_df.droplevel([2],axis=1)
       #  print("3 new_df=\n",new_df)
         for row,name in zip(plotnumbers,colnames):
@@ -2631,7 +2693,7 @@ class sales_predict_class(object):
          #   name=colnames[r]
             
             X_full=new_df.xs(['71',row],level=['plottype3','plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
-            X=X_full[2:-2]
+            X=X_full[3:-1]
     #            X=new_df.iloc[:,7:-1].xs('1',level='plottype3',drop_level=False,axis=1).to_numpy()
       #      y_full2=new_df.xs(['79',row],level=['plottype3','plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
             y_full=units_invoiced_df.xs([row],level=['plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
@@ -2640,7 +2702,22 @@ class sales_predict_class(object):
             y=y_full[3:-4]    #(dd2.dash2_dict['sales']['predictions']["invoiced_sales_weeks_offset"])]     
          #   print("pred",y[-3:],"d y_full",y_full)  #,"y_full2",y_full2) 
           #  new_df.replace(0,np.nan,inplace=True)
-          #  print(X,"Xshape",X.shape,"\n",y,"yshape",y.shape)
+          
+           # print(X,"Xshape",X.shape,"\n",y,"yshape",y.shape)
+         #   print("old scan inv=\n",scan_inv,"\n")
+       #     print("old scsn inv=\n",scan_inv)
+ 
+            new_sd=pd.DataFrame({(row,99,name,'971'):pd.Series(X/1000),(row,99,name,'979'):pd.Series(y/1000),(row,"99","z_pred_"+name,'980'):pd.Series(np.zeros(y.shape[0]))})
+        #    print("new_sd=\n",new_sd)
+            extra_scan_inv=pd.concat([extra_scan_inv,new_sd], axis=1)   #ignore_index=True, axis=1)
+            #scan_inv[row+"_X_"+name]=pd.Series(X/1000)
+            #scan_inv[row+"_y_"+name]=pd.Series(y/1000)
+            #scan_inv.sort_index(axis=1,level=0,inplace=True)
+            #print(" sX=\n",pd.Series(X/1000))
+         #   print("new scsn inv=\n",scan_inv)
+            #pd.DataFrame({'email':sf.index, 'list':sf.values})
+  
+          
           
             old_preds=new_df.xs(['80',row],level=['plottype3','plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
      
@@ -2684,6 +2761,9 @@ class sales_predict_class(object):
            # new_df=new_df.T
          #   print("newdf2=\n",new_df)
             
+  #          scan_inv["X_"+name]=pd.Series(X)
+  #          scan_inv["y_"+name]=pd.Series(y)
+  #          scan_inv.to_excel(output_dir+"units_invoiced_X_y.xlsx")
             rfr_pred=np.around(forest_reg.predict([[X[-1]]]),0) 
             
          #   rfrnewpred=np.concatenate((y_full[:-1],rfr_pred))[-new_df.shape[0]:]
@@ -2700,7 +2780,14 @@ class sales_predict_class(object):
     
             r+=1
             
-       
+       # extra_scan_inv.index=scan_inv.index[6:-1] 
+        extra_scan_inv.index=scan_inv.index[6:-1]  
+        extra_scan_inv=pd.concat([extra_scan_inv,scan_inv], axis=1) 
+        extra_scan_inv.sort_index(axis=1,level=0,inplace=True)
+        extra_scan_inv.columns.names=['plotnumber','retailer',"colname","plottype3"]
+        extra_scan_inv.to_pickle(dd2.dash2_dict['sales']['predictions']["save_dir"]+dd2.dash2_dict['sales']['predictions']["units_invoiced_X_y_savefile"],protocol=-1)
+        extra_scan_inv.to_excel(output_dir+dd2.dash2_dict['sales']['predictions']["units_invoiced_X_y"])
+ 
      #   print("final pred_dict=",pred_dict,"\ninv dict=",inv_dict)   
         pred_output_df=pd.DataFrame.from_dict(pred_dict,orient='index',columns=["GRU_order_prediction_"+str(next_week)],dtype=np.int32)
         sort_output_df=pd.DataFrame.from_dict(sort_order_dict,orient='index',columns=["sortorder"],dtype=np.int32)
@@ -2780,15 +2867,70 @@ class sales_predict_class(object):
         return
   
     
+ 
+    
+    def _repredict_rfr(self,output_dir):
+        print("\nRepredict all...")
+        extra_scan_df=pd.read_pickle(dd2.dash2_dict['sales']['predictions']["save_dir"]+dd2.dash2_dict['sales']['predictions']["units_invoiced_X_y_savefile"])
+      #  print("extra_scan inv=\n",extra_scan_df)
+       # forest_reg=joblib.load(dd2.dash2_dict['sales']['predictions']["save_dir"]+dd2.dash2_dict['sales']['predictions']["RFR_order_predict_model_savefile"])
+       # print("forest reg loaded",forest_reg)
+     
+        extra_scan_df=(extra_scan_df*1000).copy()
+        
+         #   print("X_full",X_full.shape)
+         # original   X=np.concatenate((X,X_full[5:-3]),axis=0)
+         #   X=np.concatenate((X,X_full[3:-1]),axis=0)
+  
+        plotnumbers=extra_scan_df.columns.get_level_values('plotnumber').to_list()[::4] 
+        colnames=extra_scan_df.columns.get_level_values('colname').to_list()[::4]     
+
+     #   print("pn=",plotnumbers,"cn=",colnames)
+        rp_dict={}  
+        for i in range(-20,0,1):
+            
+            X=np.array([])
+            y=np.array([])
+  
+            for p in plotnumbers:
+                X_full=extra_scan_df.iloc[20:i].xs(['971',p],level=['plottype3','plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
+                y_full=extra_scan_df.iloc[20:i].xs(['979',p],level=['plottype3','plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
+ 
+                X=np.concatenate((X,X_full),axis=0)
+                y=np.concatenate((y,y_full),axis=0)
+
+            X=X.reshape(-1,1)
+        
+            forest_reg=RandomForestRegressor(n_estimators=300)
+          #  print("X,y=\n",X,y)
+            forest_reg.fit(X,y)
   
     
+          #  colnames=new_df.columns.get_level_values('colname').to_list()[::4]     
+           # rp_dict={}
+            for p,row in zip(plotnumbers,colnames):
+                X=extra_scan_df.iloc[20:i].xs(['971',p],level=['plottype3','plotnumber'],drop_level=False,axis=1).to_numpy().T[0]
+                rfr_pred=np.around(forest_reg.predict([[X[-1]]]),0)[0]      
+               # print("pn=",p,row,"X shape=",X.shape,"[[X=[",i,"]]]=",[[X[-1]]],"rfr_pred=",rfr_pred)
+                rp_dict[int(p),str(row),int(i)]=int(rfr_pred) 
+     #   print(rp_dict)        
+        rp_df=pd.DataFrame.from_dict(rp_dict,orient='index',columns=["prediction"])   #,index=extra_scan_df.index[-20:])  
+       # rp_df.columns.names=["plotnumber","prediction_point"]
+       # rp_df.index.names=["colname"]   #,"pred"]
+       # rp_df=rp_df.T
+        
+        rp_df.index = pd.MultiIndex.from_tuples(rp_df.index,names=('plotnumber','colname','prediction_point'))
+     #   print(rp_df)
+        rp_df.sort_index(level=["plotnumber","prediction_point"],ascending=[True,True],inplace=True)
+        print(rp_df.to_string())  
+        rp_df.to_excel(output_dir+"units_invoiced_all_predictions.xlsx")
+        print("\nRepredict finished.")
+      #  prp_df=pd.pivot_table(rp_df,)
+      #  print(prp_df)
+        return     
   
     
-  
-    
-  
-    
-  
+
     
   
     
