@@ -537,8 +537,8 @@ class scan_class(object):
     
    def _take_out_zeros(self,df,cols):
         # cols of a list of column names
-        df[cols]=df[cols].clip(lower=1000.0,axis=1)
-        df[cols]=df[cols].replace(1000.0, np.nan)
+        df[cols]=df[cols].clip(lower=1.0,axis=1)
+        df[cols]=df[cols].replace(1.0, np.nan)
         return df
     
     
@@ -592,6 +592,8 @@ class scan_class(object):
         new_pdf=new_pdf.T
         newcols_dict={k:v for k,v in zip(new_pdf.columns,column_names)}
         new_pdf.rename(columns=newcols_dict, inplace=True)
+        new_pdf.to_pickle(dd2.dash2_dict['scan']['save_dir']+dd2.dash2_dict['scan']['brand_index_jam_save_input_file'],protocol=-1)
+ 
     
     #   plot_brand_index(new_pdf,y_col=('Coles Beerenberg all jams','Units (000) Sold off Promotion >= 5 % 6 wks'),col_and_hue=[('Coles Bonne Maman all jams','Wks on Promotion >= 5 % 6 wks'),('Coles St Dalfour all jams','Wks on Promotion >= 5 % 6 wks')],savename="coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
         self._plot_brand_index(new_pdf,output_dir,y_col='Coles Beerenberg all jams-Units Sold off Promotion >= 5 % 6 wks',col_and_hue=['Coles Bonne Maman all jams-Wks on Promotion >= 5 % 6 wks','Coles St Dalfour all jams-Wks on Promotion >= 5 % 6 wks'],savename="Brand index jams coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
@@ -615,7 +617,8 @@ class scan_class(object):
         new_pdf=new_pdf.T
         newcols_dict={k:v for k,v in zip(new_pdf.columns,column_names)}
         new_pdf.rename(columns=newcols_dict, inplace=True)
-    
+        new_pdf.to_pickle(dd2.dash2_dict['scan']['save_dir']+dd2.dash2_dict['scan']['brand_index_chutney_save_input_file'],protocol=-1)
+  
     #   plot_brand_index(new_pdf,y_col=('Coles Beerenberg all jams','Units (000) Sold off Promotion >= 5 % 6 wks'),col_and_hue=[('Coles Bonne Maman all jams','Wks on Promotion >= 5 % 6 wks'),('Coles St Dalfour all jams','Wks on Promotion >= 5 % 6 wks')],savename="coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
         self._plot_brand_index(new_pdf,output_dir,y_col='Coles Beerenberg Tomato chutney 260g-Units Sold off Promotion >= 5 % 6 wks',col_and_hue=['Coles Jills Tomato chutney 400g-Wks on Promotion >= 5 % 6 wks','Coles Baxters Tomato chutney 225g-Wks on Promotion >= 5 % 6 wks'],savename="Brand index Tomato chutney coles1")   # miss first 22 weeks of jam data bacuase no national ranging in Coles
     

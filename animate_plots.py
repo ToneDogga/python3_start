@@ -27,7 +27,8 @@ import imageio
 import cv2
 import shutil
 from p_tqdm import p_map,p_umap
-
+import seaborn as sns
+import calendar
  
 import datetime as dt
 from datetime import datetime,timedelta
@@ -45,7 +46,7 @@ class animate_engine(object):
     def _resize(self,filename):
         fname = filename   #os.path.basename(filename)
         input_image  = imageio.imread(fname, format='PNG-FI')
-        output_image = cv2.resize(input_image, (944,800))   #(1888, 1600))   #(256, 256))
+        output_image = cv2.resize(input_image, dd2.dash2_dict['sales']['plots']['animation_resize']) #(1440,800),  #(1888, 1600))   #(256, 256))    ((944,800))
         imageio.imwrite(fname, output_image, format='PNG-FI')   # 48 bit
         return
 
@@ -109,8 +110,50 @@ class animate_engine(object):
         name = name.replace(' ', '_')
         return name.replace("'", "")
     
-
-
+   
+    def _add_trues_and_falses(self,df,cols):
+        df[cols]=df[cols].replace(1,True)
+        df[cols]=df[cols].replace(0,False)
+        return df
+    
+   
+       
+    def _plot_brand_index(self,slices):   #tdf,output_dir,y_col,col_and_hue,savename):    
+        tdf=slices['df']
+        output_dir=slices['plot_dump_dir']
+        y_col=slices['y_col']
+        col_and_hue=slices['col_and_hue']
+        savename=slices['savename']
+        
+        tdf=tdf.astype(np.float64)
+     
+        tdf=self._add_trues_and_falses(tdf,col_and_hue[0])
+        tdf=self._add_trues_and_falses(tdf,col_and_hue[1])
+        
+        date=pd.to_datetime(tdf.index).strftime("%Y-%m-%d").to_list()
+     #   print("date=",date)
+        tdf['date']=date
+        tdf['dates'] = pd.to_datetime(tdf['date']).apply(lambda date: date.toordinal())
+        fig, ax = pyplot.subplots()
+        ax.set_xlabel("",fontsize=8)
+        sns.set(font_scale=0.6)
+     #   sns.lmplot(x='date_ordinal', y='coles_beerenberg_jams_off_promo_scanned', col='coles_bonne_maman_jams_on_promo',hue='coles_st_dalfour_jams_on_promo',data=tdf)   #,color="green",label="")
+        sns.lmplot(x='dates', y=y_col, col=col_and_hue[0],hue=col_and_hue[1],data=tdf,legend=False)   #,color="green",label="")
+        ax=plt.gca()
+        #sns.regplot(x='date_ordinal', y='coles_beerenberg_jams_off_promo_scanned',data=tdf,color="green",marker=".",label="")
+        ax.set_xlabel("",fontsize=8)
+        plt.legend(loc='upper left',title=col_and_hue[1],fontsize=8,title_fontsize=8)
+        new_labels = [dt.date.fromordinal(int(item)) for item in ax.get_xticks()]
+      #  print("new_labels=",new_labels)
+        improved_labels = ['{}-{}'.format(calendar.month_abbr[int(m)],y) for y, m , d in map(lambda x: str(x).split('-'), new_labels)]
+      #  print("improved labels",improved_labels)
+        ax.set_xticklabels(improved_labels,fontsize=8)
+        self._save_fig(savename,output_dir) 
+        plt.close()
+        return
+     
+      
+ 
 
 
 
@@ -471,13 +514,88 @@ class animate_engine(object):
         dr=[d for d in pd.date_range(first_date,last_date)]
         for date in dr:
             yield date+pd.offsets.Day(-size),date
-            
-            
  
+    
+    def _plot_bi(self,new_pdf,key,y_col,col_and_hue,savename,plot_dump_dir,plot_output_dir,mp4_fps):
+        brand_index_slices=[]
+        for start,end in self.generate_annual_dates(new_pdf,start_offset=365,size=365):  #query_dict['080 SA all']):  #"2020-01-01","2020-02-02"):
+            print("brand index:",key,":",start.strftime("%d/%m/%Y"),"to",end.strftime("%d/%m/%Y"),end="\r",flush=True)
+            plot_pdf=new_pdf[(new_pdf.index>start) & (new_pdf.index<=end)].copy()
+            brand_index_slices.append({"start":start,"end":end,"y_col":y_col,"col_and_hue":col_and_hue,"plot_dump_dir":plot_dump_dir,"plot_output_dir":plot_output_dir,"key":key,"savename":savename+" ["+start.strftime("%Y-%m-%d")+"-"+end.strftime("%Y-%m-%d")+"]","df":plot_pdf})  
+       # print("\nbrand index slices=",brand_index_slices,len(brand_index_slices)) 
+ 
+        p_map(self._plot_brand_index,brand_index_slices)
+        self._animate_plots_mp4(mp4_input_dir=plot_dump_dir,mp4_fps=mp4_fps,mp4_output_dir=plot_dump_dir,mp4_output_filename=key+"_brand_index.mp4",plot_output_dir=plot_output_dir)
+        return
+            
+   
+    def _animate_brand_index(self,plot_dump_dir,plot_output_dir,mp4_fps):
+        pdf=pd.read_pickle(dd2.dash2_dict['scan']['save_dir']+dd2.dash2_dict['scan']['brand_index_jam_save_input_file'])
 
+        pdf.sort_index(ascending=False,axis=0,inplace=True)
+        new_pdf=pdf.copy()
+    #    print("new_pdf=\n",new_pdf)
+    #    print("scan sales brand index jam animations")
+        key="brand_index_coles_jam"
+        print("\n",key)
+        y_col='Coles Beerenberg all jams-Units Sold off Promotion >= 5 % 6 wks'
+        col_and_hue=['Coles Bonne Maman all jams-Wks on Promotion >= 5 % 6 wks','Coles St Dalfour all jams-Wks on Promotion >= 5 % 6 wks']
+        savename="Brand index jams coles1"
+#
+        self._plot_bi(new_pdf,key,y_col,col_and_hue,savename,plot_dump_dir,plot_output_dir,mp4_fps)   #,dd2.dash2_dict['plots']['animation_resize'])
+        
+        new_pdf=pdf.copy()
+        key="brand_index_woolworths_jam"
+        print("\n",key)
+        y_col='Woolworths Beerenberg all jams-Units Sold off Promotion >= 5 % 6 wks'
+        col_and_hue=['Woolworths Bonne Maman all jams-Wks on Promotion >= 5 % 6 wks','Woolworths St Dalfour all jams-Wks on Promotion >= 5 % 6 wks']
+        savename="Brand index jams woolworths1"
+        
+        self._plot_bi(new_pdf,key,y_col,col_and_hue,savename,plot_dump_dir,plot_output_dir,mp4_fps)   #,dd2.dash2_dict['plots']['animation_resize'])
+ 
+    
+ #----------------------------------------------------------------------------
+ 
+    
+ 
+    
+        pdf=pd.read_pickle(dd2.dash2_dict['scan']['save_dir']+dd2.dash2_dict['scan']['brand_index_chutney_save_input_file'])
+
+        pdf.sort_index(ascending=False,axis=0,inplace=True)
+        
+
+        new_pdf=pdf.copy()
+        key="brand_index_coles_chutney"
+        print("\n",key)
+        y_col='Coles Beerenberg Tomato chutney 260g-Units Sold off Promotion >= 5 % 6 wks'
+        col_and_hue=['Coles Jills Tomato chutney 400g-Wks on Promotion >= 5 % 6 wks','Coles Baxters Tomato chutney 225g-Wks on Promotion >= 5 % 6 wks']
+        savename="Brand index Tomato chutney coles1"
+    
+ 
+        self._plot_bi(new_pdf,key,y_col,col_and_hue,savename,plot_dump_dir,plot_output_dir,mp4_fps)   #)dd2.dash2_dict['plots']['animation_resize'])
+  
+ 
+        new_pdf=pdf.copy()
+        key="brand_index_woolworths_chutney"
+        print("\n",key)
+        y_col='Woolworths Beerenberg Tomato chutney 260g-Units Sold off Promotion >= 5 % 6 wks'
+        col_and_hue=['Woolworths Whitlock Tomato chutney 275g-Wks on Promotion >= 5 % 6 wks','Woolworths Baxters Tomato chutney 225g-Wks on Promotion >= 5 % 6 wks']
+        savename="Brand index Tomato chutney woolworths1"
+ 
+        self._plot_bi(new_pdf,key,y_col,col_and_hue,savename,plot_dump_dir,plot_output_dir,mp4_fps)   #,dd2.dash2_dict['plots']['animation_resize'])
+
+ 
+    
+           
+ 
+        print("brand index finished")
+        return
 
 
     def plot_and_animate_query_dict(self,query_dict,plot_dump_dir,plot_output_dir,mp4_fps):
+       
+        self._animate_brand_index(plot_dump_dir,plot_output_dir,mp4_fps)
+
         for key in query_dict.keys():
 
             pareto_df=query_dict[key]
@@ -500,7 +618,7 @@ class animate_engine(object):
                     pareto_slices.append({"start":start,"end":end,"plot_dump_dir":plot_dump_dir,"plot_output_dir":plot_output_dir,"key":key,"name":key+" ["+start.strftime("%Y-%m-%d")+"-"+end.strftime("%Y-%m-%d")+"]","df":pareto2_df})  
 
           
-            print("\nquery=",key)    
+            print("\n\nquery=",key)    
             print("plot salesval mats")        
             p_map(self._p_plot_salesval,slices)  
             self._animate_plots_mp4(mp4_input_dir=plot_dump_dir,mp4_fps=mp4_fps,mp4_output_dir=plot_dump_dir,mp4_output_filename=key+"_mat_salesval.mp4",plot_output_dir=plot_output_dir)
@@ -523,7 +641,7 @@ class animate_engine(object):
               
      
     
-        
+ 
         
         
         
