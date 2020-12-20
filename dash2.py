@@ -94,6 +94,14 @@ cwdpath = os.getcwd()
 
 
 
+warnings.filterwarnings('ignore')
+pd.options.display.float_format = '{:.2f}'.format
+
+#  tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
+visible_devices = tf.config.get_visible_devices('GPU') 
+
+
+
 
 
 class SABusinessCalendar(AbstractHolidayCalendar):
@@ -134,14 +142,6 @@ def log_dir(prefix=""):
 
 
 
-
-
-
-warnings.filterwarnings('ignore')
-pd.options.display.float_format = '{:.2f}'.format
-
-#  tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
-visible_devices = tf.config.get_visible_devices('GPU') 
 
 
 def main():
@@ -252,7 +252,8 @@ def main():
    
     else:
         
-        sales_df=dash.sales.load(dd2.dash2_dict['sales']['save_dir'],dd2.dash2_dict['sales']['savefile']).copy()
+        sales_df=dash.sales.load(dd2.dash2_dict['sales']['save_dir'],dd2.dash2_dict['sales']['savefile'])
+        sales_df=dash.sales._preprocess(sales_df,dd2.dash2_dict['sales']['rename_columns_dict'])
         first_date,latest_date=dash.sales.report(sales_df)
         scan_df=dash.scan.load(dd2.dash2_dict['scan']['save_dir'],dd2.dash2_dict['scan']['savefile'])  
         scan_monthly_df=dash.scan.load(dd2.dash2_dict['scan']['save_dir'],dd2.dash2_dict['scan']['monthlysavefile'])  
@@ -273,7 +274,9 @@ def main():
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=    
   #  print("aug sales df=\n",aug_sales_df)
     print("Run queries on loaded sales_df data:",aug_sales_df.shape,"(",first_date.strftime('%d/%m/%Y'),"to",latest_date.strftime('%d/%m/%Y'),")") 
+ #   query_dict=dash.sales.query.queries(sales_df)   #"sales query infile4","g")
     query_dict=dash.sales.query.queries(aug_sales_df)   #"sales query infile4","g")
+
     with open(dd2.dash2_dict['sales']["save_dir"]+dd2.dash2_dict['sales']["query_dict_savefile"], 'wb') as f:
         pickle.dump(query_dict,f,protocol=-1)
     print("query dict keys=\n",query_dict.keys())
@@ -290,7 +293,7 @@ def main():
         
         
    # print(query_dict)
-    print("augemented sales_df=\n",aug_sales_df.shape)
+    print("augmented sales_df=\n",aug_sales_df.shape)
   #  print("price_df=\n",price_df)
     print("scan_df=\n",scan_df.shape)
     print("scan_monthly_df=\n",scan_monthly_df.shape)   #,"\n",scan_monthly_df.T)   #.shape)
@@ -381,27 +384,13 @@ def main():
   #  Scan data 
     
         dash.scan.brand_index(scan_df,plot_output_dir)  
-  #  print("scan_df=\n",scan_df,"\n",scan_df.T)
-  #  original_stdout = sys.stdout 
-  #  with open(plot_output_dir+dd2.dash2_dict['sales']['print_report'], 'a') as f:
-  #      sys.stdout = f 
-        
+         
         dash.scan.plot_scan_weekly(scan_df,plot_output_dir)  
-    #    dash.scan.plot_scan_monthly_data(scan_monthly_df,plot_output_dir)
         dash.scan.plot_scan_monthly_dict(scan_monthly_dict,plot_output_dir)
    
-   # print("\nlatest date",latest_date) 
-  #  print("aug sales_df=\n",aug_sales_df)
-  
-   # original_stdout = sys.stdout 
-   # with open(plot_output_dir+dd2.dash2_dict['sales']['print_report'], 'a') as f:
-   #     sys.stdout = f 
  
     dash.sales.predict.predict_order(scan_df,aug_sales_df,latest_date,plot_output_dir)
-   # sys.stdout=original_stdout 
-   
-   # dash.sales.predict._repredict_rfr(plot_output_dir)
-    
+      
     final_schedule,saved_start_schedule_date=dash.scheduler.visualise_schedule(start_schedule_day_offset,start_schedule_date,plot_output_dir)
 
     original_stdout=sys.stdout 
@@ -413,15 +402,16 @@ def main():
     sys.stdout=original_stdout
        
     dash.scheduler.animate_plots(gif_duration=4,mp4_fps=10,plot_output_dir=plot_output_dir)
-        
-    dash.animate.animate_reports(query_dict,plot_output_dir,mp4_fps=11)
+ 
+    query_dict2=dash.sales.query.queries(dd2.dash2_dict['sales']['sales_df'])    
+    dash.animate.plot_and_animate_query_dict(query_dict2,plot_output_dir+dd2.dash2_dict['sales']['plots']["animation_plot_dump_dir"],plot_output_dir,mp4_fps=11)
  
    
   
  #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++   
    # actual vs expected prediction
          
-    #dash.ave.actual_vs_expected({"all":query_dict['all']},plot_output_dir)
+  
     dash.ave_predict.actual_vs_expected(query_dict,plot_output_dir)
    
 
@@ -431,14 +421,6 @@ def main():
     end_timer = time.time()
     print("\nDash2 finished:",dt.datetime.fromtimestamp(time.time()).strftime('%H:%M:%S %d/%m/%Y'))
     print("Dash2 total runtime:",round(end_timer - start_timer,2),"seconds.\n")
-    # original_stdout = sys.stdout 
-    # with open(plot_output_dir+dd2.dash2_dict['sales']['print_report'], 'a') as f:
-    #     sys.stdout = f 
-    #  #   print("\nFinished. Dash2 total runtime:",round(end_timer - start_timer,2),"seconds.\n")
-    #     print("\nDash2 finished:",dt.datetime.fromtimestamp(time.time()).strftime('%H:%M:%S %d/%m/%Y'))
-    #     print("Dash2 total runtime:",round(end_timer - start_timer,2),"seconds.\n")
-    # sys.stdout=original_stdout 
-    # print("\nDash2 finished.")
 
 
 

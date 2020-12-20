@@ -185,14 +185,47 @@ class sales_class(object):
  
        # if dd2.dash2_dict['sales']['glset_not_spc_mask_flag']:
        #     new_df=df[((df['productgroup'].isin(dd2.dash2_dict['sales']['pg_only'])) & (df['glset'].isin(dd2.dash2_dict['sales']['glset_only'])))].copy()  
-       # else:                                                                                                      
-        new_df=df[((df['productgroup'].isin(dd2.dash2_dict['sales']['pg_only'])) & (df['specialpricecat'].isin(dd2.dash2_dict['sales']['spc_only'])))].copy()    
+       # else:    
+        if dd2.dash2_dict['sales']['apply_mask']:  # apply masking                                                                                          
+            df=df[((df['productgroup'].isin(dd2.dash2_dict['sales']['pg_only'])) & (df['specialpricecat'].isin(dd2.dash2_dict['sales']['spc_only'])))]  
+
+        new_df=df[~df['product'].isin(dd2.dash2_dict['sales']["GSV_prod_codes_to_exclude"])].copy()    
  
     
 #------------------------------------------------------------------------
 
 
-     #  print("\nPreprocess data exclude OFFINV. \nInclude only product groups=",dd2.dash2_dict['sales']["pg_only"],"\nSpecial price cat=",dd2.dash2_dict['sales']['spc_only'])
+        print("\nPreprocess data to convert GSV to NSV exclude products=",dd2.dash2_dict['sales']["GSV_prod_codes_to_exclude"])
+       # df=df[(df['code']=="OFFINV") | (df['product']=="OFFINV")]
+        new_df.rename(columns=rename_dict, inplace=True)
+     #   df=df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+        #print("rename collumsn"
+    #    print("preprocesed=\n",new_df.head(100))
+        return new_df
+    
+      
+    def _preprocess(self,df, rename_dict):
+     #   print("preprocess_sc sales save df=",df,rename_dict)
+        df=df[(df['code']!="OFFINV")]   
+        df=df[(df['product']!="OFFINV")]   
+        
+     #   df.to_pickle(dd2.dash2_dict['sales']['raw_savefile'],protocol=-1)
+ 
+    #---------------------------------------------------------
+ 
+       # if dd2.dash2_dict['sales']['glset_not_spc_mask_flag']:
+       #     new_df=df[((df['productgroup'].isin(dd2.dash2_dict['sales']['pg_only'])) & (df['glset'].isin(dd2.dash2_dict['sales']['glset_only'])))].copy()  
+       # else:  
+        if dd2.dash2_dict['sales']['apply_mask']:  # nasking to apply                                                                                                    
+            df=df[((df['pg'].isin(dd2.dash2_dict['sales']['pg_only'])) & (df['spc'].isin(dd2.dash2_dict['sales']['spc_only'])))]  
+
+        new_df=df[~df['product'].isin(dd2.dash2_dict['sales']["GSV_prod_codes_to_exclude"])].copy()    
+ 
+    
+#------------------------------------------------------------------------
+
+
+        print("\nPreprocess data to convert GSV to NSV exclude products=",dd2.dash2_dict['sales']["GSV_prod_codes_to_exclude"])
        # df=df[(df['code']=="OFFINV") | (df['product']=="OFFINV")]
         new_df.rename(columns=rename_dict, inplace=True)
      #   df=df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
@@ -250,7 +283,7 @@ class sales_class(object):
     
         
     
-    def _glset_GSV(self,dds,title):
+    def _glset_NSV(self,dds,title):
     #    dds.index =  pd.to_datetime(dds['date'], format='%Y%m%d') 
     
         dds['mat']=dds['salesval'].rolling(365,axis=0).sum()
@@ -288,8 +321,8 @@ class sales_class(object):
         all_raw_dict={}
         
         sales_df=pd.read_pickle(in_dir+raw_savefile)
-        
-        name="DFS GSV sales $"
+        sales_df.rename(columns={"specialpricecat":"spc","productgroup":"pg"}, inplace=True)
+        name="DFS NSV sales $"
         print("\n",name)
         shop_df=sales_df[(sales_df['glset']=="DFS")]
         dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
@@ -298,9 +331,9 @@ class sales_class(object):
         shop_df['mat']=shop_df['salesval'].rolling(365,axis=0).sum()
         all_raw_dict['raw_dfs']=shop_df.copy()
         dds['dates']=dds.index.tolist()
-        print(self._glset_GSV(dds,name))
+        print(self._glset_NSV(dds,name))
   
-        name="shop GSV sales $"
+        name="shop NSV sales $"
         print("\n",name)
         shop_df=sales_df[(sales_df['glset']=="SHP")].copy()
         dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
@@ -308,10 +341,10 @@ class sales_class(object):
         shop_df['mat']=shop_df['salesval'].rolling(365,axis=0).sum()
         all_raw_dict['raw_shop']=shop_df.copy()
         dds['dates']=dds.index.tolist()
-        print(self._glset_GSV(dds,name))
+        print(self._glset_NSV(dds,name))
         
     
-        name="Online GSV sales $"
+        name="Online NSV sales $"
         print("\n",name)
         shop_df=sales_df[(sales_df['glset']=='ONL')].copy()
         dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
@@ -319,10 +352,10 @@ class sales_class(object):
         shop_df['mat']=shop_df['salesval'].rolling(365,axis=0).sum()
         all_raw_dict['raw_onl']=shop_df.copy()
         dds['dates']=dds.index.tolist()
-        print(self._glset_GSV(dds,name))
+        print(self._glset_NSV(dds,name))
 
            
-        name="Export GSV sales $"
+        name="Export NSV sales $"
         print("\n",name)
         shop_df=sales_df[(sales_df['glset']=="EXS")]
         dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
@@ -330,10 +363,10 @@ class sales_class(object):
         shop_df['mat']=shop_df['salesval'].rolling(365,axis=0).sum()
         all_raw_dict['raw_exs']=shop_df.copy()
         dds['dates']=dds.index.tolist()
-        print(self._glset_GSV(dds,name))
+        print(self._glset_NSV(dds,name))
 
 
-        name="NAT sales GSV$"
+        name="NAT sales NSV$"
         print("\n",name)
         shop_df=sales_df[(sales_df['glset']=="NAT")]
         dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
@@ -341,33 +374,33 @@ class sales_class(object):
         shop_df['mat']=shop_df['salesval'].rolling(365,axis=0).sum()
         all_raw_dict['raw_nat']=shop_df.copy()
         dds['dates']=dds.index.tolist()
-        print(self._glset_GSV(dds,name))
+        print(self._glset_NSV(dds,name))
         
         
-        name="WW (010) GSV sales $"
+        name="WW (010) NSV sales $"
         print("\n",name)
-        shop_df=sales_df[(sales_df['specialpricecat']==10)].copy()
+        shop_df=sales_df[(sales_df['spc']==10)].copy()
         dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
         dds['mat']=dds['salesval'].rolling(365,axis=0).sum()
         shop_df['mat']=shop_df['salesval'].rolling(365,axis=0).sum()
  #       shop_df['mat']=shop_df['salesval'].rolling(365,axis=0).sum()
         all_raw_dict['raw_ww']=shop_df.copy()
         dds['dates']=dds.index.tolist()
-        print(self._glset_GSV(dds,name))
+        print(self._glset_NSV(dds,name))
 
 
-        name="Coles (012) GSV sales $"
+        name="Coles (012) NSV sales $"
         print("\n",name)
-        shop_df=sales_df[(sales_df['specialpricecat']==12)].copy()
+        shop_df=sales_df[(sales_df['spc']==12)].copy()
         dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
         dds['mat']=dds['salesval'].rolling(365,axis=0).sum()
         shop_df['mat']=shop_df['salesval'].rolling(365,axis=0).sum()
         all_raw_dict['raw_coles']=shop_df.copy()
         dds['dates']=dds.index.tolist()
-        print(self._glset_GSV(dds,name))
+        print(self._glset_NSV(dds,name))
         
  
-        name="Beerenberg GSV Annual growth rate"
+        name="Beerenberg NSV Annual growth rate"
         print("\n",name)
         shop_df=sales_df.copy()
         dds=shop_df.groupby(['period'])['salesval'].sum().to_frame() 
@@ -375,11 +408,12 @@ class sales_class(object):
         shop_df['mat']=shop_df['salesval'].rolling(365,axis=0).sum()
         all_raw_dict['raw_all']=shop_df.copy()
         dds['dates']=dds.index.tolist()
-        print(self._glset_GSV(dds,name))
+        print(self._glset_NSV(dds,name))
         print("\n\n")
         print("============================================================================\n")  
  
         del sales_df
+         #  sales_df.rename(columns=rename_dict, inplace=True)
         return all_raw_dict
  
     
@@ -553,7 +587,7 @@ class sales_query_class(object):
         for qn in query_name[1]:  
         #    print("build a query dict qn=",qn)
             q_df=self._query_df(new_df,qn)
-            new_df=q_df.copy()
+            new_df=q_df.sort_index(ascending=False,axis=0).copy()
         q_df.drop_duplicates(keep="first",inplace=True)    
        # q_df=smooth(q_df)
         self.save(q_df,dd2.dash2_dict['sales']['save_dir'],query_name[0])   
@@ -621,11 +655,11 @@ class sales_pivot_class(object):
   #      return("returned sales query load")
          
      
-    def preprocess(self,df, rename_dict):
-        # rename qolumns
-        print("preprocess pivot class=",df,rename_dict)
+    # def preprocess(self,df, rename_dict):
+    #     # rename qolumns
+    #     print("preprocess pivot class=",df,rename_dict)
 
-        return df
+    #     return df
       
         
     def save(self,df):
@@ -1333,17 +1367,17 @@ class sales_pivot_class(object):
     #    unique_code_pivot_df[['code','total_dollars']].head(50).to_excel(output_dir+name+".xlsx") 
         
         
-        year_sales_df["total_dollars"]=year_sales_df['salesval'].groupby(year_sales_df["specialpricecat"]).transform(sum)
+        year_sales_df["total_dollars"]=year_sales_df['salesval'].groupby(year_sales_df["spc"]).transform(sum)
         pivot_df=year_sales_df.sort_values(by=["total_dollars"],ascending=[False]).copy()
         #print("pv=",pivot_df)
         name="Top 20 customers special price category by $purchases in the last 30 days"
-        unique_code_pivot_df=pivot_df.drop_duplicates('specialpricecat',keep='first')
-        unique_code_pivot_df.replace({'specialpricecat':dd2.spc_dict},inplace=True)
-        unique_code_pivot_df.replace({'specialpricecat':dd2.spcs_dict},inplace=True)
+        unique_code_pivot_df=pivot_df.drop_duplicates('spc',keep='first')
+        unique_code_pivot_df.replace({'spc':dd2.spc_dict},inplace=True)
+        unique_code_pivot_df.replace({'spc':dd2.spcs_dict},inplace=True)
        
         #unique_code_pivot_df=pd.unique(pivot_df['code'])
         print("\n",name)
-        print(unique_code_pivot_df[['specialpricecat','total_dollars']].head(20))
+        print(unique_code_pivot_df[['spc','total_dollars']].head(20))
         # dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
         # dd.report_dict[dd.report(name,5,"_*","-*")]=output_dir+name+".xlsx"
         
@@ -1414,16 +1448,16 @@ class sales_pivot_class(object):
         
         
         
-        year_sales_df["total_dollars"]=year_sales_df['salesval'].groupby(year_sales_df["productgroup"]).transform(sum)
-        year_sales_df["total_units"]=year_sales_df['qty'].groupby(year_sales_df["productgroup"]).transform(sum)
+        year_sales_df["total_dollars"]=year_sales_df['salesval'].groupby(year_sales_df["pg"]).transform(sum)
+        year_sales_df["total_units"]=year_sales_df['qty'].groupby(year_sales_df["pg"]).transform(sum)
         pivot_df=year_sales_df.sort_values(by=["total_dollars"],ascending=[False]).copy()
-        unique_pg_pivot_df=pivot_df.drop_duplicates('productgroup',keep='first')
-        unique_pg_pivot_df.replace({'productgroup':dd2.productgroup_dict},inplace=True)
-        unique_pg_pivot_df.replace({'productgroup':dd2.productgroups_dict},inplace=True)
+        unique_pg_pivot_df=pivot_df.drop_duplicates('pg',keep='first')
+        unique_pg_pivot_df.replace({'pg':dd2.productgroup_dict},inplace=True)
+        unique_pg_pivot_df.replace({'pg':dd2.productgroups_dict},inplace=True)
         
         name="Top productgroups by $sales in the last 30 days"
         print("\n",name)
-        print(unique_pg_pivot_df[['productgroup','total_units','total_dollars']].head(20))
+        print(unique_pg_pivot_df[['pg','total_units','total_dollars']].head(20))
         #pivot_df.to_excel("pivot_table_customers_ranking.xlsx") 
         # dd.report_dict[dd.report(name,3,"_*","_*")]=unique_code_pivot_df
         # dd.report_dict[dd.report(name,5,"_*","_*")]=output_dir+name+".xlsx"

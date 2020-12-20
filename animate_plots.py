@@ -50,95 +50,12 @@ class animate_engine(object):
         return
 
     
-    
-    
-    # def log_dir(self,prefix=""):
-    #     now = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-    #     root_logdir = "./dash2_outputs"
-    #     if prefix:
-    #         prefix += "-"
-    #     name = prefix + "run-" + now
-    #     return "{}/{}/".format(root_logdir, name)
-    
-
-    
-    # def animate_plots_gif(self,*,gif_input_dir,gif_duration,gif_output_dir):
-    #     # turn the plots into a animated gif, mp4
-    #     # turn to recommended ones into a gif
-     
-    #     filenames=sorted(glob.glob(dd2.dash2_dict['scheduler']['schedule_savedir_plots']+'*.png'))   #, key=os.path.getctime)
-    #     #sorted(glob.glob('*.png'), key=os.path.getmtime)
-    #     #print("f=",filenames)
-    #     print("\n")
-    #     print("Creating gif...")
-    #     images = []
-    #   #  i=1
-    #     lf=len(filenames)
-    #   #  for filename in filenames:
-    #   #      print("Creating gif of",i,"/",lf,"plots....",end="\r",flush=True)
-    #   #      images.append(imageio.imread(filename))        
-    #   #      i+=1
-    #     p_map(self._resize,filenames)
-    #     images=p_map(imageio.imread,filenames)    
-            
-    #     imageio.mimsave(dd2.dash2_dict['scheduler']['schedule_savedir_plots']+dd2.dash2_dict['scheduler']['schedule_savefile_plots_gif'], images,duration=gif_duration)
-    #     print(dd2.dash2_dict['scheduler']['schedule_savedir_plots']+dd2.dash2_dict['scheduler']['schedule_savefile_plots_gif'],"completed\n")
-    #     imageio.mimsave(plot_output_dir+dd2.dash2_dict['scheduler']['schedule_savefile_plots_gif'], images,duration=gif_duration)
-    #     print(plot_output_dir+dd2.dash2_dict['scheduler']['schedule_savefile_plots_gif'],"completed\n")
-    #     return
-        
+      
   
-    
-    def animate_plots_mp4(self,*,mp4_input_dir,mp4_fps,mp4_output_dir,mp4_output_filename):
+   
+ 
 
-        #---------------------------------------------------
-    # only need once
-       # imageio.plugins.freeimage.download()
-    #---------------------------------------------------------------------
-
-        filenames=sorted(glob.glob(mp4_input_dir+'*.png'))   #, key=os.path.getctime)
-        lf=len(filenames)
-     #   print(filenames)
-       # print("Creating",dd2.dash2_dict['scheduler']['schedule_savedir_plots']+dd2.dash2_dict['scheduler']['schedule_savefile_plots_mp4'])
-        # i=0
-        # for filename in filenames:
-        #     print("Resizing plots of",i,"/",lf,"plots....",end="\r",flush=True)
-        #     fname = os.path.basename(filename)
-        #     input_image  = imageio.imread(dd2.dash2_dict['scheduler']['schedule_savedir_plots']+fname, format='PNG-FI')
-        #     output_image = cv2.resize(input_image, (1888, 1600))   #(256, 256))
-        #     imageio.imwrite(dd2.dash2_dict['scheduler']['schedule_savedir_resized_plots']+fname, output_image, format='PNG-FI')   # 48 bit
-        #     i+=1
             
-        p_map(self._resize,filenames)
-        
-       # print("\nCreating test.mp4")
-        writer = imageio.get_writer(mp4_input_dir+mp4_output_filename, fps=mp4_fps)
-      #  writer2 = imageio.get_writer(plot_output_dir+dd2.dash2_dict['scheduler']['schedule_savefile_plots_mp4'], fps=mp4_fps)
-
-        i=1
-      #  print("Creating gif of",i,"/",lf,"plots....",end="\r",flush=True)
-     
-        for filename in filenames:
-             print("Creating mp4 of",i,"/",lf,"plots....",end="\r",flush=True)
-             fname = os.path.basename(filename)
-             writer.append_data(imageio.imread(mp4_output_dir+fname))
-       #      writer2.append_data(imageio.imread(dd2.dash2_dict['scheduler']['schedule_savedir_resized_plots']+fname))
-
-             i+=1
-        
-      #  writer=p_map(_mp4_write,filenames)
-        
-        writer.close()
-       # writer2.close()
-        print("\n")
-        print(mp4_output_dir+mp4_output_filename+" completed")
-       # print(plot_output_dir+dd2.dash2_dict['scheduler']['schedule_savefile_plots_mp4']+" completed")
-        self._clear_old_plots(mp4_input_dir)
-        print("\n")
-        return
-    
- #+-----------------------------------------------------------------------------------------------------------
-             
     def _clear_old_plots(self,clear_dir):   
         # clear old plots
         files = glob.glob(clear_dir+"*.png")  #dd2.dash2_dict['scheduler']['schedule_savedir_resized_plots']+'*.png')
@@ -150,18 +67,7 @@ class animate_engine(object):
                 print("file delete Error: %s : %s" % (f, e.strerror))
                 
                 
-      #      # clear old plots
-      #   files = glob.glob(dd2.dash2_dict['scheduler']['schedule_savedir_plots']+'*.png')
-      # #  print("2files to del:",files)
-      #   for f in files:
-      #       try:
-      #           os.remove(f)
-      #       except OSError as e:
-      #           print("file delete Error: %s : %s" % (f, e.strerror))
-        
-                
-      #+-----------------------------------------------------------------------------------------------------------
-
+ 
              
     
     def _save_fig(self,fig_id, output_dir,tight_layout=True, fig_extension="png", resolution=300):
@@ -173,25 +79,26 @@ class animate_engine(object):
         plt.savefig(path, format=fig_extension, dpi=resolution,bbox_inches='tight')
         return
     
+   
     
-    def preprocess(self,df,mat):
-        # rename qolumns
+   #  def preprocess(self,df,mat):
+   #      # rename qolumns
        
-       # df.rename(columns=rename_dict, inplace=True)
+   #     # df.rename(columns=rename_dict, inplace=True)
     
-     #   df=df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
-      #  df['date']=df.index
-      #  df['mat']=df['salesval'].rolling(mat,axis=0).sum()
-    #    print("rename collumsn")
+   #   #   df=df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+   #    #  df['date']=df.index
+   #    #  df['mat']=df['salesval'].rolling(mat,axis=0).sum()
+   #  #    print("rename collumsn")
         
-       # df.rename(columns=rename_dict, inplace=True)
+   #     # df.rename(columns=rename_dict, inplace=True)
     
-   #     df=df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
-      #  df['date']=df.index
-        df['mat']=df['salesval'].rolling(window=mat,axis=0).sum()
-      #  df=df[(df['mat']>=0)]
-    #    print("rename collumsn")
-        return df
+   # #     df=df.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+   #    #  df['date']=df.index
+   #  #    df['mat']=df['salesval'].rolling(window=mat,axis=0).sum()
+   #    #  df=df[(df['mat']>=0)]
+   #  #    print("rename collumsn")
+   #      return df
     
     
     
@@ -205,149 +112,161 @@ class animate_engine(object):
 
 
 
-    def pareto_customer(self,slices):
+
+
+    def _p_pareto_customer(self,slices):
         df=slices["df"]    
-        df_dict={slices['name']:slices["df"][(slices["df"].index>=slices['start']) & (slices["df"].index<slices['end'])].copy()}
+        k=slices['name']
+        key=slices['key']
         latest_date=slices['end']
         output_dir=slices["plot_dump_dir"]
 
 #        print("pareto customer plot type=",df_dict.keys(),latest_date.strftime('%d/%m/%Y'),output_dir)
         top=60
    #     i_dict=df_dict.copy()
-        for k,v in df_dict.items():
+#        for k,v in df_dict.items():
         #    cust_df=self.preprocess(df_dict[k],mat).copy()
   #          new_df=df_dict[k].groupby(['code','product'],sort=False).sum()
-            new_df=v.groupby(['code'],sort=False).sum()
-       #     print("pareto customer",k,new_df,new_df.shape)
-        #    print("pareto customer",k,new_df)
-            if new_df.shape[0]>0:
-                new_df=new_df[(new_df['salesval']>1.0)]
-                new_df=new_df[['salesval']].sort_values(by='salesval',ascending=False)   
-            #    new_df=new_df.droplevel([0])
-        
-                new_df['ccount']=np.arange(1,new_df.shape[0]+1)
-                df_len=new_df.shape[0]
-                
-                ptt=new_df['salesval']
-                ptott=ptt.sum()
-                new_df['cumulative']=np.cumsum(ptt)/ptott
-                new_df=new_df.head(top)
-                
-                fig, ax = pyplot.subplots()
-                fig.autofmt_xdate()
-              #  ax.yaxis.set_major_formatter(StrMethodFormatter('${x:,.0f}')) # 2 decimal places
+        new_df=df.groupby(['code'],sort=False).sum()
+   #     print("pareto customer",k,new_df,new_df.shape)
+    #    print("pareto customer",k,new_df)
+        if new_df.shape[0]>0:
+            new_df=new_df[(new_df['salesval']>1.0)]
+            new_df=new_df[['salesval']].sort_values(by='salesval',ascending=False)   
+        #    new_df=new_df.droplevel([0])
+    
+            new_df['ccount']=np.arange(1,new_df.shape[0]+1)
+            df_len=new_df.shape[0]
+            
+            ptt=new_df['salesval']
+            ptott=ptt.sum()
+            new_df['cumulative']=np.cumsum(ptt)/ptott
+            new_df=new_df.head(top)
+            
+            fig, ax = pyplot.subplots()
+            fig.autofmt_xdate()
+          #  ax.yaxis.set_major_formatter(StrMethodFormatter('${x:,.0f}')) # 2 decimal places
 
 #                ax.yaxis.set_major_formatter('${x:1.0f}')
-              #  ax.yaxis.set_tick_params(which='major', labelcolor='green',
-              #           labelleft=True, labelright=False)
+          #  ax.yaxis.set_tick_params(which='major', labelcolor='green',
+          #           labelleft=True, labelright=False)
 
-             #   ax.ticklabel_format(style='plain') 
-             #   ax.yaxis.set_major_formatter(ScalarFormatter())
-          
-                #ax.ticklabel_format(style='plain') 
-          #      ax.axis([1, 10000, 1, 100000])
-                
-                ax=new_df.plot.bar(y='salesval',ylabel="",fontsize=7,grid=False)
-            #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
-           #     axis.set_major_formatter(ScalarFormatter())
-             #   ax.ticklabel_format(style='plain')
-                ax.yaxis.set_major_formatter(StrMethodFormatter('${x:,.0f}')) # 0 decimal places
+         #   ax.ticklabel_format(style='plain') 
+         #   ax.yaxis.set_major_formatter(ScalarFormatter())
+      
+            #ax.ticklabel_format(style='plain') 
+      #      ax.axis([1, 10000, 1, 100000])
+            
+            ax=new_df.plot.bar(y='salesval',ylabel="",fontsize=7,grid=False)
+        #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
+       #     axis.set_major_formatter(ScalarFormatter())
+         #   ax.ticklabel_format(style='plain')
+            ax.yaxis.set_major_formatter(StrMethodFormatter('${x:,.0f}')) # 0 decimal places
 
-                ax.yaxis.set_tick_params(which='major', labelcolor='green',labelleft=True, labelright=False)
-                ax.set_title("["+self._clean_up_name(str(k))+"] Top "+str(top)+" customer $ ranking total dollars "+str(int(ptott))+" total("+str(df_len)+")",fontsize=9)
-             
-             
-                ax2=new_df.plot(y='cumulative',xlabel="",rot=90,fontsize=7,ax=ax,grid=True,style=["r-"],secondary_y=True)
-                ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
-                ax3 = ax.twiny() 
-                ax4=new_df[['ccount']].plot(use_index=True,ax=ax3,grid=False,fontsize=7,xlabel="",style=['w:'],legend=False,secondary_y=False)
-                if df_len<=1:
-                    df_len=2
+            ax.yaxis.set_tick_params(which='major', labelcolor='green',labelleft=True, labelright=False)
+            ax.set_title("["+self._clean_up_name(str(k))+"] Top "+str(top)+" customer $ ranking total dollars "+str(int(ptott))+" total("+str(df_len)+")",fontsize=9)
          
-                
-                ax4.xaxis.set_major_formatter(ticker.PercentFormatter(df_len-1,0,"%"))
-        
-                self._save_fig(self._clean_up_name(str(k))+"pareto_top_"+str(top)+"_customer_$_ranking",output_dir)
-                plt.close()
-            else:
-                print("pareto customer nothing plotted. no records for ",k,new_df)
+         
+            ax2=new_df.plot(y='cumulative',xlabel="",rot=90,fontsize=7,ax=ax,grid=True,style=["r-"],secondary_y=True)
+            ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
+            ax3 = ax.twiny() 
+            ax4=new_df[['ccount']].plot(use_index=True,ax=ax3,grid=False,fontsize=7,xlabel="",style=['w:'],legend=False,secondary_y=False)
+            if df_len<=1:
+                df_len=2
+     
+            
+            ax4.xaxis.set_major_formatter(ticker.PercentFormatter(df_len-1,0,"%"))
+    
+            self._save_fig(self._clean_up_name(str(k))+"pareto_top_"+str(top)+"_customer_$_ranking",output_dir)
+            plt.close()
+        else:
+            print("pareto customer nothing plotted. no records for ",k,new_df)
  
         return
 
 
-    def pareto_product_dollars(self,slices):
+
+
+
+
+
+
+    def _p_pareto_product_dollars(self,slices):
         df=slices["df"]    
-        df_dict={slices['name']:slices["df"][(slices["df"].index>=slices['start']) & (slices["df"].index<slices['end'])].copy()}
+        k=slices['name']
+        key=slices['key']
         latest_date=slices['end']
         output_dir=slices["plot_dump_dir"]
 
  #       print("pareto product plot type=",df_dict.keys(),latest_date.strftime('%d/%m/%Y'),output_dir)
         top=60
      #   i_dict=df_dict.copy()
-        for k,v in df_dict.items():
+      #  for k,v in df_dict.items():
         #    cust_df=self.preprocess(df_dict[k],mat).copy()
   #          new_df=df_dict[k].groupby(['code','product'],sort=False).sum()
-            new_df=v.groupby(['product'],sort=False).sum()
- 
-      #      print("pareto product dollars",k,new_df,new_df.shape)
-            if new_df.shape[0]>0:
-                new_df=new_df[(new_df['salesval']>1.0)]
-                new_df=new_df[['salesval']].sort_values(by='salesval',ascending=False)   
-            #    new_df=new_df.droplevel([0])
-        
-                new_df['pcount']=np.arange(1,new_df.shape[0]+1)
-                df_len=new_df.shape[0]
-                
-                ptt=new_df['salesval']
-                ptott=ptt.sum()
-                new_df['cumulative']=np.cumsum(ptt)/ptott
-                new_df=new_df.head(top)
-                
-                fig, ax = pyplot.subplots()
-                fig.autofmt_xdate()
- #               ax.yaxis.set_major_formatter('${x:1.0f}')
- 
-             #   ax.ticklabel_format(style='plain') 
-             #   ax.yaxis.set_major_formatter(ScalarFormatter())
-          
-                #ax.ticklabel_format(style='plain') 
-          #      ax.axis([1, 10000, 1, 100000])
-                
-                ax=new_df.plot.bar(y='salesval',ylabel="",fontsize=7,grid=False)
-            #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
-           #     axis.set_major_formatter(ScalarFormatter())
-             #   ax.ticklabel_format(style='plain')
-                ax.yaxis.set_major_formatter(StrMethodFormatter('${x:,.0f}')) # 0 decimal places
+        new_df=df.groupby(['product'],sort=False).sum()
 
-                ax.yaxis.set_tick_params(which='major', labelcolor='green',labelleft=True, labelright=False)
-                ax.set_title("["+self._clean_up_name(str(k))+"] Top "+str(top)+" product $ ranking total dollars "+str(int(ptott))+" total("+str(df_len)+")",fontsize=9)
-  
-             
-             
-             
-                ax2=new_df.plot(y='cumulative',xlabel="",rot=90,fontsize=7,ax=ax,grid=True,style=["r-"],secondary_y=True)
-                ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
-                ax3 = ax.twiny() 
-                ax4=new_df[['pcount']].plot(use_index=True,ax=ax3,grid=False,fontsize=7,xlabel="",style=['w:'],legend=False,secondary_y=False)
-                if df_len<=1:
-                    df_len=2
-         
-                
-                ax4.xaxis.set_major_formatter(ticker.PercentFormatter(df_len-1,0,"%"))
+ #      print("pareto product dollars",k,new_df,new_df.shape)
+        if new_df.shape[0]>0:
+           new_df=new_df[(new_df['salesval']>1.0)]
+           new_df=new_df[['salesval']].sort_values(by='salesval',ascending=False)   
+       #    new_df=new_df.droplevel([0])
+   
+           new_df['pcount']=np.arange(1,new_df.shape[0]+1)
+           df_len=new_df.shape[0]
+           
+           ptt=new_df['salesval']
+           ptott=ptt.sum()
+           new_df['cumulative']=np.cumsum(ptt)/ptott
+           new_df=new_df.head(top)
+           
+           fig, ax = pyplot.subplots()
+           fig.autofmt_xdate()
+#               ax.yaxis.set_major_formatter('${x:1.0f}')
+
+        #   ax.ticklabel_format(style='plain') 
+        #   ax.yaxis.set_major_formatter(ScalarFormatter())
+     
+           #ax.ticklabel_format(style='plain') 
+     #      ax.axis([1, 10000, 1, 100000])
+           
+           ax=new_df.plot.bar(y='salesval',ylabel="",fontsize=7,grid=False)
+       #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
+      #     axis.set_major_formatter(ScalarFormatter())
+        #   ax.ticklabel_format(style='plain')
+           ax.yaxis.set_major_formatter(StrMethodFormatter('${x:,.0f}')) # 0 decimal places
+
+           ax.yaxis.set_tick_params(which='major', labelcolor='green',labelleft=True, labelright=False)
+           ax.set_title("["+self._clean_up_name(str(k))+"] Top "+str(top)+" product $ ranking total dollars "+str(int(ptott))+" total("+str(df_len)+")",fontsize=9)
+ 
         
-                self._save_fig(self._clean_up_name(str(k))+"pareto_top_"+str(top)+"_product_$_ranking",output_dir)
-                plt.close()
-            else:
-                print("pareto product dollars nothing plotted. no records for ",k,new_df)
-      
+        
+        
+           ax2=new_df.plot(y='cumulative',xlabel="",rot=90,fontsize=7,ax=ax,grid=True,style=["r-"],secondary_y=True)
+           ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
+           ax3 = ax.twiny() 
+           ax4=new_df[['pcount']].plot(use_index=True,ax=ax3,grid=False,fontsize=7,xlabel="",style=['w:'],legend=False,secondary_y=False)
+           if df_len<=1:
+               df_len=2
+    
+           
+           ax4.xaxis.set_major_formatter(ticker.PercentFormatter(df_len-1,0,"%"))
+   
+           self._save_fig(self._clean_up_name(str(k))+"pareto_top_"+str(top)+"_product_$_ranking",output_dir)
+           plt.close()
+        else:
+           print("pareto product dollars nothing plotted. no records for ",k,new_df)
+     
         return
 
 
 
 
-    def pareto_product_units(self,slices):
+
+    def _p_pareto_product_units(self,slices):
         df=slices["df"]    
-        df_dict={slices['name']:slices["df"][(slices["df"].index>=slices['start']) & (slices["df"].index<slices['end'])].copy()}
+        k=slices['name']
+        key=slices['key']
         latest_date=slices['end']
         output_dir=slices["plot_dump_dir"]
 
@@ -355,246 +274,192 @@ class animate_engine(object):
         top=60
    #     i_dict=df_dict.copy()
       #  print("pareto product i_dict=\n",i_dict,"\n i_dict.items()=\n",i_dict.items())
-        for k,v in df_dict.items():
+     #   for k,v in df_dict.items():
         #    cust_df=self.preprocess(df_dict[k],mat).copy()
   #          new_df=df_dict[k].groupby(['code','product'],sort=False).sum()
-            new_df=v.groupby(['product'],sort=False).sum()
- 
-       #     print("\n++++++pareto product units",k,new_df)
-            if new_df.shape[0]>0:
-                new_df=new_df[(new_df['qty']>1.0)]
-                new_df=new_df[['qty']].sort_values(by='qty',ascending=False)   
-            #    new_df=new_df.droplevel([0])
-        
-                new_df['pcount']=np.arange(1,new_df.shape[0]+1)
-                df_len=new_df.shape[0]
-                
-                ptt=new_df['qty']
-                ptott=ptt.sum()
-                new_df['cumulative']=np.cumsum(ptt)/ptott
-                new_df=new_df.head(top)
-                
-                fig, ax = pyplot.subplots()
-                fig.autofmt_xdate()
- #               ax.yaxis.set_major_formatter('${x:1.0f}')
- 
-             #   ax.ticklabel_format(style='plain') 
-             #   ax.yaxis.set_major_formatter(ScalarFormatter())
-          
-                #ax.ticklabel_format(style='plain') 
-          #      ax.axis([1, 10000, 1, 100000])
-                
-                ax=new_df.plot.bar(y='qty',ylabel="units",fontsize=7,grid=False)
-            #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
-           #     axis.set_major_formatter(ScalarFormatter())
-             #   ax.ticklabel_format(style='plain')
-                ax.yaxis.set_major_formatter(StrMethodFormatter('{x:1.0f}')) # 0 decimal places
+        new_df=df.groupby(['product'],sort=False).sum()
 
-                ax.yaxis.set_tick_params(which='major', labelcolor='green',labelleft=True, labelright=False)
-                ax.set_title("["+self._clean_up_name(str(k))+"] Top "+str(top)+" product unit ranking total units "+str(int(ptott))+" total("+str(df_len)+")",fontsize=9)
-  
-                ax2=new_df.plot(y='cumulative',xlabel="",rot=90,fontsize=7,ax=ax,grid=True,style=["r-"],secondary_y=True)
-                ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
-                ax3 = ax.twiny() 
-                ax4=new_df[['pcount']].plot(use_index=True,ax=ax3,grid=False,fontsize=7,xlabel="",style=['w:'],legend=False,secondary_y=False)
-                if df_len<=1:
-                    df_len=2
-         
-                
-                ax4.xaxis.set_major_formatter(ticker.PercentFormatter(df_len-1,0,"%"))
-        
-                self._save_fig(self._clean_up_name(str(k))+"pareto_top_"+str(top)+"_product_units_ranking",output_dir)
-                plt.close()
-            else:
-                print("pareto product units nothing plotted. no records for ",k,new_df)
+  #     print("\n++++++pareto product units",k,new_df)
+        if new_df.shape[0]>0:
+           new_df=new_df[(new_df['qty']>1.0)]
+           new_df=new_df[['qty']].sort_values(by='qty',ascending=False)   
+       #    new_df=new_df.droplevel([0])
+   
+           new_df['pcount']=np.arange(1,new_df.shape[0]+1)
+           df_len=new_df.shape[0]
+           
+           ptt=new_df['qty']
+           ptott=ptt.sum()
+           new_df['cumulative']=np.cumsum(ptt)/ptott
+           new_df=new_df.head(top)
+           
+           fig, ax = pyplot.subplots()
+           fig.autofmt_xdate()
+#               ax.yaxis.set_major_formatter('${x:1.0f}')
+
+        #   ax.ticklabel_format(style='plain') 
+        #   ax.yaxis.set_major_formatter(ScalarFormatter())
+     
+           #ax.ticklabel_format(style='plain') 
+     #      ax.axis([1, 10000, 1, 100000])
+           
+           ax=new_df.plot.bar(y='qty',ylabel="units",fontsize=7,grid=False)
+       #        ax=ptt['total'].plot(x='product',ylabel="$",style="b-",fontsize=5,title="Last 90 day $ product sales ranking (within product groups supplied)")
+      #     axis.set_major_formatter(ScalarFormatter())
+        #   ax.ticklabel_format(style='plain')
+           ax.yaxis.set_major_formatter(StrMethodFormatter('{x:1.0f}')) # 0 decimal places
+
+           ax.yaxis.set_tick_params(which='major', labelcolor='green',labelleft=True, labelright=False)
+           ax.set_title("["+self._clean_up_name(str(k))+"] Top "+str(top)+" product unit ranking total units "+str(int(ptott))+" total("+str(df_len)+")",fontsize=9)
+ 
+           ax2=new_df.plot(y='cumulative',xlabel="",rot=90,fontsize=7,ax=ax,grid=True,style=["r-"],secondary_y=True)
+           ax2.yaxis.set_major_formatter(ticker.PercentFormatter(1.0,0,"%"))
+           ax3 = ax.twiny() 
+           ax4=new_df[['pcount']].plot(use_index=True,ax=ax3,grid=False,fontsize=7,xlabel="",style=['w:'],legend=False,secondary_y=False)
+           if df_len<=1:
+               df_len=2
+    
+           
+           ax4.xaxis.set_major_formatter(ticker.PercentFormatter(df_len-1,0,"%"))
+   
+           self._save_fig(self._clean_up_name(str(k))+"pareto_top_"+str(top)+"_product_units_ranking",output_dir)
+           plt.close()
+        else:
+           print("pareto product units nothing plotted. no records for ",k,new_df)
         return
 
  
 
 
-    def mat(self,slices):
-        mat_df=slices["df"]    
-        df_dict={slices['name']:slices["df"][(slices["df"].index>=slices['start']) & (slices["df"].index<slices['end'])].copy()}
-        latest_date=slices['end']
-        output_dir=slices["plot_dump_dir"]
-        mat= 28 #dd2.dash2_dict['sales']['plots']['mat']
-        
-        
-    #    print("plotting mat plot type=",df_dict.keys(),mat,latest_date.strftime('%d/%m/%Y'),output_dir)
-        for k,v in df_dict.items():
-           # mat_df=v.copy()
-            mat_df=v.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0).copy()
-            
- #           loffset = '7D'
- #           weekly_sdf=sdf.resample('W-TUE', label='left').sum().round(0)   
- #           weekly_sdf.index = weekly_sdf.index + to_offset(loffset) 
- 
-            
-            if True:   # mat_df.shape[0]>mat:
-             #   mat_df=self.preprocess(mat_df,mat)
-                mat_df['mat']=mat_df['salesval'].rolling(mat,axis=0).sum()
-          #      df=df[(df['mat']>=0)]
-     
-           #     print("end mat preprocess=\n",df)
-               # styles1 = ['b-','g:','r:']
-                styles1 = ['b-']
-              # styles1 = ['bs-','ro:','y^-']
-                linewidths = 2  # [2, 1, 4]
-                       
-                fig, ax = pyplot.subplots()
-                ax=mat_df.iloc[mat:][['mat']].plot(grid=True,fontsize=6,style=styles1, lw=linewidths)
-                #ax=mat_df[['mat']].plot(grid=True,fontsize=6,style=styles1, lw=linewidths)
-             
-                ax.yaxis.set_major_formatter(StrMethodFormatter('${x:,.0f}')) # 2 decimal places
-    
-                ax.set_title("["+self._clean_up_name(str(k))+"] $ sales moving total "+str(mat)+" weeks @w/c:"+latest_date.strftime('%d/%m/%Y'),fontsize= 7)
-                ax.legend(title="",fontsize=6,loc="upper left")
-                ax.set_xlabel("",fontsize=6)
-                ax.set_ylabel("",fontsize=6)
-               # ax.yaxis.set_major_formatter('${x:1.0f}')
-                ax.yaxis.set_tick_params(which='major', labelcolor='green',
-                             labelleft=True, labelright=False)
-                
-                self._save_fig(self._clean_up_name(str(k))+"_dollars_moving_total",output_dir)
-                plt.close()+pd.offsets.Day(-365)
-        return   
-
-
-
-    def mat_salesval(self,slices):
-        t_df=slices["df"]    
-        k=slices['name']
-        start=slices['start']   #+pd.offsets.Day(365)
+    def _p_plot_salesval(self,slices):   
+         plot_df=slices["sliced_df"]    
+         k=slices['name']
+         key=slices['key']
+         start=slices['start']   #+pd.offsets.Day(365)
       #  start_2yrs=slices['start']
-        end=slices['end']
-        latest_date=slices['end']
-        output_dir=slices["plot_dump_dir"]
-     #   print("slices=",slices)
-     #   print("se",start,end)
-        plot_vals=[]
-        for d in pd.date_range(start,end):
-            v=t_df[(t_df.index>=(d+pd.offsets.Day(-365))) & (t_df.index<d)]
-    
-          #  print("v=\n",v) 
-         #   mat= 28 #dd2.dash2_dict['sales']['plots']['mat']
-            
-            
-                   #   mat_df=self.preprocess(mat_df,mat)
-            mat_df=v.resample('D',label='left').sum().round(0).copy()
-            
-         #   print("s",s)   #,s.iloc[-1])
-            plot_vals.append((d,mat_df['salesval'].sum()))
-      #  print("plotvals=",plot_vals)
-            
-    
-        plot_df = pd.DataFrame(plot_vals, columns =['date', 'salesval'])
-        plot_df.set_index('date',inplace=True)
-      #  print("plotdf=\n",plot_df)
-       # mat_df=t_df[(u_df.index>=start) & (u_df.index<end)].copy()
-        #if mat_df.shape[0]>367:
-         #   mat_df['mat']=mat_df['salesval'].rolling(365,axis=0).sum()
-         #   print("resampled mat_df=\n",mat_df)
- 
-              #      df=df[(df['mat']>=0)]
-         
-        #     print("end mat preprocess=\n",df)
-            # styles1 = ['b-','g:','r:']
-        styles1 = ['b-']
+         end=slices['end']
+         latest_date=slices['end']
+         output_dir=slices["plot_dump_dir"]
+
+         styles1 = ['b-']
         # styles1 = ['bs-','ro:','y^-']
-        linewidths = 1  # [2, 1, 4]
+         linewidths = 1  # [2, 1, 4]
                  
-        fig, ax = pyplot.subplots()
-        ax=plot_df.plot(grid=True,fontsize=6,style=styles1, lw=linewidths)
+         fig, ax = pyplot.subplots()
+     #    fig.autofmt_xdate()
+         ax=plot_df.plot(y='salesval_mat',grid=True,fontsize=6,style=styles1, lw=linewidths)
           #ax=mat_df[['mat']].plot(grid=True,fontsize=6,style=styles1, lw=linewidths)
        
-        ax.yaxis.set_major_formatter(StrMethodFormatter('${x:,.0f}')) # 2 decimal places
+         ax.yaxis.set_major_formatter(StrMethodFormatter('${x:,.0f}')) # 2 decimal places
  
-        ax.set_title("["+self._clean_up_name(str(k))+"] $ sales moving total2 365 days @w/c:"+latest_date.strftime('%d/%m/%Y'),fontsize= 7)
-        ax.legend(title="",fontsize=6,loc="upper left")
-        ax.set_xlabel("",fontsize=6)
-        ax.set_ylabel("",fontsize=6)
+         ax.set_title("["+self._clean_up_name(str(k))+"] $ sales moving total 365 days @:"+latest_date.strftime('%d/%m/%Y'),fontsize= 7)
+         ax.legend(title="",fontsize=6,loc="upper left")
+         ax.set_xlabel("",fontsize=6)
+         ax.set_ylabel("",fontsize=6)
          # ax.yaxis.set_major_formatter('${x:1.0f}')
-        ax.yaxis.set_tick_params(which='major', labelcolor='green',
+         ax.yaxis.set_tick_params(which='major', labelcolor='green',
                        labelleft=True, labelright=False)
           
-        self._save_fig(self._clean_up_name(str(k))+"_dollars_moving_total2",output_dir)
-        plt.close()
-        return   
+         self._save_fig(self._clean_up_name(str(k))+"_dollars_moving_total",output_dir)
+         plt.close()
+         return
 
 
 
 
+    def _p_plot_qty(self,slices):   
+         plot_df=slices["sliced_df"]    
+         k=slices['name']
+         key=slices['key']
+         start=slices['start']   #+pd.offsets.Day(365)
+      #  start_2yrs=slices['start']
+         end=slices['end']
+         latest_date=slices['end']
+         output_dir=slices["plot_dump_dir"]
 
-    def mat_qty(self,slices):
-        t_df=slices["df"]    
-        k=slices['name']
-        start=slices['start']   #+pd.offsets.Day(365)
-      #  start_2yrs=     
-      
-        end=slices['end']
-        latest_date=slices['end']
-        output_dir=slices["plot_dump_dir"]
-     #   print("slices=",slices)
-     #   print("se",start,end)
-        plot_vals=[]
-        for d in pd.date_range(start,end):
-            v=t_df[(t_df.index>=(d+pd.offsets.Day(-365))) & (t_df.index<d)]
-    
-          #  print("v=\n",v) 
-         #   mat= 28 #dd2.dash2_dict['sales']['plots']['mat']
-            
-            
-                   #   mat_df=self.preprocess(mat_df,mat)
-            mat_df=v.resample('D',label='left').sum().round(0).copy()
-            
-         #   print("s",s)   #,s.iloc[-1])
-            plot_vals.append((d,mat_df['qty'].sum()))
-      #  print("plotvals=",plot_vals)
-            
-    
-        plot_df = pd.DataFrame(plot_vals, columns =['date', 'qty'])
-        plot_df.set_index('date',inplace=True)
-      #  print("plotdf=\n",plot_df)
-       # mat_df=t_df[(u_df.index>=start) & (u_df.index<end)].copy()
-        #if mat_df.shape[0]>367:
-         #   mat_df['mat']=mat_df['salesval'].rolling(365,axis=0).sum()
-         #   print("resampled mat_df=\n",mat_df)
- 
-              #      df=df[(df['mat']>=0)]
-         
-        #     print("end mat preprocess=\n",df)
-            # styles1 = ['b-','g:','r:']
-        styles1 = ['b-']
+         styles1 = ['b-']
         # styles1 = ['bs-','ro:','y^-']
-        linewidths = 1  # [2, 1, 4]
+         linewidths = 1  # [2, 1, 4]
                  
-        fig, ax = pyplot.subplots()
-        ax=plot_df.plot(grid=True,fontsize=6,style=styles1, lw=linewidths)
+         fig, ax = pyplot.subplots()
+     #    fig.autofmt_xdate()
+         ax=plot_df.plot(y='qty_mat',grid=True,fontsize=6,style=styles1, lw=linewidths)
           #ax=mat_df[['mat']].plot(grid=True,fontsize=6,style=styles1, lw=linewidths)
        
-        ax.yaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}')) # 2 decimal places
+         ax.yaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}')) # 2 decimal places
  
-        ax.set_title("["+self._clean_up_name(str(k))+"] units moving total 365 days @w/c:"+latest_date.strftime('%d/%m/%Y'),fontsize= 7)
-        ax.legend(title="",fontsize=6,loc="upper left")
-        ax.set_xlabel("",fontsize=6)
-        ax.set_ylabel("",fontsize=6)
+         ax.set_title("["+self._clean_up_name(str(k))+"] units moving total 365 days @:"+latest_date.strftime('%d/%m/%Y'),fontsize= 7)
+         ax.legend(title="",fontsize=6,loc="upper left")
+         ax.set_xlabel("",fontsize=6)
+         ax.set_ylabel("",fontsize=6)
          # ax.yaxis.set_major_formatter('${x:1.0f}')
-        ax.yaxis.set_tick_params(which='major', labelcolor='green',
+         ax.yaxis.set_tick_params(which='major', labelcolor='green',
                        labelleft=True, labelright=False)
           
-        self._save_fig(self._clean_up_name(str(k))+"_units_moving_total",output_dir)
-        plt.close()
-        return   
+         self._save_fig(self._clean_up_name(str(k))+"_units_moving_total",output_dir)
+         plt.close()
+         return
 
 
+   
+    def _animate_plots_mp4(self,*,mp4_input_dir,mp4_fps,mp4_output_dir,mp4_output_filename,plot_output_dir):
 
+        #---------------------------------------------------
+    # only need once
+       # imageio.plugins.freeimage.download()
+    #---------------------------------------------------------------------
 
-
-
-#######################################################################################
-
-       
+        filenames=sorted(glob.glob(mp4_input_dir+'*.png'))   #, key=os.path.getctime)
+        #  add the same frame for start and end 60? times
+        if len(filenames)>0:
+            start_freeze=[filenames[0]]*dd2.dash2_dict['sales']['plots']['animation_start_freeze_frames']
+            end_freeze=[filenames[-1]]*dd2.dash2_dict['sales']['plots']['animation_end_freeze_frames']
+     #       print(start_freeze)
+            
+            lf=len(filenames)
+              
+            p_map(self._resize,filenames)
+            filenames=start_freeze+filenames+end_freeze
+     
+           # print("\nCreating test.mp4")
+            writer = imageio.get_writer(mp4_input_dir+mp4_output_filename, fps=mp4_fps)
+          #  writer2 = imageio.get_writer(plot_output_dir+dd2.dash2_dict['scheduler']['schedule_savefile_plots_mp4'], fps=mp4_fps)
     
+            i=1
+          #  print("Creating gif of",i,"/",lf,"plots....",end="\r",flush=True)
+         
+            for filename in filenames:
+                 print("Creating mp4 of",i,"/",lf,"plots....",end="\r",flush=True)
+                 fname = os.path.basename(filename)
+                 writer.append_data(imageio.imread(mp4_output_dir+fname))
+           #      writer2.append_data(imageio.imread(dd2.dash2_dict['scheduler']['schedule_savedir_resized_plots']+fname))
+    
+                 i+=1
+            
+          #  writer=p_map(_mp4_write,filenames)
+            
+            writer.close()
+           # writer2.close()
+            print("\n")
+            print(mp4_output_dir+mp4_output_filename+" completed")
+       # print(plot_output_dir+dd2.dash2_dict['scheduler']['schedule_savefile_plots_mp4']+" completed")
+            self._clear_old_plots(mp4_input_dir)
+        print("\n")
+        self._copy_mp4s_over(mp4_input_dir,plot_output_dir)   
+
+        return
+  
+    
+  
+
+
+    def _copy_mp4s_over(self,plot_dump_dir,plot_output_dir):      
+        files = glob.glob(plot_dump_dir+"*.mp4")  #dd2.dash2_dict['scheduler']['schedule_savedir_resized_plots']+'*.png')
+        for item in files:
+             filename = os.path.basename(item)
+             shutil.copy(item, os.path.join(plot_output_dir, filename))
+           
+     
     
     def generate_annual_dates(self,df,*,start_offset,size):
         first_date=df.index[-1]+pd.offsets.Day(size+start_offset)
@@ -608,87 +473,63 @@ class animate_engine(object):
             yield date+pd.offsets.Day(-size),date
             
             
-  
-            
-    def animate_reports(self,query_dict,plot_output_dir,*,mp4_fps):    
-       #
-        
-      #  plot_output_dir = log_dir("dash2")
-      #  dd2.dash2_dict['sales']['plots']['plot_output_dir']=plot_output_dir
-        plot_dump_dir=plot_output_dir+dd2.dash2_dict['sales']['plots']["animation_plot_dump_dir"]
-        #print(plot_dump_dir)
-        #os.mkdir(plot_dump_dir,)
-        
-      #  os.chdir("/home/tonedogga/Documents/python_dev")
-     #   with open(dd2.dash2_dict['sales']["save_dir"]+dd2.dash2_dict['sales']["query_dict_savefile"], 'rb') as f:
-     #       query_dict = pickle.load(f)
-        
-        #print(query_dict)
+ 
+
+
+
+    def plot_and_animate_query_dict(self,query_dict,plot_dump_dir,plot_output_dir,mp4_fps):
         for key in query_dict.keys():
-            #key="080 SA all"
-            df=query_dict[key]
-        
-        
-            print("plotting mats",key)
+
+            pareto_df=query_dict[key]
+            df=pareto_df.rename(mapper={"date":"xdate"},axis=1)
+            mat_df=df.resample('D',label='left').sum().round(0).copy()
+
+            mat_df['salesval_mat']=mat_df['salesval'].rolling("365D",closed='left').sum()   # 365D rolling window  apply(get_rolling_amount,'365D')   #.to_frame(name='mat')    #.rolling("365D", min_periods=1).sum()
+            mat_df['qty_mat']=mat_df['qty'].rolling("365D",closed='left').sum()   #   apply(get_rolling_amount,'365D')   #.to_frame(name='mat')    #.rolling("365D", min_periods=1).sum()
+
             slices=[]
-            #g=[d for d in pd.date_range("2019-01-01",latest_date)]
-            if df.shape[0]>0:
-                for start,end in self.generate_annual_dates(df,start_offset=365,size=365):  #query_dict['080 SA all']):  #"2020-01-01","2020-02-02"):
-                #   print("mats",start,"to",end)
-                   slices.append({"start":start,"end":end,"plot_dump_dir":plot_dump_dir,"name":key+" ["+start.strftime("%Y-%m-%d")+"-"+end.strftime("%Y-%m-%d")+"]","df":df})  
-            
+            pareto_slices=[]
+       #     if mat_df.shape[0]>0:
+            print("animate",key,"df ",df.shape,"mat_df",mat_df.shape,"pareto df ",pareto_df.shape)
+            for start,end in self.generate_annual_dates(query_dict[key],start_offset=365,size=365):  #query_dict['080 SA all']):  #"2020-01-01","2020-02-02"):
+                    print("mats",start.strftime("%d/%m/%Y"),"to",end.strftime("%d/%m/%Y"),end="\r",flush=True)
+                    plot_df=mat_df[(mat_df.index>start) & (mat_df.index<=end)].copy()
+                    pareto2_df=pareto_df[(pareto_df.index>start) & (pareto_df.index<=end)].copy()
        
-                print(key+"    mat salesval")    
-                p_map(self.mat_salesval,slices)
-                self.animate_plots_mp4(mp4_input_dir=plot_dump_dir,mp4_fps=mp4_fps,mp4_output_dir=plot_dump_dir,mp4_output_filename=key+"_mat_salesval.mp4")
-  
+                    slices.append({"start":start,"end":end,"plot_dump_dir":plot_dump_dir,"plot_output_dir":plot_output_dir,"key":key,"name":key+" ["+start.strftime("%Y-%m-%d")+"-"+end.strftime("%Y-%m-%d")+"]","sliced_df":plot_df})  
+                    pareto_slices.append({"start":start,"end":end,"plot_dump_dir":plot_dump_dir,"plot_output_dir":plot_output_dir,"key":key,"name":key+" ["+start.strftime("%Y-%m-%d")+"-"+end.strftime("%Y-%m-%d")+"]","df":pareto2_df})  
+
+          
+            print("\nquery=",key)    
+            print("plot salesval mats")        
+            p_map(self._p_plot_salesval,slices)  
+            self._animate_plots_mp4(mp4_input_dir=plot_dump_dir,mp4_fps=mp4_fps,mp4_output_dir=plot_dump_dir,mp4_output_filename=key+"_mat_salesval.mp4",plot_output_dir=plot_output_dir)
+     
+            print("plot qty mats")
+            p_map(self._p_plot_qty,slices)   
+            self._animate_plots_mp4(mp4_input_dir=plot_dump_dir,mp4_fps=mp4_fps,mp4_output_dir=plot_dump_dir,mp4_output_filename=key+"_mat_qty.mp4",plot_output_dir=plot_output_dir)
        
-                print(key+"    mat qty")    
-                p_map(self.mat_qty,slices)
-                self.animate_plots_mp4(mp4_input_dir=plot_dump_dir,mp4_fps=mp4_fps,mp4_output_dir=plot_dump_dir,mp4_output_filename=key+"_mat_qty.mp4")
+            print("pareto product units")    
+            p_map(self._p_pareto_product_units,pareto_slices)
+            self._animate_plots_mp4(mp4_input_dir=plot_dump_dir,mp4_fps=mp4_fps,mp4_output_dir=plot_dump_dir,mp4_output_filename=key+"_pareto_product_units.mp4",plot_output_dir=plot_output_dir)
+         
+            print("pareto product dollars")    
+            p_map(self._p_pareto_product_dollars,pareto_slices)
+            self._animate_plots_mp4(mp4_input_dir=plot_dump_dir,mp4_fps=mp4_fps,mp4_output_dir=plot_dump_dir,mp4_output_filename=key+"_pareto_product_dollars.mp4",plot_output_dir=plot_output_dir)
+          
+            print("pareto customer dollars")    
+            p_map(self._p_pareto_customer,pareto_slices)
+            self._animate_plots_mp4(mp4_input_dir=plot_dump_dir,mp4_fps=mp4_fps,mp4_output_dir=plot_dump_dir,mp4_output_filename=key+"_pareto_customer_dollars.mp4",plot_output_dir=plot_output_dir)
+              
+     
     
-  
-            
-                print("plotting paretos",key)
-                slices=[]
-                #g=[d for d in pd.date_range("2019-01-01",latest_date)]
-                for start,end in self.generate_annual_dates(df,start_offset=0,size=365):  #query_dict['080 SA all']):  #"2020-01-01","2020-02-02"):
-                 #  print(start,"to",end)
-                   slices.append({"start":start,"end":end,"plot_dump_dir":plot_dump_dir,"name":key+" ["+start.strftime("%Y-%m-%d")+"-"+end.strftime("%Y-%m-%d")+"]","df":df})  
-            
-       
-              #  print(key+"    mat2")    
-              #  p_map(self.mat2,slices)
-              #  self.animate_plots_mp4(mp4_input_dir=plot_dump_dir,mp4_fps=mp4_fps,mp4_output_dir=plot_dump_dir,mp4_output_filename=key+"_mat2.mp4")
-         
-                # print(key+"    mat")    
-                # p_map(self.mat,slices)
-                # self.animate_plots_mp4(mp4_input_dir=plot_dump_dir,mp4_fps=mp4_fps,mp4_output_dir=plot_dump_dir,mp4_output_filename=key+"_mat.mp4")
-         
-      
-                print(key+"    product units")    
-                p_map(self.pareto_product_units,slices)
-                self.animate_plots_mp4(mp4_input_dir=plot_dump_dir,mp4_fps=mp4_fps,mp4_output_dir=plot_dump_dir,mp4_output_filename=key+"_pareto_product_units.mp4")
-                
-                print(key+"    product dollars")    
-                p_map(self.pareto_product_dollars,slices)
-                self.animate_plots_mp4(mp4_input_dir=plot_dump_dir,mp4_fps=mp4_fps,mp4_output_dir=plot_dump_dir,mp4_output_filename=key+"_pareto_product_dollars.mp4")
-                
-                print(key+"    customer dollars")    
-                p_map(self.pareto_customer,slices)
-                self.animate_plots_mp4(mp4_input_dir=plot_dump_dir,mp4_fps=mp4_fps,mp4_output_dir=plot_dump_dir,mp4_output_filename=key+"_pareto_customer_dollars.mp4")
-            
         
         
         
-        ###############################################################33
-        # copy *.mp4 files across to main output dir
         
-            files = glob.glob(plot_dump_dir+"*.mp4")  #dd2.dash2_dict['scheduler']['schedule_savedir_resized_plots']+'*.png')
-            for item in files:
-                 filename = os.path.basename(item)
-                 shutil.copy(item, os.path.join(plot_output_dir, filename))
-           
-  
-  
+        
+        
         return
+
+    
+ 
