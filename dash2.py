@@ -404,6 +404,9 @@ def main():
     dash.scheduler.animate_plots(gif_duration=4,mp4_fps=10,plot_output_dir=plot_output_dir)
  
     query_dict2=dash.sales.query.queries(dd2.dash2_dict['sales']['sales_df'])    
+  
+    
+    dash.animate.animate_brand_index(plot_output_dir+dd2.dash2_dict['sales']['plots']["animation_plot_dump_dir"],plot_output_dir,mp4_fps=11)
     dash.animate.plot_and_animate_query_dict(query_dict2,plot_output_dir+dd2.dash2_dict['sales']['plots']["animation_plot_dump_dir"],plot_output_dir,mp4_fps=11)
  
    

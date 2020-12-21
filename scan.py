@@ -499,6 +499,8 @@ class scan_class(object):
         tdf=self._add_trues_and_falses(tdf,col_and_hue[0])
         tdf=self._add_trues_and_falses(tdf,col_and_hue[1])
         
+        tdf[y_col].replace(0, np.nan,inplace=True)
+        
         date=pd.to_datetime(tdf.index).strftime("%Y-%m-%d").to_list()
      #   print("date=",date)
         tdf['date']=date
@@ -535,11 +537,11 @@ class scan_class(object):
     
     
     
-   def _take_out_zeros(self,df,cols):
-        # cols of a list of column names
-        df[cols]=df[cols].clip(lower=1.0,axis=1)
-        df[cols]=df[cols].replace(1.0, np.nan)
-        return df
+   # def _take_out_zeros(self,df,cols):
+   #      # cols of a list of column names
+   #      df[cols]=df[cols].clip(lower=100.0,axis=1)
+   #      df[cols]=df[cols].replace(100.0, np.nan)
+   #      return df
     
     
    def _add_trues_and_falses(self,df,cols):

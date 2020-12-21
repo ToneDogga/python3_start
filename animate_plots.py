@@ -110,6 +110,17 @@ class animate_engine(object):
         name = name.replace(' ', '_')
         return name.replace("'", "")
     
+       
+    
+    #  def _take_out_zeros(self,df,cols):
+    #      # cols of a list of column names
+    # #     df[cols]=df[cols].clip(lower=100.0)   #,axis=1)
+    #    #  print("toz=\n",df)
+    #      df[cols]=df[cols].replace(0, np.nan)
+    #      return df
+ 
+    
+    
    
     def _add_trues_and_falses(self,df,cols):
         df[cols]=df[cols].replace(1,True)
@@ -125,11 +136,20 @@ class animate_engine(object):
         col_and_hue=slices['col_and_hue']
         savename=slices['savename']
         
+   #     atdf=tdf[~np.isnan(tdf)].copy() # Remove the NaNs
+   #     print("atoz=\n",atdf)
         tdf=tdf.astype(np.float64)
      
         tdf=self._add_trues_and_falses(tdf,col_and_hue[0])
         tdf=self._add_trues_and_falses(tdf,col_and_hue[1])
+    #    tdf=self._take_out_zeros(tdf,y_col)
+    #    tdf=self._take_out_zeros(tdf,col_and_hue[1])
         
+        tdf[y_col].replace(0, np.nan,inplace=True)
+      #  print("y_col",y_col,"toz[y_col]=\n",tdf[y_col])
+ 
+    
+    
         date=pd.to_datetime(tdf.index).strftime("%Y-%m-%d").to_list()
      #   print("date=",date)
         tdf['date']=date
@@ -515,6 +535,9 @@ class animate_engine(object):
         for date in dr:
             yield date+pd.offsets.Day(-size),date
  
+
+
+
     
     def _plot_bi(self,new_pdf,key,y_col,col_and_hue,savename,plot_dump_dir,plot_output_dir,mp4_fps):
         brand_index_slices=[]
@@ -527,9 +550,12 @@ class animate_engine(object):
         p_map(self._plot_brand_index,brand_index_slices)
         self._animate_plots_mp4(mp4_input_dir=plot_dump_dir,mp4_fps=mp4_fps,mp4_output_dir=plot_dump_dir,mp4_output_filename=key+"_brand_index.mp4",plot_output_dir=plot_output_dir)
         return
-            
    
-    def _animate_brand_index(self,plot_dump_dir,plot_output_dir,mp4_fps):
+
+
+         
+   
+    def animate_brand_index(self,plot_dump_dir,plot_output_dir,*,mp4_fps):
         pdf=pd.read_pickle(dd2.dash2_dict['scan']['save_dir']+dd2.dash2_dict['scan']['brand_index_jam_save_input_file'])
 
         pdf.sort_index(ascending=False,axis=0,inplace=True)
@@ -594,7 +620,7 @@ class animate_engine(object):
 
     def plot_and_animate_query_dict(self,query_dict,plot_dump_dir,plot_output_dir,mp4_fps):
        
-        self._animate_brand_index(plot_dump_dir,plot_output_dir,mp4_fps)
+     #   self.animate_brand_index(plot_dump_dir,plot_output_dir,mp4_fps)
 
         for key in query_dict.keys():
 
