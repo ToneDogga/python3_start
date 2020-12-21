@@ -179,7 +179,7 @@ class sales_class(object):
         df=df[(df['code']!="OFFINV")]   
         df=df[(df['product']!="OFFINV")]   
         
-        df.to_pickle(dd2.dash2_dict['sales']['raw_savefile'],protocol=-1)
+        df.to_pickle(dd2.dash2_dict['sales']['save_dir']+dd2.dash2_dict['sales']['raw_savefile'],protocol=-1)
  
     #---------------------------------------------------------
  

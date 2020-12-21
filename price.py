@@ -115,7 +115,7 @@ class price_class(object):
         
         #print("nsdf2=\n",new_sales_df)
         
-        test_df=new_sales_df.join(new_price_df,how='inner',lsuffix="l",rsuffix='r')   #,sort=True)
+        test_df=new_sales_df.join(new_price_df,how='inner',lsuffix="l",rsuffix='r').copy()   #,sort=True)
         #test_df=pd.concat((new_sales_df,new_price_df),axis=1,join='outer')   #keys=('specialpricecat','product'))   #,on=['specialpricecat','product'])
         
         #print("tdf1=\n",test_df)
@@ -130,8 +130,8 @@ class price_class(object):
         test_df['on_promo']=(((test_df['spc']==88) & (test_df['discrep']>0.09)) & ((test_df['pg']=='10') | (test_df['pg']=='11') | (test_df['pg']=='12') | (test_df['pg']=='13') | (test_df['pg']=='14') | (test_df['pg']=='15') |(test_df['pg']=='16') |(test_df['pg']=='17')))
         test_df.sort_index(ascending=False,inplace=True)
   
-        return test_df
-      
+        fdf=test_df.copy()
+        return fdf
    
     
    def flag_promotions(self,in_sales_df,price_df,output_dir):

@@ -52,7 +52,8 @@ assert sklearn.__version__ >= "0.20"
 import tensorflow as tf
 
 gpus = tf.config.list_physical_devices('GPU')
-tf.config.experimental.set_memory_growth(gpus[0], True)
+if len(gpus)>0:
+    tf.config.experimental.set_memory_growth(gpus[0], True)
 #tf.config.set_memory_growth(gpus[0], True)
 
 tf.config.run_functions_eagerly(False)

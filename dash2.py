@@ -54,7 +54,8 @@ from pandas.tseries.offsets import CustomBusinessDay
 
 import tensorflow as tf
 gpus = tf.config.list_physical_devices('GPU')
-tf.config.experimental.set_memory_growth(gpus[0], True)
+if len(gpus)>0:
+    tf.config.experimental.set_memory_growth(gpus[0], True)
 
 tf.autograph.set_verbosity(0, False)
 import subprocess as sp
@@ -98,6 +99,7 @@ warnings.filterwarnings('ignore')
 pd.options.display.float_format = '{:.2f}'.format
 
 #  tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)   # turn off traceback errors
+
 visible_devices = tf.config.get_visible_devices('GPU') 
 
 
@@ -268,6 +270,7 @@ def main():
     aug_sales_df,promo_pivot_df=dash.price.flag_promotions(sales_df,price_df,plot_output_dir)
     scan_monthly_df=dash.scan.preprocess_monthly(scan_monthly_df)
 
+    
     #if not refresh:
     first_date,latest_date=dash.sales.report(aug_sales_df)  
     
@@ -305,10 +308,11 @@ def main():
 
     stock_report_df=dash.production.load_from_excel(dd2.dash2_dict['production']['in_dir'])
     dash.production.report(stock_report_df,dd2.dash2_dict['production']['in_dir'])
-
+    stock_df=dash.stock.stock_summary()
+    
     dash.scheduler.display_schedule(plot_output_dir)
 
-    all_raw_dict=dash.sales.summary(dd2.dash2_dict['sales']['in_dir'],dd2.dash2_dict['sales']['raw_savefile'])
+    all_raw_dict=dash.sales.summary(dd2.dash2_dict['sales']['save_dir'],dd2.dash2_dict['sales']['raw_savefile'])
   #  dash.sales.pivot.report(all_raw_dict['raw_all'],plot_output_dir)
     dash.price.report(aug_sales_df,promo_pivot_df,plot_output_dir)
 
@@ -321,10 +325,11 @@ def main():
        print("\nDash2 started:",dt.datetime.fromtimestamp(time.time()).strftime('%H:%M:%S %d/%m/%Y'),"\n")
        
        dash.production.report(stock_report_df,dd2.dash2_dict['production']['in_dir'])
-       
+       stock_df=dash.stock.stock_summary()
+   #     print(stock_df.to_string(),"\n")
        dash.scheduler.display_schedule(plot_output_dir)
        
-       all_raw_dict=dash.sales.summary(dd2.dash2_dict['sales']['in_dir'],dd2.dash2_dict['sales']['raw_savefile'])
+       all_raw_dict=dash.sales.summary(dd2.dash2_dict['sales']['save_dir'],dd2.dash2_dict['sales']['raw_savefile'])
        dash.sales.pivot.report(all_raw_dict['raw_all'],plot_output_dir)
        dash.price.report(aug_sales_df,promo_pivot_df,plot_output_dir)
        
@@ -407,7 +412,7 @@ def main():
   
     
     dash.animate.animate_brand_index(plot_output_dir+dd2.dash2_dict['sales']['plots']["animation_plot_dump_dir"],plot_output_dir,mp4_fps=11)
-    dash.animate.plot_and_animate_query_dict(query_dict2,plot_output_dir+dd2.dash2_dict['sales']['plots']["animation_plot_dump_dir"],plot_output_dir,mp4_fps=11)
+    dash.animate.animate_query_dict(query_dict2,plot_output_dir+dd2.dash2_dict['sales']['plots']["animation_plot_dump_dir"],plot_output_dir,mp4_fps=11)
  
    
   

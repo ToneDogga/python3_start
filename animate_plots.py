@@ -618,7 +618,7 @@ class animate_engine(object):
         return
 
 
-    def plot_and_animate_query_dict(self,query_dict,plot_dump_dir,plot_output_dir,mp4_fps):
+    def animate_query_dict(self,query_dict,plot_dump_dir,plot_output_dir,mp4_fps):
        
      #   self.animate_brand_index(plot_dump_dir,plot_output_dir,mp4_fps)
 

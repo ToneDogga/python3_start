@@ -1261,7 +1261,7 @@ class scheduler(object):
     #    df['stacked_date']=df['scheduled_date'].iloc[0]
         final_schedule=schedule[['priority','scheduled_date','product','format_type','batches','new_stock_will_be_approx','stacked_date_pos']]
      #   final_schedule.drop(["scheduled_date","priority"],axis=1,inplace=True)
-        final_schedule.to_pickle("fs.pkl",protocol=-1)
+    #    final_schedule.to_pickle("fs.pkl",protocol=-1)
  
         final_schedule=self.stacker(schedule=final_schedule,min_day_size=dd2.dash2_dict['scheduler']['min_day_size'],max_day_size=dd2.dash2_dict['scheduler']['max_day_size'])
 
