@@ -308,7 +308,7 @@ def main():
 
     stock_report_df=dash.production.load_from_excel(dd2.dash2_dict['production']['in_dir'])
     dash.production.report(stock_report_df,dd2.dash2_dict['production']['in_dir'])
-    stock_df=dash.stock.stock_summary()
+    dash.stock.stock_summary(plot_output_dir)
     
     dash.scheduler.display_schedule(plot_output_dir)
 
@@ -325,7 +325,7 @@ def main():
        print("\nDash2 started:",dt.datetime.fromtimestamp(time.time()).strftime('%H:%M:%S %d/%m/%Y'),"\n")
        
        dash.production.report(stock_report_df,dd2.dash2_dict['production']['in_dir'])
-       stock_df=dash.stock.stock_summary()
+       dash.stock.stock_summary(plot_output_dir)
    #     print(stock_df.to_string(),"\n")
        dash.scheduler.display_schedule(plot_output_dir)
        
