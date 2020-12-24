@@ -291,6 +291,14 @@ class sales_class(object):
         dds['mat14']=dds['salesval'].rolling(14,axis=0).sum()
         dds['mat30']=dds['salesval'].rolling(30,axis=0).sum()
         dds['mat90']=dds['salesval'].rolling(90,axis=0).sum()
+ 
+    
+        # dds['mat']=dds['salesval'].rolling("365D",axis=0).sum()
+        # dds['mat7']=dds['salesval'].rolling("7D",axis=0).sum()
+        # dds['mat14']=dds['salesval'].rolling("14D",axis=0).sum()
+        # dds['mat30']=dds['salesval'].rolling("30D",axis=0).sum()
+        # dds['mat90']=dds['salesval'].rolling("90D",axis=0).sum()
+ 
     
       #  dds['diff1']=dds.mat.diff(periods=1)
         dds['diff7']=dds.mat7.diff(periods=7)

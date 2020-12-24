@@ -8,7 +8,7 @@ Created on Sat Dec  5 14:10:04 2020
 
 import pyglet
 from pyglet.window import key
-from pyglet.window import mouse
+from pyglet.window import mo
 
 class MyWindow(pyglet.window.Window):
     def __init__(self,*args,**kwargs):

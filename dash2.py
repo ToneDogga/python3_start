@@ -395,7 +395,8 @@ def main():
    
  
     dash.sales.predict.predict_order(scan_df,aug_sales_df,latest_date,plot_output_dir)
-      
+    dash.predict.predict_majors_orders(plot_output_dir) 
+    
     final_schedule,saved_start_schedule_date=dash.scheduler.visualise_schedule(start_schedule_day_offset,start_schedule_date,plot_output_dir)
 
     original_stdout=sys.stdout 

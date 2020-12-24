@@ -14,6 +14,7 @@ import production
 import ave_dash2
 import animate_plots
 import stock_cost
+import predict_majors
 
 import pandas as pd
 
@@ -30,6 +31,7 @@ class dash2_class():
        self.scheduler=scheduler.scheduler()
        self.animate=animate_plots.animate_engine()
        self.stock=stock_cost.stock_cost()
+       self.predict=predict_majors.predict_majors()
        #self.load=sales_class()
        
 
