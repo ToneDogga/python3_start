@@ -152,11 +152,13 @@ class predict_majors(object):
         c_scan.set_index(["type"],append=True,inplace=True)
       #  print("c_scan=\n",c_scan)
         product_list=[(str(r),p) for r,p in zip(c_scan.index.get_level_values("retailer"),c_scan.index.get_level_values("product"))]
-  #     c_scan*=1000
-        return c_scan.T,product_list
+        product_group_list=[(str(r),str(pg)) for r,pg in zip(c_scan.index.get_level_values("retailer"),c_scan.index.get_level_values("productgroup"))]
+
+    #     c_scan*=1000
+        return c_scan.T,product_list,product_group_list
 
 
-    def chunk_orders(self,sales_df,product_list):
+    def chunk_orders(self,sales_df,product_list,product_group_list,invoiced_sales_smoothed_over_weeks,offset):
        # prods=list(set([p[0] for p in product_list]))
        # rets=list(set([p[1] for p in product_list]))
        # print("prodcs and rets",prods,rets)
@@ -171,6 +173,14 @@ class predict_majors(object):
             orders_df=pd.concat([orders_df,sales_df[(sales_df['specialpricecat']==p[0]) & (sales_df['product']==p[1])].copy()],axis=0)
       #  orders_df['specialpricecat']=orders_df['specialpricecat'].astype(np.int32)
        # print("orderdf=\n",orders_df)
+ 
+    #    for pg in product_group_list:
+        #    new_df=sales_df[(sales_df['specialpricecat']==p[0]) & (sales_df['product']==p[1])].copy()
+       #     print(p,"orders_df=\n",orders_df.shape)
+     #       orders_df=pd.concat([orders_df,sales_df[(sales_df['specialpricecat']==pg[0]) & (sales_df['productgroup']==pg[1])].copy()],axis=0)
+
+
+
         weekly_sdf=orders_df.groupby(['specialpricecat','product','productgroup',pd.Grouper(key='date', freq='W-TUE',label='right',closed='right',offset="7D")],as_index=True).agg({"qty":"sum"})
             #    weekly_sdf.reset_index(inplace=True)
       #
@@ -207,7 +217,7 @@ class predict_majors(object):
 
         weekly_sdf['sortorder']=np.arange(1,weekly_sdf.shape[0]+1)
         weekly_sdf['colname']=colname
-        weekly_sdf['type']="invoiced (3wks->offset)"
+        weekly_sdf['type']="invoiced ("+str(offset)+"wk smth and "+str(invoiced_sales_smoothed_over_weeks)+"wks right offset)"
         
          
         weekly_sdf.set_index(["sortorder",'colname','type'],append=True,inplace=True)
@@ -216,13 +226,25 @@ class predict_majors(object):
      #   print("5",weekly_sdf)
         weekly_sdf=weekly_sdf.droplevel([0])
         weekly_sdf/=1000
-   #     print(weekly_sdf)
+    #    print(weekly_sdf.T)
   #      print(weekly_sdf.index.names)
         return weekly_sdf.T
         
+    
+    
+    
+    
+    def _smooth_orders(self,weekly_sdf,*,smth_weeks):
+        weekly_sdf.fillna(0,inplace=True)
+        smoothed_weekly_sdf=weekly_sdf.rolling(smth_weeks,axis=0).mean()
+    #    print("so=\n",smoothed_weekly_sdf)
+        
+        
+        return smoothed_weekly_sdf   
+        
 
 
-    def _shift_and_join(self,weekly_sdf,weekly_scan_df):
+    def _shift_and_join(self,weekly_sdf,weekly_scan_df,offset):
         #  Weekly sdf is the orders and the y
         # it needs to be offset by 3 weeks forward
        weekly_sdf=weekly_sdf.T 
@@ -238,7 +260,7 @@ class predict_majors(object):
        new_weekly_sdf=weekly_sdf[weekly_sdf.index.get_level_values('product').isin(scan_product_list)].copy()
     #   print("nwn",new_weekly_sdf.T)
            
-       new_weekly_sdf=new_weekly_sdf.shift(periods=dd2.dash2_dict['sales']['predictions']['invoiced_sales_weeks_offset'],axis='columns')
+       new_weekly_sdf=new_weekly_sdf.shift(periods=offset,axis='columns')    ## periods=dd2.dash2_dict['sales']['predictions']['invoiced_sales_weeks_offset']
     #   print("nwn2",new_weekly_sdf.T)
  
        new_weekly_sdf=new_weekly_sdf.T 
@@ -261,32 +283,34 @@ class predict_majors(object):
 
 
 
-    def _get_X_and_y(self,orders_df):
+    def _get_X_and_y(self,orders_df,training_window_offset_left_from_end,window_length,invoiced_sales_smoothed_over_weeks,offset):
         #  lets group all together first
         # so X will be 155 rows and 66 columns
         # y will be 66 columns
         # we can also test with by productgroup onlly, eg jams, dressings, sauces
         # we can also test by the two different retailers
         #
-        X_df=orders_df.iloc[:,-64:-12].xs("scanned last week",level='type',drop_level=False)
+ #       X_df=orders_df.iloc[:,-64:-12].xs("scanned last week",level='type',drop_level=False)
+        X_df=orders_df.iloc[:,-(training_window_offset_left_from_end+window_length):-(training_window_offset_left_from_end)].xs("scanned last week",level='type',drop_level=False)
+
      #   print("X-df=\n",X_df)
         oldX=X_df.T.to_numpy()
         X=np.nan_to_num(oldX,nan=0,copy=True)
      #   X=np.swapaxes(X,1,2)
      #   print("X=\n",X,X.shape)
-        y_df=orders_df.iloc[:,-64:-12].xs("invoiced (3wks->offset)",level='type',drop_level=False)
+        y_df=orders_df.iloc[:,-(training_window_offset_left_from_end+window_length):-(training_window_offset_left_from_end)].xs("invoiced ("+str(offset)+"wk smth and "+str(invoiced_sales_smoothed_over_weeks)+"wks right offset)",level='type',drop_level=False)
     #    print("Y_df=\n",y_df)
-        oldy=y_df.T.to_numpy()
-        y=np.nan_to_num(oldy,nan=0,copy=True)     #     print("y=\n",y,y.shape)
+        oldy=y_df.to_numpy()
+        y=np.nan_to_num(oldy[0],nan=0,copy=True)     #     print("y=\n",y,y.shape)
       #  print("y=\n",y,y.shape)   
       #  X=X.reshape(1,-1)
         return X,y
 
 
 
-    def _rfr_model(self,orders_df):
-        X,y=self._get_X_and_y(orders_df)
-       # print("X=\n",X,X.shape,"y=\n",y,y.shape)
+    def _rfr_model(self,orders_df,training_window_offset_left_from_end,window_length,invoiced_sales_smoothed_over_weeks,offset):
+        X,y=self._get_X_and_y(orders_df,training_window_offset_left_from_end,window_length,invoiced_sales_smoothed_over_weeks,offset)
+     #   print("X=\n",X,X.shape,"y=\n",y,y.shape)
     #    print("\nFit random forest Regressor...")     
         forest_reg=RandomForestRegressor(n_estimators=300,n_jobs=-1)
         forest_reg.fit(X,y)
@@ -294,27 +318,38 @@ class predict_majors(object):
 
 
 
-    def _predict(self,joined_df,product_list):
+    def _predict(self,joined_df,product_list,training_window_offset_left_from_end,prediction_window_offset_left_from_end,window_length,invoiced_sales_smoothed_over_weeks,offset):
    #     new_row_df=pd.DataFrame([])
+     #   print("jdf=\n",joined_df)
         for p in product_list:
             orders_df=joined_df.xs([p[1],p[0]],level=['product',"retailer"],drop_level=False).copy()
-          #  print(orders_df)
-            forest_reg,X=self._rfr_model(orders_df) 
+    
+        #    if orders_df.shape[0]<2:
+           #    orders_df=joined_df.xs([p[1],p[0]],level=['product',"retailer"],drop_level=False).copy()
+         #      print("missing data")
+         #      print("p=",p,"orders_df=\n",orders_df)
+            
+         #   else:
+  
+            forest_reg,X=self._rfr_model(orders_df,training_window_offset_left_from_end,window_length,invoiced_sales_smoothed_over_weeks,offset) 
         #    X_orders_df=joined_df.xs([p[1],"scanned last week",p[0]],level=['product','type',"retailer"],drop_level=False).copy()
            # print(X,X.shape,X[-53:-1,:],X[-53:-1,:].shape)
-            prediction=forest_reg.predict(X[-53:-1,:])
+            prediction=forest_reg.predict(X[-(prediction_window_offset_left_from_end+window_length):-(prediction_window_offset_left_from_end),:])
           #  print("concat:\n",X_orders_df,"\npred=",prediction)  #,"new_y=",new_y,new_y.shape) 
-            y_orders_df=joined_df.xs([p[1],"invoiced (3wks->offset)",p[0]],level=['product','type',"retailer"],drop_level=False).copy()
+            y_orders_df=joined_df.xs([p[1],"invoiced ("+str(offset)+"wk smth and "+str(invoiced_sales_smoothed_over_weeks)+"wks right offset)",p[0]],level=['product','type',"retailer"],drop_level=False).copy()
 
             new_row=y_orders_df.copy()
             nr=new_row.reset_index()
          #   print("nr=\n",nr)
-            nr['type']="order prediction"
+            nr['type']="pred wk="+str(-prediction_window_offset_left_from_end)
            # print("pred=",prediction)
            # print(prediction.shape,"pred[-1]=",prediction[-1])
            # print("before nr=\n",nr)
-            nr.iloc[:,-1]=np.around(prediction[-1],3)
-          #  nr.iloc[2,-1]=np.nan
+
+            pred=np.concatenate((np.array(np.atleast_1d(np.around(prediction[-1],3))),np.full((prediction_window_offset_left_from_end-1),np.nan)))
+         #   print(prediction_window_offset_left_from_end,pred.shape,"pred=",pred)
+            nr.iloc[:,-prediction_window_offset_left_from_end:]=pred
+         #   print(nr.iloc[2,-1]=np.nan
             nr=nr.set_index(['product','type','retailer','sortorder','colname','productgroup'])
            # print("after nr=\n",nr)
             joined_df=pd.concat((joined_df,nr),axis=0)
@@ -323,25 +358,31 @@ class predict_majors(object):
     
         
   
-    def _display(self,joined_df,product_list,plot_output_dir):
+    def _display(self,joined_df,product_list,plot_output_dir,display_window_length):
         joined_df=joined_df.droplevel([3,5])
         
         print("RFR majors prediction version2:\n")
         print(joined_df.iloc[:,-4:].to_string())
         for p in product_list:
             fig, ax = pyplot.subplots()
-            fig.autofmt_xdate()
-  
+          #  fig.autofmt_xdate()
+ 
             orders_df=joined_df.xs([p[1],p[0]],level=['product',"retailer"],drop_level=False).T.copy()
           #  print(orders_df)
           #  plt.locator_params(axis='x', nbins=16)
           #  plt.xticks(np.arange(0, len(x)+1, 1))
-            orders_df.iloc[-12:-1,[2]].plot(xlabel="",ylabel="units/week",use_index=True,grid=True,fontsize=7,style=["g-"],ax=ax)
-            orders_df.iloc[-12:,[1,0]].plot(xlabel="",ylabel="units/week",use_index=True,grid=True,fontsize=7,style=["r:","b-"],ax=ax)
  
-            plt.legend(title="",fontsize=8,loc="upper left")
-        #   plt.show()
-            self._save_fig(str(p)+"_rfr_prediction_v2",plot_output_dir)
+            orders_df.iloc[-display_window_length:-1,[0]].plot(xlabel="",ylabel="units/week",use_index=True,grid=True,fontsize=7,style="b-",ax=ax)
+            orders_df.iloc[-display_window_length:,1:-1].plot(xlabel="",ylabel="units/week",use_index=True,grid=True,fontsize=7,style="r:",ax=ax)
+            orders_df.iloc[-display_window_length:-1,[-1]].plot(xlabel="",ylabel="units/week",use_index=True,grid=True,fontsize=7,style="g-",ax=ax)
+
+            #  ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
+            ax.xaxis.set_major_locator(mdates.WeekdayLocator())
+            ax.xaxis.set_major_formatter(mdates.DateFormatter('%a %d/%m/%Y'))
+            fig.autofmt_xdate()
+            plt.legend(title="",fontsize=6,loc="upper left")
+            plt.show()
+          #  self._save_fig(str(p)+"_rfr_prediction_v2",plot_output_dir)
             plt.close()
       
 
@@ -352,23 +393,40 @@ class predict_majors(object):
     def predict_majors_orders(self,plot_output_dir):
        # os.chdir("/home/tonedogga/Documents/python_dev")
        # pm=predict_majors()
+        window_length=52
+        training_window_offset_left_from_end=12
+        prediction_window_offset_left_from_end=1
+
+        display_window_length=14
+        invoiced_sales_smoothed_over_weeks=2
+        offset=2
+        
         print("\nPredict majors orders based on scan data.  Version 2..\n")
         sales_df,scan_df=self.load_data()
-        weekly_scan_df,product_list=self.chunk_scan(scan_df)
+        weekly_scan_df,product_list,product_group_list=self.chunk_scan(scan_df)
        # print("wsdf\n",weekly_scan_df)
-        weekly_sdf=self.chunk_orders(sales_df,product_list)
+        weekly_sdf=self.chunk_orders(sales_df,product_list,product_group_list,invoiced_sales_smoothed_over_weeks,offset)
+        weekly_sdf=self._smooth_orders(weekly_sdf,smth_weeks=invoiced_sales_smoothed_over_weeks)
       #  print("weekly sdf=\n",weekly_sdf)
-        joined_df=self._shift_and_join(weekly_sdf,weekly_scan_df)
-        joined_df=self._predict(joined_df,product_list)
-     #   print(joined_df.T) 
+      #  print("product list",product_list)
+      #  print("product group list",product_group_list)
+        joined_df=self._shift_and_join(weekly_sdf,weekly_scan_df,offset)
+        for prediction_window_offset_left_from_end in range(1,11,1):
+            print("prediction point=",-prediction_window_offset_left_from_end,"weeks from end.") 
+            joined_df=self._predict(joined_df,product_list,training_window_offset_left_from_end,prediction_window_offset_left_from_end,window_length,invoiced_sales_smoothed_over_weeks,offset)
+
         joined_df*=1000
-        self._display(joined_df,product_list,plot_output_dir)
+        self._display(joined_df,product_list,plot_output_dir,display_window_length)
 
         joined_df.iloc[:,-4:].to_excel(plot_output_dir+"prediction_RFR_v2.xlsx",index=True)
         print("\nPredict majors orders v2 finished.")
         return
 
-#main()
 
+def main():
+    os.chdir("/home/tonedogga/Documents/python_dev")
+    pm=predict_majors()
+    pm.predict_majors_orders("./")
+main()
 
    
