@@ -147,18 +147,22 @@ class predict_majors(object):
         c_scan=c_scan.droplevel([0,2,5,6,7,8,9,12])
 
         c_scan['type']="scanned last week"
+        c_scan['twe']=0
+        c_scan['pwe']=0
+     #   c_scan['rmse']=0
     #    print("cs=\n",c_scan)
      #   c_scan.columns.set_names('type', level=0,inplace=True)
-        c_scan.set_index(["type"],append=True,inplace=True)
-      #  print("c_scan=\n",c_scan)
-        product_list=[(str(r),p) for r,p in zip(c_scan.index.get_level_values("retailer"),c_scan.index.get_level_values("product"))]
-        product_group_list=[(str(r),str(pg)) for r,pg in zip(c_scan.index.get_level_values("retailer"),c_scan.index.get_level_values("productgroup"))]
+        c_scan.set_index(["type",'twe','pwe'],append=True,inplace=True)
+   #     print("c_scan=\n",c_scan)
+   #    nr=nr.set_index(['product','type','retailer','sortorder','colname','productgroup','twe','pwe'])
+        product_list=[(p,str(r),t,s,c,pg,twe,pwe) for p,r,t,s,c,pg,twe,pwe in zip(c_scan.index.get_level_values("product"),c_scan.index.get_level_values("retailer"),c_scan.index.get_level_values("type"),c_scan.index.get_level_values("sortorder"),c_scan.index.get_level_values("colname"),c_scan.index.get_level_values("productgroup"),c_scan.index.get_level_values("twe"),c_scan.index.get_level_values("pwe"))]
+      #  product_group_list=[(str(r),str(pg)) for r,pg in zip(c_scan.index.get_level_values("retailer"),c_scan.index.get_level_values("productgroup"))]
 
     #     c_scan*=1000
-        return c_scan.T,product_list,product_group_list
+        return c_scan.T,product_list   #,product_group_list
 
 
-    def chunk_orders(self,sales_df,product_list,product_group_list,invoiced_sales_smoothed_over_weeks,offset):
+    def chunk_orders(self,sales_df,product_list,invoiced_sales_smoothed_over_weeks,offset):
        # prods=list(set([p[0] for p in product_list]))
        # rets=list(set([p[1] for p in product_list]))
        # print("prodcs and rets",prods,rets)
@@ -170,7 +174,7 @@ class predict_majors(object):
         for p in product_list:
         #    new_df=sales_df[(sales_df['specialpricecat']==p[0]) & (sales_df['product']==p[1])].copy()
        #     print(p,"orders_df=\n",orders_df.shape)
-            orders_df=pd.concat([orders_df,sales_df[(sales_df['specialpricecat']==p[0]) & (sales_df['product']==p[1])].copy()],axis=0)
+            orders_df=pd.concat([orders_df,sales_df[(sales_df['specialpricecat']==p[1]) & (sales_df['product']==p[0])].copy()],axis=0)
       #  orders_df['specialpricecat']=orders_df['specialpricecat'].astype(np.int32)
        # print("orderdf=\n",orders_df)
  
@@ -184,7 +188,7 @@ class predict_majors(object):
         weekly_sdf=orders_df.groupby(['specialpricecat','product','productgroup',pd.Grouper(key='date', freq='W-TUE',label='right',closed='right',offset="7D")],as_index=True).agg({"qty":"sum"})
             #    weekly_sdf.reset_index(inplace=True)
       #
-      #  print("2=\n",weekly_sdf)
+     #   print("2=\n",weekly_sdf)
         weekly_sdf.index = weekly_sdf.index.swaplevel(0, 3)
         weekly_sdf.index = weekly_sdf.index.swaplevel(1, 3)
         
@@ -198,7 +202,7 @@ class predict_majors(object):
         
         
         
-      #  print("3",weekly_sdf)
+     #   print("3",weekly_sdf)
         weekly_sdf=weekly_sdf.dropna(axis=0,how='all',thresh=6)
      #   weekly_sdf=weekly_sdf[(weekly_sdf.sum(axis=1)>50000)]   # units that make the product a national prduct
     
@@ -218,15 +222,17 @@ class predict_majors(object):
         weekly_sdf['sortorder']=np.arange(1,weekly_sdf.shape[0]+1)
         weekly_sdf['colname']=colname
         weekly_sdf['type']="invoiced ("+str(offset)+"wk smth and "+str(invoiced_sales_smoothed_over_weeks)+"wks right offset)"
-        
+        weekly_sdf['twe']=0
+        weekly_sdf['pwe']=0
+     #   weekly_sdf['rmse']=0
          
-        weekly_sdf.set_index(["sortorder",'colname','type'],append=True,inplace=True)
+        weekly_sdf.set_index(["sortorder",'colname','type','twe','pwe'],append=True,inplace=True)
         
     #    weekly_df.index.set_level_values('retailer')=colname2
      #   print("5",weekly_sdf)
         weekly_sdf=weekly_sdf.droplevel([0])
         weekly_sdf/=1000
-    #    print(weekly_sdf.T)
+  #      print("weekly_sdf=\n",weekly_sdf)
   #      print(weekly_sdf.index.names)
         return weekly_sdf.T
         
@@ -258,26 +264,30 @@ class predict_majors(object):
     #   print("sales product names=",sales_product_list)
     #   print("scan product names=",scan_product_list)
        new_weekly_sdf=weekly_sdf[weekly_sdf.index.get_level_values('product').isin(scan_product_list)].copy()
-    #   print("nwn",new_weekly_sdf.T)
+     #  print("nwn",new_weekly_sdf.T)
            
        new_weekly_sdf=new_weekly_sdf.shift(periods=offset,axis='columns')    ## periods=dd2.dash2_dict['sales']['predictions']['invoiced_sales_weeks_offset']
-    #   print("nwn2",new_weekly_sdf.T)
+       
+       
+    #   print("nwn2",new_weekly_sdf)
  
        new_weekly_sdf=new_weekly_sdf.T 
        weekly_scan_df=weekly_scan_df.T 
        joined_df=new_weekly_sdf.join(weekly_scan_df)
-   # print(joined_df.T)
+   #    print("shift and join=\n",joined_df.T)
+      
        joined_df.columns = joined_df.columns.swaplevel(0, 2)
        joined_df.columns = joined_df.columns.swaplevel(5, 1)
    #    joined_df.columns = joined_df.columns.swaplevel(2, 0)
-   #    joined_df.columns = joined_df.columns.swaplevel(2, 1)
+       joined_df.columns = joined_df.columns.swaplevel(2, 1)
    # joined_df.columns = joined_df.columns.swaplevel(2, 5)
-
-     # print(joined_df)
+  
+   #    print(" shift and join joined_df=\n",joined_df)
   #  print(joined_df.T)
+
        joined_df.sort_index(level=[0,1],axis=1,sort_remaining=False,inplace=True)
        joined_df.fillna(0,inplace=True)
-    #   print(joined_df.T)
+    #   print("final shift and join=\n",joined_df.T)
        return joined_df.T
 
 
@@ -318,11 +328,14 @@ class predict_majors(object):
 
 
 
-    def _predict(self,joined_df,product_list,training_window_offset_left_from_end,prediction_window_offset_left_from_end,window_length,invoiced_sales_smoothed_over_weeks,offset):
+    def _predict(self,joined_df,product_list,training_window_offset_left_from_end,prediction_window_offset_left_from_end,window_length,invoiced_sales_smoothed_over_weeks,offset,predict_back_weeks):
    #     new_row_df=pd.DataFrame([])
-     #   print("jdf=\n",joined_df)
+      #  print("jpredict df=\n",joined_df)
+     #   print("predict product list=",product_list)
+        t_list=[]
+        
         for p in product_list:
-            orders_df=joined_df.xs([p[1],p[0]],level=['product',"retailer"],drop_level=False).copy()
+            orders_df=joined_df.xs([p[0],p[1]],level=['product',"retailer"],drop_level=False).copy()
     
         #    if orders_df.shape[0]<2:
            #    orders_df=joined_df.xs([p[1],p[0]],level=['product',"retailer"],drop_level=False).copy()
@@ -330,35 +343,51 @@ class predict_majors(object):
          #      print("p=",p,"orders_df=\n",orders_df)
             
          #   else:
-  
-            forest_reg,X=self._rfr_model(orders_df,training_window_offset_left_from_end,window_length,invoiced_sales_smoothed_over_weeks,offset) 
-        #    X_orders_df=joined_df.xs([p[1],"scanned last week",p[0]],level=['product','type',"retailer"],drop_level=False).copy()
-           # print(X,X.shape,X[-53:-1,:],X[-53:-1,:].shape)
-            prediction=forest_reg.predict(X[-(prediction_window_offset_left_from_end+window_length):-(prediction_window_offset_left_from_end),:])
-          #  print("concat:\n",X_orders_df,"\npred=",prediction)  #,"new_y=",new_y,new_y.shape) 
-            y_orders_df=joined_df.xs([p[1],"invoiced ("+str(offset)+"wk smth and "+str(invoiced_sales_smoothed_over_weeks)+"wks right offset)",p[0]],level=['product','type',"retailer"],drop_level=False).copy()
+            for t in range(training_window_offset_left_from_end,8,-1):
+                print("prediction window",-prediction_window_offset_left_from_end,"predict:",p[4],"on training window offset=",t,"                                  ",end="\r",flush=True)
+                forest_reg,X=self._rfr_model(orders_df,t,window_length,invoiced_sales_smoothed_over_weeks,offset) 
+            #    X_orders_df=joined_df.xs([p[1],"scanned last week",p[0]],level=['product','type',"retailer"],drop_level=False).copy()
+               # print(X,X.shape,X[-53:-1,:],X[-53:-1,:].shape)
+                prediction=forest_reg.predict(X[-(prediction_window_offset_left_from_end+window_length):-(prediction_window_offset_left_from_end),:])
+              #  print("concat:\n",X_orders_df,"\npred=",prediction)  #,"new_y=",new_y,new_y.shape) 
+                y_orders_df=joined_df.xs([p[0],p[1],"invoiced ("+str(offset)+"wk smth and "+str(invoiced_sales_smoothed_over_weeks)+"wks right offset)"],level=['product',"retailer",'type'],drop_level=False).copy()
+    
+                new_row=y_orders_df.copy()
+                nr=new_row.reset_index()
+             #   print("nr=\n",nr)
+                nr['type']="pred wk="+str(-prediction_window_offset_left_from_end)+":trn win wkstoend"+str(t)
+                nr['twe']=t
+                nr['pwe']=-prediction_window_offset_left_from_end
+               # print("pred=",prediction)
+               # print(prediction.shape,"pred[-1]=",prediction[-1])
+           #     print("before nr=\n",nr)
+    
+                pred=np.concatenate((np.array(np.atleast_1d(np.around(prediction[-1],3))),np.full((prediction_window_offset_left_from_end-1),np.nan)))
+             #   print(prediction_window_offset_left_from_end,pred.shape,"pred=",pred)
+                nr.iloc[:,-prediction_window_offset_left_from_end:]=pred
+             #   print(nr.iloc[2,-1]=np.nan
+                nr=nr.set_index(['product','retailer','type','sortorder','colname','productgroup','twe','pwe'])
+               # print("after nr=\n",nr)
+                t_list.append((p[0],p[1],p[2],p[3],p[4],p[5],t,-prediction_window_offset_left_from_end))
+                joined_df=pd.concat((joined_df,nr),axis=0)
+          #  rmse=self._RMSE(joined_df,p,t,predict_back_weeks)
+          #  print("rmse",rmse)
+          #  nr['rmse']=rmse
 
-            new_row=y_orders_df.copy()
-            nr=new_row.reset_index()
-         #   print("nr=\n",nr)
-            nr['type']="pred wk="+str(-prediction_window_offset_left_from_end)
-           # print("pred=",prediction)
-           # print(prediction.shape,"pred[-1]=",prediction[-1])
-           # print("before nr=\n",nr)
 
-            pred=np.concatenate((np.array(np.atleast_1d(np.around(prediction[-1],3))),np.full((prediction_window_offset_left_from_end-1),np.nan)))
-         #   print(prediction_window_offset_left_from_end,pred.shape,"pred=",pred)
-            nr.iloc[:,-prediction_window_offset_left_from_end:]=pred
-         #   print(nr.iloc[2,-1]=np.nan
-            nr=nr.set_index(['product','type','retailer','sortorder','colname','productgroup'])
-           # print("after nr=\n",nr)
-            joined_df=pd.concat((joined_df,nr),axis=0)
+ 
+                
+      #  twe = joined_df['twe']
+      #  joined_df.drop(labels=['twe'], axis=1,inplace = True)
+      #  joined_df.insert(3, 'twe', twe)   
+      #  print("t_list=",t_list)
+        print("\n")
         joined_df.sort_index(level=[0,1,2],axis=0,sort_remaining=False,inplace=True)
-        return joined_df
+        return t_list,joined_df
     
         
   
-    def _display(self,joined_df,product_list,plot_output_dir,display_window_length):
+    def _display(self,joined_df,product_list,rmse_list,plot_output_dir,display_window_length):
         joined_df=joined_df.droplevel([3,5])
         
         print("RFR majors prediction version2:\n")
@@ -373,20 +402,138 @@ class predict_majors(object):
           #  plt.xticks(np.arange(0, len(x)+1, 1))
  
             orders_df.iloc[-display_window_length:-1,[0]].plot(xlabel="",ylabel="units/week",use_index=True,grid=True,fontsize=7,style="b-",ax=ax)
-            orders_df.iloc[-display_window_length:,1:-1].plot(xlabel="",ylabel="units/week",use_index=True,grid=True,fontsize=7,style="r:",ax=ax)
+            orders_df.iloc[-display_window_length:,1:-1].plot(xlabel="",ylabel="units/week",use_index=True,grid=True,fontsize=7,label='_nolegend_',style="r:",ax=ax)
             orders_df.iloc[-display_window_length:-1,[-1]].plot(xlabel="",ylabel="units/week",use_index=True,grid=True,fontsize=7,style="g-",ax=ax)
 
             #  ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
             ax.xaxis.set_major_locator(mdates.WeekdayLocator())
             ax.xaxis.set_major_formatter(mdates.DateFormatter('%a %d/%m/%Y'))
             fig.autofmt_xdate()
+            plt.title(str(p)+" twe="+str(p[0])+" RMSE="+str(p[1]),fontsize=9)
             plt.legend(title="",fontsize=6,loc="upper left")
-            plt.show()
-          #  self._save_fig(str(p)+"_rfr_prediction_v2",plot_output_dir)
+        #    plt.show()
+            self._save_fig(str(p)+"_rfr_prediction_v2",plot_output_dir)
             plt.close()
       
+        
+      
+ 
+    def _RMSE(self,joined_df,training_list,training_window_offset_left_from_end,predict_back_weeks):
+       #  print("training list=",training_list)
+     #    print("joineddf=\n",joined_df)
+         rmse_list=[]
+         for p in training_list:
+             orders_df=joined_df.xs([p[0],p[1],p[6]],level=['product',"retailer","twe"],drop_level=False).T.copy()
+     
+        #     print("1orders_df=\n",orders_df)   #,"\n",orders_df.T)
+     
+             orders_df=orders_df.sort_index(level='pwe',axis=1,ascending=False,sort_remaining=False)
+    
+         #    print("2orders_df=\n",orders_df)   #,"\n",orders_df.T)
+          #   invoiced=orders_df.iloc[-(predict_back_weeks):-1,[0]]
+          #   print(p,"invoiced=\n",invoiced,"\n\n")
+             predicted=orders_df.iloc[-(predict_back_weeks+2):-1]
+          #   print(p,"predicted=\n",predicted,predicted.shape,"\n\n")
+             ordered=np.flipud(predicted).diagonal(offset=0)[:-1][np.newaxis]   #, index=[predicted.index, predicted.columns])
+          #   ordered=np.diagonal(predicted,offset=0)[:-1][np.newaxis]   #, index=[predicted.index, predicted.columns])
+    
+          #   print("ordered=",ordered)
+             pred=np.flipud(predicted).diagonal(offset=1)[np.newaxis]   #, index=[predicted.index, predicted.columns])
+    #             pred=np.diagonal(predicted,offset=1)[np.newaxis]   #, index=[predicted.index, predicted.columns])
+     
+          #   print("pred=",pred)
+             joined=np.concatenate((ordered,pred),axis=0)
+           #  print("joined=",joined)
+          #   print("joined[0,:]",joined[0,:])
+          #   print("joined[1,:]",joined[1,:])
+          #   print("joined0-1",joined[0]-joined[1])
+            # nr=nr.set_index(['product','type','retailer','sortorder','colname','productgroup','twe','pwe'])
+             rmse_list.append((p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7],int(round(np.sqrt(((joined[0]-joined[1])**2).mean()),0))))
+         #rmse=int(round(np.sqrt(((joined[0]-joined[1])**2).mean()),0))
+              #  joined_df.loc[]df.loc[(slice(​None), slice('price')), :]
+    #    print("product list",product_list)    
+     #   print("rmse=",rmse)
+    #     joined_df['mse']=(joined_df['stock_count']-joined_df['ideal_stock_holdings'])**2
+    #     rmse=round(np.sqrt(joined_df['mse'].mean()),0)
+    #  #    print(product+" RMSE=",rmse)
+         return rmse_list
+    
+   
+    def _fill_rmse(self,joined_df,rmse_list):
+         joined_df['rmse']=0
+         joined_df['rmse_empty']=np.nan
+       #  joined_df.sort_index(['product','retailer','twe','pwe'],inplace=True)
+       #  rmse_temp=[]
+       #  for r in rmse_list:
+       #      rmse_temp.append(r[4])
 
+            #    print(r)
+         #    joined_df.xs([r[0],r[1],r[2],r[3]],level=['product','retailer','twe','pwe'],drop_level=False)['rmse']=r[4]
+          #   e['rmse']=r[4]
+          #   print(e)
+         #    print(e.index.get_level_values('rmse'))
+         #    joined_df.loc[(r[0],r[1],r[2],r[3]),(slice(None))] = 1
+             # r[4]
+         joined_df.set_index(['rmse'],append=True,inplace=True)
+         print("joined_df before indexing=\n",joined_df)
+      #   print("RMSE temp=",rmse_temp,len(rmse_temp))
+    #    nr=nr.set_index(['product','type','retailer','sortorder','colname','productgroup','twe','pwe'])
+         index_left = pd.MultiIndex.from_tuples(rmse_list,
+                                        names=['product', 'retailer','type','sortorder','colname','productgroup','twe','pwe','rmse'])
+         ind=pd.DataFrame(index=index_left,columns=['rmse_empty'])
+         print("index left=\n",ind)
+     #    joined_df=pd.merge((joined_df,ind), axis=1)
+         #joined_df.index=index_left
+         new_joined_df=joined_df.merge(ind, left_index=True, right_on=['product', 'retailer','type',"sortorder","colname",'productgroup','twe','pwe','rmse']).copy()
+       #  joined_df.loc[(joined_df.index.level(6)!=0),'rmse']=rmse_temp
+ #        joined_df.set_index(['product','type','retailer','colname','twe','pwe','rmse'],append=True,inplace=True)   
+         print("after joined RMSE=\n",new_joined_df)
+         new_joined_df.drop(['rmse_empty'],axis=1,inplace=True)
+         print("2after joined RMSE=\n",new_joined_df)
+         new_joined_df.set_index(['rmse'],append=True,inplace=True)    
+         new_joined_df.sort_index(['rmse','product','retailer'],ascending=[True,True,True],inplace=True)
+         print("3after joined RMSE=\n",new_joined_df)
+         return new_joined_df
+  
+   #  def _RMSE(self,joined_df,product_list,training_window_offset_left_from_end,predict_back_weeks):
+   #    #  print("RMSE pbw=",predict_back_weeks)
+   #      rmse_list=[]
+   #      for p in product_list:
+   #          for t in range(training_window_offset_left_from_end,8,-1):
+   #              orders_df=joined_df.xs([p[1],p[0],t],level=['product',"retailer","twe"],drop_level=False).T.copy()
+ 
+   #              print("1orders_df=\n",orders_df)   #,"\n",orders_df.T)
+ 
+   #              orders_df=orders_df.sort_index(level='pwe',axis=1,ascending=False,sort_remaining=False)
 
+   #              print("2orders_df=\n",orders_df)   #,"\n",orders_df.T)
+   #           #   invoiced=orders_df.iloc[-(predict_back_weeks):-1,[0]]
+   #           #   print(p,"invoiced=\n",invoiced,"\n\n")
+   #              predicted=orders_df.iloc[-(predict_back_weeks+2):-1]
+   #              print(p,"predicted=\n",predicted,predicted.shape,"\n\n")
+   #              ordered=np.flipud(predicted).diagonal(offset=0)[:-1][np.newaxis]   #, index=[predicted.index, predicted.columns])
+   #           #   ordered=np.diagonal(predicted,offset=0)[:-1][np.newaxis]   #, index=[predicted.index, predicted.columns])
+
+   #              print("ordered=",ordered)
+   #              pred=np.flipud(predicted).diagonal(offset=1)[np.newaxis]   #, index=[predicted.index, predicted.columns])
+   # #             pred=np.diagonal(predicted,offset=1)[np.newaxis]   #, index=[predicted.index, predicted.columns])
+ 
+   #              print("pred=",pred)
+   #              joined=np.concatenate((ordered,pred),axis=0)
+   #              print("joined=",joined)
+   #           #   print("joined[0,:]",joined[0,:])
+   #           #   print("joined[1,:]",joined[1,:])
+   #           #   print("joined0-1",joined[0]-joined[1])
+   #              rmse_list.append((p[0],p[1],int(round(np.sqrt(((joined[0]-joined[1])**2).mean()),0)),t))
+   #            #  rmse=int(round(np.sqrt(((joined[0]-joined[1])**2).mean()),0))
+   #            #  joined_df.loc[]df.loc[(slice(​None), slice('price')), :]
+   #  #    print("product list",product_list)    
+   #   #   print("rmse=",rmse)
+   #  #     joined_df['mse']=(joined_df['stock_count']-joined_df['ideal_stock_holdings'])**2
+   #  #     rmse=round(np.sqrt(joined_df['mse'].mean()),0)
+   #  #  #    print(product+" RMSE=",rmse)
+   #      return rmse_list
+    
     
     
     
@@ -396,27 +543,41 @@ class predict_majors(object):
         window_length=52
         training_window_offset_left_from_end=12
         prediction_window_offset_left_from_end=1
+        predict_back_weeks=3
 
-        display_window_length=14
+        display_window_length=12
         invoiced_sales_smoothed_over_weeks=2
         offset=2
         
         print("\nPredict majors orders based on scan data.  Version 2..\n")
         sales_df,scan_df=self.load_data()
-        weekly_scan_df,product_list,product_group_list=self.chunk_scan(scan_df)
-       # print("wsdf\n",weekly_scan_df)
-        weekly_sdf=self.chunk_orders(sales_df,product_list,product_group_list,invoiced_sales_smoothed_over_weeks,offset)
+        weekly_scan_df,product_list=self.chunk_scan(scan_df)
+      #  print("wsdf\n",weekly_scan_df)
+      #  print("product list=",product_list)
+        weekly_sdf=self.chunk_orders(sales_df,product_list,invoiced_sales_smoothed_over_weeks,offset)
         weekly_sdf=self._smooth_orders(weekly_sdf,smth_weeks=invoiced_sales_smoothed_over_weeks)
       #  print("weekly sdf=\n",weekly_sdf)
       #  print("product list",product_list)
-      #  print("product group list",product_group_list)
+     #   print("twe=",training_window_offset_left_from_end)
         joined_df=self._shift_and_join(weekly_sdf,weekly_scan_df,offset)
-        for prediction_window_offset_left_from_end in range(1,11,1):
-            print("prediction point=",-prediction_window_offset_left_from_end,"weeks from end.") 
-            joined_df=self._predict(joined_df,product_list,training_window_offset_left_from_end,prediction_window_offset_left_from_end,window_length,invoiced_sales_smoothed_over_weeks,offset)
-
+        training_list=[]
+        for prediction_window_offset_left_from_end in range(1,predict_back_weeks+2,1):
+         #   print("prediction point=",-prediction_window_offset_left_from_end,"weeks from end.") 
+            t_list,joined_df=self._predict(joined_df,product_list,training_window_offset_left_from_end,prediction_window_offset_left_from_end,window_length,invoiced_sales_smoothed_over_weeks,offset,predict_back_weeks)
+            training_list.append(t_list)
+            #print("predict fin tl",training_list,"jdf=\n",joined_df.iloc[:70,-6:])
         joined_df*=1000
-        self._display(joined_df,product_list,plot_output_dir,display_window_length)
+        
+        flatten_list = [j for sub in training_list for j in sub] 
+     #   print("training list=\n",flatten_list)
+        print("joined_df=\n",joined_df)
+        rmse_list=self._RMSE(joined_df,flatten_list,training_window_offset_left_from_end,predict_back_weeks)
+ 
+      #  print("rmse list=",rmse_list)
+        joined_df=self._fill_rmse(joined_df,rmse_list)
+        print("after fill rmse joined_df=\n",joined_df)
+    #    print("jshape=",joined_df.shape,"len rsme list",len(rmse_list))
+        self._display(joined_df,product_list,rmse_list,plot_output_dir,display_window_length)
 
         joined_df.iloc[:,-4:].to_excel(plot_output_dir+"prediction_RFR_v2.xlsx",index=True)
         print("\nPredict majors orders v2 finished.")
