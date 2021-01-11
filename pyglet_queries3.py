@@ -5,7 +5,7 @@ Created on Sat Dec  5 14:10:04 2020
 
 @author: tonedogga
 """
-
+import string
 import numpy as np
 import pandas as pd
 import os
@@ -26,7 +26,7 @@ from pyglet import shapes
 
 #from time import time
 
-MY_DEBUG=False   #True   #False
+MY_DEBUG=False #True   #False
 BUTTON_LIST=[]
 #BUTTON_COLOR=(200,100,200)
 #global batch
@@ -61,31 +61,43 @@ class QueryWindow(pyglet.window.Window):
     # button_list is global    
  
     #  buttons=get_button_details()
+    def index_containing_substring(self,the_list, substring,start):
+        for i, s in enumerate(the_list):
+            if substring in s[0]:
+                return i
+        return start
         
+    
+    def shortcut(self,char):  
+         for b in BUTTON_LIST:
+            if ((not b.floating) & b.active & b.visible & b.mouse_over):
+                b.unique_list_start_point=self.index_containing_substring(b.unique_list,char,b.unique_list_start_point)
+  
+       
         
         
     def on_key_press(self, symbol, modifiers):
-        if symbol == key.A:
-            if MY_DEBUG:
-           # print('The "A" key was pressed.')
-                text='The "A" key was pressed.'
-                for b in BUTTON_LIST:
-                    if ((not b.floating) & b.active & b.visible & (self.x>=b.x_start) & (x<(b.x_start+b.x_len)) & (y>=b.y_start) & (y<(b.y_start+b.y_len))):
-                        b.selected_value_list.append(b.unique_list[b.unique_list_start_point]) 
-                        move_and_draw_pointer(x,y,0,0)
-                _display_text_in_active_window(text)
-        #     self.window.set_visible()
-        elif symbol == key.LEFT:
-            if MY_DEBUG:
-                text='The left arrow key was pressed.'
-#            print('The left arrow key was pressed.')
-                _display_text_in_active_window(text)
+      #  x, y = self.get_location()
+        if symbol == key.F1:
+           for b in BUTTON_LIST:
+              if ((not b.floating) & b.active & b.visible & b.mouse_over):
+                  if (not b.unique_list[b.unique_list_start_point] in b.selected_value_list) & (b.unique_list[b.unique_list_start_point]!=" "):
+                      b.selected_value_list.append(b.unique_list[b.unique_list_start_point]) 
+        elif symbol == key.F2:
+            for b in BUTTON_LIST:
+               if ((not b.floating) & b.active & b.visible & b.mouse_over):
+                  if b.unique_list[b.unique_list_start_point] in b.selected_value_list:
+                      b.selected_value_list.remove(b.unique_list[b.unique_list_start_point]) 
+
         elif symbol == key.ENTER:
             if MY_DEBUG:
                 text='The enter key was pressed.'
         #    print('The enter key was pressed.')
                 _display_text_in_active_window(text)
-
+         
+        else:        
+            self.shortcut(pyglet.window.key.symbol_string(symbol))
+        
         
     
     
@@ -94,6 +106,7 @@ class QueryWindow(pyglet.window.Window):
         pass
     
     
+  
     def on_mouse_enter(self,x, y):
         pass
 
@@ -111,7 +124,7 @@ class QueryWindow(pyglet.window.Window):
         for b in BUTTON_LIST:
             if b.floating:   
                 b.floating=False
-
+                
         
 
 
@@ -143,17 +156,10 @@ class QueryWindow(pyglet.window.Window):
    
     def on_mouse_press(self,x,y,button, modifiers):
         if button == mouse.LEFT:
-          #  canvas={}
-          #  print('The left mouse button was pressed. x=',x,"y=",y)
-   #         batch=_check_for_collisions(x,y,batch)
-           # if MY_DEBUG:
-           #     text="the left mouse button was pressed. x="+str(x)+" y="+str(y)
-           #     _display_text_in_active_window(text)
-            for b in BUTTON_LIST:
+             for b in BUTTON_LIST:
                 if ((not b.floating) & b.active & b.visible & (x>=b.x_start) & (x<(b.x_start+b.x_len)) & (y>=b.y_start) & (y<(b.y_start+b.y_len))):
                     b.pushed=not b.pushed
-            #batch=display_buttons(batch)       
-
+  
         elif button == mouse.RIGHT:
            # print('The right mouse button was pressed.')
             if MY_DEBUG:
@@ -168,7 +174,9 @@ class QueryWindow(pyglet.window.Window):
     
     def on_mouse_scroll(self,x, y, scroll_x, scroll_y):
         for b in BUTTON_LIST:
+            b.mouse_over=False
             if ((not b.floating) & b.active & b.visible & (x>=b.x_start) & (x<(b.x_start+b.x_len)) & (y>=b.y_start) & (y<(b.y_start+b.y_len))):
+                b.mouse_over=True
                 if (b.unique_list_start_point>=1) & (b.unique_list_start_point<=(b.unique_list_len-1)):
                     b.unique_list_start_point+=scroll_y
                     if b.unique_list_start_point<1:
@@ -256,8 +264,10 @@ class sales_trans(object):
         return unique_dict
 
 
-
-
+    def display_number_of_records(self,sales_df,queried_sales_df):
+       
+        position_text_in_active_window("Sales Transactions size="+str(sales_df.shape[0])+" rows",x=100,y=1000)
+        position_text_in_active_window("Queried Sales Transactions size="+str(queried_sales_df.shape[0])+" rows",x=100,y=970)
 
 
 
@@ -276,10 +286,13 @@ class sales_trans(object):
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 config = pyglet.gl.Config(double_buffer=True)      
-window = QueryWindow(1200,1200,resizable=False,caption="Salestrans Queries",config=config,visible=True)
+window = QueryWindow(1500,1200,resizable=False,caption="Salestrans Queries",config=config,visible=True)
 #canvas={}
 #batch = pyglet.graphics.Batch()
-
+os.chdir("/home/tonedogga/Documents/python_dev")
+st=sales_trans()
+sales_df=st.load_pickle("./dash2_saves/","raw_savefile.pkl")
+queried_sales_df=sales_df.copy()
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # define and make live areas on window as pushable buttons
 
@@ -290,9 +303,10 @@ class query_window_object(object):
 
 
 class button_object(query_window_object):
-    def __init__(self,*,name,x_start,x_len,y_start,y_len,colour,pushed_colour,title,active,visible,movable,floating,pushed,toggle,unique_list):
+    def __init__(self,*,name,sub_name,x_start,x_len,y_start,y_len,colour,pushed_colour,title,sub_title,active,visible,movable,floating,pushed,toggle,unique_list):
   #      super().__init__()
         self.name=name
+        self.sub_name=""
         self.x_start=x_start
         self.x_len=x_len
         self.y_start=y_start
@@ -302,10 +316,12 @@ class button_object(query_window_object):
         self.pushed_colour=pushed_colour
         self.button_type=0
         self.title=title
+        self.sub_title=sub_title
         self.active=active
         self.visible=visible
         self.movable=movable
         self.floating=floating
+        self.mouse_over=False
         self.pushed=pushed
         self.toggle=toggle
         self.unique_list=unique_list
@@ -335,25 +351,41 @@ class buttons(object):
          for index, row in bdf.iterrows():
              colour=(int(row['colour1']),int(row['colour2']),int(row['colour3']))
              pushed_colour=(int(row['pcolour1']),int(row['pcolour2']),int(row['pcolour3']))
-             button=button_object(name=str(row['name']),x_start=int(row['x_start']),x_len=int(row['x_len']),y_start=int(row['y_start']),y_len=int(row['y_len']),colour=colour,pushed_colour=pushed_colour,title=str(row['title']),active=bool(row['active']),visible=bool(row['visible']),movable=bool(row['movable']),floating=False,pushed=bool(row['pushed']),toggle=bool(row['toggle']),unique_list=[])    
+             button=button_object(name=str(row['name']),sub_name="",x_start=int(row['x_start']),x_len=int(row['x_len']),y_start=int(row['y_start']),y_len=int(row['y_len']),colour=colour,pushed_colour=pushed_colour,title=str(row['title']),sub_title=str(""),active=bool(row['active']),visible=bool(row['visible']),movable=bool(row['movable']),floating=False,pushed=bool(row['pushed']),toggle=bool(row['toggle']),unique_list=[])    
              BUTTON_LIST.append(button)
              
-         x_start=0   
-         y_start=990
-         i=0
+         x_start=30   
+         y_start=700
+    #     i=0
          for fields,values in sales_df_dict.items():
              if values:
                  colour=(200,200,200)   #int(row['colour1']),int(row['colour2']),int(row['colour3']))
                  pushed_colour=(100,100,100)  #int(row['pcolour1']),int(row['pcolour2']),int(row['pcolour3']))
-                 button=button_object(name=str(fields),x_start=x_start,x_len=10,y_start=y_start,y_len=30,colour=colour,pushed_colour=pushed_colour,title=str(fields),active=True,visible=True,movable=False,floating=False,pushed=False,toggle=True,unique_list=unique_dict[fields])    
-                 x_start+=70
-                 if i%2:
-                    y_start+=10
-                 else:   
-                    y_start-=10
+                 button=button_object(name=str(fields),sub_name="AND",x_start=x_start,x_len=27,y_start=y_start+20,y_len=15,colour=colour,pushed_colour=pushed_colour,title=str(fields),sub_title="AND",active=True,visible=True,movable=False,floating=False,pushed=False,toggle=True,unique_list=unique_dict[fields])    
                  button.button_type=1   
                  BUTTON_LIST.append(button)
-                 i+=1
+       
+                 x_start+=40
+                 colour=(200,0,200)   #int(row['colour1']),int(row['colour2']),int(row['colour3']))
+                 pushed_colour=(100,100,100)  #int(row['pcolour1']),int(row['pcolour2']),int(row['pcolour3']))
+                 button=button_object(name=str(fields),sub_name="OR",x_start=x_start,x_len=27,y_start=y_start+20,y_len=15,colour=colour,pushed_colour=pushed_colour,title="",sub_title="OR",active=True,visible=True,movable=False,floating=False,pushed=False,toggle=True,unique_list=unique_dict[fields])    
+                 button.button_type=1   
+                 BUTTON_LIST.append(button)
+                 
+                 x_start+=40
+                 colour=(0,0,200)   #int(row['colour1']),int(row['colour2']),int(row['colour3']))
+                 pushed_colour=(100,100,100)  #int(row['pcolour1']),int(row['pcolour2']),int(row['pcolour3']))
+                 button=button_object(name=str(fields),sub_name="NOT",x_start=x_start,x_len=27,y_start=y_start+20,y_len=15,colour=colour,pushed_colour=pushed_colour,title="",sub_title="NOT",active=True,visible=True,movable=False,floating=False,pushed=False,toggle=True,unique_list=unique_dict[fields])    
+                 button.button_type=1   
+                 BUTTON_LIST.append(button)
+    
+                 x_start+=90
+            #     if i%2:
+            #        y_start+=10
+            #     else:   
+            #        y_start-=10
+
+            #     i+=1
                  
          self._resize_buttons(window.x_max,window.y_max)
     
@@ -404,27 +436,16 @@ def check_for_collisions(x,y):
     # button list is global
 #    over_button=[]
     batch = pyglet.graphics.Batch()
-#    batch=p_map(_check_button,BUTTON_LIST)
     for b in BUTTON_LIST:
         #b.active
         if (b.visible & b.active & (x>=b.x_start) & (x<(b.x_start+b.x_len)) & (y>=b.y_start) & (y<(b.y_start+b.y_len))):
-#            position_text_in_active_window(b.name+"\nActive="+str(b.active)+"\nVisible="+str(b.visible)+" Pushed="+str(b.pushed)+" list="+str(b.unique_list),x=x,y=y)
             if MY_DEBUG: 
                 position_text_in_active_window(b.name+"\nActive="+str(b.active)+"\nVisible="+str(b.visible)+" Pushed="+str(b.pushed)+" Movable="+str(b.movable)+" Floating="+str(b.floating),x=x,y=y)
-            position_list_in_active_window(x=x,y=y-30,input_list=b.unique_list[b.unique_list_start_point:b.unique_list_start_point+b.unique_list_display_length])
+            position_list_in_active_window(x=x,y=y-65,input_list=b.unique_list[b.unique_list_start_point:b.unique_list_start_point+b.unique_list_display_length])
             position_list_in_active_window(x=x,y=y+len(b.selected_value_list)*20,input_list=b.selected_value_list)
-        #      over_button.append(True)
-      #  else:
-      #      over_button.append(False)
-        #       print("button cooll",b.name,x,y)
+         
+    st.display_number_of_records(sales_df,queried_sales_df)    
     batch.draw() 
-  #  return batch    
-  #  return any(over_button),batch    
-    
-#def _check_button(b):
-#    if (b.visible & b.active & (x>=b.x_start) & (x<(b.x_start+b.x_len)) & (y>=b.y_start) & (y<(b.y_start+b.y_len))):
-#         position_text_in_active_window(b.name+"\nActive="+str(b.active)+"\nVisible="+str(b.visible)+" Pushed="+str(b.pushed)+" len="+str(b.unique_list_len),x=x,y=y)
-#    return batch
 
 
         
@@ -433,8 +454,8 @@ def draw_buttons():
     for b in BUTTON_LIST:
         if b.visible:
             batch=_draw_button(b,batch)
-        if b.visible & b.active:    
-            position_list_in_active_window(x=b.x_start,y=b.y_start+40,input_list=b.selected_value_list)
+       # if b.visible & b.active:    
+       #     position_list_in_active_window(x=b.x_start,y=b.y_start+40,input_list=b.selected_value_list)
     batch.draw()        
     #return batch    
 
@@ -446,10 +467,11 @@ def draw_buttons():
        
 def _draw_button(button,batch):       
     if button.active:
-        position_text_in_active_window(button.title,x=button.x_start+10,y=button.y_start+button.y_len-20)
-        
+        position_text_in_active_window(str(len(button.selected_value_list)-1),x=button.x_start,y=button.y_start+20)
+        position_text_in_active_window(button.title,x=button.x_start,y=button.y_start-20)
+        position_text_in_active_window(button.sub_title,x=button.x_start,y=button.y_start-35)        
         if button.button_type==1:
-            _draw_rect(button.x_start,button.y_start-10,button.x_len+55,button.y_len-10,colour=(255,0,0),batch=batch)
+            _draw_rect(button.x_start,button.y_start-60,button.x_len+10,button.y_len,colour=(255,0,0),batch=batch)
             
         if not button.pushed:
             _draw_solid_rect(button.x_start,button.y_start,button.x_len,button.y_len,colour=button.colour,batch=batch)
@@ -534,32 +556,6 @@ def _draw_solid_rect(x,y,x_len,y_len,colour,batch):
  
     
     
-# def draw_pointers(x,y):
-#     batch = pyglet.graphics.Batch()
-#     batch.add(2, pyglet.gl.GL_LINES, None,
-#                              ('v2i', (0, 0, x, y)),             
-#                              ('c3B', (255, 0, 0, 255, 255, 255))
-#     )
-    
-#     batch.add(2, pyglet.gl.GL_LINES, None,
-#                              ('v2i', (0, window.get_size()[1], x, y)),             
-#                              ('c3B', (0, 255, 0, 255, 255, 255))
-#     )
-    
-#     batch.add(2, pyglet.gl.GL_LINES, None,
-#                              ('v2i', (window.get_size()[0],0, x, y)),             
-#                              ('c3B', (0, 0, 255, 255, 255, 255))
-#     )
-
-#     batch.add(2, pyglet.gl.GL_LINES, None,
-#                              ('v2i', (window.get_size()[0], window.get_size()[1], x, y)),             
-#                              ('c3B', (60, 70, 20, 255, 255, 255))
-#     )
-#     batch.draw() 
-#    # return batch 
-    
-    
-    
 def draw_pointers(x,y,x_max,y_max):
     batch = pyglet.graphics.Batch()
  #   batch.add(2, pyglet.gl.GL_LINES, None,
@@ -635,27 +631,19 @@ def move_and_draw_pointer(x,y,dx,dy):
         if MY_DEBUG:
             draw_pointers(x,y,window.x_max,window.y_max)
         check_for_collisions(x,y)
+ 
 #          position_list_in_active_window(x=x,y=y,input_list=b.unique_list[b.unique_list_start_point:])
 
         clock.tick()
         if MY_DEBUG:
             position_text_in_active_window("fps="+str(int(clock.get_fps()))+" size="+str(window.get_size())+" loc="+str(window.get_location())+" Pos=("+str(x)+","+str(y)+") dx=("+str(dx)+","+str(dy)+")",x=0,y=5)
-    #    batch=draw_buttons_to_batch(x_max=window.x_max,y_max=window.y_max,batch=batch)
-    #    window.clear()
-     #   batch.draw() 
-    #    for index in list(canvas):
-    #        canvas[index].delete()
-    #        del(canvas[index])
-
-
+ 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
 
 def main():
-    os.chdir("/home/tonedogga/Documents/python_dev")
-    st=sales_trans()
-    sales_df=st.load_pickle("./dash2_saves/","raw_savefile.pkl")
+
    # print(sales_df.info(),sales_df.shape)
     unique_dict=st.find_uniques(sales_df)
   #  print("unuqie dict",unique_dict)
@@ -663,11 +651,6 @@ def main():
   
     b=buttons()
     BUTTON_LIST=b.setup_buttons('./dash2/buttons.csv',st.sales_df_dict,unique_dict)
-   # print("button_list length=",len(BUTTON_LIST))
-  # batch = pyglet.graphics.Batch()
-  #  batch=display_buttons(batch)
-  #  window.clear()
-  #  batch.draw()
 
     pyglet.app.run()
     window.close()
