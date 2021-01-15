@@ -334,7 +334,15 @@ def main():
        dash.price.report(aug_sales_df,promo_pivot_df,plot_output_dir)
        
     sys.stdout=original_stdout
- 
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# open interactive query window
+
+
+    dash.interactive.interactive_query_window()    
+
+
+
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    # sales trans data    
    
@@ -394,7 +402,7 @@ def main():
         dash.scan.plot_scan_monthly_dict(scan_monthly_dict,plot_output_dir)
    
  
-    dash.sales.predict.predict_order(scan_df,aug_sales_df,latest_date,plot_output_dir)
+   # dash.sales.predict.predict_order(scan_df,aug_sales_df,latest_date,plot_output_dir)
     dash.predict.predict_majors_orders(plot_output_dir) 
     
     final_schedule,saved_start_schedule_date=dash.scheduler.visualise_schedule(start_schedule_day_offset,start_schedule_date,plot_output_dir)
