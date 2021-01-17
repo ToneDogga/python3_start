@@ -16,6 +16,7 @@ from pathlib import Path
 from p_tqdm import p_map,p_umap
 
 import datetime as dt
+import calendar
 
 import dash2_dict as dd2
 
@@ -522,6 +523,14 @@ class sales_trans(object):
                 self.pareto_customer_sprite.scale_x=0.39
                 self.pareto_customer_sprite.opacity=200
                 print("plotting...\r",end="\r",flush=True)
+                self.plot_yoy_dollars(qdf,str(query_dict))
+                self.yoy_dollars_sprite = pyglet.sprite.Sprite(pyglet.image.load('./yoy_dollars_chart.png'))
+                self.yoy_dollars_sprite.x=730
+                self.yoy_dollars_sprite.y=20
+                self.yoy_dollars_sprite.scale_y=0.41
+                self.yoy_dollars_sprite.scale_x=0.41
+                self.yoy_dollars_sprite.opacity=200
+                print("plotting....\r",end="\r",flush=True)
                 self.plot_pareto_product(qdf.copy(),str(query_dict))
                 self.pareto_product_sprite = pyglet.sprite.Sprite(pyglet.image.load('./pareto_product_chart.png'))
                 self.pareto_product_sprite.x=10
@@ -529,7 +538,7 @@ class sales_trans(object):
                 self.pareto_product_sprite.scale_y=0.43
                 self.pareto_product_sprite.scale_x=0.39
                 self.pareto_product_sprite.opacity=200
-                print("plotting.... complete")
+                print("plotting..... complete. Waiting.")
 
             #    self.quick_mat(query_df_list,x,y)  
         #    else:
@@ -568,13 +577,20 @@ class sales_trans(object):
          #   self.sprite.x=x
           #  self.sprite.y=y-500
        #     batch = pyglet.graphics.Batch()
-            self.mat_sprite.draw()
+         #   self.mat_sprite.draw()
+         #   self.yoy_dollars_sprite.draw()
             for c in BUTTON_LIST:
                 if c.name=="pareto_type":
                     if c.pushed:   
                         self.pareto_product_sprite.draw()
                     else:
                         self.pareto_customer_sprite.draw()
+                if c.name=="dollar_report_type":
+                    if c.pushed:   
+                        self.yoy_dollars_sprite.draw()
+                    else:
+                        self.mat_sprite.draw()
+
                         
          #       if c.name=="pareto_mp4":
          #           if c.pushed:
@@ -1022,6 +1038,91 @@ class sales_trans(object):
 
 
 
+    def plot_yoy_dollars(self,qdf,query_name):
+   #     print("yoy dollars plot type=",mat,latest_date.strftime('%d/%m/%Y'),output_dir)
+   #     for k,v in df_dict.items():
+   #         cust_df=self.preprocess(v,mat)
+        cust_df=qdf.resample('W-WED', label='left', loffset=pd.DateOffset(days=-3)).sum().round(0)
+        
+        
+  #          loffset = '7D'
+  #          weekly_sdf=sdf.resample('W-TUE', label='left').sum().round(0)   
+  #          weekly_sdf.index = weekly_sdf.index + to_offset(loffset) 
+ 
+        
+        
+
+      #  print("end yoy customer preprocess",k)
+        left_y_axis_title="$/week"
+    
+            
+        year_list = cust_df.index.year.to_list()
+        week_list = cust_df.index.week.to_list()
+        month_list = cust_df.index.month.to_list()
+        
+        cust_df['year'] = year_list   #prod_sales.index.year
+        cust_df['week'] = week_list   #prod_sales.index.week
+        cust_df['monthno']=month_list
+        cust_df.reset_index(drop=True,inplace=True)
+        cust_df.set_index('week',inplace=True)
+        
+        week_freq=4.3
+        #print("prod sales3=\n",prod_sales)
+        weekno_list=[str(y)+"-W"+str(w) for y,w in zip(year_list,week_list)]
+        #print("weekno list=",weekno_list,len(weekno_list))
+        cust_df['weekno']=weekno_list
+        yest= [dt.datetime.strptime(str(w) + '-3', "%Y-W%W-%w") for w in weekno_list]    #wednesday
+        
+        #print("yest=",yest)
+        cust_df['yest']=yest
+        improved_labels = ['{}'.format(calendar.month_abbr[int(m)]) for m in list(np.arange(0,13))]
+        fig, ax = pyplot.subplots()
+        fig.patch.set_facecolor('None')
+        fig.autofmt_xdate()
+      #  ax.ticklabel_format(style='plain')
+        styles=["y-","r:","g:","m:","c:"]
+        new_years=list(set(cust_df['year'].to_list()))
+        #print("years=",years,"weels=",new_years)
+        for y,i in zip(new_years[::-1],np.arange(0,len(new_years))):
+            test_df=cust_df[cust_df['year']==y]
+          #  print(y,test_df)
+            fig=test_df[['salesval']].plot(use_index=True,grid=True,style=styles[i],lw=2,xlabel="",ylabel=left_y_axis_title,ax=ax,fontsize=8)
+        
+        ax.patch.set_facecolor('None')   
+        
+        ax.legend(new_years[::-1],fontsize=8,fancybox=True, framealpha=0.1,labelcolor='white')   #9
+        
+      #  leg = ax.get_legend()
+      #  for i in len(leg.legendHandles):
+       #     leg.legendHandles[i].set_color('white')
+
+        
+        ax.xaxis.set_major_locator(ticker.MultipleLocator(week_freq))   #,byweekday=mdates.SU)
+#            ax.set_xticklabels([""]+improved_labels,fontsize=8)
+        ax.set_xticklabels([""]+improved_labels,fontsize=7)
+
+        ax.yaxis.set_major_formatter(StrMethodFormatter('${x:,.0f}')) # 0 decimal places
+        ax.xaxis.set_tick_params(labelcolor='white')
+        ax.yaxis.set_tick_params(labelcolor='white')
+        ax.set_title(query_name[:105]+"\n"+query_name[105:205]+"\n"+query_name[205:300]+"Year on Year $ sales / week",fontsize= 7,color='white')
+  
+     #   ax.yaxis.set_major_formatter('${x:1.0f}')
+        ax.yaxis.set_tick_params(which='major', labelcolor='white',
+                     labelleft=True, labelright=False)
+
+        self._save_fig("yoy_dollars_chart","./",transparent=True,facecolor=fig.get_facecolor())
+        self._save_fig("yoy_dollars_chart_normal","./",transparent=False,facecolor='black') 
+        plt.close()
+        return   
+ 
+
+
+
+
+
+
+
+
 
 
 
@@ -1289,13 +1390,13 @@ class interactive_driver(object):
                    #     move_and_draw_pointer(x,y)
                         
         elif keys[key.UP]:
-              _list_move(-1,x,y)
+              self._list_move(-1,x,y)
         elif keys[key.DOWN]:
-              _list_move(1,x,y)
+              self._list_move(1,x,y)
         elif keys[key.PAGEUP]:
-              _list_move(-window.list_page_move_length,x,y)
+              self._list_move(-window.list_page_move_length,x,y)
         elif keys[key.PAGEDOWN]:
-              _list_move(window.list_page_move_length,x,y)  
+              self._list_move(window.list_page_move_length,x,y)  
         elif keys[key.ESCAPE]:
              window.close()
              return
@@ -1323,8 +1424,8 @@ class interactive_driver(object):
             if (b.visible & b.active & (x>=b.x_start) & (x<(b.x_start+b.x_len)) & (y>=b.y_start) & (y<(b.y_start+b.y_len))):
                 if MY_DEBUG: 
                     self.position_text_in_active_window(b.name+"\nActive="+str(b.active)+"\nVisible="+str(b.visible)+" Pushed="+str(b.pushed)+" Movable="+str(b.movable)+" Floating="+str(b.floating),x=x,y=y)
-                self.position_list_in_active_window(x=x-10,y=y-65,input_list=b.unique_list[b.unique_list_start_point:b.unique_list_start_point+b.unique_list_display_length],selection_list_input=True)
-                self.position_list_in_active_window(x=x-10,y=y+len(b.selected_value_list)*20+10,input_list=b.selected_value_list,selection_list_input=False)
+                self.position_list_in_active_window(x=b.x_start,y=b.y_start-59,input_list=b.unique_list[b.unique_list_start_point:b.unique_list_start_point+b.unique_list_display_length],selection_list_input=True)
+                self.position_list_in_active_window(x=x-10,y=y+len(b.selected_value_list)*20+7,input_list=b.selected_value_list,selection_list_input=False)
             
           
         batch.draw() 
